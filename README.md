@@ -1,110 +1,437 @@
-# ATLAS - Adaptive Task and Learning Assistant System v5.0
-## MCP Dynamic TODO Edition
+# ATLAS v5.0 - Інтелектуальна Багатоагентна Система
 
-**ATLAS v5.0** - система оркестрації з MCP Dynamic TODO workflow, українською TTS/STT, та 3D GLB інтерфейсом.
+> **Версія:** 5.0.0 (Pure MCP Mode)  
+> **Останнє оновлення:** 19 жовтня 2025  
+> **Статус:** Production Ready
 
-## 🎉 Нові можливості v5.0
+**ATLAS v5.0** - інтелектуальна багатоагентна система з динамічним MCP TODO workflow, українською TTS/STT, та 3D візуалізацією. Система працює в Pure MCP режимі без fallback механізмів.
 
-- **🎯 MCP Dynamic TODO Workflow** - єдина система виконання завдань
-- **🔄 Прямі MCP сервери** - filesystem, playwright, shell, applescript
-- **📦 Спрощена архітектура** - видалено Goose fallback
-- **🧹 Чистий код** - 53% менше коду в executor (1428 → 675 lines)
-- **⚡ Швидша робота** - без WebSocket overhead
-- **🔧 Item-by-item виконання** - гранулярний контроль та recovery
+## 🎯 Основні можливості
+
+- **🤖 3 AI Агенти** - Atlas, Tetyana, Grisha з розподіленими ролями
+- **🔄 MCP Dynamic TODO** - адаптивне планування та виконання завдань
+- **🛠️ 6 MCP Серверів** - filesystem, playwright, shell, applescript, git, memory
+- **🗣️ Українська TTS** - синтез мовлення з Metal GPU acceleration
+- **🎙️ Whisper STT** - розпізнавання мовлення (Large-v3, Metal)
+- **🌐 Web Interface** - 3D візуалізація та чат-інтерфейс
+- **⚡ DI Container** - модульна архітектура з lifecycle management
+
+## 📋 Зміст
+
+- [Системні вимоги](#системні-вимоги)
+- [Швидкий старт](#швидкий-старт)
+- [Архітектура системи](#архітектура-системи)
+- [Процес запуску](#процес-запуску)
+- [Компоненти системи](#компоненти-системи)
+- [MCP Workflow](#mcp-workflow)
+- [Конфігурація](#конфігурація)
+- [API та Інтеграція](#api-та-інтеграція)
+- [Моніторинг та логування](#моніторинг-та-логування)
+- [Структура проекту](#структура-проекту)
+
+---
 
 ## Системні вимоги
 
-- macOS (Apple Silicon або Intel)
-- Python 3.11+ (REQUIRED)
-- Node.js 16+
-- Metal GPU для Whisper та TTS (рекомендовано)
+### Обов'язкові
+- **macOS** (Apple Silicon рекомендовано для Metal GPU)
+- **Python 3.11+** - для TTS та Whisper сервісів
+- **Node.js 16+** - для Orchestrator
+- **npm** - для глобальних MCP пакетів
 
-## Основні можливості
+### Рекомендовані
+- **Metal GPU** - для прискорення TTS та Whisper
+- **8GB+ RAM** - для одночасної роботи всіх сервісів
+- **Mac Studio M1 Max** - оптимізовано для цієї конфігурації
 
-- **🤖 3 інтелектуальних агенти**: 
-  - **Atlas** - створює динамічні TODO плани
-  - **Тетяна** - виконує завдання через MCP tools
-  - **Гриша** - перевіряє виконання кожного пункту
-- **🔊 Реальний TTS** - українське озвучування з Metal acceleration
-- **🎙️ Голосове управління** - Whisper Large-v3 для розпізнавання мовлення
-- **🧬 GLB Living System** - жива 3D модель шолома
-- **📦 MCP Tools**: filesystem (14), playwright (32), shell (9), applescript (1), git (27), memory (9)
+## 🚀 Швидкий старт
 
-## 🛠️ Управління системою
-
-### Команди Make
+### Крок 1: Клонування репозиторію
 
 ```bash
-make help         # Показати всі команди
-make install      # Встановити залежності
-make setup        # Початкове налаштування
-make start        # Запустити систему
-make stop         # Зупинити систему
-make restart      # Перезапустити систему
-make status       # Перевірити статус
-make logs         # Переглядати логи
-make clean        # Очистити логи
-make test         # Запустити тести
+git clone <repository-url>
+cd atlas4
 ```
 
-### Універсальний скрипт управління
+### Крок 2: Налаштування середовища
 
 ```bash
-./restart_system.sh start    # Запустити систему
-./restart_system.sh stop     # Зупинити систему
-./restart_system.sh restart  # Перезапустити
-./restart_system.sh status   # Статус сервісів
-./restart_system.sh logs     # Переглядати логи
-./restart_system.sh clean    # Очистити логи
-./restart_system.sh help     # Довідка
+# Копіювати приклад конфігурації
+cp .env.example .env
+
+# Відредагувати .env файл (встановити LLM_API_ENDPOINT)
+vim .env
 ```
 
-### Змінні середовища (.env)
-
-Скопіюйте `.env.example` до `.env` та налаштуйте:
+### Крок 3: Встановлення залежностей
 
 ```bash
-# === LLM API CONFIGURATION ===
-LLM_API_ENDPOINT=http://localhost:4000/v1/chat/completions
-LLM_API_FALLBACK_ENDPOINT=https://your-ngrok-url.ngrok-free.app/v1/chat/completions
-LLM_API_USE_FALLBACK=true
+# Автоматична установка
+./setup-macos.sh
 
-# === AI BACKEND ===
-AI_BACKEND_MODE=mcp              # Pure MCP mode (v5.0)
+# Або вручну:
+npm install                          # Root dependencies
+cd orchestrator && npm install       # Orchestrator dependencies
+python3 -m venv .venv               # Python virtual environment
+source .venv/bin/activate
+pip install -r requirements.txt
 
-# === TTS & VOICE ===
-REAL_TTS_MODE=true
-TTS_DEVICE=mps                   # Metal GPU для Apple Silicon
-TTS_PORT=3001
-
-# === WHISPER ===
-WHISPER_BACKEND=cpp
-WHISPER_DEVICE=metal             # Metal GPU acceleration
-WHISPER_PORT=3002
-WHISPER_SAMPLE_RATE=48000        # High quality audio
-
-# === MAC STUDIO M1 MAX OPTIMIZATIONS ===
-USE_METAL_GPU=true
-OPTIMIZE_FOR_M1_MAX=true
-WHISPER_CPP_THREADS=10           # M1 Max performance cores
-WHISPER_CPP_NGL=20               # GPU layers
-
-# === PORTS ===
-ORCHESTRATOR_PORT=5101
-WEB_PORT=5001
-FRONTEND_PORT=5001
+# Глобальні MCP пакети
+npm install -g @modelcontextprotocol/server-filesystem
+npm install -g @executeautomation/playwright-mcp-server
+npm install -g super-shell-mcp
+npm install -g @peakmojo/applescript-mcp
+npm install -g @modelcontextprotocol/server-memory
 ```
 
-## 🏗️ Архітектура
+### Крок 4: Запуск системи
 
-### Основні компоненти (v5.0)
+```bash
+# Запуск всіх сервісів
+./restart_system.sh start
 
-- **Node.js Orchestrator** (Port 5101) - Координація агентів та MCP workflow
-- **Python Frontend** (Port 5001) - Веб-інтерфейс Flask
-- **TTS Service** (Port 3001) - Український Text-to-Speech сервіс (Metal GPU)
-- **Whisper Service** (Port 3002) - Розпізнавання мовлення (Metal GPU)
-- **LLM API** (Port 4000) - Зовнішній API для моделей (localhost або ngrok)
-- **MCP Servers** - Direct MCP tools (filesystem, playwright, shell, applescript, git, memory)
+# Або через npm
+npm run start
+```
+
+### Крок 5: Доступ до інтерфейсу
+
+- **Web Interface**: http://localhost:5001
+- **Orchestrator API**: http://localhost:5101
+- **Health Check**: http://localhost:5101/health
+
+### Управління системою
+
+```bash
+./restart_system.sh status     # Перевірити статус всіх сервісів
+./restart_system.sh stop       # Зупинити систему
+./restart_system.sh restart    # Перезапустити систему
+./restart_system.sh logs       # Переглянути логи
+./restart_system.sh diagnose   # Діагностика системи
+./restart_system.sh clean      # Очистити логи
+```
+
+---
+
+## 🏗️ Архітектура системи
+
+### Високорівнева архітектура
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    USER (Browser/Voice)                      │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Python Frontend (Flask) :5001                   │
+│  • Static files serving                                      │
+│  • 3D GLB visualization                                      │
+│  • WebSocket proxy                                           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTP/WebSocket
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Node.js Orchestrator (Express) :5101                 │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  DI Container (Dependency Injection)                  │  │
+│  │  • Service Registry                                   │  │
+│  │  • Lifecycle Management (onInit/onStart/onStop)      │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Core Services                                        │  │
+│  │  • Logger          • Config         • Telemetry      │  │
+│  │  • Error Handler   • Sessions       • Network Config │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  MCP Workflow Services                                │  │
+│  │  • MCPManager        • MCPTodoManager                 │  │
+│  │  • TTSSyncManager    • VisionAnalysis                 │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Stage Processors (9 processors)                      │  │
+│  │  • ModeSelection     • TodoPlanning                   │  │
+│  │  • ServerSelection   • PlanTools                      │  │
+│  │  • ExecuteTools      • VerifyItem                     │  │
+│  │  • AdjustTodo        • ReplanTodo                     │  │
+│  │  • FinalSummary                                       │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  API Routes                                           │  │
+│  │  • /chat/stream      • /health                        │  │
+│  │  • /session/*        • /tts/*                         │  │
+│  └───────────────────────────────────────────────────────┘  │
+└──────────┬────────────┬────────────┬────────────┬──────────┘
+           │            │            │            │
+           ▼            ▼            ▼            ▼
+┌──────────────┐ ┌─────────┐ ┌─────────┐ ┌──────────────┐
+│ LLM API      │ │ TTS     │ │ Whisper │ │ MCP Servers  │
+│ :4000        │ │ :3001   │ │ :3002   │ │ (stdio)      │
+│              │ │         │ │         │ │              │
+│ • OpenRouter │ │ • Metal │ │ • Metal │ │ • filesystem │
+│ • Local LLM  │ │ • GPU   │ │ • GPU   │ │ • playwright │
+│              │ │         │ │         │ │ • shell      │
+│              │ │         │ │         │ │ • applescript│
+│              │ │         │ │         │ │ • git        │
+│              │ │         │ │         │ │ • memory     │
+└──────────────┘ └─────────┘ └─────────┘ └──────────────┘
+```
+
+### Трьохагентна система
+
+**ATLAS** (Координатор)
+- Аналізує запити користувача
+- Створює динамічні TODO плани
+- Коригує плани при невдачах
+- Приймає рішення про replan/skip/abort
+
+**TETYANA** (Виконавець)
+- Підбирає необхідні MCP сервери
+- Планує tool_calls для кожного TODO пункту
+- Виконує tools через MCP protocol
+- Робить screenshots та adjustments
+
+**GRISHA** (Верифікатор)
+- Перевіряє виконання кожного TODO item
+- Використовує vision models для screenshot аналізу
+- Надає детальні звіти про успіх/невдачу
+- Пропонує evidence-based рекомендації
+
+---
+
+## ⚙️ Процес запуску
+
+### Що відбувається при `./restart_system.sh start`?
+
+1. **Завантаження змінних середовища** (.env файл)
+2. **Ініціалізація директорій** (logs/, archive/)
+3. **Запуск TTS Service** (Python, port 3001)
+   - Завантаження ukrainian-tts моделей
+   - Ініціалізація Metal GPU (MPS)
+   - Запуск Flask сервера
+4. **Запуск Whisper Service** (Python, port 3002)
+   - Завантаження whisper.cpp binary
+   - Ініціалізація Large-v3 моделі
+   - Metal GPU acceleration (20+ layers)
+5. **Запуск Orchestrator** (Node.js, port 5101)
+   - DI Container initialization
+   - Реєстрація всіх сервісів
+   - Запуск 6 MCP серверів (stdio)
+   - Lifecycle hooks (onInit → onStart)
+6. **Запуск Frontend** (Python Flask, port 5001)
+   - Serving static files
+   - 3D GLB model loading
+   - WebSocket proxy setup
+7. **Запуск Recovery Bridge** (Python, port 5102)
+8. **Health Check** - перевірка всіх сервісів
+
+### Послідовність ініціалізації MCP Servers
+
+```javascript
+// orchestrator/ai/mcp-manager.js
+await mcpManager.initialize();
+  → spawn('npx', ['-y', '@modelcontextprotocol/server-filesystem'])
+  → spawn('npx', ['-y', '@executeautomation/playwright-mcp-server'])
+  → spawn('npx', ['-y', 'super-shell-mcp'])
+  → spawn('npx', ['-y', '@peakmojo/applescript-mcp'])
+  → spawn('npx', ['-y', '@modelcontextprotocol/server-memory'])
+  
+// Для кожного сервера:
+1. Handshake (initialize message)
+2. Wait for capabilities response
+3. Request tools/list
+4. Store tools in cache
+```
+
+---
+
+## 🔄 MCP Workflow
+
+### Dynamic TODO Execution Flow
+
+```
+User Request → Mode Selection (Stage 0)
+                    ↓
+            [CHAT MODE]  or  [TASK MODE]
+                              ↓
+                    Atlas TODO Planning (Stage 1-MCP)
+                    ├─ Complexity: 1-10
+                    ├─ Mode: standard/extended
+                    └─ Items: [{id, action, tools, ...}]
+                              ↓
+              ┌───────────────┴───────────────┐
+              │   Item-by-Item Execution      │
+              │   (for each TODO item)        │
+              └───────────────┬───────────────┘
+                              ↓
+           Server Selection (Stage 2.0-MCP)
+           ├─ Filter relevant MCP servers
+           └─ Optimize tool availability
+                              ↓
+          Tetyana Plan Tools (Stage 2.1-MCP)
+          ├─ Select tools from filtered servers
+          ├─ Generate tool_calls array
+          └─ Validation with retry (3 attempts)
+                              ↓
+        Tetyana Execute Tools (Stage 2.2-MCP)
+        ├─ Execute each tool via MCP protocol
+        ├─ Collect execution results
+        └─ Auto-correct common parameters
+                              ↓
+         Grisha Verify Item (Stage 2.3-MCP)
+         ├─ Take screenshot (if needed)
+         ├─ Vision analysis (copilot-gpt-4o)
+         ├─ Check success criteria
+         └─ Return verified: true/false
+                              ↓
+                 ┌────────────┴────────────┐
+                 │  Success?               │
+                 └──┬─────────────────┬────┘
+                YES │                 │ NO
+                    ↓                 ↓
+              Next Item      Atlas Adjust TODO (Stage 3-MCP)
+                             ├─ Strategy: retry/alternative/skip
+                             ├─ Update item parameters
+                             └─ Retry (max 3 attempts)
+                                      ↓
+                           Atlas Replan (Stage 3.5-MCP)
+                           ├─ Deep analysis of failure
+                           ├─ Decision: replan/skip/abort
+                           └─ Insert new items if needed
+                                      ↓
+                         ┌──────────────┴──────────────┐
+                         │  All Items Completed?       │
+                         └──┬──────────────────────┬───┘
+                        YES │                      │ NO
+                            ↓                      ↓
+                   Final Summary          Continue Loop
+                   (Stage 8-MCP)
+```
+
+### MCP Stage Processors
+
+| Stage | Processor | Agent | Responsibility |
+|-------|-----------|-------|----------------|
+| 0 | `ModeSelectionProcessor` | System | Chat vs Task classification |
+| 1-MCP | `AtlasTodoPlanningProcessor` | Atlas | Create dynamic TODO list |
+| 2.0-MCP | `ServerSelectionProcessor` | System | Filter relevant MCP servers |
+| 2.1-MCP | `TetyanaПlanToolsProcessor` | Tetyana | Plan tool_calls |
+| 2.2-MCP | `TetyanaExecuteToolsProcessor` | Tetyana | Execute tools via MCP |
+| 2.3-MCP | `GrishaVerifyItemProcessor` | Grisha | Verify item completion |
+| 3-MCP | `AtlasAdjustTodoProcessor` | Atlas | Adjust failed items |
+| 3.5-MCP | `AtlasReplanTodoProcessor` | Atlas | Deep analysis & replan |
+| 8-MCP | `McpFinalSummaryProcessor` | Atlas | Generate final summary |
+
+---
+
+## 🧩 Компоненти системи
+
+### Orchestrator Core
+
+**DI Container** (`orchestrator/core/di-container.js`)
+- Dependency Injection для всіх сервісів
+- Lifecycle management (onInit/onStart/onStop)
+- Singleton pattern для shared services
+- Circular dependency detection
+
+**Service Registry** (`orchestrator/core/service-registry.js`)
+```javascript
+// Реєстрація сервісів з пріоритетами
+registerCoreServices(container)      // priority: 100-85
+registerApiServices(container)       // priority: 60-50
+registerStateServices(container)     // priority: 70
+registerUtilityServices(container)   // priority: 45
+registerMCPWorkflowServices(container) // priority: 55-50
+registerMCPProcessors(container)     // priority: 45-40
+```
+
+**Application** (`orchestrator/core/application.js`)
+- Головний lifecycle manager
+- Express app setup
+- Routes configuration
+- Graceful shutdown
+
+### MCP Manager
+
+**MCPManager** (`orchestrator/ai/mcp-manager.js`)
+```javascript
+class MCPManager {
+  // Запуск MCP серверів через stdio
+  async initialize() {
+    for (const [name, config] of servers) {
+      const process = spawn(config.command, config.args);
+      const server = new MCPServer(name, config, process);
+      await server.initialize(); // handshake
+      await server.requestToolsList(); // get available tools
+    }
+  }
+  
+  // Виконання tool через MCP protocol
+  async executeTool(serverName, toolName, parameters) {
+    const server = this.servers.get(serverName);
+    return await server.call(toolName, parameters);
+  }
+}
+```
+
+**MCPTodoManager** (`orchestrator/workflow/mcp-todo-manager.js`)
+- Створення динамічних TODO списків
+- Item-by-item виконання
+- Retry logic з adaptive adjustments
+- TTS synchronization
+- WebSocket chat updates
+
+### Stage Processors
+
+Кожен processor відповідає за один етап workflow:
+
+```javascript
+// Приклад: TetyanaПlanToolsProcessor
+class TetyanaПlanToolsProcessor {
+  async process(item, todo, context) {
+    // 1. Get available tools from selected servers
+    const tools = mcpManager.getToolsFromServers(context.selectedServers);
+    
+    // 2. Call LLM to plan tool_calls
+    const plan = await this.callLLM({
+      systemPrompt: TETYANA_PLAN_TOOLS_PROMPT,
+      userMessage: { item, tools }
+    });
+    
+    // 3. Validate tool_calls
+    const validation = mcpManager.validateToolCalls(plan.tool_calls);
+    
+    // 4. Retry if invalid (max 3 attempts)
+    if (!validation.valid) {
+      return this.retryWithFeedback(validation.errors);
+    }
+    
+    return plan;
+  }
+}
+```
+
+### Services
+
+**TTS Service** (`ukrainian-tts/tts_server.py`)
+- Ukrainian-TTS модель (robinhad/ukrainian-tts)
+- 4 голоси: dmytro, tetiana, mykyta, lada
+- Metal GPU acceleration (MPS device)
+- Фільтрація фраз (phrase-filter)
+- FX presets для кожного агента
+
+**Whisper Service** (`services/whisper/whispercpp_service.py`)
+- Whisper.cpp Large-v3 модель
+- Metal GPU offloading (20+ layers)
+- WebM/Opus → WAV конвертація (PyAV)
+- Корекція активаційних слів "Атлас"
+- Initial prompt для контексту
+
+**Vision Analysis** (`orchestrator/services/vision-analysis-service.js`)
+- Copilot GPT-4o (primary, ~2s)
+- Atlas vision models (fallback)
+- Screenshot analysis для Grisha
+- Automatic provider selection
 
 ### Multi-Agent Framework (Pure MCP)
 
@@ -199,18 +526,174 @@ FRONTEND_PORT=5001
 
 Детальна інструкція: [`docs/CONVERSATION_MODE_QUICK_GUIDE.md`](docs/CONVERSATION_MODE_QUICK_GUIDE.md)
 
-### Конфігурація
+---
 
-Вся конфігурація системи централізована в `config/global-config.js`. Система підтримує:
+## ⚙️ Конфігурація
 
-- Конфігурацію агентів та їх ролей (`config/agents-config.js`)
-- Workflow параметри та таймаути (`config/workflow-config.js`)
-- API endpoints та мережеві налаштування (`config/api-config.js`)
-- TTS налаштування з підтримкою українських голосів
-- **AI Model конфігурація (NEW v4.0)** - централізоване управління моделями для system stages
-  - 58+ доступних моделей (OpenAI GPT-4/5, DeepSeek, Claude, Cohere)
-  - Різні моделі для різних типів завдань (classification, chat, analysis, tts_optimization)
-  - Детальна документація: [`docs/AI_MODEL_CONFIG_2025-10-10.md`](docs/AI_MODEL_CONFIG_2025-10-10.md)
+### Змінні середовища (.env)
+
+Вся конфігурація системи керується через `.env` файл. Скопіюйте `.env.example` до `.env` та налаштуйте:
+
+#### LLM API Configuration
+```bash
+# Основний API endpoint (localhost або ngrok)
+LLM_API_ENDPOINT=http://localhost:4000/v1/chat/completions
+
+# Fallback endpoint для віддаленого доступу
+LLM_API_FALLBACK_ENDPOINT=https://your-ngrok.ngrok-free.app/v1/chat/completions
+LLM_API_USE_FALLBACK=false
+
+# Timeout для API запитів (мс)
+LLM_API_TIMEOUT=60000
+```
+
+#### AI Backend & MCP Configuration
+```bash
+# Режим роботи (завжди 'mcp' в v5.0)
+AI_BACKEND_MODE=mcp
+
+# Максимальна кількість спроб виконання TODO item
+MCP_ITEM_MAX_ATTEMPTS=3
+
+# Timeout для MCP операцій
+MCP_TIMEOUT_MS=30000
+
+# Максимальна кількість спроб планування tools
+MCP_TOOL_PLANNING_MAX_ATTEMPTS=3
+```
+
+#### MCP Models (Per-Stage Configuration)
+```bash
+# Stage 0: Mode Selection (task vs chat)
+MCP_MODEL_MODE_SELECTION=atlas-ministral-3b
+MCP_TEMP_MODE_SELECTION=0.05
+
+# Stage 1: Atlas TODO Planning
+MCP_MODEL_TODO_PLANNING=copilot-gpt-4o
+MCP_TEMP_TODO_PLANNING=0.3
+
+# Stage 2.1: Tetyana Plan Tools
+MCP_MODEL_PLAN_TOOLS=copilot-gpt-4o
+MCP_TEMP_PLAN_TOOLS=0.1
+
+# Stage 2.3: Grisha Verify Item
+MCP_MODEL_VERIFY_ITEM=copilot-gpt-4o-mini
+MCP_TEMP_VERIFY_ITEM=0.15
+
+# Stage 3: Atlas Adjust TODO
+MCP_MODEL_ADJUST_TODO=copilot-gpt-4o-mini
+MCP_TEMP_ADJUST_TODO=0.2
+
+# Stage 8: Final Summary
+MCP_MODEL_FINAL_SUMMARY=atlas-ministral-3b
+MCP_TEMP_FINAL_SUMMARY=0.5
+```
+
+#### TTS Service
+```bash
+# Режим TTS (true = реальний синтез, false = mock)
+REAL_TTS_MODE=true
+
+# Пристрій для TTS (mps = Metal GPU, cpu = CPU)
+TTS_DEVICE=mps
+
+# Порт TTS сервісу
+TTS_PORT=3001
+
+# Голоси для агентів
+TTS_VOICE_ATLAS=dmytro
+TTS_VOICE_TETYANA=tetiana
+TTS_VOICE_GRISHA=mykyta
+```
+
+#### Whisper Service
+```bash
+# Backend для Whisper (cpp = whisper.cpp, python = faster-whisper)
+WHISPER_BACKEND=cpp
+
+# Пристрій (metal = Metal GPU, cpu = CPU)
+WHISPER_DEVICE=metal
+
+# Порт Whisper сервісу
+WHISPER_PORT=3002
+
+# Sample rate для аудіо
+WHISPER_SAMPLE_RATE=48000
+
+# Шлях до whisper.cpp binary
+WHISPER_CPP_BIN=/path/to/whisper-cli
+
+# Шлях до моделі
+WHISPER_CPP_MODEL=/path/to/ggml-large-v3.bin
+
+# Кількість threads
+WHISPER_CPP_THREADS=10
+
+# Кількість GPU layers (0 = CPU only)
+WHISPER_CPP_NGL=20
+
+# Початковий промпт для контексту
+WHISPER_CPP_INITIAL_PROMPT="Це українська мова з правильною орфографією..."
+```
+
+#### Mac Studio M1 Max Optimizations
+```bash
+# Увімкнути Metal GPU acceleration
+USE_METAL_GPU=true
+
+# Оптимізації для M1 Max
+OPTIMIZE_FOR_M1_MAX=true
+
+# Performance cores для Whisper
+WHISPER_CPP_THREADS=10
+
+# GPU layers для Metal
+WHISPER_CPP_NGL=20
+```
+
+#### Service Ports
+```bash
+# Orchestrator API
+ORCHESTRATOR_PORT=5101
+
+# Frontend Web Server
+WEB_PORT=5001
+FRONTEND_PORT=5001
+
+# TTS Service
+TTS_PORT=3001
+
+# Whisper Service
+WHISPER_PORT=3002
+
+# Recovery Bridge
+RECOVERY_BRIDGE_PORT=5102
+```
+
+### Конфігураційні файли
+
+**`config/global-config.js`** - Головна конфігурація (Single Source of Truth)
+- Агенти та їх ролі
+- Workflow параметри
+- AI моделі для кожного stage
+- Vision models configuration
+- MCP servers configuration
+- Retry policies
+
+**`config/agents-config.js`** - Конфігурація агентів
+- Atlas (Coordinator)
+- Tetyana (Executor)
+- Grisha (Verifier)
+
+**`config/workflow-config.js`** - Workflow параметри
+- Stages definitions
+- Transitions
+- Timeouts
+
+**`config/api-config.js`** - API endpoints
+- Network configuration
+- Service ports
+- Health check endpoints
 
 ## 📁 Структура проекту
 
@@ -243,25 +726,183 @@ atlas4/
 └── unused_files/              # 🗃️ Архів старих файлів
 ```
 
-### Ключові файли
+### Детальний опис директорій
 
-- `restart_system.sh` - Управління всією системою
-- `config/global-config.js` - Головна конфігурація (єдине джерело істини)
-- `config/agents-config.js` - Конфігурація агентів
-- `config/workflow-config.js` - Конфігурація workflow
-- `requirements.txt` - Python залежності
-- `orchestrator/server.js` - Координація агентів (модульна архітектура)
-- `web/atlas_server.py` - Веб-інтерфейс
-- `web/static/js/app-refactored.js` - Модульний фронтенд
-- `ukrainian-tts/tts_server.py` - TTS сервер
+**`orchestrator/`** - Node.js Orchestrator (Express + DI Container)
+```
+orchestrator/
+├── server.js                    # Точка входу
+├── core/
+│   ├── application.js          # Lifecycle manager
+│   ├── di-container.js         # Dependency Injection
+│   └── service-registry.js     # Реєстрація сервісів
+├── ai/
+│   ├── mcp-manager.js          # MCP серверів manager
+│   ├── llm-client.js           # LLM API client
+│   └── fallback-llm.js         # Fallback endpoints
+├── workflow/
+│   ├── mcp-todo-manager.js     # Dynamic TODO workflow
+│   └── processors/             # 9 stage processors
+├── api/routes/
+│   ├── chat.routes.js          # Chat endpoints
+│   └── web-integration.js      # Web integration
+├── services/
+│   ├── vision-analysis-service.js  # Vision models
+│   └── tts-sync-manager.js    # TTS synchronization
+└── utils/                      # Logger, telemetry, etc.
+```
 
-### Документація
+**`prompts/`** - Промпти агентів (17 файлів)
+```
+prompts/mcp/
+├── stage0_mode_selection.js           # Chat vs Task
+├── atlas_todo_planning_optimized.js   # TODO planning
+├── atlas_adjust_todo.js               # Adjustments
+├── atlas_replan_todo.js               # Replanning
+├── tetyana_plan_tools_*.js            # Tool planning (6 variants)
+├── grisha_verify_item_optimized.js    # Verification
+├── grisha_visual_verify_item.js       # Visual verification
+└── mcp_final_summary.js               # Final summary
+```
 
-Вся детальна документація знаходиться в папці [`docs/`](docs/):
-- Архітектура системи
-- Технічні специфікації  
-- Звіти про рефакторинг
-- Історія змін
+**`config/`** - Централізована конфігурація
+- `global-config.js` - Single Source of Truth (800+ рядків)
+- `agents-config.js` - 3 агенти з ролями та голосами
+- `workflow-config.js` - 9 stages з transitions
+- `api-config.js` - Network та service ports
+
+**`web/`** - Flask Frontend
+- `atlas_server.py` - Мінімальний Flask сервер
+- `static/` - 3D GLB модель, CSS, JavaScript
+- `templates/index.html` - Головна сторінка
+
+**`ukrainian-tts/`** - TTS система
+- `tts_server.py` - Flask TTS API
+- `vocoder/` - Ukrainian-TTS моделі
+- `fx_presets/` - FX налаштування для агентів
+
+**`services/whisper/`** - Whisper STT
+- `whispercpp_service.py` - Whisper.cpp wrapper
+- Metal GPU optimization
+
+---
+
+## 🌐 API та Інтеграція
+
+### Orchestrator API
+
+**Base URL:** `http://localhost:5101`
+
+**Ключові endpoints:**
+- `POST /chat/stream` - Обробка повідомлень (SSE)
+- `POST /session/pause` - Призупинити сесію
+- `POST /session/resume` - Відновити сесію
+- `GET /health` - Health check
+- `POST /tts/optimize` - Оптимізація TTS
+
+**WebSocket:** `ws://localhost:5101`
+- Events: `chat_update`, `agent_message`, `tts_start`, `workflow_stage`
+
+📄 **Повна документація:** [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+
+### TTS Service API
+
+**Base URL:** `http://localhost:3001`
+- `POST /synthesize` - Синтез мовлення (dmytro/tetiana/mykyta/lada)
+- `GET /health` - Health check
+
+### Whisper Service API
+
+**Base URL:** `http://localhost:3002`
+- `POST /transcribe` - Транскрибування аудіо
+- `POST /transcribe_blob` - Транскрибування blob
+- `GET /health` - Health check
+
+---
+
+## 🛠️ MCP Tools
+
+### 6 Active MCP Servers (92+ tools)
+
+1. **Filesystem** (14 tools) - read_file, write_file, list_directory, search_files...
+2. **Playwright** (32 tools) - navigate, click, screenshot, evaluate...
+3. **Shell** (9 tools) - execute, execute_async, get_status, list_processes...
+4. **AppleScript** (1 tool) - execute (macOS automation)
+5. **Memory** (9 tools) - create_entity, add_observation, search...
+6. **Git** (27 tools) - DISABLED (нестабільний)
+
+### Tool Selection Flow
+```
+User Request
+  ↓
+Stage 2.0: Server Selection (filter relevant servers)
+  ↓
+Stage 2.1: Tetyana Plan Tools (select specific tools)
+  ↓
+Stage 2.2: Tetyana Execute Tools (MCP protocol)
+  ↓
+Stage 2.3: Grisha Verify (check results)
+```
+
+📄 **Повна документація:** [`docs/MCP_TOOLS_COMPLETE.md`](docs/MCP_TOOLS_COMPLETE.md)
+
+---
+
+## 🧠 Промпти та AI Моделі
+
+### Система промптів (17 промптів)
+
+**Atlas (Coordinator):**
+- `atlas_todo_planning_optimized.js` - Створення динамічних TODO планів
+- `atlas_adjust_todo.js` - Корекція при невдачах
+- `atlas_replan_todo.js` - Глибокий аналіз та переплан
+
+**Tetyana (Executor):**
+- `tetyana_plan_tools_*.js` - Планування tool_calls (6 варіантів)
+- `tetyana_screenshot_and_adjust.js` - Screenshots та adjustments
+
+**Grisha (Verifier):**
+- `grisha_verify_item_optimized.js` - Верифікація виконання
+- `grisha_visual_verify_item.js` - Візуальна верифікація
+
+### AI Models Configuration
+
+| Stage | Model | Temperature | Purpose |
+|-------|-------|-------------|----------|
+| 0 (Mode Selection) | atlas-ministral-3b | 0.05 | Fast classification |
+| 1 (TODO Planning) | copilot-gpt-4o | 0.3 | Creative planning |
+| 2.1 (Plan Tools) | copilot-gpt-4o | 0.1 | Precise tool selection |
+| 2.3 (Verify) | copilot-gpt-4o-mini | 0.15 | Fast verification |
+| 3 (Adjust) | copilot-gpt-4o-mini | 0.2 | Quick adjustments |
+| 8 (Summary) | atlas-ministral-3b | 0.5 | Creative summary |
+
+**Vision Models:**
+- Primary: `copilot-gpt-4o` (GPT-4 Turbo with vision, ~2s)
+- Fallback: Atlas vision models
+
+**Доступні моделі:** 58+ (OpenAI, DeepSeek, Claude, Cohere, Mistral, Ollama)
+
+---
+
+## 📚 Документація
+
+### Основна документація
+- **README.md** (цей файл) - Повний огляд системи
+
+### Детальна документація
+
+**Архітектура та Workflow:**
+- [`docs/MCP_DYNAMIC_TODO_WORKFLOW_SYSTEM.md`](docs/MCP_DYNAMIC_TODO_WORKFLOW_SYSTEM.md) - Детальний опис MCP workflow
+- [`docs/MCP_SERVERS_REFERENCE.md`](docs/MCP_SERVERS_REFERENCE.md) - Референс MCP серверів
+- [`docs/README.md`](docs/README.md) - Індекс документації
+
+**API та Tools:**
+- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) - Повний API reference
+- [`docs/MCP_TOOLS_COMPLETE.md`](docs/MCP_TOOLS_COMPLETE.md) - Всі MCP tools з прикладами
+
+**Архівна документація:**
+- `archive/docs-old/` - 260+ MD файлів з історії розробки v4.0
+- Fixes, refactorings, testing reports
 
 ## 📊 Моніторинг та діагностика
 

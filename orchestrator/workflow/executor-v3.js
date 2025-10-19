@@ -4,167 +4,9 @@
  */
 
 import GlobalConfig from '../../config/global-config.js';
-import { logMessage, generateMessageId } from '../utils/helpers.js';
-import { sanitizeAgentMessage, sanitizeContentForUser } from '../utils/sanitizer.js';
-
 // Centralised modules
 import logger from '../utils/logger.js';
 import telemetry from '../utils/telemetry.js';
-import errorHandler from '../errors/error-handler.js';
-import pauseState from '../state/pause-state.js';
-
-// Helper function for Ukrainian plurals
-function getPluralForm(count, one, few, many) {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-  return many;
-}
-
-// MCP Stage Processors
-import {
-  ModeSelectionProcessor,
-  AtlasTodoPlanningProcessor,
-  TetyanaПlanToolsProcessor,
-  TetyanaExecuteToolsProcessor,
-  GrishaVerifyItemProcessor,
-  AtlasAdjustTodoProcessor,
-  AtlasReplanTodoProcessor,
-  McpFinalSummaryProcessor
-} from './stages/index.js';
-
-// Circuit breaker for MCP workflow failures
-class CircuitBreaker {
-  constructor(threshold = 3, resetTimeout = 60000) {
-    this.failureCount = 0;
-    this.threshold = threshold;
-    this.resetTimeout = resetTimeout;
-    this.state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
-    this.lastFailureTime = null;
-  }
-
-  recordSuccess() {
-    this.failureCount = 0;
-    this.state = 'CLOSED';
-  }
-
-  recordFailure() {
-    this.failureCount++;
-    this.lastFailureTime = Date.now();
-
-    if (this.failureCount >= this.threshold) {
-      this.state = 'OPEN';
-      logger.warn('circuit-breaker', `Circuit breaker OPEN after ${this.failureCount} failures`);
-
-      // Auto-reset after timeout
-      setTimeout(() => {
-        this.state = 'HALF_OPEN';
-        this.failureCount = 0;
-        logger.info('circuit-breaker', 'Circuit breaker entering HALF_OPEN state');
-      }, this.resetTimeout);
-    }
-  }
-
-  canExecute() {
-    if (this.state === 'OPEN') {
-      const timeSinceFailure = Date.now() - this.lastFailureTime;
-      if (timeSinceFailure < this.resetTimeout) {
-        return false;
-      }
-      this.state = 'HALF_OPEN';
-    }
-    return true;
-  }
-
-  getState() {
-    return {
-      state: this.state,
-      failureCount: this.failureCount,
-      threshold: this.threshold
-    };
-  }
-}
-
-// UPDATED 18.10.2025: Use config instead of hardcoded values
-const mcpCircuitBreaker = new CircuitBreaker(
-  GlobalConfig.AI_BACKEND_CONFIG.retry.circuitBreaker.threshold,
-  GlobalConfig.AI_BACKEND_CONFIG.retry.circuitBreaker.resetTimeout
-);
-
-// ============================================================================
-// HELPER FUNCTIONS (must be defined before use due to hoisting)
-// ============================================================================
-
-/**
- * Execute a configured workflow stage using the appropriate processor
- * This function determines whether to use SystemStageProcessor or AgentStageProcessor
- * based on the stage configuration and executes the stage accordingly.
- * 
- * FIXED: stage0_chat тепер обробляється через AgentStageProcessor для збереження контексту
- */
-async function executeConfiguredStage(stageConfig, userMessage, session, res, options = {}) {
-  if (!stageConfig) {
-    throw new Error('Stage configuration is required');
-  }
-
-  // Determine processor type based on agent
-  // CRITICAL FIX: stage0_chat має agent='atlas', тому використовуємо AgentStageProcessor
-  const isSystemStage = stageConfig.agent === 'system';
-
-  try {
-    let processor;
-
-    if (isSystemStage) {
-      // Use SystemStageProcessor for system stages (mode_selection, stop_router, etc.)
-      processor = new SystemStageProcessor(stageConfig, GlobalConfig);
-      logger.info(`Using SystemStageProcessor for stage ${stageConfig.stage}: ${stageConfig.name}`);
-    } else {
-      // Use AgentStageProcessor for agent stages (Atlas, Tetyana, Grisha)
-      // This includes stage0_chat which has agent='atlas'
-      processor = new AgentStageProcessor(stageConfig, GlobalConfig);
-      logger.info(`Using AgentStageProcessor for stage ${stageConfig.stage}: ${stageConfig.name} (agent: ${stageConfig.agent})`);
-    }
-
-    // Execute the stage
-    const response = await processor.execute(userMessage, session, res, options);
-
-    return response;
-
-  } catch (error) {
-    logger.error(`Stage execution failed (stage=${stageConfig.stage}, agent=${stageConfig.agent}): ${error.message}`, {
-      sessionId: session.id,
-      stage: stageConfig.stage,
-      agent: stageConfig.agent,
-      error: error.message
-    });
-    throw error;
-  }
-}
-
-/**
- * Extract mode ('chat' or 'task') from system response
- */
-function extractModeFromResponse(content) {
-  try {
-    // FIXED 13.10.2025 - Handle content as object or string
-    let contentStr = content;
-    if (typeof content === 'object' && content !== null) {
-      contentStr = JSON.stringify(content);
-    }
-
-    const cleanContent = contentStr.replace(/^\[SYSTEM\]\s*/, '').trim();
-    const json = JSON.parse(cleanContent);
-    return json.mode === 'chat' ? 'chat' : 'task';
-  } catch (error) {
-    // Fallback parsing
-    const text = (typeof content === 'string' ? content : JSON.stringify(content)).toLowerCase();
-    if (text.includes('"mode":"chat"') || text.includes('mode: chat')) {
-      return 'chat';
-    }
-    return 'task'; // Default to task
-  }
-}
 
 // ============================================================================
 // MAIN WORKFLOW FUNCTIONS
@@ -172,12 +14,12 @@ function extractModeFromResponse(content) {
 
 /**
  * MCP DYNAMIC TODO WORKFLOW EXECUTOR (Phase 4)
- * 
+ *
  * Executes user requests through MCP TODO workflow:
  * 1. Plan TODO list (Atlas)
  * 2. For each item: Plan → Execute → Verify → Adjust (if needed)
  * 3. Generate final summary
- * 
+ *
  * @param {string} userMessage - User request
  * @param {Object} session - Session object
  * @param {Object} res - Response stream
@@ -199,18 +41,6 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
   const wsManager = container.resolve('wsManager');
 
   const workflowStart = Date.now();
-
-  // ✅ PHASE 4 TASK 3: Timeout protection (max 5 minutes)
-  const WORKFLOW_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-  let workflowCompleted = false;
-
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => {
-      if (!workflowCompleted) {
-        reject(new Error(`MCP workflow timeout after ${WORKFLOW_TIMEOUT_MS / 1000}s`));
-      }
-    }, WORKFLOW_TIMEOUT_MS);
-  });
 
   try {
     // Resolve processors from DI Container
@@ -333,11 +163,11 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
         logger.system('executor', `[DIAGNOSTIC] GlobalConfig exists: ${!!GlobalConfig}`);
         logger.system('executor', `[DIAGNOSTIC] AI_MODEL_CONFIG exists: ${!!GlobalConfig.AI_MODEL_CONFIG}`);
         logger.system('executor', `[DIAGNOSTIC] AI_MODEL_CONFIG type: ${typeof GlobalConfig.AI_MODEL_CONFIG}`);
-        
+
         // Get API endpoint (with safe access and comprehensive fallback)
         const apiEndpointConfig = GlobalConfig.AI_MODEL_CONFIG?.apiEndpoint;
         logger.system('executor', `[DIAGNOSTIC] apiEndpointConfig: ${JSON.stringify(apiEndpointConfig)}`);
-        
+
         let apiUrl;
         if (!apiEndpointConfig) {
           logger.warn('executor', '[CHAT] apiEndpoint config is undefined, using fallback URL');
@@ -570,9 +400,66 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
         }
       }
 
+      const dependencies = Array.isArray(item.dependencies) ? item.dependencies : [];
+      if (dependencies.length > 0) {
+        const unresolvedDependencies = dependencies
+          .map(depId => todo.items.find(todoItem => todoItem.id === depId))
+          .filter(depItem => depItem && depItem.status !== 'completed');
+
+        if (unresolvedDependencies.length > 0) {
+          const unresolvedSummary = unresolvedDependencies
+            .map(depItem => `#${depItem.id} (${depItem.status || 'unknown'})`)
+            .join(', ');
+
+          logger.warn(`Item ${item.id} blocked: dependencies not completed -> ${unresolvedSummary}`, {
+            sessionId: session.id,
+            itemId: item.id,
+            dependencies: dependencies,
+            unresolvedSummary
+          });
+
+          item.status = 'blocked';
+          item.block_reason = `Очікування завершення залежностей: ${unresolvedSummary}`;
+
+          if (wsManager) {
+            try {
+              wsManager.broadcastToSubscribers('chat', 'chat_message', {
+                message: `⏸️ Пункт ${item.id} заблокований. Очікує завершення: ${unresolvedSummary}`,
+                messageType: 'warning',
+                sessionId: session.id,
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              logger.warn(`Failed to send dependency block WebSocket message: ${error.message}`);
+            }
+          }
+
+          if (res.writable && !res.writableEnded) {
+            res.write(`data: ${JSON.stringify({
+              type: 'mcp_item_blocked',
+              data: {
+                itemId: item.id,
+                action: item.action,
+                dependencies: dependencies,
+                unresolvedDependencies: unresolvedDependencies.map(dep => ({
+                  id: dep.id,
+                  status: dep.status || 'unknown'
+                })),
+                reason: item.block_reason
+              }
+            })}\n\n`);
+          }
+
+          continue;
+        }
+      }
+
       let attempt = 1;
       // UPDATED 18.10.2025: Use config for default max attempts
       const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
+
+      let lastPlanResult = null;
+      let lastExecResult = null;
 
       while (attempt <= maxAttempts) {
         logger.info(`Item ${item.id}: Attempt ${attempt}/${maxAttempts}`, {
@@ -601,6 +488,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             session,
             res
           });
+
+          lastPlanResult = planResult;
 
           if (!planResult.success) {
             logger.warn(`Tool planning failed for item ${item.id}: ${planResult.error}`, {
@@ -638,6 +527,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             session,
             res
           });
+
+          lastExecResult = execResult;
 
           // Send execution update to frontend
           if (res.writable && !res.writableEnded) {
@@ -796,7 +687,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
           // Get detailed analysis from Grisha
           const grishaAnalysis = await verifyProcessor.getDetailedAnalysisForAtlas(
             item,
-            execResult?.execution || { all_successful: false }
+            lastExecResult?.execution || { all_successful: false }
           );
 
           logger.info(`Grisha analysis: ${grishaAnalysis.failure_analysis.likely_cause}`, {
@@ -808,9 +699,9 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 
           // Prepare data for Atlas replan (aggregated context)
           const tetyanaData = {
-            plan: planResult?.plan || { tool_calls: [] },
-            execution: execResult?.execution || { all_successful: false },
-            tools_used: execResult?.execution?.results?.map(r => r.tool) || []
+            plan: lastPlanResult?.plan || { tool_calls: [] },
+            execution: lastExecResult?.execution || { all_successful: false },
+            tools_used: lastExecResult?.execution?.results?.map(r => r.tool) || []
           };
 
           const grishaData = {
@@ -848,7 +739,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             const currentIndex = todo.items.indexOf(item);
             if (currentIndex !== -1) {
               todo.items.splice(currentIndex + 1, 0, ...replanResult.new_items);
-              
+
               logger.info(`TODO list updated: ${todo.items.length} total items`, {
                 sessionId: session.id
               });
@@ -971,14 +862,9 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       metrics: summaryResult.metadata?.metrics
     });
 
-    // ✅ PHASE 4 TASK 3: Mark workflow as completed (disables timeout)
-    workflowCompleted = true;
-
     return summaryResult;
 
   } catch (error) {
-    // ✅ PHASE 4 TASK 3: Mark workflow as completed on error too
-    workflowCompleted = true;
 
     logger.error(`MCP workflow failed: ${error.message}`, {
       sessionId: session.id,
@@ -1005,7 +891,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
  * MAIN STEP-BY-STEP WORKFLOW EXECUTOR
  * Використовує unified configuration та prompt registry
  */
-export async function executeStepByStepWorkflow(userMessage, session, res, options = {}) {
+export async function executeStepByStepWorkflow(userMessage, session, res, _options = {}) {
   // Add user message to history
   session.history.push({
     role: 'user',
@@ -1013,7 +899,6 @@ export async function executeStepByStepWorkflow(userMessage, session, res, optio
     timestamp: Date.now()
   });
 
-  const workflowStart = Date.now();
   logger.workflow('init', 'mcp', 'Starting MCP Dynamic TODO Workflow', {
     sessionId: session.id,
     userMessage: userMessage.substring(0, 100)
@@ -1077,7 +962,7 @@ export async function executeAgentStageStepByStep(
   userPrompt,
   session,
   res,
-  options = {}
+  _options = {}
 ) {
   logger.warn('Using deprecated executeAgentStageStepByStep, MCP workflow recommended');
 

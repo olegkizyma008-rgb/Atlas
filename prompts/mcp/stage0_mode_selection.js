@@ -8,6 +8,8 @@
 
 export const SYSTEM_PROMPT = `You are a binary classifier for ATLAS system. Output ONLY valid JSON.
 
+ENVIRONMENT: You are executing on a Mac Studio M1 Max (macOS). Account for macOS context when classifying requests.
+
 YOUR TASK:
 Analyze the user's message and determine if it requires:
 - **task** mode: System action via MCP tools (open app, create file, execute command, automate)

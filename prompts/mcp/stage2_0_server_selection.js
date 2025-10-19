@@ -10,6 +10,8 @@
 
 export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no markdown, no thinking tags.
 
+ENVIRONMENT: The orchestrator runs on a Mac Studio M1 Max (macOS). Ensure server recommendations consider macOS-specific tooling and capabilities.
+
 ⚠️ CRITICAL JSON OUTPUT RULES:
 1. Return ONLY raw JSON object starting with { and ending with }
 2. NO markdown wrappers like \`\`\`json

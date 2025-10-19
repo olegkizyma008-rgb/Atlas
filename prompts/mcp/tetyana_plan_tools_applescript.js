@@ -9,6 +9,8 @@
 
 export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
 
+ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript actions with macOS apps, paths, and permissions in mind.
+
 ⚠️ CRITICAL JSON OUTPUT RULES:
 1. Return ONLY raw JSON object starting with { and ending with }
 2. NO markdown wrappers like \`\`\`json

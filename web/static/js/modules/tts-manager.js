@@ -46,7 +46,13 @@ export class TTSManager {
           window.atlasLogger.info('🎵 Ініціалізація TTS System', 'TTS-System');
         }
 
-        const { data } = await ttsClient.get('/health');
+        // Додаємо таймаут для health check
+        const healthCheckPromise = ttsClient.get('/health');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('TTS health check timeout')), 3000)
+        );
+
+        const { data } = await Promise.race([healthCheckPromise, timeoutPromise]);
         this.logger.debug('TTS health check response:', data);
         this.enabled = data.status === 'ok' && data.tts_ready === true;
         this.logger.info(`TTS service ${this.enabled ? 'available' : 'unavailable'}`);
@@ -56,16 +62,16 @@ export class TTSManager {
           if (this.enabled) {
             window.atlasLogger.success('✅ TTS сервіс готовий до озвучення', 'TTS-System');
           } else {
-            window.atlasLogger.error('❌ TTS сервіс недоступний', 'TTS-System');
+            window.atlasLogger.warn('⚠️ TTS сервіс недоступний (працюємо без озвучки)', 'TTS-System');
           }
         }
       } catch (error) {
-        this.logger.error('TTS service initialization failed:', error.message);
+        this.logger.warn('TTS service unavailable, continuing without voice:', error.message);
         this.enabled = false;
 
         // Додаємо лог у веб-інтерфейс
         if (window.atlasLogger) {
-          window.atlasLogger.error(`❌ TTS помилка: ${error.message}`, 'TTS-System');
+          window.atlasLogger.warn('⚠️ TTS недоступний (працюємо без озвучки)', 'TTS-System');
         }
       }
 

@@ -116,6 +116,7 @@ export class GrishaVerifyItemProcessor {
             // Step 1: Capture screenshot of current state
             const screenshot = await this.visualCapture.captureScreenshot(`item_${currentItem.id}_verify`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📸 Screenshot captured: ${screenshot.filename}`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📂 Full path: ${screenshot.filepath}`);
 
             // Step 2: Analyze screenshot with AI vision
             const analysisContext = {
@@ -130,6 +131,9 @@ export class GrishaVerifyItemProcessor {
             );
 
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Vision analysis complete (confidence: ${visionAnalysis.confidence}%)`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Model used: ${this.visionAnalysis.config.visionModel || 'unknown'}`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Verified: ${visionAnalysis.verified}`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Reason: ${visionAnalysis.reason}`);
 
             // Step 3: Build verification result
             const verification = {

@@ -101,10 +101,6 @@
     <!-- Load main application -->
     <script type="module" src="{{ url_for('static', filename='js/app-refactored.js') }}?v={{ timestamp }}"></script>
 
-    <!-- Load Atlas GLB Living System Test Suite (for development/testing) -->
-    <script type="module"
-        src="{{ url_for('static', filename='js/components/model3d/test-glb-living.js') }}?v={{ timestamp }}"></script>
-
     <!-- Load diagnostics (for development) -->
     <script src="{{ url_for('static', filename='js/diagnostics.js') }}?v={{ timestamp }}"></script>
 

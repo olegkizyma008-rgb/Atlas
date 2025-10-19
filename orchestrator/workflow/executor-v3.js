@@ -548,6 +548,14 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
+          // ✅ FIX: Wait for macOS apps to open before screenshot
+          // Check if execution involved macOS app launch (AppleScript, shell open, etc)
+          const needsAppLaunchDelay = _needsAppLaunchDelay(execResult.execution, item);
+          if (needsAppLaunchDelay) {
+            logger.system('executor', `[VERIFICATION-DELAY] Waiting 2.5s for macOS app to open...`);
+            await new Promise(resolve => setTimeout(resolve, 2500));
+          }
+
           const verifyResult = await verifyProcessor.execute({
             currentItem: item,
             execution: execResult.execution,
@@ -885,6 +893,64 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 
     throw error;
   }
+}
+
+/**
+ * Helper: Check if execution needs delay for macOS app launch
+ * 
+ * @param {Object} execution - Execution results from Stage 2.2
+ * @param {Object} item - TODO item
+ * @returns {boolean} True if delay needed
+ * @private
+ */
+function _needsAppLaunchDelay(execution, item) {
+  if (!execution || !execution.results) {
+    return false;
+  }
+
+  // Check if any tool involved macOS app launch
+  for (const result of execution.results) {
+    if (!result.tool) continue;
+
+    const toolLower = result.tool.toLowerCase();
+
+    // AppleScript execution (часто для відкриття програм)
+    if (toolLower.includes('applescript')) {
+      return true;
+    }
+
+    // Shell команди типу 'open -a Calculator'
+    if (toolLower.includes('shell') && result.data) {
+      const command = JSON.stringify(result.data).toLowerCase();
+      if (command.includes('open -a') || command.includes('activate')) {
+        return true;
+      }
+    }
+  }
+
+  // Check item action keywords
+  const actionLower = (item.action || '').toLowerCase();
+  const appKeywords = [
+    'відкр',      // відкрити
+    'запуст',     // запустити
+    'open',
+    'launch',
+    'калькулятор',
+    'calculator',
+    'браузер',
+    'browser',
+    'safari',
+    'chrome',
+    'finder'
+  ];
+
+  for (const keyword of appKeywords) {
+    if (actionLower.includes(keyword)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

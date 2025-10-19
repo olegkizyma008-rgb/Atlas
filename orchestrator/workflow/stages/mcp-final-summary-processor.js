@@ -75,7 +75,7 @@ export class McpFinalSummaryProcessor {
             const finalMessage = this._formatFinalMessage(summaryResult, metrics, tone);
 
             return {
-                success: true,
+                success: metrics.success_rate >= 80, // ✅ FIX: true тільки якщо >= 80% успішність
                 summary: summaryResult,
                 finalMessage,
                 metrics,

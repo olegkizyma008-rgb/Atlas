@@ -53,6 +53,32 @@ export class ServerSelectionProcessor {
 
             this.logger.system('server-selection', `[STAGE-2.0-MCP] ✅ Selected: ${result.selected_servers.join(', ')} (confidence: ${result.confidence})`);
 
+            // NEW 19.10.2025: Перевірка кількості серверів (max 2)
+            if (result.selected_servers.length > 2) {
+                this.logger.warn(`[STAGE-2.0-MCP] ⚠️ Too many servers selected (${result.selected_servers.length}). Item needs split.`, {
+                    category: 'server-selection',
+                    component: 'server-selection'
+                });
+
+                return {
+                    success: false,
+                    needs_split: true,
+                    reasoning: `Item requires ${result.selected_servers.length} servers, but maximum is 2. Should be split into multiple simpler items.`,
+                    selected_servers: result.selected_servers,
+                    suggested_splits: [
+                        `${result.selected_servers.slice(0, 2).join(' + ')}: first part`,
+                        `${result.selected_servers.slice(2).join(' + ')}: second part`
+                    ],
+                    summary: `🔀 Пункт потребує ${result.selected_servers.length} серверів (макс 2). Розбиваю...`,
+                    metadata: {
+                        itemId: currentItem.id,
+                        stage: 'server-selection',
+                        requiresSplit: true,
+                        serversCount: result.selected_servers.length
+                    }
+                };
+            }
+
             // Валідація вибраних серверів
             const validation = this._validateSelectedServers(result.selected_servers, availableServers);
 

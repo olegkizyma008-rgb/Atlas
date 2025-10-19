@@ -914,9 +914,14 @@ export class MCPTodoManager {
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
       } else {
-        // General prompt
+        // General prompt (fallback)
         planPrompt = MCP_PROMPTS.TETYANA_PLAN_TOOLS;
-        this.logger.system('mcp-todo', `[TODO] Using general TETYANA_PLAN_TOOLS prompt`);
+        this.logger.warn(`[TODO] ⚠️ Using GENERAL prompt (fallback). Atlas should split items to max 2 servers!`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo',
+          itemId: item.id,
+          reason: 'No specialized prompt available or >2 servers'
+        });
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors

@@ -80,22 +80,39 @@ export class TetyanaПlanToolsProcessor {
             // OPTIMIZATION (15.10.2025): Pass toolsSummary to planTools for {{AVAILABLE_TOOLS}} substitution
             this.logger.debug('tetyana-plan-tools', `[STAGE-2.1-MCP] Tools summary:\n${toolsSummary}`);
 
-            // NEW 18.10.2025: Select MCP-specific prompt based on selected servers
+            // NEW 19.10.2025: Select MCP-specific prompt(s) based on selected servers
+            // 1 server → 1 specialized prompt
+            // 2 servers → 2 specialized prompts (combined)
+            // >2 servers → general prompt
             let promptOverride = null;
-            if (selected_servers && selected_servers.length === 1) {
-                const serverName = selected_servers[0].toLowerCase();
-                const specializedPrompts = {
-                    'playwright': 'TETYANA_PLAN_TOOLS_PLAYWRIGHT',
-                    'filesystem': 'TETYANA_PLAN_TOOLS_FILESYSTEM',
-                    'applescript': 'TETYANA_PLAN_TOOLS_APPLESCRIPT',
-                    'fetch': 'TETYANA_PLAN_TOOLS_FETCH',
-                    'shell': 'TETYANA_PLAN_TOOLS_SHELL',
-                    'memory': 'TETYANA_PLAN_TOOLS_MEMORY'
-                };
+            const specializedPrompts = {
+                'playwright': 'TETYANA_PLAN_TOOLS_PLAYWRIGHT',
+                'filesystem': 'TETYANA_PLAN_TOOLS_FILESYSTEM',
+                'applescript': 'TETYANA_PLAN_TOOLS_APPLESCRIPT',
+                'shell': 'TETYANA_PLAN_TOOLS_SHELL',
+                'memory': 'TETYANA_PLAN_TOOLS_MEMORY'
+            };
 
+            if (selected_servers && selected_servers.length === 1) {
+                // Single server - use specialized prompt
+                const serverName = selected_servers[0].toLowerCase();
                 if (specializedPrompts[serverName]) {
                     promptOverride = specializedPrompts[serverName];
                     this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using specialized prompt: ${promptOverride}`);
+                }
+            } else if (selected_servers && selected_servers.length === 2) {
+                // Two servers - use both specialized prompts (combined)
+                const prompts = selected_servers
+                    .map(s => specializedPrompts[s.toLowerCase()])
+                    .filter(Boolean);
+                
+                if (prompts.length === 2) {
+                    promptOverride = prompts; // Array of 2 prompts
+                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using 2 specialized prompts: ${prompts.join(' + ')}`);
+                } else if (prompts.length === 1) {
+                    // Only 1 server has specialized prompt
+                    promptOverride = prompts[0];
+                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using 1 specialized prompt (other server generic): ${prompts[0]}`);
                 }
             }
 

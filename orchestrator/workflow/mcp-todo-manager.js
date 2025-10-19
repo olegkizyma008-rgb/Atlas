@@ -543,7 +543,8 @@ export class MCPTodoManager {
                 newItem.id = nextId++;
                 newItem.status = 'pending';
                 newItem.attempt = 0;
-                newItem.max_attempts = newItem.max_attempts || 3;
+                // UPDATED 18.10.2025: Use config for default max attempts
+                newItem.max_attempts = newItem.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
               });
 
               // Insert new items after current position
@@ -783,6 +784,57 @@ export class MCPTodoManager {
   async planTools(item, todo, options = {}) {
     this.logger.system('mcp-todo', `[TODO] Planning tools for item ${item.id}`);
 
+    // NEW 18.10.2025: Retry with fallback models
+    const retryConfig = GlobalConfig.AI_BACKEND_CONFIG.retry.toolPlanning;
+    const maxAttempts = retryConfig.maxAttempts;
+    const retryDelay = retryConfig.retryDelay;
+    
+    // Fallback model sequence: primary -> fast -> cheapest
+    const modelSequence = [
+      GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools'),
+      { model: 'copilot-gpt-4o-mini', temperature: 0.1, max_tokens: 2000, description: 'Fast fallback' },
+      { model: 'atlas-ministral-3b', temperature: 0.15, max_tokens: 1500, description: 'Cheapest fallback' }
+    ];
+    
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Select model for current attempt
+        const modelIndex = Math.min(attempt - 1, modelSequence.length - 1);
+        const modelConfig = modelSequence[modelIndex];
+        
+        this.logger.system('mcp-todo', `[TODO] Planning attempt ${attempt}/${maxAttempts} with ${modelConfig.model}`);
+        
+        const result = await this._planToolsAttempt(item, todo, options, modelConfig);
+        
+        // Success! Return result
+        this.logger.system('mcp-todo', `[TODO] ✅ Planning succeeded on attempt ${attempt}`);
+        return result;
+        
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(`[TODO] Planning attempt ${attempt}/${maxAttempts} failed: ${error.message}`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
+        });
+        
+        // Wait before retry (except on last attempt)
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+      }
+    }
+    
+    // All attempts failed
+    throw new Error(`Tool planning failed after ${maxAttempts} attempts: ${lastError.message}`);
+  }
+  
+  /**
+   * Single attempt to plan tools (internal)
+   * @private
+   */
+  async _planToolsAttempt(item, todo, options = {}, modelConfig) {
     try {
       // DIAGNOSTIC: Check mcpManager before using
       if (!this.mcpManager) {
@@ -834,12 +886,35 @@ export class MCPTodoManager {
       // Import Tetyana Plan Tools prompt
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
       
-      // NEW 18.10.2025: Use specialized prompt if provided
+      // NEW 19.10.2025: Support array of prompts for 2 servers
       let planPrompt;
-      if (options.promptOverride && MCP_PROMPTS[options.promptOverride]) {
+      let combinedSystemPrompt = null; // For 2-prompt case
+      
+      if (Array.isArray(options.promptOverride) && options.promptOverride.length === 2) {
+        // Two specialized prompts - combine them
+        const prompt1 = MCP_PROMPTS[options.promptOverride[0]];
+        const prompt2 = MCP_PROMPTS[options.promptOverride[1]];
+        
+        if (prompt1 && prompt2) {
+          // Combine SYSTEM_PROMPTs from both specialized prompts
+          const commonHeader = prompt1.SYSTEM_PROMPT.split('\n\n## ')[0]; // JSON rules
+          const spec1 = prompt1.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## '); // Specialization
+          const spec2 = prompt2.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## ');
+          
+          combinedSystemPrompt = `${commonHeader}\n\n## ПОДВІЙНА СПЕЦІАЛІЗАЦІЯ\n\nТи Тетяна - експерт з ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()} та ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()}.\n\n### ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec1}\n\n### ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec2}`;
+          
+          this.logger.system('mcp-todo', `[TODO] 🎯🎯 Using 2 combined specialized prompts: ${options.promptOverride.join(' + ')}`);
+        } else {
+          // Fallback to general
+          planPrompt = MCP_PROMPTS.TETYANA_PLAN_TOOLS;
+          this.logger.system('mcp-todo', `[TODO] ⚠️ Could not load 2 prompts, using general`);
+        }
+      } else if (options.promptOverride && MCP_PROMPTS[options.promptOverride]) {
+        // Single specialized prompt
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
       } else {
+        // General prompt
         planPrompt = MCP_PROMPTS.TETYANA_PLAN_TOOLS;
         this.logger.system('mcp-todo', `[TODO] Using general TETYANA_PLAN_TOOLS prompt`);
       }
@@ -874,7 +949,8 @@ export class MCPTodoManager {
       });
 
       // OPTIMIZATION 15.10.2025 - Substitute {{AVAILABLE_TOOLS}} placeholder with compact summary
-      let systemPrompt = planPrompt.systemPrompt || planPrompt.SYSTEM_PROMPT;
+      // NEW 19.10.2025: Use combinedSystemPrompt if available (2-prompt case), else extract from planPrompt
+      let systemPrompt = combinedSystemPrompt || planPrompt.systemPrompt || planPrompt.SYSTEM_PROMPT;
       if (systemPrompt.includes('{{AVAILABLE_TOOLS}}')) {
         systemPrompt = systemPrompt.replace('{{AVAILABLE_TOOLS}}', toolsSummary);
         this.logger.system('mcp-todo', `[TODO] Substituted {{AVAILABLE_TOOLS}} in prompt`);
@@ -889,17 +965,10 @@ Previous items: ${JSON.stringify(previousItemsSummary, null, 2)}
 Create precise MCP tool execution plan.
 `;
 
-      // FIXED 13.10.2025 - Use correct API call format
-      // FIXED 14.10.2025 - Use MCP_MODEL_CONFIG for per-stage models
+      // NEW 18.10.2025 - Use passed modelConfig from retry loop
       let apiResponse;
       try {
-        const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('plan_tools') || {
-          model: 'copilot-gpt-4o',
-          temperature: 0.1,
-          max_tokens: 2500
-        };
-
-        // LOG MODEL SELECTION (ADDED 14.10.2025 - Debugging)
+        // LOG MODEL SELECTION
         this.logger.system('mcp-todo', `[TODO] Planning tools with model: ${modelConfig.model} (temp: ${modelConfig.temperature}, max_tokens: ${modelConfig.max_tokens})`);
 
         // FIXED 16.10.2025 - Extract primary URL from apiEndpoint object
@@ -973,9 +1042,22 @@ Create precise MCP tool execution plan.
 
       this.logger.system('mcp-todo', `[TODO] Planned ${plan.tool_calls.length} tool calls for item ${item.id}`);
 
-      // DIAGNOSTIC: Check if tool_calls is empty
+      // NEW 18.10.2025: More tolerant validation
       if (!plan.tool_calls || plan.tool_calls.length === 0) {
-        // FIXED 14.10.2025 - Use correct logger signature for warn() method
+        // Try to extract hints from reasoning
+        const reasoning = plan.reasoning || '';
+        
+        // Check if LLM explicitly said it needs more info or can't plan
+        if (reasoning.toLowerCase().includes('cannot') || 
+            reasoning.toLowerCase().includes('need more') ||
+            reasoning.toLowerCase().includes('unclear')) {
+          this.logger.warn(`[MCP-TODO] LLM cannot plan - needs clarification: ${reasoning}`, {
+            category: 'mcp-todo',
+            component: 'mcp-todo'
+          });
+          throw new Error(`Cannot plan tools: ${reasoning}`);
+        }
+        
         this.logger.warn(`[MCP-TODO] Warning: No tool calls in plan! Plan: ${JSON.stringify(plan)}`, {
           category: 'mcp-todo',
           component: 'mcp-todo',
@@ -1755,18 +1837,63 @@ Context: ${JSON.stringify(context, null, 2)}
       // FIXED 13.10.2025 - Strip markdown code blocks (```json ... ```)
       // FIXED 14.10.2025 - Extract JSON from text if LLM added explanation
       // FIXED 14.10.2025 - Handle ellipsis patterns (...) in JSON
+      // FIXED 18.10.2025 - Add aggressive JSON extraction like _parseToolPlan
       let cleanResponse = response;
       if (typeof cleanResponse === 'string') {
-        // Remove markdown wrappers
+        // Step 1: Remove markdown wrappers
         cleanResponse = cleanResponse
           .replace(/^```json\s*/i, '')
           .replace(/^```\s*/i, '')
           .replace(/\s*```$/i, '')
           .trim();
-        // Remove JS-style comments (fix for LLM output)
+        
+        // Step 2: Remove JS-style comments (fix for LLM output)
         cleanResponse = cleanResponse.replace(/\/\*[\s\S]*?\*\//g, '');
+        
+        // Step 3: Aggressive JSON extraction - find first { to last }
+        const firstBrace = cleanResponse.indexOf('{');
+        const lastBrace = cleanResponse.lastIndexOf('}');
+        
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
+        } else {
+          throw new Error('No JSON object found in response (no curly braces)');
+        }
       }
-      const parsed = JSON.parse(cleanResponse);
+      
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanResponse);
+      } catch (parseError) {
+        // FIXED 18.10.2025 - Use sanitization on parse errors (like _parseToolPlan)
+        this.logger.warn(`[MCP-TODO] Initial TODO JSON parse failed: ${parseError.message}. Attempting sanitization...`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo',
+          errorPosition: parseError.message.match(/position (\d+)/)?.[1] || 'unknown'
+        });
+        
+        try {
+          const sanitized = this._sanitizeJsonString(cleanResponse);
+          parsed = JSON.parse(sanitized);
+          this.logger.warn('[MCP-TODO] ✅ TODO JSON sanitization successful', {
+            category: 'mcp-todo',
+            component: 'mcp-todo',
+            originalError: parseError.message,
+            originalLength: cleanResponse.length,
+            sanitizedLength: sanitized.length
+          });
+        } catch (sanitizedError) {
+          this.logger.error(`[MCP-TODO] ❌ TODO JSON sanitization also failed. Original error: ${parseError.message}. Sanitized error: ${sanitizedError.message}`, {
+            category: 'mcp-todo',
+            component: 'mcp-todo',
+            originalResponse: cleanResponse.substring(0, 500),
+            originalError: parseError.message,
+            sanitizedError: sanitizedError.message
+          });
+          sanitizedError.originalMessage = parseError.message;
+          throw sanitizedError;
+        }
+      }
 
       return {
         id: `todo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -1783,7 +1910,8 @@ Context: ${JSON.stringify(context, null, 2)}
           fallback_options: item.fallback_options || [],
           dependencies: item.dependencies || [],
           attempt: 0,
-          max_attempts: 3,
+          // UPDATED 18.10.2025: Use config for default max attempts
+          max_attempts: GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts,
           status: 'pending',
           tts: {
             start: item.tts?.start || `Виконую: ${item.action}`,
@@ -2212,18 +2340,18 @@ Context: ${JSON.stringify(context, null, 2)}
     // Quote property names that are missing double quotes.
     sanitized = sanitized.replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":');
 
-    // FIXED 17.10.2025 - Conservative trailing comma removal
-    // Only remove commas that are ACTUALLY trailing (before } or ])
-    // Do NOT remove commas between array/object elements
-
-    // Pass 1: Remove trailing commas before closing braces/brackets
-    // Pattern: comma followed by optional whitespace/newlines, then } or ]
-    sanitized = sanitized.replace(/,(\s*[\r\n\t\s]*)}(?![:,])/g, '}');
-    sanitized = sanitized.replace(/,(\s*[\r\n\t\s]*)\](?![:,])/g, ']');
-
-    // Pass 2: Remove trailing commas at end of objects/arrays (simple cases)
-    sanitized = sanitized.replace(/,(\s*})(?![:,])/g, '$1');
-    sanitized = sanitized.replace(/,(\s*\])(?![:,])/g, '$1');
+    // FIXED 19.10.2025 - Ultra-aggressive trailing comma removal
+    // Handle all cases: single-line, multi-line, nested structures
+    
+    // Pass 1: Remove trailing commas in multiline arrays/objects
+    // Handles: ,\n  ] or ,\n}
+    sanitized = sanitized.replace(/,\s*([\r\n]+\s*)([}\]])/g, '$1$2');
+    
+    // Pass 2: Remove trailing commas with any whitespace before closing
+    sanitized = sanitized.replace(/,(\s*[}\]])/g, '$1');
+    
+    // Pass 3: Handle nested cases - comma + newlines + whitespace + closing bracket
+    sanitized = sanitized.replace(/,([\s\r\n\t]*([}\]]))(?!:)/g, '$2');
 
     try {
       JSON.parse(sanitized);

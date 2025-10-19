@@ -29,7 +29,6 @@ import tetyanaPlanTools from './tetyana_plan_tools_optimized.js';  // OPTIMIZED 
 import tetyanaPlanToolsPlaywright from './tetyana_plan_tools_playwright.js';  // NEW 18.10.2025 - Playwright specialized
 import tetyanaPlanToolsFilesystem from './tetyana_plan_tools_filesystem.js';  // NEW 18.10.2025 - Filesystem specialized
 import tetyanaPlanToolsApplescript from './tetyana_plan_tools_applescript.js';  // NEW 18.10.2025 - AppleScript specialized
-import tetyanaPlanToolsFetch from './tetyana_plan_tools_fetch.js';  // NEW 18.10.2025 - Fetch specialized
 import tetyanaPlanToolsShell from './tetyana_plan_tools_shell.js';  // NEW 18.10.2025 - Shell specialized
 import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.10.2025 - Memory specialized
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
@@ -59,7 +58,6 @@ export const MCP_PROMPTS = {
     TETYANA_PLAN_TOOLS_PLAYWRIGHT: tetyanaPlanToolsPlaywright,
     TETYANA_PLAN_TOOLS_FILESYSTEM: tetyanaPlanToolsFilesystem,
     TETYANA_PLAN_TOOLS_APPLESCRIPT: tetyanaPlanToolsApplescript,
-    TETYANA_PLAN_TOOLS_FETCH: tetyanaPlanToolsFetch,
     TETYANA_PLAN_TOOLS_SHELL: tetyanaPlanToolsShell,
     TETYANA_PLAN_TOOLS_MEMORY: tetyanaPlanToolsMemory,
 
@@ -94,7 +92,6 @@ export {
     tetyanaPlanToolsPlaywright,
     tetyanaPlanToolsFilesystem,
     tetyanaPlanToolsApplescript,
-    tetyanaPlanToolsFetch,
     tetyanaPlanToolsShell,
     tetyanaPlanToolsMemory,
     tetyanaScreenshotAndAdjust,

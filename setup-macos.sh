@@ -329,24 +329,22 @@ install_mcp_servers() {
     
     log_info "ATLAS v5.0 використовує Pure MCP mode - встановлення глобальних серверів..."
     
-    # MCP packages (6 operational servers - git disabled due to crashes)
+    # MCP packages (5 operational servers - git and fetch disabled)
     local MCP_PACKAGES=(
         "@modelcontextprotocol/server-filesystem"
         "@executeautomation/playwright-mcp-server"
         "super-shell-mcp"
         "@peakmojo/applescript-mcp"
-        "@modelcontextprotocol/server-fetch"
         "@modelcontextprotocol/server-memory"
     )
     
     echo ""
-    log_info "📦 MCP Сервери (6 серверів, ~66 tools):"
+    log_info "📦 MCP Сервери (5 серверів, ~65 tools):"
     echo -e "  ${GREEN}1. filesystem${NC}   - 14 tools - Файли та директорії"
     echo -e "  ${GREEN}2. playwright${NC}   - 32 tools - Браузер automation"
-    echo -e "  ${GREEN}3. shell${NC}        -  9 tools - Shell команди"
+    echo -e "  ${GREEN}3. shell${NC}        -  9 tools - Shell команди (curl для HTTP)"
     echo -e "  ${GREEN}4. applescript${NC}  -  1 tool  - macOS GUI automation"
-    echo -e "  ${GREEN}5. fetch${NC}        -  1 tool  - HTTP/REST API"
-    echo -e "  ${GREEN}6. memory${NC}       -  9 tools - Cross-session пам'ять"
+    echo -e "  ${GREEN}5. memory${NC}       -  9 tools - Cross-session пам'ять"
     echo ""
     
     local all_installed=true

@@ -18,6 +18,7 @@ import logger from '../../utils/logger.js';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import { VisualCaptureService } from '../../services/visual-capture-service.js';
 import { VisionAnalysisService } from '../../services/vision-analysis-service.js';
+import GlobalConfig from '../../../config/global-config.js';
 
 /**
  * Grisha Verify Item Processor
@@ -246,7 +247,8 @@ export class GrishaVerifyItemProcessor {
 
         // Check if we've reached max attempts
         const currentAttempt = item.attempt || 1;
-        const maxAttempts = item.max_attempts || 3;
+        // UPDATED 18.10.2025: Use config for default max attempts
+        const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
 
         if (currentAttempt >= maxAttempts) {
             // Max attempts reached - need adjustment

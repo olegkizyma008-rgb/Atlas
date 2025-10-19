@@ -325,10 +325,27 @@ export const AI_BACKEND_CONFIG = {
   disableFallback: true,
 
   // Retry налаштування для MCP
+  // UPDATED 18.10.2025: Збільшено дефолт до 3 спроб для складних завдань
   retry: {
-    maxAttempts: 3,
-    timeoutMs: 30000,
-    exponentialBackoff: true
+    get maxAttempts() { return parseInt(process.env.MCP_MAX_ATTEMPTS || '3', 10); },
+    get timeoutMs() { return parseInt(process.env.MCP_TIMEOUT_MS || '30000', 10); },
+    get exponentialBackoff() { return process.env.MCP_EXPONENTIAL_BACKOFF !== 'false'; },
+    
+    // Окремі налаштування для різних типів операцій
+    itemExecution: {
+      get maxAttempts() { return parseInt(process.env.MCP_ITEM_MAX_ATTEMPTS || '3', 10); }
+    },
+    
+    // Налаштування для tool planning (LLM retry)
+    toolPlanning: {
+      get maxAttempts() { return parseInt(process.env.MCP_TOOL_PLANNING_MAX_ATTEMPTS || '3', 10); },
+      get retryDelay() { return parseInt(process.env.MCP_TOOL_PLANNING_RETRY_DELAY || '2000', 10); }
+    },
+    
+    circuitBreaker: {
+      get threshold() { return parseInt(process.env.MCP_CIRCUIT_BREAKER_THRESHOLD || '3', 10); },
+      get resetTimeout() { return parseInt(process.env.MCP_CIRCUIT_BREAKER_RESET_MS || '60000', 10); }
+    }
   },
 
   // MCP Provider конфігурація
@@ -370,11 +387,15 @@ export const AI_BACKEND_CONFIG = {
           env: {}
         },
 
+        // DISABLED: fetch MCP server - пакет не існує в npm registry
+        // Альтернатива: використовувати shell MCP server з curl для HTTP запитів
+        /*
         fetch: {
           command: 'npx',
           args: ['-y', '@modelcontextprotocol/server-fetch'],
           env: {}
         },
+        */
 
         // DISABLED: GitHub MCP server - зависає при ініціалізації
         // TODO: Try alternative package when available
@@ -700,6 +721,8 @@ export default {
   SECURITY_CONFIG,
   ENV_CONFIG,
   AI_MODEL_CONFIG,
+  MCP_MODEL_CONFIG,   // FIXED 18.10.2025: Add missing MCP_MODEL_CONFIG
+  VISION_CONFIG,      // FIXED 18.10.2025: Add missing VISION_CONFIG
   AI_BACKEND_CONFIG,  // NEW: Модульна система backends
   MCP_SERVERS,        // Quick access до MCP серверів
 

@@ -75,7 +75,7 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 - **Web + запам'ятати** → playwright, memory
 - **Команда + файл** → shell, filesystem
 - **Презентація/Excel/Word** → shell (python script), filesystem
-- **Складна обробка даних** → fetch, filesystem
+- **HTTP запити + обробка даних** → shell (curl), filesystem
 - **GUI + перевірка** → applescript, shell (для screenshot/verify)
 - **Git + файли** → git, filesystem
 

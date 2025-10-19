@@ -86,7 +86,11 @@ class CircuitBreaker {
   }
 }
 
-const mcpCircuitBreaker = new CircuitBreaker(3, 60000); // 3 failures, 60s reset
+// UPDATED 18.10.2025: Use config instead of hardcoded values
+const mcpCircuitBreaker = new CircuitBreaker(
+  GlobalConfig.AI_BACKEND_CONFIG.retry.circuitBreaker.threshold,
+  GlobalConfig.AI_BACKEND_CONFIG.retry.circuitBreaker.resetTimeout
+);
 
 // ============================================================================
 // HELPER FUNCTIONS (must be defined before use due to hoisting)
@@ -567,7 +571,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       }
 
       let attempt = 1;
-      const maxAttempts = item.max_attempts || 3;
+      // UPDATED 18.10.2025: Use config for default max attempts
+      const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
 
       while (attempt <= maxAttempts) {
         logger.info(`Item ${item.id}: Attempt ${attempt}/${maxAttempts}`, {

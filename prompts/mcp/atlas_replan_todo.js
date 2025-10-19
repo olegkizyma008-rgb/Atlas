@@ -233,7 +233,7 @@ Replan Decision:
 **Приклад 5: replan для API запитів**
 
 Failed Item: "Отримати дані з API endpoint /v1/data"
-Tetyana: fetch failed - 404 Not Found
+Tetyana: curl failed - 404 Not Found
 Grisha: "API endpoint не існує"
 
 Replan Decision:
@@ -244,8 +244,8 @@ Replan Decision:
   "new_items": [
     {
       "action": "Отримати список доступних endpoints з /v1/docs",
-      "tools_needed": ["fetch__fetch_get"],
-      "parameters": {"url": "https://api.example.com/v1/docs"},
+      "tools_needed": ["shell__run_command"],
+      "parameters": {"command": "curl https://api.example.com/v1/docs"},
       "success_criteria": "Отримано список endpoints",
       "fallback_options": ["Спробувати /api/docs", "Перевірити /v2/data"]
     }

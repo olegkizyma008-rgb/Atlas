@@ -89,7 +89,7 @@ export class MCPTodoManager {
 
   /**
      * Auto-correct common parameter mistakes made by LLMs
-     * ADDED 2025-10-17 - Generalized correction system
+     * ENHANCED 2025-10-20 - Dynamic rule generation from inputSchema
      *
      * @param {string} server - Server name
      * @param {string} tool - Tool name
@@ -98,60 +98,35 @@ export class MCPTodoManager {
      * @private
      */
   _autoCorrectParameters(server, tool, params) {
-    const correctionRules = {
-      playwright: {
-        playwright_fill: [
-          { from: 'text', to: 'value' },
-          { from: 'input', to: 'value' },
-          { from: 'content', to: 'value' }
-        ],
-        playwright_click: [
-          { from: 'element', to: 'selector' },
-          { from: 'target', to: 'selector' }
-        ],
-        playwright_navigate: [
-          { from: 'link', to: 'url' },
-          { from: 'address', to: 'url' },
-          { from: 'uri', to: 'url' }
-        ],
-        playwright_get_visible_text: [
-          { from: 'element', to: 'selector' }
-        ],
-        playwright_screenshot: [
-          { from: 'file', to: 'path' },
-          { from: 'filename', to: 'path' }
-        ]
-      },
-      applescript: {
-        applescript_execute: [
-          { from: 'script', to: 'code_snippet' },
-          { from: 'code', to: 'code_snippet' }
-        ]
-      },
-      filesystem: {
-        filesystem_write: [
-          { from: 'content', to: 'data' },
-          { from: 'text', to: 'data' }
-        ],
-        filesystem_read: [
-          { from: 'file', to: 'path' },
-          { from: 'filename', to: 'path' }
-        ]
-      }
-    };
+    // Кешування правил автокорекції
+    if (!this._correctionRulesCache) {
+      this.logger.debug('mcp-todo', '[TODO] Generating parameter correction rules from MCP tools...');
+      this._correctionRulesCache = this.mcpManager.generateCorrectionRules();
+      const ruleCount = Object.values(this._correctionRulesCache)
+        .reduce((sum, server) => sum + Object.keys(server).length, 0);
+      this.logger.system('mcp-todo', `[TODO] ✅ Generated ${ruleCount} correction rule sets from inputSchema`);
+    }
+
+    const correctionRules = this._correctionRulesCache;
 
     // Apply corrections if rules exist
     const serverRules = correctionRules[server];
     if (serverRules && serverRules[tool]) {
       const rules = serverRules[tool];
       const corrected = { ...params };
+      let correctionsMade = 0;
 
       for (const rule of rules) {
         if (!corrected[rule.to] && corrected[rule.from]) {
           corrected[rule.to] = corrected[rule.from];
           delete corrected[rule.from];
-          this.logger.warn('mcp-todo', `[TODO] ⚠️ Auto-corrected ${server}.${tool}: '${rule.from}' → '${rule.to}' (${rule.to}="${corrected[rule.to]}")`);
+          correctionsMade++;
+          this.logger.warn('mcp-todo', `[TODO] ⚠️ Auto-corrected ${server}.${tool}: '${rule.from}' → '${rule.to}' (value: "${corrected[rule.to]}")`);
         }
+      }
+
+      if (correctionsMade > 0) {
+        this.logger.info('mcp-todo', `[TODO] Applied ${correctionsMade} parameter correction(s) for ${server}.${tool}`);
       }
 
       return corrected;
@@ -855,6 +830,13 @@ export class MCPTodoManager {
      * @returns {Promise<Object>} Tool plan
      */
   async planTools(item, todo, options = {}) {
+    // FIXED 2025-10-20: Ensure item.id is preserved
+    if (!item.id && item.hasOwnProperty('id')) {
+      this.logger.warn(`[MCP-TODO] Item.id is undefined but property exists`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(item) });
+    } else if (!item.id) {
+      this.logger.error(`[MCP-TODO] Item missing id property entirely`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(item) });
+    }
+    
     this.logger.system('mcp-todo', `[TODO] Planning tools for item ${item.id}`);
 
     // NEW 18.10.2025: Retry with fallback models
@@ -976,23 +958,31 @@ export class MCPTodoManager {
           
           this.logger.system('mcp-todo', `[TODO] 🎯🎯 Using 2 combined specialized prompts: ${options.promptOverride.join(' + ')}`);
         } else {
-          // Fallback to general
-          planPrompt = MCP_PROMPTS.TETYANA_PLAN_TOOLS;
-          this.logger.system('mcp-todo', `[TODO] ⚠️ Could not load 2 prompts, using general`);
+          // FIXED 2025-10-20: No fallback - force error
+          this.logger.error(`[MCP-TODO] ❌ Could not load 2 combined prompts for item ${item.id}`, {
+            category: 'mcp-todo',
+            component: 'mcp-todo',
+            itemId: item.id,
+            prompts: options.promptOverride
+          });
+          
+          throw new Error(`Could not load specialized prompts: ${options.promptOverride.join(', ')}`);
         }
       } else if (options.promptOverride && MCP_PROMPTS[options.promptOverride]) {
         // Single specialized prompt
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
       } else {
-        // General prompt (fallback)
-        planPrompt = MCP_PROMPTS.TETYANA_PLAN_TOOLS;
-        this.logger.warn(`[TODO] ⚠️ Using GENERAL prompt (fallback). Atlas should split items to max 2 servers!`, {
+        // FIXED 2025-10-20: No fallback to GENERAL prompt - force Atlas replan instead
+        this.logger.error(`[MCP-TODO] ❌ No specialized prompt available for item ${item.id}. Atlas must split this item!`, {
           category: 'mcp-todo',
           component: 'mcp-todo',
           itemId: item.id,
-          reason: 'No specialized prompt available or >2 servers'
+          reason: 'No specialized prompt available or >2 servers',
+          selected_servers: options.selectedServers
         });
+        
+        throw new Error(`Item requires >2 MCP servers or no specialized prompt available. Atlas should split: "${item.action}"`);
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors
@@ -1722,6 +1712,9 @@ Respond with JSON:
      * @private
      */
   _truncateData(data, maxLength = 300) {
+    if (data === null || data === undefined) {
+      return String(data); // 'null' або 'undefined'
+    }
     const str = typeof data === 'string' ? data : JSON.stringify(data);
     return str.length > maxLength ? str.substring(0, maxLength) + '... [truncated]' : str;
   }

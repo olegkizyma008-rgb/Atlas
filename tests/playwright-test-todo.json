@@ -1,0 +1,64 @@
+{
+  "session_id": "test-playwright-2025-10-20",
+  "user_request": "Відкрий сайт auto.ria.com, знайди поле пошуку та введи 'BYD Song Plus', натисни кнопку пошуку, зроби скріншот результатів",
+  "todos": [
+    {
+      "id": "pw-test-1",
+      "action": "Відкрити сайт auto.ria.com",
+      "success_criteria": "Сайт завантажився, видно головну сторінку",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "context": {
+        "url": "https://auto.ria.com",
+        "expected_servers": ["playwright"]
+      }
+    },
+    {
+      "id": "pw-test-2",
+      "action": "Знайти поле пошуку та ввести 'BYD Song Plus'",
+      "success_criteria": "Текст введено в поле пошуку",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["pw-test-1"],
+      "context": {
+        "search_text": "BYD Song Plus",
+        "expected_servers": ["playwright"]
+      }
+    },
+    {
+      "id": "pw-test-3",
+      "action": "Натиснути кнопку пошуку",
+      "success_criteria": "Відкрилась сторінка з результатами пошуку",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["pw-test-2"],
+      "context": {
+        "expected_servers": ["playwright"]
+      }
+    },
+    {
+      "id": "pw-test-4",
+      "action": "Зробити скріншот сторінки з результатами",
+      "success_criteria": "Скріншот збережено на Desktop",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["pw-test-3"],
+      "context": {
+        "screenshot_path": "/Users/dev/Desktop/auto-ria-search-results.png",
+        "expected_servers": ["playwright"]
+      }
+    }
+  ],
+  "metadata": {
+    "test_type": "playwright_server_validation",
+    "created_at": "2025-10-20T14:36:00+03:00",
+    "description": "Тест для перевірки роботи Playwright MCP сервера через Тетяну",
+    "expected_tools": [
+      "playwright_navigate",
+      "playwright_fill",
+      "playwright_click",
+      "playwright_screenshot"
+    ]
+  }
+}

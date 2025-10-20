@@ -641,12 +641,13 @@ export class MCPManager {
 
   /**
    * Отримати ДЕТАЛЬНИЙ опис tools для конкретних серверів
-   * Повертає ВСІ tools (не тільки перші 5) для обраних серверів
+   * Повертає ВСІ tools з ПОВНОЮ інформацією про параметри для LLM
+   * FIXED 2025-10-20: Додано inputSchema параметри, required/optional, приклади
    *
    * @param {Array<string>} serverNames - Назви серверів
-   * @returns {string} Детальний опис всіх tools
-   * @version 4.2.0
-   * @date 2025-10-15
+   * @returns {string} Детальний опис всіх tools з параметрами
+   * @version 4.3.0
+   * @date 2025-10-20
    */
   getDetailedToolsSummary(serverNames) {
     const summary = [];
@@ -659,10 +660,74 @@ export class MCPManager {
         continue;
       }
 
-      const toolsList = server.tools.map(t => `  - ${t.name}: ${t.description || 'No description'}`);
+      const toolsList = server.tools.map(t => {
+        let toolInfo = `  **${t.name}**\n    Description: ${t.description || 'No description'}`;
+
+        // Додати параметри з inputSchema
+        if (t.inputSchema && t.inputSchema.properties) {
+          const props = t.inputSchema.properties;
+          const required = t.inputSchema.required || [];
+
+          // Required параметри
+          const requiredParams = Object.keys(props)
+            .filter(key => required.includes(key))
+            .map(key => {
+              const prop = props[key];
+              const typeInfo = prop.type || 'any';
+              const desc = prop.description || '';
+              const enumInfo = prop.enum ? ` (values: ${prop.enum.join(', ')})` : '';
+              return `      • ${key} (${typeInfo}, REQUIRED)${enumInfo}: ${desc}`;
+            });
+
+          // Optional параметри
+          const optionalParams = Object.keys(props)
+            .filter(key => !required.includes(key))
+            .map(key => {
+              const prop = props[key];
+              const typeInfo = prop.type || 'any';
+              const desc = prop.description || '';
+              const enumInfo = prop.enum ? ` (values: ${prop.enum.join(', ')})` : '';
+              const defaultInfo = prop.default !== undefined ? ` [default: ${JSON.stringify(prop.default)}]` : '';
+              return `      • ${key} (${typeInfo}, optional)${enumInfo}${defaultInfo}: ${desc}`;
+            });
+
+          if (requiredParams.length > 0 || optionalParams.length > 0) {
+            toolInfo += '\n    Parameters:';
+            if (requiredParams.length > 0) {
+              toolInfo += '\n' + requiredParams.join('\n');
+            }
+            if (optionalParams.length > 0) {
+              toolInfo += '\n' + optionalParams.join('\n');
+            }
+          }
+
+          // Додати приклад виклику
+          const exampleParams = {};
+          required.forEach(key => {
+            const prop = props[key];
+            if (prop.enum) {
+              exampleParams[key] = prop.enum[0];
+            } else if (prop.type === 'string') {
+              exampleParams[key] = prop.description ? `<${key}>` : 'example';
+            } else if (prop.type === 'number') {
+              exampleParams[key] = prop.default !== undefined ? prop.default : 0;
+            } else if (prop.type === 'boolean') {
+              exampleParams[key] = prop.default !== undefined ? prop.default : true;
+            } else {
+              exampleParams[key] = `<${key}>`;
+            }
+          });
+
+          if (Object.keys(exampleParams).length > 0) {
+            toolInfo += `\n    Example call: {"server": "${serverName}", "tool": "${t.name}", "parameters": ${JSON.stringify(exampleParams)}}`;
+          }
+        }
+
+        return toolInfo;
+      });
 
       summary.push(
-        `### **${server.name}** (${server.tools.length} tools)\n${toolsList.join('\n')}`
+        `### Server: **${server.name}** (${server.tools.length} tools)\n\n${toolsList.join('\n\n')}`
       );
     }
 
@@ -699,64 +764,435 @@ export class MCPManager {
   }
 
   /**
-   * Валідувати tool_calls план проти доступних tools
-   *
-   * @param {Array} toolCalls - Масив tool_calls з LLM response
-   * @returns {Object} {valid: boolean, errors: Array, suggestions: Array}
+   * Знайти найбільш схожий рядок з масиву (fuzzy matching)
+   * Використовує Levenshtein distance та підрядкові збіги
+   * @param {string} target - Цільовий рядок
+   * @param {Array<string>} candidates - Масив кандидатів
+   * @returns {string|null} Найбільш схожий рядок або null
+   * @private
    */
-  validateToolCalls(toolCalls) {
-    const errors = [];
-    const suggestions = [];
+  _findSimilarString(target, candidates) {
+    if (!target || !candidates || candidates.length === 0) return null;
 
-    if (!Array.isArray(toolCalls)) {
-      return {
-        valid: false,
-        errors: ['tool_calls must be an array'],
-        suggestions: []
-      };
+    const targetLower = target.toLowerCase();
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const candidate of candidates) {
+      const candidateLower = candidate.toLowerCase();
+      let score = 0;
+
+      // Прямий збіг (найвищий пріоритет)
+      if (candidateLower === targetLower) return candidate;
+
+      // Підрядоковий збіг
+      if (candidateLower.includes(targetLower)) {
+        score += 0.8;
+      } else if (targetLower.includes(candidateLower)) {
+        score += 0.7;
+      }
+
+      // Levenshtein distance (normalized)
+      const distance = this._levenshteinDistance(targetLower, candidateLower);
+      const maxLen = Math.max(targetLower.length, candidateLower.length);
+      const similarity = 1 - (distance / maxLen);
+      score += similarity * 0.5;
+
+      // Збіг початку
+      if (candidateLower.startsWith(targetLower) || targetLower.startsWith(candidateLower)) {
+        score += 0.3;
+      }
+
+      if (score > bestScore && score > 0.5) { // Поріг 50% схожості
+        bestScore = score;
+        bestMatch = candidate;
+      }
     }
 
-    for (const call of toolCalls) {
-      const { server, tool } = call;
+    return bestMatch;
+  }
 
-      // Перевірка: чи існує server
-      if (!this.servers.has(server)) {
-        const availableServers = Array.from(this.servers.keys());
-        errors.push(`Server '${server}' not found. Available: ${availableServers.join(', ')}`);
+  /**
+   * Обчислити Levenshtein distance між двома рядками
+   * @param {string} a - Перший рядок
+   * @param {string} b - Другий рядок
+   * @returns {number} Відстань
+   * @private
+   */
+  _levenshteinDistance(a, b) {
+    const matrix = [];
 
-        // Fuzzy match suggestion
-        const similar = availableServers.find(s => s.includes(server) || server.includes(s));
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+
+    return matrix[b.length][a.length];
+  }
+
+  /**
+   * Валідувати параметри проти inputSchema інструменту
+   * @param {Object} toolDef - Дефініція інструменту з inputSchema
+   * @param {Object} parameters - Параметри для валідації
+   * @returns {Object} {valid: boolean, errors: Array, suggestions: Array, correctedParams: Object}
+   * @private
+   */
+  _validateParameters(toolDef, parameters = {}) {
+    const errors = [];
+    const suggestions = [];
+    const correctedParams = { ...parameters };
+    let hasCorrections = false;
+
+    const schema = toolDef.inputSchema;
+    if (!schema || !schema.properties) {
+      return { valid: true, errors: [], suggestions: [], correctedParams: null };
+    }
+
+    const props = schema.properties;
+    const required = schema.required || [];
+
+    // Перевірка обов'язкових параметрів
+    for (const requiredParam of required) {
+      if (!(requiredParam in parameters)) {
+        errors.push(`Missing required parameter: '${requiredParam}'`);
+        
+        // Спроба знайти схожий параметр
+        const similar = this._findSimilarString(requiredParam, Object.keys(parameters));
         if (similar) {
-          suggestions.push(`Did you mean server: '${similar}'?`);
+          suggestions.push(`Did you mean '${requiredParam}' instead of '${similar}'?`);
+          // Автокорекція: перейменування параметру
+          correctedParams[requiredParam] = correctedParams[similar];
+          delete correctedParams[similar];
+          hasCorrections = true;
+        }
+      }
+    }
+
+    // Перевірка типів параметрів
+    for (const [paramName, paramValue] of Object.entries(parameters)) {
+      const propDef = props[paramName];
+      
+      if (!propDef) {
+        // Невідомий параметр - може бути помилка у назві
+        const similar = this._findSimilarString(paramName, Object.keys(props));
+        if (similar) {
+          suggestions.push(`Unknown parameter '${paramName}'. Did you mean '${similar}'?`);
+          // Автокорекція
+          correctedParams[similar] = correctedParams[paramName];
+          delete correctedParams[paramName];
+          hasCorrections = true;
+        } else {
+          errors.push(`Unknown parameter: '${paramName}'`);
         }
         continue;
       }
 
-      // Перевірка: чи існує tool на сервері
-      const mcpServer = this.servers.get(server);
-      if (!Array.isArray(mcpServer.tools)) {
-        errors.push(`Server '${server}' has no tools loaded`);
-        continue;
+      // Перевірка типу
+      const expectedType = propDef.type;
+      const actualType = typeof paramValue;
+
+      if (expectedType === 'string' && actualType !== 'string') {
+        errors.push(`Parameter '${paramName}' should be string, got ${actualType}`);
+      } else if (expectedType === 'number' && actualType !== 'number') {
+        errors.push(`Parameter '${paramName}' should be number, got ${actualType}`);
+      } else if (expectedType === 'boolean' && actualType !== 'boolean') {
+        errors.push(`Parameter '${paramName}' should be boolean, got ${actualType}`);
+      } else if (expectedType === 'array' && !Array.isArray(paramValue)) {
+        errors.push(`Parameter '${paramName}' should be array, got ${actualType}`);
+      } else if (expectedType === 'object' && (actualType !== 'object' || Array.isArray(paramValue))) {
+        errors.push(`Parameter '${paramName}' should be object, got ${actualType}`);
       }
 
-      const toolExists = mcpServer.tools.some(t => t.name === tool);
-      if (!toolExists) {
-        const availableTools = mcpServer.tools.map(t => t.name);
-        errors.push(`Tool '${tool}' not found on '${server}'. Available: ${availableTools.slice(0, 5).join(', ')}${availableTools.length > 5 ? '...' : ''}`);
-
-        // Fuzzy match suggestion
-        const similar = availableTools.find(t => t.includes(tool) || tool.includes(t));
-        if (similar) {
-          suggestions.push(`Did you mean tool: '${similar}' on '${server}'?`);
-        }
+      // Перевірка enum значень
+      if (propDef.enum && !propDef.enum.includes(paramValue)) {
+        errors.push(`Parameter '${paramName}' must be one of: ${propDef.enum.join(', ')}. Got: ${paramValue}`);
+        suggestions.push(`Valid values for '${paramName}': ${propDef.enum.join(', ')}`);
       }
     }
 
     return {
       valid: errors.length === 0,
       errors,
-      suggestions
+      suggestions,
+      correctedParams: hasCorrections ? correctedParams : null
     };
+  }
+
+  /**
+   * Валідувати tool_calls план проти доступних tools
+   * ENHANCED 2025-10-20: Підтримка різних форматів назв, валідація параметрів
+   *
+   * @param {Array} toolCalls - Масив tool_calls з LLM response
+   * @param {Object} options - Опції валідації
+   * @param {boolean} options.autoCorrect - Автоматично виправляти помилки (default: false)
+   * @param {boolean} options.validateParams - Валідувати параметри проти inputSchema (default: true)
+   * @returns {Object} {valid: boolean, errors: Array, suggestions: Array, correctedCalls: Array}
+   */
+  validateToolCalls(toolCalls, options = {}) {
+    const { autoCorrect = false, validateParams = true } = options;
+    const errors = [];
+    const suggestions = [];
+    const correctedCalls = [];
+
+    if (!Array.isArray(toolCalls)) {
+      return {
+        valid: false,
+        errors: ['tool_calls must be an array'],
+        suggestions: [],
+        correctedCalls: []
+      };
+    }
+
+    for (let i = 0; i < toolCalls.length; i++) {
+      const call = toolCalls[i];
+      let { server, tool, parameters } = call;
+      let corrected = false;
+
+      // ENHANCED: Підтримка різних форматів назв інструментів
+      // Формат 1: {server: "playwright", tool: "playwright_navigate"}
+      // Формат 2: {server: "playwright", tool: "navigate"} (без префіксу)
+      // Формат 3: {tool: "playwright__navigate"} (з подвійним підкресленням)
+      
+      // Парсинг формату 3 (server__tool)
+      if (!server && tool && tool.includes('__')) {
+        const parts = tool.split('__');
+        server = parts[0];
+        tool = parts.join('__'); // Залишаємо повну назву
+        corrected = true;
+        logger.debug('mcp-manager', `[Validation] Parsed server__tool format: ${server}.${tool}`);
+      }
+
+      // Перевірка: чи існує server
+      if (!this.servers.has(server)) {
+        const availableServers = Array.from(this.servers.keys());
+        errors.push(`[Call ${i}] Server '${server}' not found. Available: ${availableServers.join(', ')}`);
+
+        // ENHANCED: Більш розумний fuzzy matching
+        const similar = this._findSimilarString(server, availableServers);
+        if (similar) {
+          suggestions.push(`[Call ${i}] Did you mean server: '${similar}'?`);
+          if (autoCorrect) {
+            server = similar;
+            corrected = true;
+          }
+        }
+        
+        if (!autoCorrect) continue;
+      }
+
+      // Перевірка: чи існує tool на сервері
+      const mcpServer = this.servers.get(server);
+      if (!mcpServer || !Array.isArray(mcpServer.tools)) {
+        errors.push(`[Call ${i}] Server '${server}' has no tools loaded`);
+        if (!autoCorrect) continue;
+      }
+
+      const availableTools = mcpServer.tools.map(t => t.name);
+      
+      // ENHANCED: Перевірка різних варіантів назви інструменту
+      let toolDef = mcpServer.tools.find(t => t.name === tool);
+      
+      // Якщо не знайдено - пробуємо з префіксом server
+      if (!toolDef && !tool.startsWith(server + '_')) {
+        const toolWithPrefix = `${server}_${tool}`;
+        toolDef = mcpServer.tools.find(t => t.name === toolWithPrefix);
+        if (toolDef) {
+          tool = toolWithPrefix;
+          corrected = true;
+          logger.debug('mcp-manager', `[Validation] Added server prefix: ${tool}`);
+        }
+      }
+      
+      // Якщо все ще не знайдено - fuzzy matching
+      if (!toolDef) {
+        errors.push(`[Call ${i}] Tool '${tool}' not found on '${server}'. Available: ${availableTools.slice(0, 5).join(', ')}${availableTools.length > 5 ? '...' : ''}`);
+
+        const similar = this._findSimilarString(tool, availableTools);
+        if (similar) {
+          suggestions.push(`[Call ${i}] Did you mean tool: '${similar}' on '${server}'?`);
+          if (autoCorrect) {
+            tool = similar;
+            toolDef = mcpServer.tools.find(t => t.name === similar);
+            corrected = true;
+          }
+        }
+        
+        if (!autoCorrect || !toolDef) continue;
+      }
+
+      // ENHANCED: Валідація параметрів проти inputSchema
+      if (validateParams && toolDef && toolDef.inputSchema) {
+        const paramValidation = this._validateParameters(toolDef, parameters);
+        if (!paramValidation.valid) {
+          errors.push(...paramValidation.errors.map(e => `[Call ${i}] ${e}`));
+          suggestions.push(...paramValidation.suggestions.map(s => `[Call ${i}] ${s}`));
+          
+          if (autoCorrect && paramValidation.correctedParams) {
+            parameters = paramValidation.correctedParams;
+            corrected = true;
+          }
+        }
+      }
+
+      // Зберегти виправлений виклик
+      if (corrected || autoCorrect) {
+        correctedCalls.push({
+          ...call,
+          server,
+          tool,
+          parameters,
+          _corrected: corrected
+        });
+      } else {
+        correctedCalls.push(call);
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      suggestions,
+      correctedCalls
+    };
+  }
+
+  /**
+   * Згенерувати правила автокорекції параметрів на основі inputSchema
+   * Аналізує всі інструменти та визначає поширені помилки у назвах параметрів
+   * @returns {Object} Об'єкт з правилами автокорекції {server: {tool: [{from, to}]}}
+   * @version 4.3.0
+   * @date 2025-10-20
+   */
+  generateCorrectionRules() {
+    const rules = {};
+
+    for (const [serverName, server] of this.servers.entries()) {
+      if (!Array.isArray(server.tools) || server.tools.length === 0) continue;
+
+      rules[serverName] = {};
+
+      for (const tool of server.tools) {
+        if (!tool.inputSchema || !tool.inputSchema.properties) continue;
+
+        const toolRules = [];
+        const props = tool.inputSchema.properties;
+
+        // Аналіз кожного параметру для генерації правил корекції
+        for (const [paramName, paramDef] of Object.entries(props)) {
+          // Генерація варіантів назв на основі семантики
+          const commonVariants = this._generateParamVariants(paramName, paramDef);
+          
+          for (const variant of commonVariants) {
+            if (variant !== paramName) {
+              toolRules.push({ from: variant, to: paramName });
+            }
+          }
+        }
+
+        if (toolRules.length > 0) {
+          rules[serverName][tool.name] = toolRules;
+        }
+      }
+    }
+
+    logger.debug('mcp-manager', `[MCP Manager] Generated correction rules for ${Object.keys(rules).length} servers`);
+    return rules;
+  }
+
+  /**
+   * Згенерувати варіанти назв параметру на основі семантики
+   * @param {string} paramName - Оригінальна назва параметру
+   * @param {Object} paramDef - Дефініція параметру з inputSchema
+   * @returns {Array<string>} Масив можливих варіантів назв
+   * @private
+   */
+  _generateParamVariants(paramName, paramDef) {
+    const variants = new Set([paramName]);
+    const description = (paramDef.description || '').toLowerCase();
+
+    // Словник поширених синонімів
+    const synonymMap = {
+      // Загальні
+      'path': ['file', 'filename', 'filepath', 'location', 'destination'],
+      'url': ['link', 'address', 'uri', 'href', 'location'],
+      'content': ['text', 'data', 'body', 'value', 'message'],
+      'value': ['text', 'input', 'content', 'data'],
+      'selector': ['element', 'target', 'locator', 'query'],
+      'command': ['cmd', 'script', 'exec', 'run'],
+      'code_snippet': ['script', 'code', 'snippet'],
+      'name': ['title', 'label', 'id', 'identifier'],
+      'description': ['desc', 'text', 'summary', 'info'],
+      
+      // Playwright специфічні
+      'wait_until': ['waitUntil', 'wait', 'waitFor'],
+      'full_page': ['fullPage', 'entire', 'complete'],
+      
+      // Filesystem специфічні
+      'data': ['content', 'text', 'body'],
+      
+      // Memory специфічні
+      'entities': ['items', 'nodes', 'objects'],
+      'observations': ['facts', 'notes', 'data'],
+      'entityType': ['type', 'kind', 'category'],
+      'relationType': ['relation', 'type', 'link']
+    };
+
+    // Додати синоніми
+    if (synonymMap[paramName]) {
+      synonymMap[paramName].forEach(syn => variants.add(syn));
+    }
+
+    // Зворотній пошук - якщо paramName є синонімом
+    for (const [original, syns] of Object.entries(synonymMap)) {
+      if (syns.includes(paramName)) {
+        variants.add(original);
+        syns.forEach(syn => variants.add(syn));
+      }
+    }
+
+    // Варіанти camelCase/snake_case
+    if (paramName.includes('_')) {
+      // snake_case -> camelCase
+      const camelCase = paramName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      variants.add(camelCase);
+    } else if (paramName.match(/[a-z][A-Z]/)) {
+      // camelCase -> snake_case
+      const snakeCase = paramName.replace(/([A-Z])/g, '_$1').toLowerCase();
+      variants.add(snakeCase);
+    }
+
+    // Аналіз опису для додаткових підказок
+    if (description.includes('url') || description.includes('link')) {
+      variants.add('url');
+      variants.add('link');
+    }
+    if (description.includes('path') || description.includes('file')) {
+      variants.add('path');
+      variants.add('file');
+    }
+    if (description.includes('selector') || description.includes('element')) {
+      variants.add('selector');
+      variants.add('element');
+    }
+
+    return Array.from(variants);
   }
 
   /**

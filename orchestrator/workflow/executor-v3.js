@@ -732,6 +732,15 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                 sessionId: session.id
               });
 
+              // FIXED 2025-10-20: Assign IDs to new items before inserting
+              let nextId = Math.max(...todo.items.map(it => it.id)) + 1;
+              replanResult.new_items.forEach(newItem => {
+                newItem.id = nextId++;
+                newItem.status = 'pending';
+                newItem.attempt = 0;
+                newItem.max_attempts = newItem.max_attempts || item.max_attempts || 2;
+              });
+
               // Insert new items into TODO list after current item
               const currentIndex = todo.items.indexOf(item);
               if (currentIndex !== -1) {

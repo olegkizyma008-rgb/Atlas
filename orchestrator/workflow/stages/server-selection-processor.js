@@ -9,7 +9,7 @@
 
 import logger from '../../utils/logger.js';
 import axios from 'axios';
-import GlobalConfig, { getModelByType } from '../../../config/global-config.js';
+import GlobalConfig, { getModelByType } from '../../../config/atlas-config.js';
 
 export class ServerSelectionProcessor {
     /**

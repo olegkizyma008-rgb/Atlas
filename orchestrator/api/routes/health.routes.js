@@ -5,7 +5,7 @@
  * Health check, configuration info, metrics endpoints
  */
 
-import GlobalConfig from '../../../config/global-config.js';
+import GlobalConfig from '../../../config/atlas-config.js';
 import wsManager from '../websocket-manager.js';
 import webIntegration from '../web-integration.js';
 

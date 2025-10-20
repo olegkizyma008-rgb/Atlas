@@ -7,7 +7,7 @@
 export const VISION_CONFIG = {
   primary: {
     model: 'atlas-llama-3.2-90b-vision-instruct',
-    provider: 'meta',
+    provider: 'atlas',
     cost: 0.01,
     speed: '1-2s',
     rateLimitPerMin: 10,
@@ -17,7 +17,7 @@ export const VISION_CONFIG = {
   },
   fast: {
     model: 'atlas-phi-3.5-vision-instruct',
-    provider: 'microsoft',
+    provider: 'atlas',
     cost: 0.0002,
     speed: '0.8-1.2s',
     rateLimitPerMin: 6,

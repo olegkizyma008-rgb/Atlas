@@ -11,7 +11,7 @@ import errorHandler from '../errors/error-handler.js';
 import telemetry from '../utils/telemetry.js';
 import wsManager from '../api/websocket-manager.js';
 import webIntegration from '../api/web-integration.js';
-import GlobalConfig from '../../config/global-config.js';
+import GlobalConfig from '../../config/atlas-config.js';
 import { MCPManager } from '../ai/mcp-manager.js';
 import { MCPTodoManager } from '../workflow/mcp-todo-manager.js';
 import { TTSSyncManager } from '../workflow/tts-sync-manager.js';

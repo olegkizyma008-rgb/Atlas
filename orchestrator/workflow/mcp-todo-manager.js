@@ -11,7 +11,7 @@
 import logger from '../utils/logger.js';
 import axios from 'axios';
 import vm from 'node:vm';
-import GlobalConfig from '../../config/global-config.js';
+import GlobalConfig from '../../config/atlas-config.js';
 
 /**
  * @typedef {Object} TodoItem

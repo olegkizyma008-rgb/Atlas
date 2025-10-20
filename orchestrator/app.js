@@ -9,7 +9,6 @@ import express from 'express';
 import cors from 'cors';
 import logger from './utils/logger.js';
 import telemetry from './utils/telemetry.js';
-import GlobalConfig from '../config/global-config.js';
 
 /**
  * Створює та налаштовує Express додаток

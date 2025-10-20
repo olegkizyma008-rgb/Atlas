@@ -3,7 +3,7 @@
  * Спрощено: тільки MCP Dynamic TODO система, без Goose fallback
  */
 
-import GlobalConfig from '../../config/global-config.js';
+import GlobalConfig from '../../config/atlas-config.js';
 // Centralised modules
 import logger from '../utils/logger.js';
 import telemetry from '../utils/telemetry.js';

@@ -7,7 +7,7 @@
  */
 
 import logger from '../utils/logger.js';
-import { TTS_CONFIG } from '../../config/global-config.js';
+import { TTS_CONFIG } from '../../config/atlas-config.js';
 
 class TTSOptimizer {
   constructor() {
@@ -173,7 +173,7 @@ class TTSOptimizer {
         });
 
         // Use centralized config for TTS optimization
-        const GlobalConfig = (await import('../../config/global-config.js')).default;
+        const GlobalConfig = (await import('../../config/atlas-config.js')).default;
         const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('tts_optimization');
 
         // Викликаємо LLM для оптимізації (використовуємо fallback LLM)

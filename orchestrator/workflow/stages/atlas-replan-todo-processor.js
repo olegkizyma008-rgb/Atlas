@@ -13,7 +13,7 @@
 
 import logger from '../../utils/logger.js';
 import axios from 'axios';
-import GlobalConfig from '../../../config/global-config.js';
+import GlobalConfig from '../../../config/atlas-config.js';
 
 /**
  * Atlas Replan TODO Processor

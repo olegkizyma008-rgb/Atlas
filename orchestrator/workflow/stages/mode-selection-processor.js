@@ -9,7 +9,7 @@
 import logger from '../../utils/logger.js';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import axios from 'axios';
-import GlobalConfig from '../../../config/global-config.js';
+import GlobalConfig from '../../../config/atlas-config.js';
 
 /**
  * Mode Selection Processor

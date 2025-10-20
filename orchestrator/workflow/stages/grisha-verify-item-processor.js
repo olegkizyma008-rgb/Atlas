@@ -18,7 +18,7 @@ import logger from '../../utils/logger.js';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import { VisualCaptureService } from '../../services/visual-capture-service.js';
 import { VisionAnalysisService } from '../../services/vision-analysis-service.js';
-import GlobalConfig from '../../../config/global-config.js';
+import GlobalConfig from '../../../config/atlas-config.js';
 
 /**
  * Grisha Verify Item Processor

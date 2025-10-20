@@ -8,7 +8,7 @@ import axios from 'axios';
 // Імпортуємо нові модулі
 import logger from '../utils/logger.js';
 import * as agentProtocol from '../agents/agent-protocol.js';
-import GlobalConfig from '../../config/global-config.js';
+import GlobalConfig from '../../config/atlas-config.js';
 
 // Model registry - dynamically built from GlobalConfig (lazy loaded)
 let MODELS_CACHE = null;

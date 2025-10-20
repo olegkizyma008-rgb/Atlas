@@ -534,10 +534,8 @@ class AtlasApp {
   integrateComponents() {
     // Інтеграція чату з TTS та живою системою
     if (this.managers.chat && this.managers.ttsVisualization) {
-      // Коли починається TTS, показуємо візуалізацію
+      // Коли починається TTS, інтегруємо з живою системою
       this.managers.chat.on('tts-start', (data) => {
-        this.managers.ttsVisualization.startTTS(data.text, data.audioElement || null);
-
         // Інтегруємо з живою системою Атласа
         if (this.managers.livingBehavior && typeof this.managers.livingBehavior.startSpeaking === 'function') {
           // FIXED: startSpeaking приймає (agent, intensity), НЕ (text, audioElement)
@@ -586,8 +584,6 @@ class AtlasApp {
         if (this.managers.glbLivingSystem) {
           this.managers.glbLivingSystem.reactToEvent('agent-thinking', { agent: agentName });
           this.managers.glbLivingSystem.setEmotion('thinking', 0.8, 2000);
-          // Початок мовлення для агента
-          this.managers.glbLivingSystem.startSpeaking(agentName, 0.8);
         } else if (this.managers.livingBehavior) {
           this.managers.livingBehavior.setEmotion('thinking', 0.8, 2000);
         } else {

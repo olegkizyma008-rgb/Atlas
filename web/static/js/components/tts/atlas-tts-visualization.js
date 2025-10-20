@@ -295,24 +295,8 @@ export class AtlasTTSVisualization {
       this.analyzeTextForPhonemes(text);
     }
 
-    // Повідомляємо 3D модель про початок TTS
-    if (this.modelController) {
-      try {
-        if (typeof this.modelController.speak === 'function') {
-          // Legacy 3D controller API
-          this.modelController.speak(text);
-        } else if (typeof this.modelController.onTTSStart === 'function') {
-          // Living behavior controller API
-          this.modelController.onTTSStart(text, audioElement);
-        } else if (typeof this.modelController.startSpeaking === 'function') {
-          // Simplified fallback used by living system
-          const agent = this.config?.agent || 'atlas';
-          this.modelController.startSpeaking(agent, 0.8);
-        }
-      } catch (error) {
-        console.warn('⚠️ Model controller TTS start handler failed:', error);
-      }
-    }
+    // NOTE: startSpeaking викликається в app-refactored.js через подію tts-start
+    // Не викликаємо тут жодних методів моделі, щоб уникнути дублювання
 
     console.log('🎤 TTS Visualization started for:', text.substring(0, 50) + '...');
   }

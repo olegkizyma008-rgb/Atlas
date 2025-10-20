@@ -704,26 +704,8 @@ export class AtlasAdvancedUI {
   }
 
   onTTSStarted(data) {
-    if (this.ttsVisualization) {
-      this.ttsVisualization.startTTS(data.text, data.audioElement);
-    }
-
-    // ✅ FIXED: Living Behavior має onTTSStart, НЕ speak
-    if (this.modelController) {
-      if (typeof this.modelController.speak === 'function') {
-        // Legacy 3D controller
-        this.modelController.speak(data.text);
-      } else if (typeof this.modelController.onTTSStart === 'function') {
-        // Living Behavior контролер (основний)
-        this.modelController.onTTSStart(data.text, data.audioElement);
-      } else if (typeof this.modelController.startSpeaking === 'function') {
-        // Living System альтернативний метод
-        const agent = data.agent || 'atlas';
-        this.modelController.startSpeaking(agent, 0.8);
-      } else {
-        console.warn('⚠️ Model controller has no TTS method (speak/onTTSStart/startSpeaking)');
-      }
-    }
+    // NOTE: TTS Visualization і startSpeaking викликаються в app-refactored.js через подію tts-start
+    // Не викликаємо тут жодних методів, щоб уникнути дублювання
 
     if (this.loggingSystem) {
       this.loggingSystem.info(`TTS started: "${data.text.substring(0, 30)}..."`, 'TTS');

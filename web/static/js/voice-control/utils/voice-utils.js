@@ -3,7 +3,7 @@
  * Допоміжні функції, фільтри та валідатори
  */
 
-import { VOICE_CONFIG } from '../core/config.js';
+import { VOICE_CONFIG } from '../../core/config.js';
 import { createLogger } from '../core/logger.js';
 
 const logger = createLogger('VOICE_UTILS');

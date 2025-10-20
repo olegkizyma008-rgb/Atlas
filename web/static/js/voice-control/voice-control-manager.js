@@ -5,7 +5,7 @@
 
 import { BaseService } from './core/base-service.js';
 import { EventManager, Events } from './events/event-manager.js';
-import { VOICE_CONFIG } from './core/config.js';
+import { VOICE_CONFIG } from '../../core/config.js';
 import { createLogger } from './core/logger.js';
 
 // Імпорт всіх сервісів

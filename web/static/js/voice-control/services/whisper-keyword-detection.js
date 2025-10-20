@@ -7,7 +7,7 @@
  */
 
 import { BaseService } from '../core/base-service.js';
-import { API_ENDPOINTS } from '../core/config.js';
+import { API_ENDPOINTS } from '../../core/config.js';
 import { Events } from '../events/event-manager.js';
 import { containsActivationKeyword, correctAtlasWord } from '../utils/voice-utils.js';
 

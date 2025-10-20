@@ -4,7 +4,7 @@
  */
 
 import { BaseService } from '../core/base-service.js';
-import { VOICE_CONFIG } from '../core/config.js';
+import { VOICE_CONFIG } from '../../core/config.js';
 import { Events } from '../events/event-manager.js';
 import { containsActivationKeyword, isStopCommand } from '../utils/voice-utils.js';
 

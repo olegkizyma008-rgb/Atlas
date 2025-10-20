@@ -101,17 +101,27 @@
     <!-- Load main application -->
     <script type="module" src="{{ url_for('static', filename='js/app-refactored.js') }}?v={{ timestamp }}"></script>
 
-    <!-- Load diagnostics (for development) -->
-    <script src="{{ url_for('static', filename='js/diagnostics.js') }}?v={{ timestamp }}"></script>
-
-    <!-- Service Worker -->
+    <!-- Service Worker Cleanup Script -->
     <script>
+        // Видаляємо всі зареєстровані Service Workers
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('{{ url_for("static", filename="js/service-worker.js") }}')
-                .then(registration => console.log('SW registered:', registration))
-                .catch(error => console.log('SW registration failed:', error));
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(registration => {
+                    registration.unregister().then(success => {
+                        if (success) console.log('✅ Service Worker unregistered:', registration.scope);
+                    });
+                });
+            });
+            
+            // Очищаємо всі кеші
+            caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                    caches.delete(cacheName).then(() => {
+                        console.log('✅ Cache deleted:', cacheName);
+                    });
+                });
+            });
         }
-
     </script>
 </body>
 

@@ -51,11 +51,7 @@ export class ModeSelectionProcessor {
                 this.apiTimeout = apiConfig.timeout || 60000;
             }
             
-            this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.stages?.mode_selection || {
-                model: 'atlas-ministral-3b',
-                temperature: 0.05,
-                max_tokens: 50
-            };
+            this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('mode_selection');
             
             this.logger.system('mode-selection', `[STAGE-0-MCP] 🔧 Using API: ${this.apiEndpoint}, Model: ${this.modelConfig.model}`);
         }

@@ -476,30 +476,94 @@ export class TetyanaExecuteToolsProcessor {
 
     /**
      * Get delay duration between tools
-     * NEW 2025-10-18
+     * NEW 2025-10-18, OPTIMIZED 2025-10-19
+     * 
+     * Затримки всередині одного ітема (між tools):
+     * - Довгі операції (компіляція, обробка файлів): 3000-5000ms
+     * - AppleScript (відкриття програм): 2000ms
+     * - Playwright navigate: 1500ms
+     * - Інші playwright: 800ms
+     * - Filesystem/shell: 200ms
+     * - Default: 500ms
      * 
      * @param {Object} toolCall - Just executed tool call
      * @returns {number} Delay in milliseconds
      * @private
      */
     _getDelayBetweenTools(toolCall) {
-        // Playwright tools need more time for page updates
-        if (toolCall.server === 'playwright') {
-            // navigate, fill, click need time
-            if (['playwright_navigate', 'playwright_fill', 'playwright_click'].includes(toolCall.tool)) {
-                return 2000; // 2 seconds
-            }
-            // Other playwright tools
-            return 1000; // 1 second
+        // Перевірка на довгі операції (компіляція, обробка коду)
+        if (this._isLongRunningOperation(toolCall)) {
+            return 5000; // 5 seconds - для візуальних змін UI
         }
 
-        // Filesystem, shell - minimal delay
+        // AppleScript - часто для відкриття програм, потрібно більше часу
+        if (toolCall.server === 'applescript') {
+            return 2000; // 2 seconds - програми відкриваються
+        }
+
+        // Playwright tools - веб-операції
+        if (toolCall.server === 'playwright') {
+            // navigate потребує часу на завантаження сторінки
+            if (toolCall.tool === 'playwright_navigate') {
+                return 1500; // 1.5 seconds
+            }
+            // fill, click та інші - менше
+            return 800; // 800ms
+        }
+
+        // Filesystem, shell - швидкі операції, мінімальна затримка
         if (toolCall.server === 'filesystem' || toolCall.server === 'shell') {
             return 200; // 200ms
         }
 
-        // Default
+        // Default для інших серверів
         return 500; // 500ms
+    }
+
+    /**
+     * Check if operation is long-running (compilation, code processing, etc.)
+     * 
+     * @param {Object} toolCall - Tool call to check
+     * @returns {boolean} True if long-running operation
+     * @private
+     */
+    _isLongRunningOperation(toolCall) {
+        const toolLower = (toolCall.tool || '').toLowerCase();
+        const paramsStr = JSON.stringify(toolCall.parameters || {}).toLowerCase();
+
+        // Shell команди - перевіряємо команду
+        if (toolCall.server === 'shell') {
+            const longRunningCommands = [
+                'compile', 'build', 'make', 'cmake', 'gcc', 'g++', 'clang',
+                'npm install', 'npm run', 'yarn', 'pip install',
+                'cargo build', 'go build', 'mvn', 'gradle',
+                'webpack', 'vite build', 'tsc',
+                'ffmpeg', 'convert', 'magick'  // медіа обробка
+            ];
+
+            for (const cmd of longRunningCommands) {
+                if (paramsStr.includes(cmd)) {
+                    return true;
+                }
+            }
+        }
+
+        // Filesystem - великі файли або кодогенерація
+        if (toolCall.server === 'filesystem') {
+            // Перевіряємо розмір файлу або keywords
+            if (paramsStr.includes('generate') || paramsStr.includes('process')) {
+                return true;
+            }
+        }
+
+        // Playwright - важкі сторінки або скрапінг
+        if (toolCall.server === 'playwright') {
+            if (toolLower.includes('scrape') || toolLower.includes('extract')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

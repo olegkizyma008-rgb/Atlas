@@ -492,7 +492,18 @@ export class ChatManager {
   async handleAgentMessage(messageData) {
     const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized } = messageData;
 
-    // FIXED 15.10.2025 - Add diagnostic logging for TTS debugging
+    // ENHANCED 19.10.2025 - More detailed logging for TTS debugging
+    console.log('[CHAT] 📨 handleAgentMessage called:', {
+      agent,
+      has_ttsContent: !!ttsContent,
+      has_content: !!content,
+      ttsContent_length: ttsContent?.length || 0,
+      content_length: content?.length || 0,
+      voice: voice || 'undefined',
+      mode: mode || 'undefined',
+      ttsContent_preview: ttsContent?.substring(0, 50)
+    });
+    
     this.logger.info(`[TTS-DIAG] handleAgentMessage: agent=${agent}, has_ttsContent=${!!ttsContent}, has_content=${!!content}, ttsContent_length=${ttsContent?.length || 0}, content_length=${content?.length || 0}, voice=${voice || 'undefined'}, mode=${mode || 'undefined'}`);
 
     // Додаємо лог у веб-інтерфейс
@@ -554,7 +565,17 @@ export class ChatManager {
         const agentConfig = AGENTS[agent];
         const ttsVoice = voice || agentConfig?.voice;
 
+        console.log('[CHAT] 🔍 TTS check:', {
+          agent,
+          agentConfig,
+          ttsVoice,
+          textForTTS_length: textForTTS.length,
+          ttsManager_enabled: this.ttsManager.isEnabled()
+        });
+
         if (ttsVoice) {
+          console.log('[CHAT] ✅ TTS voice found, processing:', ttsVoice);
+          
           // Позначаємо як оброблене
           this._processedTTS.add(ttsKey);
 
@@ -563,6 +584,7 @@ export class ChatManager {
           const shouldChunk = isTaskMode && this.enableChunking && textForTTS.length > 500;
 
           this.logger.info(`🎵 Queueing TTS for ${agent} (voice: ${ttsVoice}, mode: ${mode || 'chat'}, fullText: ${this.fullTextMode ? 'YES' : 'NO'}, chunking: ${shouldChunk ? 'YES' : 'NO'}, length: ${textForTTS.length})`);
+          console.log('[CHAT] 🎵 Queueing TTS:', { agent, ttsVoice, mode: mode || 'chat', length: textForTTS.length });
 
           // Емітимо події для UI
           this.emit('tts-start', { agent, voice: ttsVoice, text: textForTTS, mode });
@@ -608,13 +630,21 @@ export class ChatManager {
             this._processedTTS?.delete(ttsKey);
           }, 30000);
         } else {
+          console.warn('[CHAT] ⚠️ No voice configured for agent:', agent, 'agentConfig:', AGENTS[agent]);
           this.logger.debug(`No voice configured for agent: ${agent}`);
         }
       } catch (error) {
+        console.error('[CHAT] ❌ TTS error:', error);
         this.logger.error(`TTS failed for ${agent}:`, error?.message || error);
         // Видаляємо з обробленого при помилці для можливості повтору
         this._processedTTS?.delete(ttsKey);
       }
+    } else {
+      console.log('[CHAT] ⏭️ Skipping TTS:', {
+        has_textForTTS: !!textForTTS,
+        textForTTS_trimmed: textForTTS?.trim(),
+        ttsManager_enabled: this.ttsManager.isEnabled()
+      });
     }
 
     return message;

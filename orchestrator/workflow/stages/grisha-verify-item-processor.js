@@ -113,10 +113,20 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] Item: ${currentItem.id}. ${currentItem.action}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] Success criteria: ${currentItem.success_criteria}`);
 
-            // Step 1: Capture screenshot of current state
-            const screenshot = await this.visualCapture.captureScreenshot(`item_${currentItem.id}_verify`);
+            // Step 1: Determine target app for window screenshot
+            const targetApp = this._detectTargetApp(currentItem.action, execution.results);
+            if (targetApp) {
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🎯 Target app detected: ${targetApp}`);
+            }
+
+            // Step 2: Capture screenshot of current state
+            const screenshot = await this.visualCapture.captureScreenshot(
+                `item_${currentItem.id}_verify`,
+                { targetApp } // Pass targetApp for window screenshot
+            );
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📸 Screenshot captured: ${screenshot.filename}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📂 Full path: ${screenshot.filepath}`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📷 Capture mode: ${targetApp ? 'window (' + targetApp + ')' : 'full screen'}`);
 
             // Step 2: Analyze screenshot with AI vision
             const analysisContext = {
@@ -601,6 +611,59 @@ export class GrishaVerifyItemProcessor {
             default:
                 return 'modify_or_split';
         }
+    }
+
+    /**
+     * Detect target application for window screenshot
+     * 
+     * @param {string} action - TODO item action
+     * @param {Array} executionResults - Tool execution results
+     * @returns {string|null} Target app name or null
+     * @private
+     */
+    _detectTargetApp(action, executionResults = []) {
+        const actionLower = (action || '').toLowerCase();
+
+        // Check action text for app keywords
+        const appMappings = [
+            { keywords: ['калькулятор', 'calculator'], app: 'Calculator' },
+            { keywords: ['safari'], app: 'Safari' },
+            { keywords: ['chrome'], app: 'Google Chrome' },
+            { keywords: ['firefox'], app: 'Firefox' },
+            { keywords: ['finder'], app: 'Finder' },
+            { keywords: ['notes', 'нотатки'], app: 'Notes' },
+            { keywords: ['calendar', 'календар'], app: 'Calendar' },
+            { keywords: ['mail', 'пошта'], app: 'Mail' },
+            { keywords: ['messages', 'повідомлення'], app: 'Messages' }
+        ];
+
+        for (const mapping of appMappings) {
+            for (const keyword of mapping.keywords) {
+                if (actionLower.includes(keyword)) {
+                    return mapping.app;
+                }
+            }
+        }
+
+        // Check execution results for AppleScript with app name
+        if (Array.isArray(executionResults)) {
+            for (const result of executionResults) {
+                if (!result.success || !result.data) continue;
+
+                const dataStr = JSON.stringify(result.data).toLowerCase();
+                
+                for (const mapping of appMappings) {
+                    for (const keyword of mapping.keywords) {
+                        if (dataStr.includes(keyword)) {
+                            return mapping.app;
+                        }
+                    }
+                }
+            }
+        }
+
+        // No target app detected - use full screen
+        return null;
     }
 
     /**

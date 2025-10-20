@@ -708,12 +708,9 @@ Return ONLY the JSON object.`;
       // OPTIMIZATION 2025-10-17: Check and optimize image to prevent 413 errors
       const optimizedImage = this._optimizeImageForAPI(base64Image);
 
-      // Get vision model from GlobalConfig (with safe access)
-      const visionConfig = GlobalConfig.VISION_CONFIG?.default || {
-        model: 'copilot-gpt-4o',
-        endpoint: 'http://localhost:4000/v1/chat/completions',
-        temperature: 0.2
-      };
+      // Use centralized vision model config from global-config.js
+      const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_analysis');
+      const endpoint = GlobalConfig.MCP_MODEL_CONFIG.apiEndpoint.primary;
       const apiEndpoint = visionConfig.endpoint || 'http://localhost:4000/v1/chat/completions';
 
       // Prepare headers - add Copilot-Vision-Request for GitHub Copilot models
@@ -745,8 +742,8 @@ Return ONLY the JSON object.`;
             ]
           }
         ],
-        max_tokens: 500,  // Shorter response for speed
-        temperature: 0.1
+        max_tokens: visionConfig.max_tokens || 1000,
+        temperature: visionConfig.temperature
       }, {
         timeout: 15000,  // 15 sec MAX for port 4000 (should be 2-5 sec normally)
         headers
@@ -762,7 +759,7 @@ Return ONLY the JSON object.`;
       if (error.response?.status === 422) {
         this.logger.error('[PORT-4000] ❌ 422 Unprocessable Entity - model may not support vision API', {
           category: 'vision-analysis',
-          model: 'gpt-4o',
+          model: visionConfig.model,
           hint: 'Check if the model supports vision API format (multimodal)'
         });
 
@@ -834,8 +831,9 @@ Return ONLY the JSON object.`;
     try {
       this.logger.system('vision-analysis', '[OLLAMA] ⚠️  Calling Ollama (slow 120+ sec, FREE fallback)...');
 
-      const response = await axios.post('http://localhost:11434/api/generate', {
-        model: 'llama3.2-vision',
+      const ollamaConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback');
+      const response = await axios.post(ollamaConfig.endpoint, {
+        model: ollamaConfig.model,
         prompt: prompt,
         images: [base64Image],
         stream: false
@@ -903,7 +901,7 @@ Return ONLY the JSON object.`;
           }
         ],
         max_tokens: 1000,
-        temperature: 0.2
+        temperature: 0.2  // OpenRouter fallback - hardcoded for now
       }, {
         timeout: 120000,  // 2min timeout for OpenRouter cloud API
         headers: { 'Content-Type': 'application/json' }
@@ -985,7 +983,7 @@ Return ONLY the JSON object.`;
 
   /**
      * Parse vision API response
-     * Handles markdown-wrapped JSON
+     * Handles markdown-wrapped JSON and text responses
      *
      * @param {string} content - Raw API response
      * @returns {Object} Parsed JSON
@@ -1004,12 +1002,61 @@ Return ONLY the JSON object.`;
     try {
       return JSON.parse(cleaned);
     } catch (error) {
-      this.logger.error(`[VISION] Failed to parse vision response: ${error.message}`, {
+      // FALLBACK: Try to extract JSON from text response
+      this.logger.warn(`[VISION] Initial JSON parse failed, trying to extract JSON from text...`, {
         category: 'vision-analysis',
-        component: 'vision-analysis',
         rawContent: content.substring(0, 200)
       });
-      throw new Error(`Vision API returned invalid JSON: ${error.message}`);
+
+      // Try to find JSON object in the text
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const extracted = JSON.parse(jsonMatch[0]);
+          this.logger.system('vision-analysis', '[VISION] ✅ Successfully extracted JSON from text response');
+          return extracted;
+        } catch (extractError) {
+          // Continue to text parsing fallback
+        }
+      }
+
+      // FALLBACK: Parse text response and create JSON structure
+      this.logger.warn(`[VISION] Could not extract JSON, creating fallback response from text`, {
+        category: 'vision-analysis',
+        textPreview: content.substring(0, 300)
+      });
+
+      // Analyze text for verification keywords
+      const lowerContent = content.toLowerCase();
+      const hasPositiveKeywords = /\b(yes|verified|success|complete|correct|found|visible|present|open|running)\b/i.test(content);
+      const hasNegativeKeywords = /\b(no|not|failed|error|missing|absent|incorrect|wrong|cannot|unable)\b/i.test(content);
+
+      // Determine verification status from text
+      let verified = false;
+      let confidence = 50;
+
+      if (hasPositiveKeywords && !hasNegativeKeywords) {
+        verified = true;
+        confidence = 70;
+      } else if (hasNegativeKeywords) {
+        verified = false;
+        confidence = 70;
+      }
+
+      // Create fallback JSON structure
+      return {
+        verified,
+        confidence,
+        reason: content.substring(0, 500), // Use first 500 chars as reason
+        visual_evidence: {
+          observed: content.substring(0, 300),
+          matches_criteria: verified,
+          details: 'Parsed from text response (model did not return JSON)'
+        },
+        suggestions: verified ? '' : 'Model returned text instead of JSON - consider using different vision model',
+        _fallback: true,
+        _original_response: content.substring(0, 500)
+      };
     }
   }
 

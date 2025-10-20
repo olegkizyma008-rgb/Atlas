@@ -213,12 +213,8 @@ export class AtlasReplanTodoProcessor {
         // Build user message with rich context
         const userMessage = this._buildReplanUserMessage(context);
 
-        // Get model config
-        const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('replan_todo') || {
-            model: 'copilot-gpt-4o',
-            temperature: 0.3,
-            max_tokens: 3000
-        };
+        // Use centralized model config from global-config.js
+        const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('replan_todo');
 
         this.logger.system('atlas-replan-todo', `[STAGE-3.5-MCP] Using model: ${modelConfig.model}`);
 

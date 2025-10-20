@@ -455,9 +455,11 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       }
 
       let attempt = 1;
-      // UPDATED 18.10.2025: Use config for default max attempts
+      // UPDATED 19.10.2025: 1 спроба виконання, 3 спроби перепланування
       const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
-
+      const maxReplanningAttempts = GlobalConfig.AI_BACKEND_CONFIG.retry.replanning.maxAttempts;
+      
+      let replanningAttempts = 0;
       let lastPlanResult = null;
       let lastExecResult = null;
 
@@ -520,6 +522,32 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
+          // Send TTS for item start
+          logger.system('executor', `[TTS-DEBUG] Checking TTS for item start: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.start=${item.tts?.start}`);
+          
+          if (wsManager && item.tts?.start) {
+            try {
+              logger.system('executor', `[TTS] 🔊 Sending start TTS: "${item.tts.start}" (agent: tetyana)`);
+              wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                content: item.tts.start,
+                agent: 'tetyana',
+                ttsContent: item.tts.start,
+                mode: 'normal',
+                sessionId: session.id,
+                timestamp: new Date().toISOString()
+              });
+              logger.system('executor', `[TTS] ✅ Start TTS sent successfully`);
+            } catch (error) {
+              logger.error(`[TTS] ❌ Failed to send TTS start message: ${error.message}`, {
+                category: 'executor',
+                component: 'executor',
+                stack: error.stack
+              });
+            }
+          } else {
+            logger.warn(`[TTS] ⚠️ Skipping start TTS: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.start=${item.tts?.start}`);
+          }
+
           const execResult = await executeProcessor.execute({
             currentItem: item,
             plan: planResult.plan,
@@ -548,12 +576,39 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
-          // ✅ FIX: Wait for macOS apps to open before screenshot
-          // Check if execution involved macOS app launch (AppleScript, shell open, etc)
-          const needsAppLaunchDelay = _needsAppLaunchDelay(execResult.execution, item);
-          if (needsAppLaunchDelay) {
-            logger.system('executor', `[VERIFICATION-DELAY] Waiting 2.5s for macOS app to open...`);
-            await new Promise(resolve => setTimeout(resolve, 2500));
+          // Send TTS for verification start
+          logger.system('executor', `[TTS-DEBUG] Checking TTS for verify: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.verify=${item.tts?.verify}`);
+          
+          if (wsManager && item.tts?.verify) {
+            try {
+              logger.system('executor', `[TTS] 🔊 Sending verify TTS: "${item.tts.verify}" (agent: grisha)`);
+              wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                content: item.tts.verify,
+                agent: 'grisha',
+                ttsContent: item.tts.verify,
+                mode: 'normal',
+                sessionId: session.id,
+                timestamp: new Date().toISOString()
+              });
+              logger.system('executor', `[TTS] ✅ Verify TTS sent successfully`);
+            } catch (error) {
+              logger.error(`[TTS] ❌ Failed to send TTS verify message: ${error.message}`, {
+                category: 'executor',
+                component: 'executor',
+                stack: error.stack
+              });
+            }
+          } else {
+            logger.warn(`[TTS] ⚠️ Skipping verify TTS: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.verify=${item.tts?.verify}`);
+          }
+
+          // ✅ FIX: Adaptive delay before screenshot verification
+          // App launches need more time, other operations need less
+          const delayMs = _getVerificationDelay(execResult.execution, item);
+          if (delayMs > 0) {
+            const delaySec = (delayMs / 1000).toFixed(1);
+            logger.system('executor', `[VERIFICATION-DELAY] Waiting ${delaySec}s before verification...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
           }
 
           const verifyResult = await verifyProcessor.execute({
@@ -588,53 +643,264 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
               attempts: attempt
             });
 
-            // Success message is sent via agent_message with agent='tetyana' in mcp-todo-manager.js
-
-            break; // Exit retry loop
-          }
-
-          // Verification failed - need adjustment
-          logger.workflow('stage', 'atlas', `Stage 3-MCP: Adjusting TODO item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          const adjustResult = await adjustProcessor.execute({
-            currentItem: item,
-            verification: verifyResult.verification,
-            todo,
-            attemptNumber: attempt,
-            session,
-            res
-          });
-
-          if (adjustResult.strategy === 'skip') {
-            item.status = 'skipped';
-            item.skip_reason = adjustResult.reason;
-
-            logger.warn(`Item ${item.id} skipped: ${adjustResult.reason}`, {
-              sessionId: session.id
-            });
-
-            // Send skip update to frontend
-            if (res.writable && !res.writableEnded) {
-              res.write(`data: ${JSON.stringify({
-                type: 'mcp_item_skipped',
-                data: {
-                  itemId: item.id,
-                  reason: adjustResult.reason
-                }
-              })}\n\n`);
+            // Send TTS for success
+            if (wsManager && item.tts?.success) {
+              try {
+                wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                  content: item.tts.success,
+                  agent: 'tetyana',
+                  ttsContent: item.tts.success,
+                  mode: 'normal',
+                  sessionId: session.id,
+                  timestamp: new Date().toISOString()
+                });
+              } catch (error) {
+                logger.warn(`Failed to send TTS success message: ${error.message}`);
+              }
             }
 
             break; // Exit retry loop
           }
 
-          // Apply adjustment and retry
-          logger.info(`Item ${item.id} adjusted with strategy: ${adjustResult.strategy}`, {
+          // Verification failed - analyze with Grisha and replan immediately
+          logger.workflow('stage', 'grisha', `Stage 3.5-MCP: Deep analysis for item ${item.id}`, {
             sessionId: session.id
           });
 
-          attempt++;
+          try {
+            // Get detailed analysis from Grisha
+            const grishaAnalysis = await verifyProcessor.getDetailedAnalysisForAtlas(
+              item,
+              execResult?.execution || { all_successful: false }
+            );
+
+            logger.info(`Grisha analysis: ${grishaAnalysis.failure_analysis.likely_cause}`, {
+              sessionId: session.id,
+              itemId: item.id,
+              rootCause: grishaAnalysis.failure_analysis.likely_cause,
+              recommendedStrategy: grishaAnalysis.failure_analysis.recommended_strategy
+            });
+
+            // Prepare data for Atlas replan
+            const tetyanaData = {
+              plan: planResult?.plan || { tool_calls: [] },
+              execution: execResult?.execution || { all_successful: false },
+              tools_used: execResult?.execution?.results?.map(r => r.tool) || []
+            };
+
+            const grishaData = {
+              verified: false,
+              reason: grishaAnalysis.reason,
+              visual_evidence: grishaAnalysis.visual_evidence,
+              screenshot_path: grishaAnalysis.screenshot_path,
+              confidence: grishaAnalysis.confidence,
+              suggestions: grishaAnalysis.suggestions,
+              failure_analysis: grishaAnalysis.failure_analysis
+            };
+
+            // Call Atlas replan processor
+            logger.workflow('stage', 'atlas', `Stage 3.6-MCP: Atlas replanning item ${item.id}`, {
+              sessionId: session.id
+            });
+
+            const replanResult = await replanProcessor.execute({
+              failedItem: item,
+              todo,
+              tetyanaData,
+              grishaData,
+              session,
+              res
+            });
+
+            logger.info(`Atlas replan decision: ${replanResult.replanResult?.strategy || 'unknown'}`, {
+              sessionId: session.id,
+              replanned: replanResult.replanResult?.replanned || false
+            });
+
+            // Apply replan if Atlas created new items
+            if (replanResult.replanResult?.replanned && replanResult.replanResult?.new_items?.length > 0) {
+              logger.info(`Atlas replanned: inserting ${replanResult.replanResult.new_items.length} new items`, {
+                sessionId: session.id
+              });
+
+              // Insert new items into TODO list after current item
+              const currentIndex = todo.items.indexOf(item);
+              if (currentIndex !== -1) {
+                todo.items.splice(currentIndex + 1, 0, ...replanResult.replanResult.new_items);
+
+                logger.info(`TODO list updated: ${todo.items.length} total items`, {
+                  sessionId: session.id
+                });
+              }
+
+              // Mark current item as replanned
+              item.status = 'replanned';
+              item.replan_reason = replanResult.replanResult.reasoning;
+
+              // Send replan update to frontend
+              if (res.writable && !res.writableEnded) {
+                res.write(`data: ${JSON.stringify({
+                  type: 'mcp_item_replanned',
+                  data: {
+                    itemId: item.id,
+                    newItemsCount: replanResult.replanResult.new_items.length,
+                    reasoning: replanResult.replanResult.reasoning
+                  }
+                })}\n\n`);
+              }
+
+              // Exit retry loop - continue with new items
+              break;
+            } else if (replanResult.replanResult?.strategy === 'skip_and_continue') {
+              // Atlas decided to skip this item
+              item.status = 'skipped';
+              item.skip_reason = replanResult.replanResult.reasoning;
+
+              logger.warn(`Item ${item.id} skipped by Atlas: ${item.skip_reason}`, {
+                sessionId: session.id
+              });
+
+              // Send TTS for failure/skip
+              if (wsManager && item.tts?.failure) {
+                try {
+                  wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                    content: item.tts.failure,
+                    agent: 'atlas',
+                    ttsContent: item.tts.failure,
+                    mode: 'normal',
+                    sessionId: session.id,
+                    timestamp: new Date().toISOString()
+                  });
+                } catch (error) {
+                  logger.warn(`Failed to send TTS failure message: ${error.message}`);
+                }
+              }
+
+              // Send skip update to frontend
+              if (res.writable && !res.writableEnded) {
+                res.write(`data: ${JSON.stringify({
+                  type: 'mcp_item_skipped',
+                  data: {
+                    itemId: item.id,
+                    reason: item.skip_reason
+                  }
+                })}\n\n`);
+              }
+
+              break; // Exit retry loop
+            } else {
+              // No replan - retry with simple adjustment
+              replanningAttempts++;
+              
+              logger.workflow('stage', 'atlas', `Stage 3-MCP: Simple adjustment for item ${item.id} (attempt ${replanningAttempts}/${maxReplanningAttempts})`, {
+                sessionId: session.id
+              });
+
+              // Check if max replanning attempts reached
+              if (replanningAttempts > maxReplanningAttempts) {
+                logger.warn(`Item ${item.id}: Max replanning attempts (${maxReplanningAttempts}) reached, skipping`, {
+                  sessionId: session.id
+                });
+                
+                item.status = 'skipped';
+                item.skip_reason = `Не вдалося виконати після ${maxReplanningAttempts} спроб перепланування`;
+                
+                // Send TTS for failure/skip
+                if (wsManager && item.tts?.failure) {
+                  try {
+                    wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                      content: item.tts.failure,
+                      agent: 'atlas',
+                      ttsContent: item.tts.failure,
+                      mode: 'normal',
+                      sessionId: session.id,
+                      timestamp: new Date().toISOString()
+                    });
+                  } catch (error) {
+                    logger.warn(`Failed to send TTS failure message: ${error.message}`);
+                  }
+                }
+                
+                // Send skip update to frontend
+                if (res.writable && !res.writableEnded) {
+                  res.write(`data: ${JSON.stringify({
+                    type: 'mcp_item_skipped',
+                    data: {
+                      itemId: item.id,
+                      reason: item.skip_reason
+                    }
+                  })}\n\n`);
+                }
+                
+                break; // Exit retry loop
+              }
+
+              const adjustResult = await adjustProcessor.execute({
+                currentItem: item,
+                verification: verifyResult.verification,
+                todo,
+                attemptNumber: replanningAttempts,
+                session,
+                res
+              });
+
+              if (adjustResult.strategy === 'skip') {
+                item.status = 'skipped';
+                item.skip_reason = adjustResult.reason;
+
+                logger.warn(`Item ${item.id} skipped: ${adjustResult.reason}`, {
+                  sessionId: session.id
+                });
+
+                // Send TTS for failure/skip
+                if (wsManager && item.tts?.failure) {
+                  try {
+                    wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                      content: item.tts.failure,
+                      agent: 'atlas',
+                      ttsContent: item.tts.failure,
+                      mode: 'normal',
+                      sessionId: session.id,
+                      timestamp: new Date().toISOString()
+                    });
+                  } catch (error) {
+                    logger.warn(`Failed to send TTS failure message: ${error.message}`);
+                  }
+                }
+
+                // Send skip update to frontend
+                if (res.writable && !res.writableEnded) {
+                  res.write(`data: ${JSON.stringify({
+                    type: 'mcp_item_skipped',
+                    data: {
+                      itemId: item.id,
+                      reason: adjustResult.reason
+                    }
+                  })}\n\n`);
+                }
+
+                break; // Exit retry loop
+              }
+
+              // Apply adjustment and retry
+              logger.info(`Item ${item.id} adjusted with strategy: ${adjustResult.strategy}`, {
+                sessionId: session.id
+              });
+
+              attempt++;
+            }
+
+          } catch (replanError) {
+            logger.error(`Failed to analyze/replan: ${replanError.message}`, {
+              sessionId: session.id,
+              itemId: item.id,
+              error: replanError.message,
+              stack: replanError.stack
+            });
+
+            // Fallback to simple retry
+            attempt++;
+          }
 
         } catch (itemError) {
           // ✅ PHASE 4 TASK 3: Enhanced error logging with context
@@ -680,135 +946,25 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
         }
       }
 
-      // Max attempts reached without success
-      if (item.status !== 'completed' && item.status !== 'skipped') {
+      // Max attempts reached without success - item should already be marked as skipped/replanned/completed
+      if (item.status !== 'completed' && item.status !== 'skipped' && item.status !== 'replanned') {
         logger.warn(`Item ${item.id} failed after ${maxAttempts} attempts`, {
           sessionId: session.id
         });
 
-        // NEW 2025-10-18: Deep analysis with Grisha after max attempts
-        logger.workflow('stage', 'atlas', `Stage 3.5-MCP: Deep analysis after ${maxAttempts} attempts for item ${item.id}`, {
-          sessionId: session.id
-        });
+        item.status = 'failed';
+        item.error = item.error || 'Max attempts reached';
 
-        try {
-          // Get detailed analysis from Grisha
-          const grishaAnalysis = await verifyProcessor.getDetailedAnalysisForAtlas(
-            item,
-            lastExecResult?.execution || { all_successful: false }
-          );
-
-          logger.info(`Grisha analysis: ${grishaAnalysis.failure_analysis.likely_cause}`, {
-            sessionId: session.id,
-            itemId: item.id,
-            rootCause: grishaAnalysis.failure_analysis.likely_cause,
-            recommendedStrategy: grishaAnalysis.failure_analysis.recommended_strategy
-          });
-
-          // Prepare data for Atlas replan (aggregated context)
-          const tetyanaData = {
-            plan: lastPlanResult?.plan || { tool_calls: [] },
-            execution: lastExecResult?.execution || { all_successful: false },
-            tools_used: lastExecResult?.execution?.results?.map(r => r.tool) || []
-          };
-
-          const grishaData = {
-            verified: false,
-            reason: grishaAnalysis.reason,
-            visual_evidence: grishaAnalysis.visual_evidence,
-            screenshot_path: grishaAnalysis.screenshot_path,
-            confidence: grishaAnalysis.confidence,
-            suggestions: grishaAnalysis.suggestions,
-            failure_analysis: grishaAnalysis.failure_analysis
-          };
-
-          // NEW 2025-10-18: Use dedicated replan processor with preprocessed context
-          const replanResult = await replanProcessor.execute({
-            failedItem: item,
-            todo,
-            tetyanaData,
-            grishaData,
-            session,
-            res
-          });
-
-          logger.info(`Atlas replan decision: ${replanResult.strategy}`, {
-            sessionId: session.id,
-            replanned: replanResult.replanned
-          });
-
-          // Apply replan if needed
-          if (replanResult.replanned && replanResult.new_items && replanResult.new_items.length > 0) {
-            logger.info(`Atlas replanned: inserting ${replanResult.new_items.length} new items`, {
-              sessionId: session.id
-            });
-
-            // Insert new items into TODO list after current item
-            const currentIndex = todo.items.indexOf(item);
-            if (currentIndex !== -1) {
-              todo.items.splice(currentIndex + 1, 0, ...replanResult.new_items);
-
-              logger.info(`TODO list updated: ${todo.items.length} total items`, {
-                sessionId: session.id
-              });
+        // Send failure update to frontend
+        if (res.writable && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({
+            type: 'mcp_item_failed',
+            data: {
+              itemId: item.id,
+              attempts: maxAttempts,
+              error: item.error
             }
-
-            // Mark current item as replanned
-            item.status = 'replanned';
-            item.replan_reason = replanResult.reasoning;
-
-            // Send replan update to frontend
-            if (res.writable && !res.writableEnded) {
-              res.write(`data: ${JSON.stringify({
-                type: 'mcp_item_replanned',
-                data: {
-                  itemId: item.id,
-                  newItemsCount: replanResult.new_items.length,
-                  reasoning: replanResult.reasoning
-                }
-              })}\n\n`);
-            }
-          } else {
-            // No replan - mark as failed
-            item.status = 'failed';
-            item.error = item.error || 'Max attempts reached';
-
-            // Send failure update to frontend
-            if (res.writable && !res.writableEnded) {
-              res.write(`data: ${JSON.stringify({
-                type: 'mcp_item_failed',
-                data: {
-                  itemId: item.id,
-                  attempts: maxAttempts,
-                  error: item.error
-                }
-              })}\n\n`);
-            }
-          }
-
-        } catch (replanError) {
-          logger.error(`Failed to replan after max attempts: ${replanError.message}`, {
-            sessionId: session.id,
-            itemId: item.id,
-            error: replanError.message,
-            stack: replanError.stack
-          });
-
-          // Fallback: mark as failed
-          item.status = 'failed';
-          item.error = item.error || 'Max attempts reached';
-
-          // Send failure update to frontend
-          if (res.writable && !res.writableEnded) {
-            res.write(`data: ${JSON.stringify({
-              type: 'mcp_item_failed',
-              data: {
-                itemId: item.id,
-                attempts: maxAttempts,
-                error: item.error
-              }
-            })}\n\n`);
-          }
+          })}\n\n`);
         }
       }
     }
@@ -896,16 +1052,23 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 }
 
 /**
- * Helper: Check if execution needs delay for macOS app launch
+ * Helper: Get adaptive verification delay based on operation type
+ * 
+ * Different operations need different delays:
+ * - App launches: 2500ms (programs need time to open)
+ * - Other operations: 1000ms (standard delay)
  * 
  * @param {Object} execution - Execution results from Stage 2.2
  * @param {Object} item - TODO item
- * @returns {boolean} True if delay needed
+ * @returns {number} Delay in milliseconds
  * @private
  */
-function _needsAppLaunchDelay(execution, item) {
+function _getVerificationDelay(execution, item) {
+  const DELAY_APP_LAUNCH = 2500;  // 2.5 сек для відкриття програм
+  const DELAY_STANDARD = 1000;    // 1 сек для інших операцій
+
   if (!execution || !execution.results) {
-    return false;
+    return DELAY_STANDARD;
   }
 
   // Check if any tool involved macOS app launch
@@ -916,41 +1079,48 @@ function _needsAppLaunchDelay(execution, item) {
 
     // AppleScript execution (часто для відкриття програм)
     if (toolLower.includes('applescript')) {
-      return true;
+      return DELAY_APP_LAUNCH;
     }
 
     // Shell команди типу 'open -a Calculator'
     if (toolLower.includes('shell') && result.data) {
       const command = JSON.stringify(result.data).toLowerCase();
       if (command.includes('open -a') || command.includes('activate')) {
-        return true;
+        return DELAY_APP_LAUNCH;
       }
     }
   }
 
-  // Check item action keywords
+  // Check item action keywords for app launch
   const actionLower = (item.action || '').toLowerCase();
-  const appKeywords = [
+  const appLaunchKeywords = [
     'відкр',      // відкрити
     'запуст',     // запустити
     'open',
-    'launch',
-    'калькулятор',
-    'calculator',
-    'браузер',
-    'browser',
-    'safari',
-    'chrome',
-    'finder'
+    'launch'
   ];
 
-  for (const keyword of appKeywords) {
+  // Перевіряємо чи дія стосується відкриття програми
+  for (const keyword of appLaunchKeywords) {
     if (actionLower.includes(keyword)) {
-      return true;
+      // Перевіряємо чи є назва програми
+      const appNames = [
+        'калькулятор', 'calculator',
+        'браузер', 'browser',
+        'safari', 'chrome', 'firefox',
+        'finder', 'notes', 'mail', 'calendar'
+      ];
+      
+      for (const appName of appNames) {
+        if (actionLower.includes(appName)) {
+          return DELAY_APP_LAUNCH;
+        }
+      }
     }
   }
 
-  return false;
+  // Для всіх інших операцій - стандартна затримка
+  return DELAY_STANDARD;
 }
 
 /**

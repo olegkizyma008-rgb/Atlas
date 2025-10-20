@@ -172,13 +172,17 @@ class TTSOptimizer {
           ...options
         });
 
+        // Use centralized config for TTS optimization
+        const GlobalConfig = (await import('../../config/global-config.js')).default;
+        const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('tts_optimization');
+
         // Викликаємо LLM для оптимізації (використовуємо fallback LLM)
         const { default: fallbackLLM } = await import('../ai/fallback-llm.js');
         const result = await fallbackLLM.chatCompletion([
           { role: 'user', content: prompt }
         ], {
-          temperature: 0.3, // Низька температура для стабільності
-          max_tokens: 200,
+          temperature: modelConfig.temperature,
+          max_tokens: modelConfig.max_tokens,
           timeout: 10000,
           ...options
         });

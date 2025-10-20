@@ -123,19 +123,31 @@ export class VisualCaptureService {
      * 
      * @param {string} context - Context identifier for the screenshot
      * @param {Object} options - Capture options
+     * @param {string} [options.targetApp] - Target app name for window screenshot (e.g. 'Calculator', 'Safari')
+     * @param {boolean} [options.fullScreen] - Force full screen capture even if targetApp specified
      * @returns {Promise<Object>} Screenshot info
      */
     async captureScreenshot(context = 'manual', options = {}) {
         const timestamp = Date.now();
         const filename = `screenshot_${context}_${timestamp}.png`;
         const filepath = path.join(this.config.screenshotDir, filename);
+        
+        // Declare command outside try block so it's accessible in catch
+        let command = null;
+        let captureMode = 'full_screen'; // default
 
         try {
             // Platform-specific screenshot command
-            let command;
+            
             if (this.config.platform === 'darwin') {
-                // macOS - use screencapture
+                // macOS - always use full screen capture (window capture через AppleScript нестабільний)
                 command = `screencapture -x "${filepath}"`;
+                
+                if (options.targetApp) {
+                    this.logger.system('visual-capture', `[VISUAL] 📷 Capturing full screen (target app: ${options.targetApp})`);
+                } else {
+                    this.logger.system('visual-capture', '[VISUAL] 📷 Capturing full screen');
+                }
             } else if (this.config.platform === 'linux') {
                 // Linux - use scrot or import
                 command = `scrot "${filepath}" || import -window root "${filepath}"`;

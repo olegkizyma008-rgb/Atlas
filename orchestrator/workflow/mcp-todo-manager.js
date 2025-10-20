@@ -273,13 +273,8 @@ export class MCPTodoManager {
       // Wait for rate limit (ADDED 14.10.2025)
       await this._waitForRateLimit();
 
-      // FIXED 14.10.2025 - Use MCP_MODEL_CONFIG for per-stage models
-      // UPDATED 18.10.2025 - Changed fallback to copilot-gpt-4o
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('todo_planning') || {
-        model: 'copilot-gpt-4o',
-        temperature: 0.3,
-        max_tokens: 4000
-      };
+      // Use centralized model config from global-config.js
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('todo_planning');
 
       // LOG MODEL SELECTION (ADDED 14.10.2025 - Debugging)
       this.logger.system('mcp-todo', `[TODO] Using model: ${modelConfig.model} (temp: ${modelConfig.temperature}, max_tokens: ${modelConfig.max_tokens})`);
@@ -789,11 +784,9 @@ export class MCPTodoManager {
     const maxAttempts = retryConfig.maxAttempts;
     const retryDelay = retryConfig.retryDelay;
     
-    // Fallback model sequence: primary -> fast -> cheapest
+    // Use centralized model config - no hardcoded fallbacks
     const modelSequence = [
-      GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools'),
-      { model: 'copilot-gpt-4o-mini', temperature: 0.1, max_tokens: 2000, description: 'Fast fallback' },
-      { model: 'atlas-ministral-3b', temperature: 0.15, max_tokens: 1500, description: 'Cheapest fallback' }
+      GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools')
     ];
     
     let lastError = null;
@@ -1143,11 +1136,7 @@ Create precise MCP tool execution plan.
         .replace('{{SUCCESS_CRITERIA}}', item.success_criteria)
         .replace('{{CURRENT_PLAN}}', JSON.stringify(plan, null, 2));
 
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('plan_tools') || {
-        model: 'copilot-gpt-4o',
-        temperature: 0.1,
-        max_tokens: 2500
-      }; // Reuse same model as planning
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools');
 
       this.logger.system('mcp-todo', `[TODO] Analyzing screenshot with model: ${modelConfig.model}`);
 
@@ -1159,14 +1148,17 @@ Create precise MCP tool execution plan.
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
+      // Use centralized config for screenshot adjustment
+      const screenshotConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('screenshot_adjustment');
+
       const apiResponse = await axios.post(apiUrl, {
-        model: modelConfig.model,
+        model: screenshotConfig.model,
         messages: [
           { role: 'system', content: adjustPrompt.systemPrompt },
           { role: 'user', content: userMessage }
         ],
-        temperature: 0.2, // Lower temperature for precise analysis
-        max_tokens: 2000
+        temperature: screenshotConfig.temperature,
+        max_tokens: screenshotConfig.max_tokens
       }, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 120000
@@ -1426,13 +1418,8 @@ Attempt: ${attempt}/${item.max_attempts}
 Стратегії: retry (повтор), modify (зміна параметрів), split (розділити), skip (пропустити).
 `;
 
-      // FIXED 13.10.2025 - Use correct API call format
-      // FIXED 14.10.2025 - Use MCP_MODEL_CONFIG for per-stage models
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('adjust_todo') || {
-        model: 'copilot-gpt-4o-mini',
-        temperature: 0.2,
-        max_tokens: 1500
-      };
+      // Use centralized model config from global-config.js
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('adjust_todo');
 
       // Wait for rate limit (ADDED 14.10.2025)
       await this._waitForRateLimit();
@@ -1581,12 +1568,8 @@ Respond with JSON:
       // Wait for rate limit
       await this._waitForRateLimit();
 
-      // Use Atlas model for deep analysis
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('replan_todo') || {
-        model: 'copilot-gpt-4o',
-        temperature: 0.3,
-        max_tokens: 2500
-      };
+      // Use centralized model config from global-config.js
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('replan_todo');
 
       this.logger.system('mcp-todo', `[TODO] 🔍 Atlas using model: ${modelConfig.model}`);
 
@@ -1764,11 +1747,7 @@ Results: ${JSON.stringify(todo.items.map(i => ({
     // FIXED 14.10.2025 - Use MCP_MODEL_CONFIG for per-stage models
     let llmText = '';
     try {
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('final_summary') || {
-        model: 'atlas-ministral-3b',
-        temperature: 0.5,
-        max_tokens: 600
-      };
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('final_summary');
 
       // Wait for rate limit (ADDED 14.10.2025)
       await this._waitForRateLimit();
@@ -2613,11 +2592,7 @@ Return ONLY JSON:
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('verify_item') || {
-        model: 'copilot-gpt-4o-mini',
-        temperature: 0.15,
-        max_tokens: 800
-      };
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('verify_item');
 
       // FIXED 17.10.2025 - Reduced timeout for gpt-4o-mini (30s instead of 60s)
       const timeoutMs = 30000;  // 30s max for gpt-4o-mini (much faster than gpt-4.1)
@@ -2822,11 +2797,7 @@ Verification evidence: ${verificationResults.results.length} checks performed`;
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('verify_item') || {
-        model: 'copilot-gpt-4o-mini',
-        temperature: 0.15,
-        max_tokens: 800
-      };
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('verify_item');
 
       // FIXED 17.10.2025 - Reduced timeout for gpt-4o-mini (30s instead of 60s)
       const timeoutMs = 30000;  // 30s max for gpt-4o-mini
@@ -2925,12 +2896,8 @@ ${serversDescription}
 Select 1-2 most relevant servers.
 `;
 
-      // Use fast classification model for server selection
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('classification') || {
-        model: 'atlas-ministral-3b',
-        temperature: 0.05,
-        max_tokens: 50
-      };
+      // Use centralized config for server selection
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('server_selection');
 
       // Wait for rate limit
       await this._waitForRateLimit();

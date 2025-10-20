@@ -54,9 +54,8 @@ Return ONLY a valid JSON object with these exact fields:
 }
 DO NOT include any additional text, markdown formatting or explanation.`;
 
-  // Get model from GlobalConfig (classification model for state analysis)
-  const modelConfig = GlobalConfig.AI_MODEL_CONFIG.models.classification;
-  const MODEL = modelConfig.model;
+  // Use centralized config for state analysis
+  const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('state_analysis');
 
   // Формуємо чіткий prompt для аналізу
   const userPrompt = `
@@ -79,11 +78,16 @@ TASK:
 ANALYZE NOW:`;
 
   try {
-    // Використовуємо локальний fallback LLM сервер
-    const response_ai = await axios.post('http://localhost:4000/v1/chat/completions', {
-      model: MODEL,
-      temperature: 0.1,
-      max_tokens: 100,
+    // Use centralized API endpoint and model config
+    const apiEndpointConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
+    const apiUrl = apiEndpointConfig
+      ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
+      : 'http://localhost:4000/v1/chat/completions';
+
+    const response_ai = await axios.post(apiUrl, {
+      model: modelConfig.model,
+      temperature: modelConfig.temperature,
+      max_tokens: modelConfig.max_tokens,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }

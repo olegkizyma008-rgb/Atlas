@@ -2,13 +2,14 @@
  * @fileoverview Tetyana Execute Tools Processor (Stage 2.2-MCP)
  * Executes planned MCP tool calls for TODO items
  * 
- * UPDATED 2025-10-18: Added step-by-step execution mode
- * - Execute tools one-by-one for complex items
- * - Intermediate checks between tools
- * - Better failure detection
+ * UPDATED 2025-10-20: Integrated Goose-inspired execution system
+ * - Uses TetyanaToolSystem for precise tool execution
+ * - Automatic security inspection before execution
+ * - Better error handling and result formatting
+ * - Step-by-step execution mode with validation
  * 
- * @version 4.1.0
- * @date 2025-10-18
+ * @version 5.0.0
+ * @date 2025-10-20
  */
 
 import logger from '../../utils/logger.js';
@@ -27,11 +28,13 @@ export class TetyanaExecuteToolsProcessor {
      * @param {Object} dependencies
      * @param {Object} dependencies.mcpTodoManager - MCPTodoManager instance
      * @param {Object} dependencies.mcpManager - MCPManager instance for tool execution
+     * @param {Object} dependencies.tetyanaToolSystem - NEW: TetyanaToolSystem instance
      * @param {Object} dependencies.logger - Logger instance
      */
-    constructor({ mcpTodoManager, mcpManager, logger: loggerInstance }) {
+    constructor({ mcpTodoManager, mcpManager, tetyanaToolSystem, logger: loggerInstance }) {
         this.mcpTodoManager = mcpTodoManager;
         this.mcpManager = mcpManager;
+        this.tetyanaToolSystem = tetyanaToolSystem;
         this.logger = loggerInstance || logger;
     }
 
@@ -63,42 +66,42 @@ export class TetyanaExecuteToolsProcessor {
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP] Item: ${currentItem.id}. ${currentItem.action}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP] Executing ${plan.tool_calls.length} tool call(s)...`);
 
-            // NEW 2025-10-18: Detect if step-by-step execution is needed
-            const needsStepByStep = this._shouldExecuteStepByStep(plan, currentItem);
+            // NEW 2025-10-20: Use TetyanaToolSystem for execution with inspection
+            let executionResult;
             
-            if (needsStepByStep) {
-                this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 Using STEP-BY-STEP execution mode');
-                const executionResult = await this._executeStepByStep(plan, currentItem);
+            if (this.tetyanaToolSystem) {
+                this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution');
                 
-                // Log results
-                this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP] Step-by-step execution completed`);
-                this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Success: ${executionResult.all_successful ? '✅' : '❌'}`);
-                this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Completed: ${executionResult.successful_calls}/${plan.tool_calls.length}`);
-                
-                const summary = this._generateExecutionSummary(currentItem, executionResult);
-                
-                return {
-                    success: executionResult.all_successful,
-                    execution: executionResult,
-                    summary,
-                    metadata: {
-                        itemId: currentItem.id,
-                        toolCount: plan.tool_calls.length,
-                        successfulCalls: executionResult.successful_calls || 0,
-                        failedCalls: executionResult.failed_calls || 0,
-                        allSuccessful: executionResult.all_successful,
-                        executionMode: 'step_by_step',
-                        stoppedAt: executionResult.stopped_at_index
+                // Execute through new system (includes automatic inspection)
+                executionResult = await this.tetyanaToolSystem.executeToolCalls(
+                    plan.tool_calls,
+                    {
+                        currentItem,
+                        todo,
+                        autoApprove: true // Auto-approve in task mode
                     }
-                };
+                );
+                
+                this.logger.system('tetyana-execute-tools', 
+                    `[STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: ${executionResult.successful_calls}/${plan.tool_calls.length} successful`);
+                
+            } else {
+                // Fallback: Use legacy system
+                this.logger.warn('tetyana-execute-tools', '[STAGE-2.2-MCP] ⚠️ TetyanaToolSystem not available, using legacy execution');
+                
+                const needsStepByStep = this._shouldExecuteStepByStep(plan, currentItem);
+                
+                if (needsStepByStep) {
+                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 Using STEP-BY-STEP execution mode');
+                    executionResult = await this._executeStepByStep(plan, currentItem);
+                } else {
+                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] Using BATCH execution mode');
+                    executionResult = await this.mcpTodoManager.executeTools(plan, currentItem);
+                }
             }
 
-            // LEGACY: Batch execution (all tools at once)
-            this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] Using BATCH execution mode');
-            const executionResult = await this.mcpTodoManager.executeTools(plan, currentItem);
-
             if (!executionResult) {
-                throw new Error('MCPTodoManager.executeTools() returned null/undefined');
+                throw new Error('Tool execution returned null/undefined');
             }
 
             // Log results
@@ -106,6 +109,14 @@ export class TetyanaExecuteToolsProcessor {
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Success: ${executionResult.all_successful ? '✅' : '❌'}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Successful calls: ${executionResult.successful_calls || 0}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Failed calls: ${executionResult.failed_calls || 0}`);
+            
+            // Log inspection results if available (from TetyanaToolSystem)
+            if (executionResult.inspection) {
+                this.logger.system('tetyana-execute-tools', 
+                    `[STAGE-2.2-MCP]   Inspection: ${executionResult.inspection.approved} approved, ` +
+                    `${executionResult.inspection.needsApproval} need approval, ` +
+                    `${executionResult.inspection.denied} denied`);
+            }
 
             // Log individual results
             if (executionResult.results && Array.isArray(executionResult.results)) {

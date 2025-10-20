@@ -3090,13 +3090,14 @@ Select 1-2 most relevant servers.
 {{AVAILABLE_TOOLS}}
 
 **OUTPUT FORMAT:**
-{"tool_calls": [{"server": "<server_name>", "tool": "<tool_name>", "parameters": {...}}], "reasoning": "<plan>", "needs_split": false}
+{"tool_calls": [{"server": "<server_name>", "tool": "<tool_name>", "parameters": {...}}], "reasoning": "<plan>"}
 
 **ПРАВИЛА:**
 - Використовуй ТІЛЬКИ tools з {{AVAILABLE_TOOLS}}
 - Параметри беруть з inputSchema кожного tool
 - Один tool_call = одна MCP операція
-- Якщо item занадто складний (>5 tools) → {"needs_split": true}`,
+- ЗАВЖДИ генеруй tool_calls (1-5 інструментів)
+- Якщо item складний - виконай ПЕРШИЙ крок, не повертай порожній масив`,
 
       USER_PROMPT: `## КОНТЕКСТ ЗАВДАННЯ
 

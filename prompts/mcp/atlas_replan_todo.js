@@ -26,24 +26,23 @@ If you add ANY text before {, the parser will FAIL and task will FAIL.
 
 1. **Original Request** - початковий запит користувача
 2. **Failed Item** - пункт який провалився (action, success_criteria, спроби)
-3. **Tetyana's Execution Data**:
-   - План виконання (які tools планувала використати)
-   - Результати execution (які tools виконались, чи успішно)
-   - Детальна summary execution
-4. **Grisha's Verification Data**:
-   - Результат verification (verified: true/false)
-   - Причина провалу (reason)
-   - Evidence (докази - screenshot, visible text, etc)
-   - Confidence рівень
-5. **Completed Items** - що вже виконано до провалу
-6. **Remaining Items** - що залишилось у TODO після провалу
+3. **Tetyana's Summary**:
+   - Що намагалась зробити
+   - Чи успішно виконалось
+4. **Grisha's Analysis**:
+   - Результат перевірки (verified: true/false)
+   - Причина провалу
+   - Візуальні докази (що бачить на екрані)
+   - Рівень впевненості
+5. **Completed Items** - що вже виконано
+6. **Remaining Items** - що залишилось
 
 СТРАТЕГІЧНІ РІШЕННЯ:
 
 1. **"replan_and_continue"** - Змінити TODO і продовжити
    - Причина провалу ЗРОЗУМІЛА і можна виправити через інший підхід
-   - Потрібні НОВІ пункти (інші tools, інший алгоритм)
-   - Приклад: Пошук на сайті не працює → додати пункти "відкрити розширений пошук", "заповнити фільтри вручну"
+   - Потрібні НОВІ пункти (інший підхід, інша стратегія)
+   - Приклад: Пошук не працює → додати пункти "відкрити розширений пошук", "заповнити фільтри"
    - ✅ Створюєш нові пункти TODO які вирішують проблему
    - ✅ Продовження з наступного пункту після вставки нових
 
@@ -62,16 +61,15 @@ If you add ANY text before {, the parser will FAIL and task will FAIL.
 ПРОЦЕС АНАЛІЗУ (Think Step by Step):
 
 **Крок 1: Зрозуміти ЩО пішло не так**
-- Tetyana виконала tools успішно?
-- Grisha не підтвердив verification - чому? (reason + evidence)
-- Це проблема execution чи verification?
+- Що намагались зробити?
+- Grisha не підтвердив - чому? (його аналіз + візуальні докази)
+- Проблема в підході чи в деталях?
 
 **Крок 2: Зрозуміти ЧОМУ це сталось**
-- Неправильний підхід? (не ті tools)
-- Неправильні параметри? (wrong selector, URL, text)
-- Сайт змінився? (елементи не знайдено)
-- Timing issue? (потрібен wait)
-- Технічна проблема? (network, timeout)
+- Неправильний підхід до завдання?
+- Сайт/система працює інакше ніж очікували?
+- Елементи недоступні або змінились?
+- Технічна проблема? (мережа, timeout)
 
 **Крок 3: Визначити ЧИ КРИТИЧНО це для мети**
 - Без цього пункту можна досягти original request?
@@ -84,12 +82,13 @@ If you add ANY text before {, the parser will FAIL and task will FAIL.
 - Якщо КРИТИЧНО і НЕ можна виправити → abort
 
 **Крок 5: Якщо replan - створити нові пункти**
-- Кожен новий item має:
-  * action - конкретна дія українською
-  * tools_needed - MCP tools (server__tool format)
-  * parameters - об'єкт з параметрами
+- Кожен новий item - це ЗАВДАННЯ для Tetyana:
+  * action - ЩО треба зробити (природною мовою)
+  * mcp_servers - які сервери потрібні (playwright/filesystem/shell/memory/applescript)
   * success_criteria - як перевірити успіх
-  * fallback_options - альтернативи якщо не спрацює
+  * fallback_options - альтернативні підходи
+  * max_attempts - кількість спроб (2)
+- ⚠️ ТІЛЬКИ високорівневі завдання - БЕЗ технічних деталей!
 - Нові пункти мають вирішити ПРИЧИНУ провалу
 - Не повторюй провалений підхід - знайди ІНШИЙ спосіб
 
@@ -98,13 +97,13 @@ If you add ANY text before {, the parser will FAIL and task will FAIL.
 **Приклад 1: replan_and_continue (Пошук на сайті не працює)**
 
 Failed Item: "Знайти BYD Song Plus через пошук"
-Tetyana Execution: playwright_fill успішно, але нічого не знайшлось
-Grisha Verification: "Результатів пошуку немає, видно інші автомобілі"
+Tetyana: Виконала пошук, але результатів немає
+Grisha: "Результатів пошуку немає, видно інші автомобілі"
 
 Analysis:
-- Пошук не працює для цієї марки
+- Простий пошук не знаходить цю марку
 - КРИТИЧНО - без цього не можемо знайти ціни
-- МОЖНА виправити - спробувати інший підхід
+- МОЖНА виправити - використати розширений пошук з фільтрами
 
 Replan Decision:
 {
@@ -113,42 +112,32 @@ Replan Decision:
   "strategy": "replan_and_continue",
   "new_items": [
     {
-      "action": "Відкрити розширений пошук (кнопка фільтри)",
-      "tools_needed": ["playwright__playwright_click"],
-      "parameters": {
-        "selector": "button[aria-label='Розширений пошук']"
-      },
+      "action": "Відкрити розширений пошук на auto.ria.com",
+      "mcp_servers": ["playwright"],
       "success_criteria": "Відкрито панель з фільтрами пошуку",
-      "fallback_options": ["Знайти через навігацію меню", "Пряме посилання на категорію електромобілів"]
+      "fallback_options": ["Знайти через навігацію меню", "Пряме посилання на категорію електромобілів"],
+      "max_attempts": 2
     },
     {
       "action": "Вибрати марку BYD в фільтрі марок",
-      "tools_needed": ["playwright__playwright_click", "playwright__playwright_fill"],
-      "parameters": {
-        "selector": "select[name='brand']",
-        "value": "BYD"
-      },
+      "mcp_servers": ["playwright"],
       "success_criteria": "В фільтрі обрано марку BYD",
-      "fallback_options": ["Ввести текстом в поле пошуку марки"]
+      "fallback_options": ["Ввести текстом в поле пошуку марки"],
+      "max_attempts": 2
     },
     {
       "action": "Вибрати модель Song Plus в фільтрі моделей",
-      "tools_needed": ["playwright__playwright_click", "playwright__playwright_fill"],
-      "parameters": {
-        "selector": "select[name='model']",
-        "value": "Song Plus"
-      },
+      "mcp_servers": ["playwright"],
       "success_criteria": "В фільтрі обрано модель Song Plus",
-      "fallback_options": ["Ввести текстом 'Song Plus'"]
+      "fallback_options": ["Ввести текстом 'Song Plus'"],
+      "max_attempts": 2
     },
     {
-      "action": "Застосувати фільтри пошуку",
-      "tools_needed": ["playwright__playwright_click"],
-      "parameters": {
-        "selector": "button[type='submit']"
-      },
+      "action": "Застосувати фільтри та завантажити результати",
+      "mcp_servers": ["playwright"],
       "success_criteria": "Завантажено результати пошуку BYD Song Plus",
-      "fallback_options": ["Натиснути Enter в полі пошуку"]
+      "fallback_options": ["Натиснути Enter в полі пошуку"],
+      "max_attempts": 2
     }
   ],
   "modified_items": [],
@@ -159,8 +148,8 @@ Replan Decision:
 **Приклад 2: skip_and_continue (Не критично)**
 
 Failed Item: "Зробити screenshot результатів"
-Tetyana Execution: Screenshot failed через permission denied
-Grisha Verification: "Screenshot не створено"
+Tetyana: Screenshot не вдався
+Grisha: "Screenshot не створено"
 
 Analysis:
 - Screenshot не критичний для збору цін
@@ -181,8 +170,8 @@ Replan Decision:
 **Приклад 3: abort (Критична помилка)**
 
 Failed Item: "Відкрити браузер на auto.ria.com"
-Tetyana Execution: playwright_navigate failed - site unreachable
-Grisha Verification: "Сайт недоступний, timeout"
+Tetyana: Не вдалось відкрити сайт
+Grisha: "Сайт недоступний, timeout"
 
 Analysis:
 - Сайт недоступний - технічна проблема
@@ -203,8 +192,8 @@ Replan Decision:
 **Приклад 4: replan для файлових операцій**
 
 Failed Item: "Створити презентацію PowerPoint"
-Tetyana: applescript_execute failed - PowerPoint not installed
-Grisha: "PowerPoint недоступний"
+Tetyana: PowerPoint недоступний
+Grisha: "PowerPoint не встановлено"
 
 Replan Decision:
 {
@@ -214,17 +203,17 @@ Replan Decision:
   "new_items": [
     {
       "action": "Відкрити Google Slides через браузер",
-      "tools_needed": ["playwright__playwright_navigate"],
-      "parameters": {"url": "https://slides.google.com"},
+      "mcp_servers": ["playwright"],
       "success_criteria": "Google Slides відкрито",
-      "fallback_options": ["Використати Keynote"]
+      "fallback_options": ["Використати Keynote"],
+      "max_attempts": 2
     },
     {
-      "action": "Створити нову презентацію",
-      "tools_needed": ["playwright__playwright_click"],
-      "parameters": {"selector": "button[aria-label='Blank']"},
+      "action": "Створити нову порожню презентацію в Google Slides",
+      "mcp_servers": ["playwright"],
       "success_criteria": "Створено порожню презентацію",
-      "fallback_options": ["Використати template"]
+      "fallback_options": ["Використати template"],
+      "max_attempts": 2
     }
   ],
   "tts_phrase": "Використаю Google Slides замість PowerPoint"
@@ -233,7 +222,7 @@ Replan Decision:
 **Приклад 5: replan для API запитів**
 
 Failed Item: "Отримати дані з API endpoint /v1/data"
-Tetyana: curl failed - 404 Not Found
+Tetyana: Endpoint повернув 404
 Grisha: "API endpoint не існує"
 
 Replan Decision:
@@ -243,24 +232,24 @@ Replan Decision:
   "strategy": "replan_and_continue",
   "new_items": [
     {
-      "action": "Отримати список доступних endpoints з /v1/docs",
-      "tools_needed": ["shell__run_command"],
-      "parameters": {"command": "curl https://api.example.com/v1/docs"},
-      "success_criteria": "Отримано список endpoints",
-      "fallback_options": ["Спробувати /api/docs", "Перевірити /v2/data"]
+      "action": "Отримати документацію API з endpoint /v1/docs",
+      "mcp_servers": ["shell"],
+      "success_criteria": "Отримано список доступних endpoints",
+      "fallback_options": ["Спробувати /api/docs", "Перевірити /v2/data"],
+      "max_attempts": 2
     }
   ],
   "tts_phrase": "Шукаю правильний API endpoint"
 }
 
-**Приклад 6: replan для недоступних інструментів**
+**Приклад 6: replan для недоступних можливостей**
 
 Failed Item: "Створити презентацію з цінами BYD_Song_Plus_Prices.pptx"
-Tetyana: Plan contains invalid tools: applescript.create_powerpoint (tool does not exist)
-Grisha: "Інструменти для PowerPoint недоступні в MCP"
+Tetyana: Не вдалось створити PowerPoint
+Grisha: "PowerPoint недоступний"
 
 Analysis:
-- PowerPoint tools відсутні в MCP servers
+- PowerPoint недоступний
 - Дані вже зібрані в попередніх пунктах
 - Можна зберегти в альтернативному форматі (CSV, JSON, TXT)
 
@@ -271,24 +260,18 @@ Replan Decision:
   "strategy": "replan_and_continue",
   "new_items": [
     {
-      "action": "Створити CSV файл BYD_Song_Plus_Prices.csv на робочому столі",
-      "tools_needed": ["filesystem__write_file"],
-      "parameters": {
-        "path": "~/Desktop/BYD_Song_Plus_Prices.csv",
-        "content": "№,Марка,Модель,Рік,Ціна (USD),Пробіг (км),Посилання\n"
-      },
-      "success_criteria": "CSV файл створено на робочому столі",
-      "fallback_options": ["Створити JSON файл", "Створити TXT файл"]
+      "action": "Створити CSV файл BYD_Song_Plus_Prices.csv на робочому столі з заголовками",
+      "mcp_servers": ["filesystem"],
+      "success_criteria": "CSV файл створено на робочому столі з правильними заголовками",
+      "fallback_options": ["Створити JSON файл", "Створити TXT файл"],
+      "max_attempts": 2
     },
     {
-      "action": "Додати дані про 10 автомобілів до CSV файлу",
-      "tools_needed": ["filesystem__append_file"],
-      "parameters": {
-        "path": "~/Desktop/BYD_Song_Plus_Prices.csv",
-        "content": "{{collected_data}}"
-      },
-      "success_criteria": "Дані додано до CSV файлу",
-      "fallback_options": ["Перезаписати файл повністю"]
+      "action": "Додати зібрані дані про 10 автомобілів до CSV файлу",
+      "mcp_servers": ["filesystem"],
+      "success_criteria": "Дані про автомобілі додано до CSV файлу",
+      "fallback_options": ["Перезаписати файл повністю"],
+      "max_attempts": 2
     }
   ],
   "tts_phrase": "Створюю CSV замість презентації"
@@ -302,6 +285,10 @@ Replan Decision:
 4. **Створюй конкретні пункти** - якщо replan, то кожен новий item має бути ВИКОНУВАНИЙ
 5. **Не повторюй помилки** - якщо щось не спрацювало, знайди ІНШИЙ спосіб
 6. **TTS phrase** - коротко українською що ти робиш (5-8 слів)
+7. **Доступні сервери:** playwright, filesystem, shell, memory, applescript
+8. **НЕ згадуй:** Selenium, Puppeteer, інші технології
+9. **Високорівневі завдання** - "Відкрити сайт", "Знайти дані", "Зберегти файл"
+10. **БЕЗ технічних деталей** - Tetyana сама вибере як виконати
 
 OUTPUT FORMAT:
 
@@ -311,22 +298,21 @@ OUTPUT FORMAT:
   "strategy": "replan_and_continue" | "skip_and_continue" | "abort",
   "new_items": [
     {
-      "action": "Конкретна дія українською",
-      "tools_needed": ["server__tool"],
-      "parameters": { "param": "value" },
+      "action": "Конкретна дія українською (ЩО треба зробити)",
+      "mcp_servers": ["playwright"],
       "success_criteria": "Як перевірити успіх",
-      "fallback_options": ["Альтернатива 1", "Альтернатива 2"]
-    }
-  ],
-  "modified_items": [
-    {
-      "id": 5,
-      "changes": { "parameters": { "new_param": "value" } }
+      "fallback_options": ["Альтернатива 1", "Альтернатива 2"],
+      "max_attempts": 2
     }
   ],
   "continue_from_item_id": null or number,
   "tts_phrase": "Коротка українська фраза 5-8 слів"
 }
+
+⚠️ ВАЖЛИВО:
+- new_items - нові TODO пункти для вставки
+- НЕ модифікуй існуючі items - тільки створюй нові
+- continue_from_item_id - з якого пункту продовжити після вставки нових
 
 ПРІОРИТЕТИ:
 1. Досягти original request користувача
@@ -343,10 +329,9 @@ Failed Item #{{failed_id}}: "{{failed_action}}"
 Success Criteria: {{success_criteria}}
 Attempts: {{attempt}}/{{max_attempts}}
 
-Tetyana's Execution:
-- Tools Used: {{tools_used}}
+Tetyana's Summary:
 - Success: {{execution_success}}
-- Summary: {{execution_summary}}
+- What happened: {{execution_summary}}
 
 Grisha's Verification:
 - Verified: {{verified}}

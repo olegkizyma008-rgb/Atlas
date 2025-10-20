@@ -16,6 +16,7 @@ import { MCPManager } from '../ai/mcp-manager.js';
 import { MCPTodoManager } from '../workflow/mcp-todo-manager.js';
 import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
 import { VisionAnalysisService } from '../services/vision-analysis-service.js';
+import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
 import {
     ModeSelectionProcessor,
     AtlasTodoPlanningProcessor,
@@ -226,6 +227,24 @@ export function registerMCPWorkflowServices(container) {
         }
     });
 
+    // NEW 2025-10-20: TetyanaToolSystem - Goose-inspired tool management
+    container.singleton('tetyanaToolSystem', (c) => {
+        const mcpManager = c.resolve('mcpManager');
+        return new TetyanaToolSystem(mcpManager);
+    }, {
+        dependencies: ['mcpManager'],
+        metadata: { category: 'workflow', priority: 54 },
+        lifecycle: {
+            onInit: async function () {
+                // Initialize TetyanaToolSystem (load extensions, prepare inspectors)
+                await this.initialize();
+                const stats = this.getStatistics();
+                logger.system('startup', 
+                    `[DI] 🎯 TetyanaToolSystem initialized: ${stats.totalTools} tools from ${stats.totalServers} servers (${stats.availableServers.join(', ')})`);
+            }
+        }
+    });
+
     // TTSSyncManager - TTS synchronization для MCP workflow
     // FIXED 14.10.2025 NIGHT - Pass wsManager as ttsService for WebSocket TTS delivery
     container.singleton('ttsSyncManager', (c) => {
@@ -307,26 +326,30 @@ export function registerMCPProcessors(container) {
     });
 
     // Tetyana Plan Tools Processor (Stage 2.1-MCP)
+    // UPDATED 2025-10-20: Added TetyanaToolSystem dependency
     container.singleton('tetyanaПlanToolsProcessor', (c) => {
         return new TetyanaПlanToolsProcessor({
             mcpTodoManager: c.resolve('mcpTodoManager'),
             mcpManager: c.resolve('mcpManager'),
+            tetyanaToolSystem: c.resolve('tetyanaToolSystem'),
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpTodoManager', 'mcpManager', 'logger'],
+        dependencies: ['mcpTodoManager', 'mcpManager', 'tetyanaToolSystem', 'logger'],
         metadata: { category: 'processors', priority: 40 }
     });
 
     // Tetyana Execute Tools Processor (Stage 2.2-MCP)
+    // UPDATED 2025-10-20: Added TetyanaToolSystem dependency
     container.singleton('tetyanaExecuteToolsProcessor', (c) => {
         return new TetyanaExecuteToolsProcessor({
             mcpTodoManager: c.resolve('mcpTodoManager'),
             mcpManager: c.resolve('mcpManager'),
+            tetyanaToolSystem: c.resolve('tetyanaToolSystem'),
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpTodoManager', 'mcpManager', 'logger'],
+        dependencies: ['mcpTodoManager', 'mcpManager', 'tetyanaToolSystem', 'logger'],
         metadata: { category: 'processors', priority: 40 }
     });
 

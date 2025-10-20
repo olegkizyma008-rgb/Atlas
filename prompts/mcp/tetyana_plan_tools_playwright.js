@@ -184,11 +184,28 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 
 **OUTPUT FORMAT:**
 
-🔹 Якщо item простий (2-5 tools):
-{"tool_calls": [{"server": "playwright", "tool": "<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+🔹 Якщо item виконуваний (1-5 tools):
+{"tool_calls": [{"server": "playwright", "tool": "<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>"}
 
-🔹 Якщо item складний (>5 tools потрібно):
-{"needs_split": true, "reasoning": "План вимагає надто багато дій", "suggested_splits": ["<step1>", "<step2>", "<step3>"], "tool_calls": [], "tts_phrase": "Потрібно розділити"}
+⚠️ **КРИТИЧНО - ЗАВЖДИ ПОВЕРТАЙ tool_calls:**
+- Якщо item простий → поверни 1-5 tool_calls
+- Якщо item складний → РОЗБИЙ на менші кроки і поверни tool_calls для ПЕРШОГО кроку
+- НІКОЛИ не повертай порожній масив tool_calls: []
+- needs_split більше НЕ підтримується - завжди генеруй tool_calls
+
+**ПРИКЛАД - Складний item:**
+Item: "Знайти 10 автомобілів BYD Song Plus та зібрати ціни"
+
+❌ НЕПРАВИЛЬНО:
+{"needs_split": true, "tool_calls": [], ...}
+
+✅ ПРАВИЛЬНО - Виконай ПЕРШИЙ крок:
+{"tool_calls": [
+  {"server": "playwright", "tool": "playwright_navigate", "parameters": {"url": "https://auto.ria.com", "waitUntil": "load"}},
+  {"server": "playwright", "tool": "playwright_fill", "parameters": {"selector": "input[name='search']", "value": "BYD Song Plus 2025"}},
+  {"server": "playwright", "tool": "playwright_press_key", "parameters": {"key": "Enter"}}
+], "reasoning": "Відкриваю сайт та виконую пошук BYD Song Plus", "tts_phrase": "Шукаю автомобілі"}
+
 🎯 ТИ ЕКСПЕРТ PLAYWRIGHT - використовуй найпростіші та найнадійніші селектори!
 `;
 

@@ -2,8 +2,13 @@
  * @fileoverview Tetyana Plan Tools Processor (Stage 2.1-MCP)
  * Selects optimal MCP tools for TODO item execution
  * 
- * @version 4.0.0
- * @date 2025-10-13
+ * UPDATED 2025-10-20: Integrated Goose-inspired tool system
+ * - Uses TetyanaToolSystem for precise tool selection
+ * - Automatic tool validation before planning
+ * - Better error handling and suggestions
+ * 
+ * @version 5.0.0
+ * @date 2025-10-20
  */
 
 import logger from '../../utils/logger.js';
@@ -22,11 +27,13 @@ export class TetyanaПlanToolsProcessor {
      * @param {Object} dependencies
      * @param {Object} dependencies.mcpTodoManager - MCPTodoManager instance
      * @param {Object} dependencies.mcpManager - MCPManager instance for available tools
+     * @param {Object} dependencies.tetyanaToolSystem - NEW: TetyanaToolSystem instance
      * @param {Object} dependencies.logger - Logger instance
      */
-    constructor({ mcpTodoManager, mcpManager, logger: loggerInstance }) {
+    constructor({ mcpTodoManager, mcpManager, tetyanaToolSystem, logger: loggerInstance }) {
         this.mcpTodoManager = mcpTodoManager;
         this.mcpManager = mcpManager;
+        this.tetyanaToolSystem = tetyanaToolSystem;
         this.logger = loggerInstance || logger;
     }
 
@@ -52,33 +59,51 @@ export class TetyanaПlanToolsProcessor {
         try {
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Item: ${currentItem.id}. ${currentItem.action}`);
 
-            // OPTIMIZATION (15.10.2025): Use pre-selected servers if available
-            let toolsSummary;
-            let availableTools;
+            // NEW 2025-10-20: Use Goose-inspired tool preparation system
+            let toolsData;
             let filteredServers = null;
 
-            if (selected_servers && Array.isArray(selected_servers) && selected_servers.length > 0) {
-                // Use ONLY tools from selected servers
+            if (this.tetyanaToolSystem) {
+                // Use new TetyanaToolSystem for precise tool selection
+                this.logger.system('tetyana-plan-tools', '[STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation');
+
+                toolsData = await this.tetyanaToolSystem.prepareToolsAndPrompt({
+                    selectedServers: selected_servers,
+                    userMessage: currentItem.action,
+                    context: executionContext
+                });
+
                 filteredServers = selected_servers;
-                availableTools = this.mcpManager.getToolsFromServers(selected_servers);
-                toolsSummary = this.mcpManager.getDetailedToolsSummary(selected_servers);
 
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using pre-selected servers: ${selected_servers.join(', ')}`);
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Filtered tools: ${availableTools.length} (was 92+)`);
+                this.logger.system('tetyana-plan-tools', 
+                    `[STAGE-2.1-MCP] ✅ Prepared ${toolsData.tools.length} tools from ${toolsData.metadata.servers.length} servers`);
+                
+                if (selected_servers && selected_servers.length > 0) {
+                    this.logger.system('tetyana-plan-tools', 
+                        `[STAGE-2.1-MCP] 🎯 Filtered to: ${selected_servers.join(', ')}`);
+                }
             } else {
-                // Fallback: Use ALL available tools (legacy behavior)
-                availableTools = await this._getAvailableTools();
-                toolsSummary = this.mcpManager.getToolsSummary();
+                // Fallback: Use legacy system
+                this.logger.warn('tetyana-plan-tools', '[STAGE-2.1-MCP] ⚠️ TetyanaToolSystem not available, using legacy system');
 
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] ⚠️ No pre-selected servers, using ALL tools (${availableTools.length})`);
+                let availableTools;
+                let toolsSummary;
+
+                if (selected_servers && Array.isArray(selected_servers) && selected_servers.length > 0) {
+                    filteredServers = selected_servers;
+                    availableTools = this.mcpManager.getToolsFromServers(selected_servers);
+                    toolsSummary = this.mcpManager.getDetailedToolsSummary(selected_servers);
+                } else {
+                    availableTools = await this._getAvailableTools();
+                    toolsSummary = this.mcpManager.getToolsSummary();
+                }
+
+                toolsData = {
+                    tools: availableTools,
+                    toolsSummary: toolsSummary,
+                    metadata: { servers: [...new Set(availableTools.map(t => t.server))] }
+                };
             }
-
-            // Log server names (NOT all tool instances)
-            const uniqueServers = [...new Set(availableTools.map(t => t.server))];
-            this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Available: ${uniqueServers.join(', ')} (${availableTools.length} tools)`);
-
-            // OPTIMIZATION (15.10.2025): Pass toolsSummary to planTools for {{AVAILABLE_TOOLS}} substitution
-            this.logger.debug('tetyana-plan-tools', `[STAGE-2.1-MCP] Tools summary:\n${toolsSummary}`);
 
             // NEW 20.10.2025: Use auto-assigned prompts from server selection stage
             // Prompts are automatically mapped in Stage 2.0 based on selected servers
@@ -105,39 +130,30 @@ export class TetyanaПlanToolsProcessor {
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Calling mcpTodoManager.planTools()...`);
 
             const plan = await this.mcpTodoManager.planTools(currentItem, todo, { 
-                toolsSummary,
-                promptOverride  // NEW: Pass specialized prompt name
+                toolsSummary: toolsData.toolsSummary,
+                promptOverride  // Pass specialized prompt name
             });
 
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] planTools() returned: ${JSON.stringify(plan).substring(0, 300)}`);
 
-            // NEW 2025-10-18: Check if Tetyana signals that item needs to be split
-            if (plan.needs_split === true) {
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🔀 Tetyana signals: item too complex, needs split`);
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Suggested splits: ${plan.suggested_splits?.join(', ') || 'none'}`);
-
-                // Return special signal to workflow to trigger Atlas split
-                return {
-                    success: false,
-                    needs_split: true,
-                    reasoning: plan.reasoning || 'Item too complex, requires >5 tools',
-                    suggested_splits: plan.suggested_splits || [],
-                    summary: `🔀 Пункт занадто складний. Розділяю на ${plan.suggested_splits?.length || 'кілька'} простіших завдань...`,
-                    metadata: {
-                        itemId: currentItem.id,
-                        stage: 'tool-planning',
-                        requiresSplit: true,
-                        estimatedToolCount: '>5'
-                    }
-                };
-            }
+            // REMOVED 2025-10-20: needs_split logic - Tetyana must ALWAYS return tool_calls
+            // If plan is empty, it will be caught by validation below
 
             if (!plan || !plan.tool_calls) {
                 throw new Error('MCPTodoManager.planTools() returned invalid plan');
             }
 
-            // Validate plan against available tools (CRITICAL)
-            const validation = this.mcpManager.validateToolCalls(plan.tool_calls);
+            // NEW 2025-10-20: Validate plan using TetyanaToolSystem (more precise)
+            let validation;
+            
+            if (this.tetyanaToolSystem) {
+                validation = this.tetyanaToolSystem.validateToolCalls(plan.tool_calls);
+                this.logger.debug('tetyana-plan-tools', '[STAGE-2.1-MCP] Validation via TetyanaToolSystem');
+            } else {
+                // Fallback to legacy validation
+                validation = this.mcpManager.validateToolCalls(plan.tool_calls);
+                this.logger.debug('tetyana-plan-tools', '[STAGE-2.1-MCP] Validation via legacy MCPManager');
+            }
 
             if (!validation.valid) {
                 this.logger.warn(`[STAGE-2.1-MCP] ⚠️ Plan validation FAILED:`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
@@ -237,7 +253,7 @@ export class TetyanaПlanToolsProcessor {
                     toolCount: plan.tool_calls.length,
                     servers: [...new Set(plan.tool_calls.map(c => c.server))],
                     filteredServers,  // NEW: Track which servers were pre-selected
-                    toolsReduction: filteredServers ? `92+ → ${availableTools.length}` : null,  // NEW: Show optimization
+                    toolsReduction: filteredServers ? `~60 → ${toolsData.tools.length}` : null,  // NEW: Show optimization
                     validation,
                     prompt: promptOverride || 'auto-assigned',
                     optimized: true  // NEW: mark as using optimized prompt

@@ -712,21 +712,30 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
               res
             });
 
-            logger.info(`Atlas replan decision: ${replanResult.replanResult?.strategy || 'unknown'}`, {
+            // ADDED 20.10.2025: Детальне логування replan результату для діагностики
+            logger.system('executor', `[REPLAN-DEBUG] Full result: ${JSON.stringify(replanResult, null, 2)}`);
+            logger.system('executor', `[REPLAN-DEBUG] Strategy: ${replanResult.strategy}`);
+            logger.system('executor', `[REPLAN-DEBUG] Replanned: ${replanResult.replanned}`);
+            logger.system('executor', `[REPLAN-DEBUG] New items count: ${replanResult.new_items?.length || 0}`);
+            if (replanResult.new_items?.length > 0) {
+              logger.system('executor', `[REPLAN-DEBUG] New items: ${JSON.stringify(replanResult.new_items.map(i => ({ id: i.id, action: i.action })))}`);
+            }
+
+            logger.info(`Atlas replan decision: ${replanResult.strategy || 'unknown'}`, {
               sessionId: session.id,
-              replanned: replanResult.replanResult?.replanned || false
+              replanned: replanResult.replanned || false
             });
 
             // Apply replan if Atlas created new items
-            if (replanResult.replanResult?.replanned && replanResult.replanResult?.new_items?.length > 0) {
-              logger.info(`Atlas replanned: inserting ${replanResult.replanResult.new_items.length} new items`, {
+            if (replanResult.replanned && replanResult.new_items?.length > 0) {
+              logger.info(`Atlas replanned: inserting ${replanResult.new_items.length} new items`, {
                 sessionId: session.id
               });
 
               // Insert new items into TODO list after current item
               const currentIndex = todo.items.indexOf(item);
               if (currentIndex !== -1) {
-                todo.items.splice(currentIndex + 1, 0, ...replanResult.replanResult.new_items);
+                todo.items.splice(currentIndex + 1, 0, ...replanResult.new_items);
 
                 logger.info(`TODO list updated: ${todo.items.length} total items`, {
                   sessionId: session.id
@@ -735,7 +744,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 
               // Mark current item as replanned
               item.status = 'replanned';
-              item.replan_reason = replanResult.replanResult.reasoning;
+              item.replan_reason = replanResult.reasoning;
 
               // Send replan update to frontend
               if (res.writable && !res.writableEnded) {
@@ -743,18 +752,18 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                   type: 'mcp_item_replanned',
                   data: {
                     itemId: item.id,
-                    newItemsCount: replanResult.replanResult.new_items.length,
-                    reasoning: replanResult.replanResult.reasoning
+                    newItemsCount: replanResult.new_items.length,
+                    reasoning: replanResult.reasoning
                   }
                 })}\n\n`);
               }
 
               // Exit retry loop - continue with new items
               break;
-            } else if (replanResult.replanResult?.strategy === 'skip_and_continue') {
+            } else if (replanResult.strategy === 'skip_and_continue') {
               // Atlas decided to skip this item
               item.status = 'skipped';
-              item.skip_reason = replanResult.replanResult.reasoning;
+              item.skip_reason = replanResult.reasoning;
 
               logger.warn(`Item ${item.id} skipped by Atlas: ${item.skip_reason}`, {
                 sessionId: session.id

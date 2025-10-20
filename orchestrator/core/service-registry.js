@@ -250,14 +250,15 @@ export function registerMCPWorkflowServices(container) {
             llmClient: null,  // Will be lazy-loaded when needed
             ttsSyncManager: c.resolve('ttsSyncManager'),
             wsManager: c.resolve('wsManager'),  // ADDED 14.10.2025 - For chat updates
+            atlasReplanProcessor: c.resolve('atlasReplanTodoProcessor'),  // ADDED 20.10.2025 - For deep replan
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpManager', 'ttsSyncManager', 'wsManager', 'logger'],
+        dependencies: ['mcpManager', 'ttsSyncManager', 'wsManager', 'atlasReplanTodoProcessor', 'logger'],
         metadata: { category: 'workflow', priority: 50 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] MCPTodoManager initialized');
+                logger.system('startup', '[DI] MCPTodoManager initialized with replan support');
             }
         }
     });

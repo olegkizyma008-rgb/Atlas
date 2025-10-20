@@ -254,9 +254,9 @@ export const MCP_MODEL_CONFIG = {
 
     // Stage 1-MCP: Atlas TODO Planning
     // T=0.3 для балансу планування (точність + креатив)
-    // GPT-4o - найкраща модель для складного reasoning та планування
+    // UPDATED 20.10.2025: Mistral Large через rate limit на GPT-4o
     todo_planning: {
-      get model() { return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-gpt-4o'; },
+      get model() { return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-large-2411'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_TODO_PLANNING || '0.3'); },
       max_tokens: 4000,
       description: 'Atlas TODO Planning (GPT-4o - найкраще reasoning)'
@@ -264,12 +264,12 @@ export const MCP_MODEL_CONFIG = {
 
     // Stage 2.1-MCP: Tetyana Plan Tools
     // T=0.1 для ЧИСТОГО JSON output без варіацій
-    // GPT-4o-mini - відмінно для structured output, швидка та точна
+    // UPDATED 20.10.2025: Mistral Small замість GPT-4o-mini (стабільний JSON)
     plan_tools: {
-      get model() { return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini'; },
+      get model() { return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-mistral-small-2503'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_PLAN_TOOLS || '0.1'); },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
+      description: 'Tetyana Plan Tools - чистий JSON (Mistral Small)'
     },
 
     // Stage 2.3-MCP: Grisha Verify Item
@@ -284,22 +284,22 @@ export const MCP_MODEL_CONFIG = {
 
     // Stage 3-MCP: Atlas Adjust TODO
     // T=0.2 для точного аналізу та корекції
-    // GPT-4o-mini - швидка та точна для аналізу та корекції
+    // UPDATED 20.10.2025: Mistral Medium замість GPT-4o-mini (стабільний аналіз)
     adjust_todo: {
-      get model() { return process.env.MCP_MODEL_ADJUST_TODO || 'atlas-gpt-4o-mini'; },
+      get model() { return process.env.MCP_MODEL_ADJUST_TODO || 'atlas-mistral-medium-2505'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_ADJUST_TODO || '0.2'); },
       max_tokens: 1500,
-      description: 'Atlas Adjust TODO - точна корекція (GPT-4o-mini)'
+      description: 'Atlas Adjust TODO - точна корекція (Mistral Medium)'
     },
 
     // Stage 3.5-MCP: Atlas Replan TODO (NEW 20.10.2025)
     // T=0.3 для креативного перепланування з аналізом помилок
-    // GPT-4o - найкраща для reasoning та перепланування
+    // UPDATED 20.10.2025: Mistral Large замість GPT-4o-mini (reasoning без лімітів)
     replan_todo: {
-      get model() { return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-gpt-4o'; },
+      get model() { return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-mistral-large-2411'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_REPLAN_TODO || '0.3'); },
       max_tokens: 3000,
-      description: 'Atlas Replan TODO - глибокий аналіз (GPT-4o)'
+      description: 'Atlas Replan TODO - глибокий аналіз (Mistral Large)'
     },
 
     // Stage 8-MCP: Final Summary
@@ -313,9 +313,9 @@ export const MCP_MODEL_CONFIG = {
 
     // Vision Analysis (Grisha) (NEW 20.10.2025)
     // T=0.2 для точного аналізу скріншотів
-    // GPT-4o - найкраща vision модель для точного аналізу
+    // UPDATED 20.10.2025: llama-3.2-11b-vision через ліміти на 90b
     vision_analysis: {
-      get model() { return process.env.MCP_MODEL_VISION || 'atlas-gpt-4o'; },
+      get model() { return process.env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_VISION || '0.2'); },
       max_tokens: 1000,
       description: 'Vision Analysis - аналіз скріншотів (GPT-4o vision)'
@@ -393,8 +393,8 @@ export const AI_BACKEND_CONFIG = {
     
     // Окремі налаштування для різних типів операцій
     itemExecution: {
-      // UPDATED 19.10.2025: 1 спроба на item (replanning робить Atlas)
-      get maxAttempts() { return parseInt(process.env.MCP_ITEM_MAX_ATTEMPTS || '1', 10); }
+      // UPDATED 20.10.2025: 2 спроби на item (дає можливість для retry після adjustment/replan)
+      get maxAttempts() { return parseInt(process.env.MCP_ITEM_MAX_ATTEMPTS || '2', 10); }
     },
     
     // Налаштування для replanning (Atlas adjust TODO)

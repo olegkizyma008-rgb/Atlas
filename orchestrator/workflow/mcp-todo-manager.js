@@ -67,13 +67,15 @@ export class MCPTodoManager {
      * @param {Object} dependencies.llmClient - LLM Client for reasoning
      * @param {Object} dependencies.ttsSyncManager - TTS Sync Manager
      * @param {Object} dependencies.wsManager - WebSocket Manager for chat updates
+     * @param {Object} dependencies.atlasReplanTodoProcessor - Atlas Replan TODO Processor (optional)
      * @param {Object} dependencies.logger - Logger instance
      */
-  constructor({ mcpManager, llmClient, ttsSyncManager, wsManager, logger: loggerInstance }) {
+  constructor({ mcpManager, llmClient, ttsSyncManager, wsManager, atlasReplanTodoProcessor, logger: loggerInstance }) {
     this.mcpManager = mcpManager;
     this.llmClient = llmClient;
     this.tts = ttsSyncManager;
     this.wsManager = wsManager;  // ADDED 14.10.2025 - For chat updates
+    this.atlasReplanTodoProcessor = atlasReplanTodoProcessor;  // ADDED 20.10.2025 - For deep replan analysis
     this.logger = loggerInstance || logger;
 
     this.activeTodos = new Map(); // todoId -> TodoList
@@ -721,8 +723,87 @@ export class MCPTodoManager {
         // Chat message already sent by verifyItem()
         lastError = verification.reason;
 
-        // Stage 3: Adjust TODO (if attempts remain)
-        if (attempt < item.max_attempts) {
+        // UPDATED 20.10.2025: Stage 3.5-MCP - Deep analysis and dynamic replan
+        // Use new atlas-replan-todo instead of old atlas-adjust-todo
+        if (attempt >= item.max_attempts) {
+          // Final attempt - trigger replan analysis
+          this.logger.system('mcp-todo', `[TODO] 🔍 Item ${item.id} failed after all attempts - triggering deep analysis and replan`);
+
+          try {
+            // Get detailed analysis from Grisha (if verifyProcessor available)
+            let grishaData = {
+              verified: false,
+              reason: verification.reason || lastError,
+              visual_evidence: verification.visual_evidence || 'No visual evidence',
+              confidence: verification.confidence || 0,
+              suggestions: verification.suggestions || []
+            };
+
+            // Prepare Tetyana data
+            const tetyanaData = {
+              plan: item.last_plan || { tool_calls: [] },
+              execution: execution || { all_successful: false },
+              tools_used: execution?.results?.map(r => r.tool) || []
+            };
+
+            // Call Atlas replan (if available in DI container)
+            if (this.atlasReplanTodoProcessor) {
+              const replanResult = await this.atlasReplanTodoProcessor.execute({
+                failedItem: item,
+                todo,
+                tetyanaData,
+                grishaData
+              });
+
+              // ADDED 20.10.2025: Debug logging
+              this.logger.system('mcp-todo', `[REPLAN-DEBUG] Strategy: ${replanResult.strategy}`);
+              this.logger.system('mcp-todo', `[REPLAN-DEBUG] Replanned: ${replanResult.replanned}`);
+              this.logger.system('mcp-todo', `[REPLAN-DEBUG] New items: ${replanResult.new_items?.length || 0}`);
+
+              // Handle replan result
+              if (replanResult.replanned && replanResult.new_items?.length > 0) {
+                // Insert new items into TODO list
+                this.logger.system('mcp-todo', `[TODO] 🔄 Inserting ${replanResult.new_items.length} new items`);
+
+                // Assign IDs and insert
+                let nextId = Math.max(...todo.items.map(it => it.id)) + 1;
+                replanResult.new_items.forEach(newItem => {
+                  newItem.id = nextId++;
+                  newItem.status = 'pending';
+                  newItem.attempt = 0;
+                  newItem.max_attempts = newItem.max_attempts || item.max_attempts;
+                });
+
+                // Insert after current item
+                const currentIndex = todo.items.indexOf(item);
+                if (currentIndex !== -1) {
+                  todo.items.splice(currentIndex + 1, 0, ...replanResult.new_items);
+                }
+
+                item.status = 'replanned';
+                item.replan_reason = replanResult.reasoning;
+
+                this._sendChatMessage(`📋 Оновлений план: додано ${replanResult.new_items.length} пунктів`, 'atlas');
+                break; // Exit retry loop
+              } else if (replanResult.strategy === 'skip_and_continue') {
+                item.status = 'skipped';
+                item.skip_reason = replanResult.reasoning;
+                this._sendChatMessage(`⏭️ Пропускаю: ${item.skip_reason}`, 'atlas');
+                break;
+              }
+            }
+          } catch (replanError) {
+            this.logger.error(`[MCP-TODO] Replan failed: ${replanError.message}`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo',
+              stack: replanError.stack
+            });
+          }
+
+          // If replan didn't work, fail with TTS
+          await this._safeTTSSpeak('Не вдалось виконати', { mode: 'normal', duration: 800 });
+        } else {
+          // Stage 3: Simple adjustment (if attempts remain)
           const adjustment = await this.adjustTodoItem(item, verification, attempt);
 
           // Apply adjustments
@@ -741,9 +822,6 @@ export class MCPTodoManager {
           }
 
           await this._safeTTSSpeak(atlasAdjustmentPhrase, { mode: 'normal', duration: 1000 });
-        } else {
-          // Final attempt failed
-          await this._safeTTSSpeak('Не вдалось виконати', { mode: 'normal', duration: 800 });
         }
 
       } catch (error) {
@@ -1936,8 +2014,10 @@ Context: ${JSON.stringify(context, null, 2)}
       this.logger.warn(`[MCP-TODO] Standard mode has ${todo.items.length} items (recommended 1-3)`, { category: 'mcp-todo', component: 'mcp-todo' });
     }
 
-    if (todo.mode === 'extended' && todo.items.length > 10) {
-      throw new Error('Extended mode cannot exceed 10 items');
+    // UPDATED 20.10.2025: Видалено обмеження на 10 items для extended mode
+    // Тепер немає ліміту - Atlas може створювати стільки пунктів, скільки потрібно
+    if (todo.mode === 'extended' && todo.items.length > 20) {
+      this.logger.warn(`[MCP-TODO] Extended mode has ${todo.items.length} items (large TODO list)`, { category: 'mcp-todo', component: 'mcp-todo' });
     }
 
     // Validate dependencies

@@ -478,7 +478,9 @@ cmd_start() {
     start_whisper_service
     start_orchestrator
     start_frontend
-    start_recovery_bridge
+    # TODO(MCP Session Persistence): Re-enable Recovery Bridge after `config/recovery_bridge.py`
+    # is rewritten to serve the new MCP-only web interface (e.g. via Redis-backed session store).
+    # start_recovery_bridge
     start_fallback_llm
     
     # Wait for services to initialize

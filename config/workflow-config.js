@@ -1,202 +1,111 @@
 /**
- * ATLAS WORKFLOW CONFIGURATION
- * Конфігурація етапів і логіки workflow системи ATLAS
- *
- * Версія: 4.0.0
- * Автор: Atlas System
- * Дата створення: 2025-10-09
+ * ATLAS MCP WORKFLOW CONFIGURATION
+ * Активні MCP етапи та базові утиліти для orchestrator/web клієнтів.
  */
 
-// === WORKFLOW ЕТАПИ ===
+/**
+ * Перелік робочих етапів у порядку виконання.
+ * Поле `stage` зберігаємо для сумісності з існуючим кодом.
+ */
 export const WORKFLOW_STAGES = [
   {
-    stage: -3,
-    agent: 'system',
-    name: 'tts_optimization',
-    description: 'Оптимізація відповіді для TTS озвучки',
-    required: false,
-    condition: 'agent_response_for_tts',
-    maxRetries: 2,
-    timeout: 15000,
-    expectedStates: ['optimized', 'fallback_used', 'no_optimization_needed']
-  },
-  {
-    stage: -2,
-    agent: 'system',
-    name: 'post_chat_analysis',
-    description: 'Пост-чат аналіз звернення користувача',
-    required: false,
-    condition: 'atlas_chat_completed',
-    maxRetries: 0,
-    timeout: 5000,
-    expectedStates: ['continue_chat', 'ignore', 'clarify']
-  },
-  {
     stage: 0,
-    agent: 'system',
+    id: 'MODE_SELECTION',
     name: 'mode_selection',
-    description: 'Класифікація: чат або завдання',
+    agent: 'system',
+    description: 'Класифікація запиту як чат або MCP завдання',
     required: true,
     maxRetries: 0,
-    timeout: 60000,  // FIXED 14.10.2025 - Збільшено з 10s до 60s для повільних моделей
-    expectedStates: ['chat', 'task']
-  },
-  {
-    stage: 0,
-    agent: 'atlas',
-    name: 'stage0_chat',
-    description: 'Atlas відповідає на чат',
-    required: false,
-    condition: 'system_selected_chat',
-    maxRetries: 0,
-    timeout: 60000,  // FIXED 14.10.2025 - Збільшено з 30s до 60s для повільних моделей
-    expectedStates: ['chat_response']
+    timeout: 60000
   },
   {
     stage: 1,
+    id: 'ATLAS_TODO_PLANNING',
+    name: 'atlas_todo_planning',
     agent: 'atlas',
-    name: 'initial_processing',
-    description: 'Формалізація та структурування завдання',
+    description: 'Створення структурованого TODO з описом пунктів',
     required: true,
-    condition: 'system_selected_task',
     maxRetries: 1,
-    timeout: 45000,
-    expectedStates: ['task_processed', 'needs_clarification']
+    timeout: 45000
   },
   {
     stage: 2,
-    agent: 'tetyana',
-    name: 'execution',
-    description: 'Виконання сформалізованого завдання',
+    id: 'SERVER_SELECTION',
+    name: 'server_selection',
+    agent: 'system',
+    description: 'Підбір релевантних MCP серверів для кожного пункту',
     required: true,
-    maxRetries: 2,
-    timeout: 180000, // Збільшено до 3 хвилин для складних завдань типу зміни заставок
-    expectedStates: ['completed', 'incomplete', 'blocked']
+    maxRetries: 0,
+    timeout: 30000
   },
   {
     stage: 3,
-    agent: 'atlas',
-    name: 'clarification',
-    description: 'Надання уточнень для Тетяни',
-    required: false,
-    // REMOVED condition - логіка переходу в determineNextStage() (executor-v3.js case 2)
+    id: 'TETYANA_PLAN_TOOLS',
+    name: 'tetyana_plan_tools',
+    agent: 'tetyana',
+    description: 'Планування послідовності MCP інструментів',
+    required: true,
     maxRetries: 1,
-    timeout: 30000,
-    expectedStates: ['clarified', 'not_clarified']
+    timeout: 60000
   },
   {
     stage: 4,
+    id: 'TETYANA_EXECUTE_TOOLS',
+    name: 'tetyana_execute_tools',
     agent: 'tetyana',
-    name: 'retry',
-    description: 'Повторне виконання з уточненнями',
-    required: false,
-    // REMOVED condition - автоматичний перехід після stage 3
+    description: 'Виконання запланованих MCP інструментів',
+    required: true,
     maxRetries: 2,
-    timeout: 90000,
-    expectedStates: ['completed', 'incomplete', 'blocked']
+    timeout: 180000
   },
   {
     stage: 5,
+    id: 'GRISHA_VERIFY_ITEM',
+    name: 'grisha_verify_item',
     agent: 'grisha',
-    name: 'diagnosis',
-    description: 'Діагностика причин блокування',
-    required: false,
-    condition: 'tetyana_still_blocked',
+    description: 'Верифікація результатів виконання пунктів TODO',
+    required: true,
     maxRetries: 1,
-    timeout: 45000,
-    expectedStates: ['problem_identified', 'cannot_identify']
+    timeout: 60000
   },
   {
     stage: 6,
+    id: 'ATLAS_ADJUST_TODO',
+    name: 'atlas_adjust_todo',
     agent: 'atlas',
-    name: 'task_adjustment',
-    description: 'Корекція завдання на основі діагностики',
+    description: 'Корекція TODO на основі діагностики та фідбеку',
     required: false,
-    condition: 'grisha_provided_diagnosis',
     maxRetries: 1,
-    timeout: 30000,
-    expectedStates: ['adjusted_task', 'not_adjusted']
+    timeout: 30000
   },
   {
     stage: 7,
-    agent: 'grisha',
-    name: 'verification',
-    description: 'Перевірка правильності виконання',
-    required: true,
+    id: 'ATLAS_REPLAN_TODO',
+    name: 'atlas_replan_todo',
+    agent: 'atlas',
+    description: 'Глибокий переплан після аналізу невдач',
+    required: false,
     maxRetries: 1,
-    timeout: 60000,
-    expectedStates: ['verification_passed', 'verification_failed', 'verification_blocked']
+    timeout: 60000
   },
   {
     stage: 8,
+    id: 'MCP_FINAL_SUMMARY',
+    name: 'mcp_final_summary',
     agent: 'system',
-    name: 'completion',
-    description: 'Системне завершення workflow',
+    description: 'Фінальне резюме та завершення workflow',
     required: true,
     maxRetries: 0,
-    timeout: 10000,
-    expectedStates: ['success', 'failed', 'timeout_exceeded']
-  },
-  {
-    stage: 9,
-    agent: 'atlas',
-    name: 'retry_cycle',
-    description: 'Ініціація нового циклу виконання',
-    required: false,
-    condition: 'should_retry_cycle',
-    maxRetries: 2,
-    timeout: 30000,
-    expectedStates: ['new_strategy', 'retry_limit_reached', 'user_update', 'auto_fix']
+    timeout: 45000
   }
 ];
 
-// === WORKFLOW УМОВИ ===
-export const WORKFLOW_CONDITIONS = {
-  // Умови переходу між етапами
-  'agent_response_for_tts': (context) => {
-    return context.enableTTS && context.agentResponse && context.agentResponse.length > 100;
-  },
+/**
+ * MCP процесори керують умовами самостійно. Залишаємо порожній обʼєкт для API.
+ */
+export const WORKFLOW_CONDITIONS = {};
 
-  'atlas_chat_completed': (context) => {
-    return context.currentStage === 0 && context.currentAgent === 'atlas' && context.stageCompleted;
-  },
-
-  'system_selected_chat': (context) => {
-    return context.mode === 'chat';
-  },
-
-  'system_selected_task': (context) => {
-    return context.mode === 'task';
-  },
-
-  'tetyana_needs_clarification': (context) => {
-    return context.stageResult?.state === 'needs_clarification' ||
-      context.stageResult?.state === 'incomplete';
-  },
-
-  'atlas_provided_clarification': (context) => {
-    return context.previousStage === 3 && context.stageResult?.state === 'clarified';
-  },
-
-  'tetyana_still_blocked': (context) => {
-    return context.stageResult?.state === 'blocked' ||
-      (context.currentStage === 4 && context.stageResult?.state === 'incomplete');
-  },
-
-  'grisha_provided_diagnosis': (context) => {
-    return context.previousStage === 5 && context.stageResult?.state === 'problem_identified';
-  },
-
-  'should_retry_cycle': (context) => {
-    return context.currentStage === 8 &&
-      context.stageResult?.state === 'failed' &&
-      context.retryCount < 3;
-  }
-};
-
-// === WORKFLOW КОНФІГУРАЦІЯ ===
 export const WORKFLOW_CONFIG = {
-  // Загальні налаштування
   general: {
     maxRetries: 3,
     defaultTimeout: 60000,
@@ -204,28 +113,22 @@ export const WORKFLOW_CONFIG = {
     enableMetrics: true,
     autoAdvance: true
   },
-
-  // Налаштування retry логіки
   retry: {
     maxGlobalRetries: 3,
     retryDelay: 1000,
     backoffMultiplier: 2,
     maxDelay: 30000
   },
-
-  // Налаштування таймаутів
   timeouts: {
-    stageTimeout: 300000,      // 5 хвилин на етап
-    workflowTimeout: 1800000,  // 30 хвилин на весь workflow
-    agentTimeout: 60000        // 1 хвилина на агента
+    stageTimeout: 300000,
+    workflowTimeout: 1800000,
+    agentTimeout: 60000
   },
-
-  // Режими роботи
   modes: {
     chat: {
       enableTTS: true,
       enableOptimization: false,
-      skipSystemStages: ['completion'],
+      skipStages: ['MCP_FINAL_SUMMARY'],
       maxChatRounds: 10
     },
     task: {
@@ -243,71 +146,41 @@ export const WORKFLOW_CONFIG = {
   }
 };
 
-// === УТИЛІТИ ДЛЯ РОБОТИ З WORKFLOW ===
-
-/**
- * Отримання етапу за номером
- */
 export function getWorkflowStage(stageNumber) {
   return WORKFLOW_STAGES.find(stage => stage.stage === stageNumber);
 }
 
-/**
- * Отримання наступного етапу
- */
-export function getNextStage(currentStage, context = {}) {
-  const currentIndex = WORKFLOW_STAGES.findIndex(stage => stage.stage === currentStage);
-  if (currentIndex === -1) return null;
+export function getStageById(stageId) {
+  return WORKFLOW_STAGES.find(stage => stage.id === stageId);
+}
 
-  // Шукаємо наступний доступний етап
-  for (let i = currentIndex + 1; i < WORKFLOW_STAGES.length; i++) {
-    const stage = WORKFLOW_STAGES[i];
-
-    // Перевіряємо умову для етапу
-    if (stage.condition && WORKFLOW_CONDITIONS[stage.condition]) {
-      if (WORKFLOW_CONDITIONS[stage.condition](context)) {
-        return stage;
-      }
-    } else if (!stage.condition) {
-      return stage;
-    }
+export function getNextStage(currentStage) {
+  const index = WORKFLOW_STAGES.findIndex(stage => stage.stage === currentStage);
+  if (index === -1) {
+    return null;
   }
-
-  return null;
+  return WORKFLOW_STAGES[index + 1] || null;
 }
 
-/**
- * Перевірка умови етапу
- */
-export function checkStageCondition(stageName, context) {
-  const stage = WORKFLOW_STAGES.find(s => s.name === stageName);
-  if (!stage || !stage.condition) return true;
-
-  const conditionFn = WORKFLOW_CONDITIONS[stage.condition];
-  return conditionFn ? conditionFn(context) : false;
+export function checkStageCondition() {
+  return true;
 }
 
-/**
- * Валідація етапу
- */
 export function validateStage(stageData) {
-  const requiredFields = ['stage', 'agent', 'name', 'description'];
+  const requiredFields = ['stage', 'id', 'agent', 'name', 'description'];
   return requiredFields.every(field => stageData[field] !== undefined);
 }
 
-/**
- * Отримання етапів для агента
- */
 export function getStagesForAgent(agentName) {
   return WORKFLOW_STAGES.filter(stage => stage.agent === agentName);
 }
 
-// Експорт за замовчуванням
 export default {
   WORKFLOW_STAGES,
   WORKFLOW_CONDITIONS,
   WORKFLOW_CONFIG,
   getWorkflowStage,
+  getStageById,
   getNextStage,
   checkStageCondition,
   validateStage,

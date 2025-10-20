@@ -1,0 +1,429 @@
+/**
+ * ATLAS Model Configuration
+ * Містить конфігурацію AI/MCP моделей та vision налаштування.
+ */
+
+// === VISION MODELS CONFIGURATION (UPDATED 18.10.2025) ===
+export const VISION_CONFIG = {
+  primary: {
+    model: 'atlas-llama-3.2-90b-vision-instruct',
+    provider: 'meta',
+    cost: 0.01,
+    speed: '1-2s',
+    rateLimitPerMin: 10,
+    use_cases: ['any_task', 'complex_ui', 'high_accuracy_required'],
+    endpoint: 'http://localhost:4000/v1/chat/completions',
+    isLocal: false
+  },
+  fast: {
+    model: 'atlas-phi-3.5-vision-instruct',
+    provider: 'microsoft',
+    cost: 0.0002,
+    speed: '0.8-1.2s',
+    rateLimitPerMin: 6,
+    use_cases: ['browser_open', 'file_exists', 'app_active', 'window_visible'],
+    endpoint: 'http://localhost:4000/v1/chat/completions',
+    isLocal: false
+  },
+  standard: {
+    model: 'atlas-llama-3.2-90b-vision-instruct',
+    provider: 'atlas',
+    cost: 0.0003,
+    speed: '1.5-2.5s',
+    rateLimitPerMin: 3,
+    use_cases: ['text_match', 'ui_validation', 'form_filled', 'button_state'],
+    endpoint: 'http://localhost:4000/v1/chat/completions',
+    isLocal: false
+  },
+  cheapest: {
+    model: 'atlas-phi-3.5-vision-instruct',
+    provider: 'atlas',
+    cost: 0.0001,
+    speed: '1-1.5s',
+    rateLimitPerMin: 12,
+    use_cases: ['simple_check', 'presence_check', 'quick_verify'],
+    endpoint: 'http://localhost:4000/v1/chat/completions',
+    isLocal: false
+  },
+  get default() {
+    return this.primary;
+  },
+  api: {
+    primaryEndpoint: 'http://localhost:4000/v1/chat/completions',
+    timeout: 60000,
+    temperature: 0.2,
+    maxTokens: 1000
+  },
+  selectModel(complexity) {
+    if (complexity <= 3) return this.cheapest;
+    if (complexity <= 6) return this.fast;
+    if (complexity <= 8) return this.standard;
+    return this.primary;
+  },
+  estimateCost(model, screenshotCount = 1) {
+    const modelConfig = Object.values(this).find(cfg => cfg?.model === model);
+    if (!modelConfig) return 0;
+    return modelConfig.cost * screenshotCount;
+  }
+};
+
+// === AI MODELS CONFIGURATION ===
+export const AI_MODEL_CONFIG = {
+  get apiEndpoint() {
+    const primary = process.env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
+    const fallback = process.env.LLM_API_FALLBACK_ENDPOINT;
+    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true';
+
+    return {
+      primary,
+      fallback: fallback || null,
+      useFallback,
+      timeout: parseInt(process.env.LLM_API_TIMEOUT || '60000', 10)
+    };
+  },
+  models: {
+    classification: {
+      get model() {
+        return process.env.AI_MODEL_CLASSIFICATION || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.AI_TEMP_CLASSIFICATION || '0.05');
+      },
+      max_tokens: 50,
+      description: 'Бінарна класифікація - максимальна точність'
+    },
+    chat: {
+      get model() {
+        return process.env.AI_MODEL_CHAT || 'atlas-mistral-medium-2505';
+      },
+      get temperature() {
+        return parseFloat(process.env.AI_TEMP_CHAT || '0.7');
+      },
+      max_tokens: 500,
+      description: 'Природні розмови - креативність (Mistral Medium)'
+    },
+    analysis: {
+      get model() {
+        return process.env.AI_MODEL_ANALYSIS || 'atlas-gpt-4o-mini';
+      },
+      get temperature() {
+        return parseFloat(process.env.AI_TEMP_ANALYSIS || '0.2');
+      },
+      max_tokens: 1000,
+      description: 'Аналіз та контекст - точність'
+    },
+    tts_optimization: {
+      get model() {
+        return process.env.AI_MODEL_TTS_OPT || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.AI_TEMP_TTS_OPT || '0.15');
+      },
+      max_tokens: 300,
+      description: 'Оптимізація для TTS - стабільність'
+    }
+  },
+  stageModels: {
+    'stage0_mode_selection': 'classification',
+    'stage0_chat': 'chat',
+    'stage-2_post_chat_analysis': 'analysis',
+    'stage-3_tts_optimization': 'tts_optimization'
+  },
+  defaultModel: 'classification'
+};
+
+// === MCP MODELS CONFIGURATION ===
+export const MCP_MODEL_CONFIG = {
+  get apiEndpoint() {
+    const primary = process.env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
+    const fallback = process.env.LLM_API_FALLBACK_ENDPOINT;
+    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true';
+
+    return {
+      primary,
+      fallback: fallback || null,
+      useFallback,
+      timeout: parseInt(process.env.LLM_API_TIMEOUT || '60000', 10)
+    };
+  },
+  stages: {
+    mode_selection: {
+      get model() {
+        return process.env.MCP_MODEL_MODE_SELECTION || 'atlas-phi-4-mini-instruct';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_MODE_SELECTION || '0.05');
+      },
+      max_tokens: 50,
+      description: 'Бінарна класифікація task vs chat (Microsoft Phi-4 Mini)'
+    },
+    backend_selection: {
+      get model() {
+        return process.env.MCP_MODEL_BACKEND_SELECTION || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_BACKEND_SELECTION || '0.05');
+      },
+      max_tokens: 50,
+      description: 'Keyword routing - точність (deprecated)'
+    },
+    todo_planning: {
+      get model() {
+        return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-large-2411';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_TODO_PLANNING || '0.3');
+      },
+      max_tokens: 4000,
+      description: 'Atlas TODO Planning (GPT-4o - найкраще reasoning)'
+    },
+    plan_tools: {
+      get model() {
+        return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_PLAN_TOOLS || '0.1');
+      },
+      max_tokens: 2500,
+      description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
+    },
+    verify_item: {
+      get model() {
+        return process.env.MCP_MODEL_VERIFY_ITEM || 'atlas-mistral-small-2503';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_VERIFY_ITEM || '0.15');
+      },
+      max_tokens: 800,
+      description: 'Grisha Verify Item - швидка верифікація (Mistral Small)'
+    },
+    adjust_todo: {
+      get model() {
+        return process.env.MCP_MODEL_ADJUST_TODO || 'atlas-mistral-medium-2505';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_ADJUST_TODO || '0.2');
+      },
+      max_tokens: 1500,
+      description: 'Atlas Adjust TODO - точна корекція (Mistral Medium)'
+    },
+    replan_todo: {
+      get model() {
+        return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-mistral-large-2411';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_REPLAN_TODO || '0.3');
+      },
+      max_tokens: 3000,
+      description: 'Atlas Replan TODO - глибокий аналіз (Mistral Large)'
+    },
+    final_summary: {
+      get model() {
+        return process.env.MCP_MODEL_FINAL_SUMMARY || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_FINAL_SUMMARY || '0.5');
+      },
+      max_tokens: 600,
+      description: 'Final Summary для користувача - природність'
+    },
+    vision_analysis: {
+      get model() {
+        return process.env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_VISION || '0.2');
+      },
+      max_tokens: 1000,
+      description: 'Vision Analysis - аналіз скріншотів (GPT-4o vision)'
+    },
+    vision_fallback: {
+      get model() {
+        return process.env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision';
+      },
+      endpoint: 'http://localhost:11434/api/generate',
+      description: 'Ollama local vision - безкоштовний fallback (повільний)'
+    },
+    server_selection: {
+      get model() {
+        return process.env.MCP_MODEL_SERVER_SELECTION || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_SERVER_SELECTION || '0.05');
+      },
+      max_tokens: 50,
+      description: 'MCP Server Selection - швидка класифікація серверів'
+    },
+    state_analysis: {
+      get model() {
+        return process.env.MCP_MODEL_STATE_ANALYSIS || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_STATE_ANALYSIS || '0.1');
+      },
+      max_tokens: 100,
+      description: 'State Analysis - аналіз станів агентів'
+    },
+    screenshot_adjustment: {
+      get model() {
+        return process.env.MCP_MODEL_SCREENSHOT_ADJ || 'atlas-phi-4-multimodal-instruct';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_SCREENSHOT_ADJ || '0.2');
+      },
+      max_tokens: 2000,
+      description: 'Screenshot Adjustment - аналіз скріншотів (Phi-4 Multimodal)'
+    },
+    tts_optimization: {
+      get model() {
+        return process.env.MCP_MODEL_TTS_OPT || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(process.env.MCP_TEMP_TTS_OPT || '0.3');
+      },
+      max_tokens: 200,
+      description: 'TTS Optimization - оптимізація тексту для озвучки'
+    }
+  },
+  getStageConfig(stageName) {
+    return this.stages[stageName] || this.stages.plan_tools;
+  }
+};
+
+// === AI BACKEND CONFIGURATION (NEW 13.10.2025) ===
+export const AI_BACKEND_CONFIG = {
+  mode: 'mcp',
+  primary: 'mcp',
+  fallback: null,
+  disableFallback: true,
+  retry: {
+    get maxAttempts() {
+      return parseInt(process.env.MCP_MAX_ATTEMPTS || '3', 10);
+    },
+    get timeoutMs() {
+      return parseInt(process.env.MCP_TIMEOUT_MS || '30000', 10);
+    },
+    get exponentialBackoff() {
+      return process.env.MCP_EXPONENTIAL_BACKOFF !== 'false';
+    },
+    itemExecution: {
+      get maxAttempts() {
+        return parseInt(process.env.MCP_ITEM_MAX_ATTEMPTS || '2', 10);
+      }
+    },
+    replanning: {
+      get maxAttempts() {
+        return parseInt(process.env.MCP_REPLANNING_MAX_ATTEMPTS || '3', 10);
+      }
+    },
+    toolPlanning: {
+      get maxAttempts() {
+        return parseInt(process.env.MCP_TOOL_PLANNING_MAX_ATTEMPTS || '3', 10);
+      },
+      get retryDelay() {
+        return parseInt(process.env.MCP_TOOL_PLANNING_RETRY_DELAY || '2000', 10);
+      }
+    },
+    circuitBreaker: {
+      get threshold() {
+        return parseInt(process.env.MCP_CIRCUIT_BREAKER_THRESHOLD || '3', 10);
+      },
+      get resetTimeout() {
+        return parseInt(process.env.MCP_CIRCUIT_BREAKER_RESET_MS || '60000', 10);
+      }
+    }
+  },
+  providers: {
+    mcp: {
+      enabled: true,
+      type: 'direct',
+      servers: {
+        filesystem: {
+          command: 'npx',
+          args: ['-y', '@modelcontextprotocol/server-filesystem'],
+          env: {
+            ALLOWED_DIRECTORIES: '/Users,/tmp,/Desktop,/Applications'
+          }
+        },
+        playwright: {
+          command: 'npx',
+          args: ['-y', '@executeautomation/playwright-mcp-server'],
+          env: {
+            HEADLESS: 'true'
+          }
+        },
+        shell: {
+          command: 'npx',
+          args: ['-y', 'super-shell-mcp'],
+          env: {
+            SHELL: process.env.SHELL || '/bin/zsh'
+          }
+        },
+        applescript: {
+          command: 'npx',
+          args: ['-y', '@peakmojo/applescript-mcp'],
+          env: {}
+        },
+        memory: {
+          command: 'npx',
+          args: ['-y', '@modelcontextprotocol/server-memory'],
+          env: {}
+        }
+      },
+      llm: {
+        provider: 'atlas',
+        apiEndpoint: 'http://localhost:4000/v1/chat/completions',
+        model: 'atlas-ministral-3b',
+        temperature: 0.3
+      },
+      useFor: [
+        'file_operations',
+        'browser_automation',
+        'screenshots',
+        'web_scraping',
+        'terminal_commands',
+        'macos_automation',
+        'github_api',
+        'git_operations',
+        'memory_storage'
+      ]
+    }
+  },
+  routing: {
+    mcpKeywords: [
+      'створи файл', 'create file', 'save file',
+      'файл', 'file', 'directory', 'папка',
+      'відкрий браузер', 'open browser',
+      'скріншот', 'screenshot',
+      'web scraping', 'scrape',
+      'виконай команду', 'run command', 'terminal',
+      'npm', 'brew', 'git clone', 'install',
+      'відкрий програму', 'open app', 'launch',
+      'applescript', 'finder', 'safari', 'chrome',
+      'github issue', 'pull request', 'pr',
+      'create issue', 'list issues',
+      'git commit', 'git push', 'git pull',
+      'branch', 'merge', 'checkout',
+      'запамʼятай', 'remember', 'save context',
+      'що ти пам\'ятаєш', 'recall'
+    ]
+  }
+};
+
+export const MCP_SERVERS = AI_BACKEND_CONFIG.providers.mcp.servers;
+
+export function getModelForStage(stageName) {
+  const modelType = AI_MODEL_CONFIG.stageModels[stageName] || AI_MODEL_CONFIG.defaultModel;
+  const modelConfig = AI_MODEL_CONFIG.models[modelType];
+  if (!modelConfig) {
+    throw new Error(`Model configuration not found for type: ${modelType}`);
+  }
+  return {
+    endpoint: AI_MODEL_CONFIG.apiEndpoint,
+    ...modelConfig
+  };
+}
+
+export function getModelByType(type) {
+  return AI_MODEL_CONFIG.models[type];
+}

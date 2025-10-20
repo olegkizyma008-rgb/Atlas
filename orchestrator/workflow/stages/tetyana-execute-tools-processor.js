@@ -451,7 +451,7 @@ export class TetyanaExecuteToolsProcessor {
     async _executeOneTool(toolCall) {
         try {
             // Use MCPManager to execute the tool
-            const result = await this.mcpManager.callTool(
+            const result = await this.mcpManager.executeTool(
                 toolCall.server,
                 toolCall.tool,
                 toolCall.parameters

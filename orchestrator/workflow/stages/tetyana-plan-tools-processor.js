@@ -43,7 +43,7 @@ export class TetyanaПlanToolsProcessor {
     async execute(context) {
         this.logger.system('tetyana-plan-tools', '[STAGE-2.1-MCP] 🛠️ Planning tool selection...');
 
-        const { currentItem, todo, executionContext, selected_servers } = context;
+        const { currentItem, todo, executionContext, selected_servers, selected_prompts } = context;
 
         if (!currentItem) {
             throw new Error('currentItem is required for tool planning');
@@ -80,40 +80,25 @@ export class TetyanaПlanToolsProcessor {
             // OPTIMIZATION (15.10.2025): Pass toolsSummary to planTools for {{AVAILABLE_TOOLS}} substitution
             this.logger.debug('tetyana-plan-tools', `[STAGE-2.1-MCP] Tools summary:\n${toolsSummary}`);
 
-            // NEW 19.10.2025: Select MCP-specific prompt(s) based on selected servers
-            // 1 server → 1 specialized prompt
-            // 2 servers → 2 specialized prompts (combined)
-            // >2 servers → general prompt
+            // NEW 20.10.2025: Use auto-assigned prompts from server selection stage
+            // Prompts are automatically mapped in Stage 2.0 based on selected servers
             let promptOverride = null;
-            const specializedPrompts = {
-                'playwright': 'TETYANA_PLAN_TOOLS_PLAYWRIGHT',
-                'filesystem': 'TETYANA_PLAN_TOOLS_FILESYSTEM',
-                'applescript': 'TETYANA_PLAN_TOOLS_APPLESCRIPT',
-                'shell': 'TETYANA_PLAN_TOOLS_SHELL',
-                'memory': 'TETYANA_PLAN_TOOLS_MEMORY'
-            };
-
-            if (selected_servers && selected_servers.length === 1) {
-                // Single server - use specialized prompt
-                const serverName = selected_servers[0].toLowerCase();
-                if (specializedPrompts[serverName]) {
-                    promptOverride = specializedPrompts[serverName];
-                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using specialized prompt: ${promptOverride}`);
+            
+            if (selected_prompts) {
+                if (Array.isArray(selected_prompts)) {
+                    if (selected_prompts.length === 1) {
+                        promptOverride = selected_prompts[0];
+                        this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: ${promptOverride}`);
+                    } else if (selected_prompts.length === 2) {
+                        promptOverride = selected_prompts; // Array of 2 prompts
+                        this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using 2 auto-assigned prompts: ${selected_prompts.join(' + ')}`);
+                    }
+                } else {
+                    promptOverride = selected_prompts;
+                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: ${selected_prompts}`);
                 }
-            } else if (selected_servers && selected_servers.length === 2) {
-                // Two servers - use both specialized prompts (combined)
-                const prompts = selected_servers
-                    .map(s => specializedPrompts[s.toLowerCase()])
-                    .filter(Boolean);
-                
-                if (prompts.length === 2) {
-                    promptOverride = prompts; // Array of 2 prompts
-                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using 2 specialized prompts: ${prompts.join(' + ')}`);
-                } else if (prompts.length === 1) {
-                    // Only 1 server has specialized prompt
-                    promptOverride = prompts[0];
-                    this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] 🎯 Using 1 specialized prompt (other server generic): ${prompts[0]}`);
-                }
+            } else {
+                this.logger.warn('tetyana-plan-tools', '[STAGE-2.1-MCP] ⚠️ No prompts auto-assigned by server selection!');
             }
 
             // Plan tools using MCPTodoManager with dynamic tools list + specialized prompt
@@ -254,7 +239,7 @@ export class TetyanaПlanToolsProcessor {
                     filteredServers,  // NEW: Track which servers were pre-selected
                     toolsReduction: filteredServers ? `92+ → ${availableTools.length}` : null,  // NEW: Show optimization
                     validation,
-                    prompt: MCP_PROMPTS.TETYANA_PLAN_TOOLS.name,
+                    prompt: promptOverride || 'auto-assigned',
                     optimized: true  // NEW: mark as using optimized prompt
                 }
             };

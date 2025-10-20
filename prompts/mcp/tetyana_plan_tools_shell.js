@@ -102,6 +102,24 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 - ping -c 4 host - перевірка мережі
 - nc -zv host port - перевірка порту
 
+### **Категорія 5: Python скрипти**
+⚡ **Python one-liners через shell:**
+
+**Базовий синтаксис:**
+- python3 -c "import module; code1; code2; code3"
+- Semicolons для розділення statements
+- ABSOLUTE paths обов'язково
+- Escape quotes: використовуй single quotes всередині
+
+**Популярні бібліотеки:**
+- Офісні документи: python-pptx, openpyxl, python-docx
+- Дані: json, csv, pandas
+- Web: requests, beautifulsoup4
+- Файли: pathlib, shutil
+
+**Перевірка/встановлення бібліотек:**
+- python3 -c "import module_name" 2>&1 || pip3 install package-name
+
 **ТИПОВИЙ WORKFLOW:**
 1. shell_execute → виконати команду
 2. Використати pipes (|) для складних операцій в одній команді
@@ -144,10 +162,14 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 
 **ЧАСТОТІ ПОМИЛКИ:**
 ❌ Відносні шляхи без context
-❌ Забування quotes для paths з пробілами ("/path/with space/file.txt")
+❌ Забування quotes для paths з пробілами
 ❌ Неправильний pipe syntax
 ❌ Спроба використати cd (використовуй absolute paths або workdir параметр)
-❌ Хардкодені приклади замість реальних команд з задачі
+
+**РОЗУМНЕ ПЛАНУВАННЯ:**
+- Використовуй доступні tools для вирішення завдання
+- Комбінуй команди через pipes для ефективності
+- Для складних операцій - розділяй на кроки
 
 **КРИТИЧНО - ОБМЕЖЕННЯ НА ОДИН TODO ITEM:**
 - МАКСИМУМ 2-4 tools на один TODO item

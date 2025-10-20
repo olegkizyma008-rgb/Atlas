@@ -264,12 +264,12 @@ export const MCP_MODEL_CONFIG = {
 
     // Stage 2.1-MCP: Tetyana Plan Tools
     // T=0.1 для ЧИСТОГО JSON output без варіацій
-    // UPDATED 20.10.2025: Mistral Small замість GPT-4o-mini (стабільний JSON)
+    // UPDATED 20.10.2025: GPT-4o-mini для стабільного JSON
     plan_tools: {
-      get model() { return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-mistral-small-2503'; },
+      get model() { return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini'; },
       get temperature() { return parseFloat(process.env.MCP_TEMP_PLAN_TOOLS || '0.1'); },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (Mistral Small)'
+      description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
     },
 
     // Stage 2.3-MCP: Grisha Verify Item

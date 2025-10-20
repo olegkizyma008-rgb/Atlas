@@ -190,7 +190,6 @@ export class TTSManager {
   async synthesize(text, voice = TTS_CONFIG.defaultVoice, options = {}) {
     // FIXED 15.10.2025 - Add diagnostic logging for TTS issues
     this.logger.info(`[TTS-DIAG] synthesize() called: enabled=${this.enabled}, voice=${voice}, text_length=${text?.length || 0}`);
-    
     if (!this.enabled) {
       this.logger.error('[TTS-DIAG] TTS service not available, throwing error');
       throw new Error('TTS service not available');
@@ -245,10 +244,10 @@ export class TTSManager {
             body: JSON.stringify({
               text: processedText,
               voice,
-              return_audio: true,  // ЗАВЖДИ повертати аудіо
+              return_audio: true, // ЗАВЖДИ повертати аудіо
               ...options
             }),
-            responseType: 'blob'  // ЗАВЖДИ blob для аудіо
+            responseType: 'blob' // ЗАВЖДИ blob для аудіо
           });
 
           // Успіх - повертаємо результат
@@ -301,11 +300,9 @@ export class TTSManager {
 
     return new Promise((resolve, reject) => {
       this.logger.info(`Creating audio URL for ${agent}, blob size: ${audioBlob?.size || 'unknown'}`);
-
       const audioUrl = URL.createObjectURL(audioBlob);
       this.logger.info(`[TTS-DIAG] Created audio URL: ${audioUrl}`);
       const audio = new Audio(audioUrl);
-
       // Встановлюємо максимальну гучність для забезпечення чутності
       audio.volume = 1.0;
       this.logger.info(`Audio volume set to: ${audio.volume}`);
@@ -328,11 +325,11 @@ export class TTSManager {
 
         // Emit DOM events about TTS completion (CRITICAL: включаємо isActivationResponse!)
         try {
-          window.dispatchEvent(new CustomEvent('atlas-tts-completed', { 
-            detail: { agent, ...ttsOptions } 
+          window.dispatchEvent(new CustomEvent('atlas-tts-completed', {
+            detail: { agent, ...ttsOptions }
           }));
-          window.dispatchEvent(new CustomEvent('atlas-tts-end', { 
-            detail: { agent, ...ttsOptions } 
+          window.dispatchEvent(new CustomEvent('atlas-tts-end', {
+            detail: { agent, ...ttsOptions }
           }));
         } catch {
           // Ignore dispatch errors
@@ -484,7 +481,7 @@ export class TTSManager {
 
     // Зберігаємо isActivationResponse для передачі при завершенні
     const { isActivationResponse = false, mode = 'chat' } = options;
-    
+
     // Зберігаємо в instance для доступу в playAudio
     this._currentTTSOptions = { isActivationResponse, mode, agent };
 
@@ -751,10 +748,11 @@ export class TTSManager {
 
         this.logger.info(`Processing TTS queue item: agent=${agent}, mode=${options.mode || 'chat'}, chunking=${shouldChunk}, length=${text.length}`);
 
+        // FIXED: Ensure TTS works in both chat and task modes
         if (shouldChunk) {
-          await this.speakSegmented(text, agent, options);
+          await this.speakSegmented(text, agent, { ...options, forceEnabled: true });
         } else {
-          await this.speak(text, agent, options);
+          await this.speak(text, agent, { ...options, forceEnabled: true });
         }
 
         item.resolve();

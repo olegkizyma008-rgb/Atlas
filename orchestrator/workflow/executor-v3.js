@@ -90,7 +90,9 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
           content: `Режим: ${mode === 'chat' ? '💬 Розмова' : '🔧 Завдання'} (впевненість: ${Math.round(confidence * 100)}%)`,
           agent: 'system',
           sessionId: session.id,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          ttsContent: `Режим ${mode === 'chat' ? 'розмова' : 'завдання'}`,
+          mode: mode
         });
       } catch (error) {
         logger.warn('executor', `Failed to send mode selection WebSocket message: ${error.message}`);
@@ -479,6 +481,55 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
         }
 
         try {
+          // Stage 2.0-MCP: Server Selection (NEW 20.10.2025)
+          logger.workflow('stage', 'system', `Stage 2.0-MCP: Selecting MCP servers for item ${item.id}`, {
+            sessionId: session.id
+          });
+
+          let selectedServers = null;
+          let selectedPrompts = null;
+          try {
+            const serverSelectionProcessor = container.resolve('serverSelectionProcessor');
+            const selectionResult = await serverSelectionProcessor.execute({
+              currentItem: item,
+              todo,
+              session,
+              res
+            });
+
+            if (selectionResult.success && selectionResult.selected_servers) {
+              selectedServers = selectionResult.selected_servers;
+              selectedPrompts = selectionResult.selected_prompts;
+              logger.system('executor', `[STAGE-2.0-MCP] Selected servers: ${selectedServers.join(', ')}`);
+              if (selectedPrompts) {
+                logger.system('executor', `[STAGE-2.0-MCP] Auto-assigned prompts: ${Array.isArray(selectedPrompts) ? selectedPrompts.join(', ') : selectedPrompts}`);
+              }
+            }
+          } catch (selectionError) {
+            logger.warn(`Server selection failed for item ${item.id}: ${selectionError.message}. Using all servers with fallback prompts.`, {
+              sessionId: session.id
+            });
+            
+            // Assign fallback prompts when server selection fails
+            if (!selectedPrompts) {
+              // Intelligently select fallback prompt based on task content
+              const taskAction = item.action.toLowerCase();
+              let fallbackPrompt = 'TETYANA_PLAN_TOOLS_PLAYWRIGHT'; // Default for web tasks
+              
+              if (taskAction.includes('файл') || taskAction.includes('зберегти') || taskAction.includes('створити') || taskAction.includes('file')) {
+                fallbackPrompt = 'TETYANA_PLAN_TOOLS_FILESYSTEM';
+              } else if (taskAction.includes('команд') || taskAction.includes('запустити') || taskAction.includes('command') || taskAction.includes('shell')) {
+                fallbackPrompt = 'TETYANA_PLAN_TOOLS_SHELL';
+              } else if (taskAction.includes('пам\'ять') || taskAction.includes('зберегти') || taskAction.includes('memory')) {
+                fallbackPrompt = 'TETYANA_PLAN_TOOLS_MEMORY';
+              }
+              // Default remains playwright for web scraping, price collection, etc.
+              
+              selectedPrompts = [fallbackPrompt];
+              logger.system('executor', `[FALLBACK] Auto-assigned intelligent fallback prompt: ${selectedPrompts.join(', ')} (based on task: "${item.action}")`);
+            }
+          }
+
           // Stage 2.1-MCP: Tetyana Plan Tools
           logger.workflow('stage', 'tetyana', `Stage 2.1-MCP: Planning tools for item ${item.id}`, {
             sessionId: session.id
@@ -488,7 +539,9 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             currentItem: item,
             todo,
             session,
-            res
+            res,
+            selected_servers: selectedServers,
+            selected_prompts: selectedPrompts
           });
 
           lastPlanResult = planResult;

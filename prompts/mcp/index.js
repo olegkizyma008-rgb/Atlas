@@ -25,7 +25,7 @@ import modeSelection from './stage0_mode_selection.js';  // NEW 16.10.2025
 import atlasChat from './atlas_chat.js';  // NEW 16.10.2025 - Chat mode prompt
 import atlasTodoPlanning from './atlas_todo_planning_optimized.js';  // OPTIMIZED 15.10.2025
 import serverSelection from './stage2_0_server_selection.js';  // NEW 15.10.2025
-import tetyanaPlanTools from './tetyana_plan_tools_optimized.js';  // OPTIMIZED 15.10.2025
+// REMOVED 20.10.2025: tetyana_plan_tools_optimized.js - No more GENERAL fallback, use specialized prompts only
 import tetyanaPlanToolsPlaywright from './tetyana_plan_tools_playwright.js';  // NEW 18.10.2025 - Playwright specialized
 import tetyanaPlanToolsFilesystem from './tetyana_plan_tools_filesystem.js';  // NEW 18.10.2025 - Filesystem specialized
 import tetyanaPlanToolsApplescript from './tetyana_plan_tools_applescript.js';  // NEW 18.10.2025 - AppleScript specialized
@@ -51,8 +51,8 @@ export const MCP_PROMPTS = {
     // Stage 2.0-MCP: Server Selection (NEW 15.10.2025) - Pre-select MCP servers
     SERVER_SELECTION: serverSelection,
 
-    // Stage 2.1-MCP: Tetyana plans tools (OPTIMIZED)
-    TETYANA_PLAN_TOOLS: tetyanaPlanTools,
+    // Stage 2.1-MCP: Tetyana plans tools - REMOVED GENERAL fallback 20.10.2025
+    // Use only specialized prompts below:
     
     // Stage 2.1-MCP: MCP-specific prompts (NEW 18.10.2025)
     TETYANA_PLAN_TOOLS_PLAYWRIGHT: tetyanaPlanToolsPlaywright,
@@ -88,7 +88,7 @@ export {
     atlasChat,
     atlasTodoPlanning,
     serverSelection,
-    tetyanaPlanTools,
+    // tetyanaPlanTools - REMOVED 20.10.2025
     tetyanaPlanToolsPlaywright,
     tetyanaPlanToolsFilesystem,
     tetyanaPlanToolsApplescript,

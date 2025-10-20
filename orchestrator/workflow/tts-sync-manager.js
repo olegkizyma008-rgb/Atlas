@@ -40,6 +40,7 @@ export class TTSSyncManager {
     constructor({ ttsService = null, logger: loggerInstance }) {
         // FIXED 14.10.2025 NIGHT - ttsService is actually wsManager for WebSocket TTS
         this.wsManager = ttsService;  // Rename internally for clarity
+        this.ttsService = ttsService; // Keep reference for backward compatibility
         this.logger = loggerInstance || logger;
         
         // FIXED 14.10.2025 NIGHT - Log if WebSocket Manager not provided
@@ -323,18 +324,34 @@ export class TTSSyncManager {
                 try {
                     this.logger.system('tts-sync', `[TTS-SYNC] 🗣️ Speaking [${item.mode}]: "${item.phrase}"`);
 
-                    // FIXED: Перевірка наявності TTS service
-                    if (this.ttsService && typeof this.ttsService.speak === 'function') {
-                        // Call TTS service
+                    // FIXED: Use WebSocket Manager for TTS delivery in task mode
+                    if (this.wsManager) {
+                        // Send TTS via WebSocket (same as in speak method)
+                        this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                            content: item.phrase,
+                            agent: 'tetyana',
+                            ttsContent: item.phrase,
+                            mode: item.mode,
+                            messageId: `tts_queue_${Date.now()}`
+                        });
+                        
+                        // Simulate processing time
+                        const estimatedDuration = Math.min(item.phrase.length * 50, item.duration);
+                        await new Promise(resolve => setTimeout(resolve, estimatedDuration));
+                        
+                        const actualDuration = Date.now() - startTime;
+                        this.logger.system('tts-sync', `[TTS-SYNC] ✅ Completed via WebSocket in ${actualDuration}ms [${item.mode}]: "${item.phrase}"`);
+                    } else if (this.ttsService && typeof this.ttsService.speak === 'function') {
+                        // Fallback to direct TTS service
                         await this.ttsService.speak(item.phrase, {
                             maxDuration: item.duration
                         });
 
                         const actualDuration = Date.now() - startTime;
-                        this.logger.system('tts-sync', `[TTS-SYNC] ✅ Completed in ${actualDuration}ms [${item.mode}]: "${item.phrase}"`);
+                        this.logger.system('tts-sync', `[TTS-SYNC] ✅ Completed via direct service in ${actualDuration}ms [${item.mode}]: "${item.phrase}"`);
                     } else {
                         // TTS service not available - skip gracefully
-                        this.logger.warn(`[TTS-SYNC] ⚠️ TTS service not available, skipping: "${item.phrase}"`, { category: 'tts-sync', component: 'tts-sync' });
+                        this.logger.warn(`[TTS-SYNC] ⚠️ No TTS service available, skipping: "${item.phrase}"`, { category: 'tts-sync', component: 'tts-sync' });
                     }
 
                     // Resolve promise

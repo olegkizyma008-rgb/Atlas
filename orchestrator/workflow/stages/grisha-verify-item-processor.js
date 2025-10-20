@@ -625,16 +625,17 @@ export class GrishaVerifyItemProcessor {
         const actionLower = (action || '').toLowerCase();
 
         // Check action text for app keywords
+        // FIXED 20.10.2025: More specific keywords to avoid false positives
         const appMappings = [
             { keywords: ['калькулятор', 'calculator'], app: 'Calculator' },
-            { keywords: ['safari'], app: 'Safari' },
-            { keywords: ['chrome'], app: 'Google Chrome' },
-            { keywords: ['firefox'], app: 'Firefox' },
-            { keywords: ['finder'], app: 'Finder' },
-            { keywords: ['notes', 'нотатки'], app: 'Notes' },
-            { keywords: ['calendar', 'календар'], app: 'Calendar' },
-            { keywords: ['mail', 'пошта'], app: 'Mail' },
-            { keywords: ['messages', 'повідомлення'], app: 'Messages' }
+            { keywords: ['safari відкр', 'safari browser'], app: 'Safari' },
+            { keywords: ['chrome відкр', 'chrome browser'], app: 'Google Chrome' },
+            { keywords: ['firefox відкр', 'firefox browser'], app: 'Firefox' },
+            { keywords: ['finder відкр', 'finder window'], app: 'Finder' },
+            { keywords: ['notes відкр', 'нотатки відкр'], app: 'Notes' },
+            { keywords: ['calendar відкр', 'календар відкр'], app: 'Calendar' },
+            { keywords: ['messages відкр', 'повідомлення відкр'], app: 'Messages' }
+            // REMOVED: mail/пошта - too generic (conflicts with "оголошень", "пошук")
         ];
 
         for (const mapping of appMappings) {

@@ -73,8 +73,8 @@ export class VisionAnalysisService {
       port4000: new CircuitBreaker({
         name: 'Port4000-Vision',
         failureThreshold: 3,
-        recoveryTimeout: 15000,
-        timeout: 15000
+        recoveryTimeout: 30000,
+        timeout: 0  // No timeout - vision models can be slow
       }),
       ollama: new CircuitBreaker({
         name: 'Ollama-Vision',
@@ -573,21 +573,36 @@ export class VisionAnalysisService {
 ${context.action ? `**Task Action:** ${context.action}` : ''}
 ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 
+🚨 CRITICAL VERIFICATION RULES:
+1. READ THE EXACT VALUES from the screenshot - do NOT assume or guess
+2. If success criteria mentions specific numbers/text - verify EXACT match
+3. Do NOT say "verified: true" just because something similar exists
+4. EXTRACT the actual value you see and compare it to what's expected
+5. If numbers don't match EXACTLY - return "verified: false"
+
 **Instructions:**
 1. Carefully examine the screenshot
-2. Verify if the success criteria is met based on what you see
-3. Provide specific visual evidence from the screenshot
-4. Return ONLY a JSON object with NO markdown formatting
+2. EXTRACT exact values (numbers, text, states) visible on screen
+3. COMPARE extracted values with success criteria
+4. Verify if criteria is met based on EXACT match (not approximate)
+5. Provide specific visual evidence from the screenshot
+6. Return ONLY a JSON object with NO markdown formatting
+
+**Example - Calculator verification:**
+- Success Criteria: "Calculator shows result 666"
+- Screenshot shows: "87"
+- Correct response: {"verified": false, "reason": "Calculator shows 87, not 666"}
+- WRONG response: {"verified": true, "reason": "Calculator shows result 666"} ❌
 
 **Required JSON format:**
 {
   "verified": boolean,
   "confidence": number (0-100),
-  "reason": "string - explanation why verified or not",
+  "reason": "string - explanation with EXACT values you see",
   "visual_evidence": {
-    "observed": "string - what you see in the screenshot",
+    "observed": "string - EXACT text/numbers you see in screenshot",
     "matches_criteria": boolean,
-    "details": "string - specific visual details that confirm or deny"
+    "details": "string - specific visual details with exact values"
   },
   "suggestions": "string - if not verified, what needs to change"
 }
@@ -745,7 +760,7 @@ Return ONLY the JSON object.`;
         max_tokens: visionConfig.max_tokens || 1000,
         temperature: visionConfig.temperature
       }, {
-        timeout: 15000,  // 15 sec MAX for port 4000 (should be 2-5 sec normally)
+        timeout: 0,  // No timeout - let vision model work as long as needed
         headers
       });
 
@@ -1016,7 +1031,24 @@ Return ONLY the JSON object.`;
           this.logger.system('vision-analysis', '[VISION] ✅ Successfully extracted JSON from text response');
           return extracted;
         } catch (extractError) {
-          // Continue to text parsing fallback
+          // Try to fix JavaScript object notation (unquoted keys)
+          try {
+            const jsObjectText = jsonMatch[0];
+            // Convert JavaScript object notation to valid JSON
+            const fixedJson = jsObjectText
+              .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+              .replace(/:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*([,}])/g, ': "$1"$2') // Quote unquoted string values
+              .replace(/:\s*true\s*([,}])/g, ': true$1') // Keep boolean true
+              .replace(/:\s*false\s*([,}])/g, ': false$1') // Keep boolean false
+              .replace(/:\s*null\s*([,}])/g, ': null$1') // Keep null
+              .replace(/:\s*(\d+(?:\.\d+)?)\s*([,}])/g, ': $1$2'); // Keep numbers
+            
+            const parsed = JSON.parse(fixedJson);
+            this.logger.system('vision-analysis', '[VISION] ✅ Successfully converted JavaScript object notation to JSON');
+            return parsed;
+          } catch (jsFixError) {
+            // Continue to text parsing fallback
+          }
         }
       }
 
@@ -1043,20 +1075,33 @@ Return ONLY the JSON object.`;
         confidence = 70;
       }
 
-      // Create fallback JSON structure
-      return {
+      // Create fallback JSON structure with SAFE defaults
+      const fallbackResponse = {
         verified,
         confidence,
-        reason: content.substring(0, 500), // Use first 500 chars as reason
+        reason: content.substring(0, 500) || 'No reason provided', // Use first 500 chars as reason
         visual_evidence: {
-          observed: content.substring(0, 300),
+          observed: content.substring(0, 300) || 'Unable to extract visual details',
           matches_criteria: verified,
           details: 'Parsed from text response (model did not return JSON)'
         },
         suggestions: verified ? '' : 'Model returned text instead of JSON - consider using different vision model',
         _fallback: true,
-        _original_response: content.substring(0, 500)
+        _original_response: content.substring(0, 500) || ''
       };
+
+      // CRITICAL: Ensure all required fields exist to prevent undefined errors
+      if (!fallbackResponse.visual_evidence) {
+        fallbackResponse.visual_evidence = {};
+      }
+      if (!fallbackResponse.visual_evidence.observed) {
+        fallbackResponse.visual_evidence.observed = 'No visual details available';
+      }
+      if (!fallbackResponse.visual_evidence.details) {
+        fallbackResponse.visual_evidence.details = 'No details available';
+      }
+
+      return fallbackResponse;
     }
   }
 

@@ -121,7 +121,8 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 - CSV для таблиць (легко відкрити в Excel/Sheets)
 - JSON для структурованих даних
 - TXT для простого тексту
-- НЕ створювати Excel/PowerPoint (немає таких tools!)
+- HTML для візуальних документів
+- Інші формати: використовуй доступні tools або комбінуй з іншими серверами
 
 ## ДОСТУПНІ FILESYSTEM TOOLS
 

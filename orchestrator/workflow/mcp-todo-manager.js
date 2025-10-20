@@ -939,50 +939,44 @@ export class MCPTodoManager {
       // Import Tetyana Plan Tools prompt
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
       
-      // NEW 19.10.2025: Support array of prompts for 2 servers
+      // DYNAMIC PROMPT LOADING: Try to load specialized prompts, fallback to universal
       let planPrompt;
-      let combinedSystemPrompt = null; // For 2-prompt case
+      let combinedSystemPrompt = null;
       
       if (Array.isArray(options.promptOverride) && options.promptOverride.length === 2) {
-        // Two specialized prompts - combine them
+        // Two servers - try to load specialized prompts
         const prompt1 = MCP_PROMPTS[options.promptOverride[0]];
         const prompt2 = MCP_PROMPTS[options.promptOverride[1]];
         
         if (prompt1 && prompt2) {
-          // Combine SYSTEM_PROMPTs from both specialized prompts
-          const commonHeader = prompt1.SYSTEM_PROMPT.split('\n\n## ')[0]; // JSON rules
-          const spec1 = prompt1.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## '); // Specialization
+          // Combine specialized prompts
+          const commonHeader = prompt1.SYSTEM_PROMPT.split('\n\n## ')[0];
+          const spec1 = prompt1.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## ');
           const spec2 = prompt2.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## ');
           
           combinedSystemPrompt = `${commonHeader}\n\n## ПОДВІЙНА СПЕЦІАЛІЗАЦІЯ\n\nТи Тетяна - експерт з ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()} та ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()}.\n\n### ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec1}\n\n### ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec2}`;
           
           this.logger.system('mcp-todo', `[TODO] 🎯🎯 Using 2 combined specialized prompts: ${options.promptOverride.join(' + ')}`);
         } else {
-          // FIXED 2025-10-20: No fallback - force error
-          this.logger.error(`[MCP-TODO] ❌ Could not load 2 combined prompts for item ${item.id}`, {
+          // Fallback to universal prompt with available tools
+          this.logger.warn(`[MCP-TODO] ⚠️ Specialized prompts not found, using universal prompt with ${options.selectedServers.join(', ')} tools`, {
             category: 'mcp-todo',
-            component: 'mcp-todo',
-            itemId: item.id,
-            prompts: options.promptOverride
+            component: 'mcp-todo'
           });
-          
-          throw new Error(`Could not load specialized prompts: ${options.promptOverride.join(', ')}`);
+          planPrompt = this._createUniversalPrompt(options.selectedServers);
         }
       } else if (options.promptOverride && MCP_PROMPTS[options.promptOverride]) {
-        // Single specialized prompt
+        // Single specialized prompt exists
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
       } else {
-        // FIXED 2025-10-20: No fallback to GENERAL prompt - force Atlas replan instead
-        this.logger.error(`[MCP-TODO] ❌ No specialized prompt available for item ${item.id}. Atlas must split this item!`, {
+        // Fallback to universal prompt
+        const servers = options.selectedServers || ['all'];
+        this.logger.warn(`[MCP-TODO] ⚠️ No specialized prompt found, using universal prompt for ${servers.join(', ')}`, {
           category: 'mcp-todo',
-          component: 'mcp-todo',
-          itemId: item.id,
-          reason: 'No specialized prompt available or >2 servers',
-          selected_servers: options.selectedServers
+          component: 'mcp-todo'
         });
-        
-        throw new Error(`Item requires >2 MCP servers or no specialized prompt available. Atlas should split: "${item.action}"`);
+        planPrompt = this._createUniversalPrompt(servers);
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors
@@ -1769,8 +1763,15 @@ Respond with JSON:
     for (const depId of item.dependencies) {
       const depItem = todo.items.find(i => i.id === depId);
 
-      if (!depItem || depItem.status !== 'completed') {
-        this.logger.warn(`[MCP-TODO] Dependency ${depId} not completed for item ${item.id}`, { category: 'mcp-todo', component: 'mcp-todo' });
+      // FIXED 2025-10-20: Accept 'replanned' as successful completion
+      // When item is replanned, new items are inserted and original is effectively completed
+      const successStatuses = ['completed', 'replanned'];
+      
+      if (!depItem || !successStatuses.includes(depItem.status)) {
+        this.logger.warn(`[MCP-TODO] Dependency ${depId} not completed for item ${item.id} (status: ${depItem?.status || 'not found'})`, { 
+          category: 'mcp-todo', 
+          component: 'mcp-todo' 
+        });
         return false;
       }
     }
@@ -3056,6 +3057,70 @@ Select 1-2 most relevant servers.
       });
       throw error;
     }
+  }
+
+  /**
+   * Create universal prompt for any MCP server combination
+   * Dynamically generates prompt based on available tools
+   * @private
+   * @param {Array<string>} servers - Server names
+   * @returns {Object} Prompt object with SYSTEM_PROMPT and USER_PROMPT
+   */
+  _createUniversalPrompt(servers) {
+    const serverList = servers.join(', ');
+    
+    return {
+      SYSTEM_PROMPT: `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
+
+⚠️ CRITICAL JSON OUTPUT RULES:
+1. Return ONLY raw JSON object starting with { and ending with }
+2. NO markdown wrappers like \`\`\`json
+3. NO <think> tags or reasoning before JSON
+4. NO explanations after JSON
+5. NO text before or after JSON
+6. JUST PURE JSON: {"tool_calls": [...], "reasoning": "..."}
+7. ❌ ABSOLUTELY NO TRAILING COMMAS
+
+Ти Тетяна - експерт з MCP tool planning для серверів: ${serverList}
+
+**ТВОЯ ЗАДАЧА:**
+Проаналізуй TODO item та створи plan з tool_calls для виконання через MCP сервери.
+
+**ДОСТУПНІ ІНСТРУМЕНТИ:**
+{{AVAILABLE_TOOLS}}
+
+**OUTPUT FORMAT:**
+{"tool_calls": [{"server": "<server_name>", "tool": "<tool_name>", "parameters": {...}}], "reasoning": "<plan>", "needs_split": false}
+
+**ПРАВИЛА:**
+- Використовуй ТІЛЬКИ tools з {{AVAILABLE_TOOLS}}
+- Параметри беруть з inputSchema кожного tool
+- Один tool_call = одна MCP операція
+- Якщо item занадто складний (>5 tools) → {"needs_split": true}`,
+
+      USER_PROMPT: `## КОНТЕКСТ ЗАВДАННЯ
+
+**TODO Item ID:** {{ITEM_ID}}
+**Action:** {{ITEM_ACTION}}
+**Success Criteria:** {{SUCCESS_CRITERIA}}
+
+**Попередні items у TODO:**
+{{PREVIOUS_ITEMS}}
+
+**Весь TODO список (для контексту):**
+{{TODO_ITEMS}}
+
+---
+
+## ТВОЄ ЗАВДАННЯ
+
+Створи план виконання через MCP tools з серверів: ${serverList}
+
+**Доступні інструменти:**
+{{AVAILABLE_TOOLS}}
+
+**Відповідь (JSON only):**`
+    };
   }
 }
 

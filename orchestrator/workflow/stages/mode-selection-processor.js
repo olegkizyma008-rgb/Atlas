@@ -185,6 +185,31 @@ export class ModeSelectionProcessor {
             this.logger.warn('mode-selection', `Failed to parse response: ${error.message}`);
             this.logger.warn('mode-selection', `Raw response: ${rawResponse}`);
 
+            // Try to fix JavaScript object notation (unquoted keys)
+            try {
+                const fixedJson = cleanResponse
+                    .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+                    .replace(/:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*([,}])/g, ': "$1"$2') // Quote unquoted string values
+                    .replace(/:\s*true\s*([,}])/g, ': true$1') // Keep boolean true
+                    .replace(/:\s*false\s*([,}])/g, ': false$1') // Keep boolean false
+                    .replace(/:\s*null\s*([,}])/g, ': null$1') // Keep null
+                    .replace(/:\s*(\d+(?:\.\d+)?)\s*([,}])/g, ': $1$2'); // Keep numbers
+
+                const parsed = JSON.parse(fixedJson);
+                this.logger.system('mode-selection', '[STAGE-0-MCP] ✅ Successfully converted JavaScript object notation to JSON');
+                
+                // Validate structure
+                if (parsed.mode && ['chat', 'task'].includes(parsed.mode)) {
+                    return {
+                        mode: parsed.mode,
+                        confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.7,
+                        reasoning: parsed.reasoning || 'Fixed JavaScript object notation'
+                    };
+                }
+            } catch (fixError) {
+                // Continue to simple fallback parsing
+            }
+
             // Simple fallback parsing
             if (rawResponse.toLowerCase().includes('"mode":"chat"') ||
                 rawResponse.toLowerCase().includes("'mode':'chat'")) {

@@ -69,17 +69,56 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 **ПОПУЛЯРНІ ДОДАТКИ macOS:**
 - **Finder** - файловий менеджер, робота з файлами
 - **Safari / Chrome** - веб-браузери (але краще Playwright для автоматизації)
-- **System Events** - GUI automation (кліки, натискання клавіш)
+- **System Events** - GUI automation (кліки, натискання клавіш, keystroke)
 - **Terminal** - виконання shell команд через AppleScript
-- **Keynote / Pages** - офісні додатки Apple
+- **Keynote / Pages / Numbers** - офісні додатки Apple
 - **Messages / Mail** - комунікації
+- **Calculator / Notes / TextEdit** - стандартні утиліти
 
 **СИНТАКСИС APPLESCRIPT:**
 - Основний блок: tell application "AppName" to <action>
 - Багаторядковий: tell application "App"\nactivate\nend tell
 - Екранування: \" для лапок всередині строки
 - Shell команди: do shell script "ls -la"
-- Затримки: delay 2 (секунди)
+- Затримки: delay 0.5 (секунди, для завантаження GUI)
+
+**GUI AUTOMATION ПАТЕРНИ:**
+
+1. **Відкрити додаток:**
+tell application "AppName" to activate
+delay 0.5
+
+2. **Клік по кнопці/елементу:**
+tell application "System Events"
+    tell process "AppName"
+        click button "ButtonName" of window 1
+    end tell
+end tell
+
+3. **Введення тексту (keystroke):**
+tell application "System Events"
+    keystroke "text to type"
+    keystroke return
+end tell
+
+4. **Комбінації клавіш:**
+tell application "System Events"
+    keystroke "c" using command down
+    keystroke "v" using {command down, shift down}
+end tell
+
+5. **Calculator - перемикання режимів (якщо потрібно):**
+-- macOS Calculator має Basic (Cmd+1), Scientific (Cmd+2), Programmer (Cmd+3)
+-- Для простих операцій (+, -, *, /) Basic mode найнадійніший
+-- Приклад перемикання:
+tell application "Calculator" to activate
+delay 0.5
+tell application "System Events"
+    tell process "Calculator"
+        keystroke "1" using command down  -- Basic mode
+        delay 0.3
+    end tell
+end tell
 
 **СИСТЕМНІ ШЛЯХИ macOS:**
 - Desktop: /Users/dev/Desktop
@@ -99,29 +138,42 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 ❌ Невалідний синтаксис AppleScript
 ❌ Занадто довгий script (треба розбити на items)
 
-🎯 **КРИТИЧНО - ОБМЕЖЕННЯ НА ОДИН TODO ITEM:**
-- МАКСИМУМ 2-3 tools на один TODO item
-- Ідеально: 1 applescript_execute на item
-- Якщо потрібно >3 tools → item складний
-- Поверни {"needs_split": true}
+🎯 **КРИТИЧНО - СТВОРЮЙ TOOL CALLS:**
+- AppleScript може виконати БАГАТО дій в одному скрипті
+- Використовуй багаторядковий AppleScript з \\n
+- Один applescript_execute може містити 10+ команд
+- НЕ повертай needs_split для калькуляторних операцій!
 
-**КОЛИ ПОТРІБЕН needs_split:**
-❌ Складний item: Потребує 5+ окремих AppleScript викликів
-→ Поверни: {"needs_split": true, "suggested_splits": ["Крок 1", "Крок 2", "Крок 3"]}
+**ПРИКЛАД - Калькулятор (333 + 222 + 111):**
+✅ ПРАВИЛЬНО - Один tool call:
+{
+  "tool_calls": [{
+    "server": "applescript",
+    "tool": "applescript_execute",
+    "parameters": {
+      "code_snippet": "tell application \\"Calculator\\" to activate\\ndelay 0.5\\ntell application \\"System Events\\"\\n    tell process \\"Calculator\\"\\n        keystroke \\"333\\"\\n        keystroke \\"+\\"\\n        keystroke \\"222\\"\\n        keystroke \\"+\\"\\n        keystroke \\"111\\"\\n        keystroke return\\n    end tell\\nend tell"
+    }
+  }],
+  "reasoning": "Виконую операцію в калькуляторі",
+  "needs_split": false
+}
 
-✅ Простий item: 1-2 applescript_execute виклики
-→ Виконується нормально без розділення
+💡 ПРИМІТКА: Якщо калькулятор у Scientific mode і keystroke працює неправильно - додай Cmd+1 для перемикання у Basic mode.
+
+❌ НЕПРАВИЛЬНО - needs_split:
+{"needs_split": true, "tool_calls": []}
+
+**КОЛИ ПОТРІБЕН needs_split (РІДКО!):**
+- Тільки якщо потрібно >10 різних додатків
+- Або потрібно чекати >30 секунд між діями
+- Калькуляторні операції = ЗАВЖДИ один tool call!
 
 **РОЗУМНЕ ПЛАНУВАННЯ:**
 - Один tool = один скрипт (не комбінуй багато)
 - Використовуй Finder для файлових операцій GUI
-- Для браузера краще Playwright (якщо доступний)
 - System Events для GUI automation (кліки, натискання)
-
-**ОБМЕЖЕННЯ:**
-❌ НЕ може створювати PowerPoint/Excel (немає таких можливостей)
-❌ НЕ може робити складну обробку даних
-❌ НЕ підходить для веб-скрейпінгу (використовуй Playwright)
+- Для браузера на macOS - AppleScript найнадійніший
+- Комбінуй з іншими серверами для складних завдань
 
 ## ДОСТУПНІ APPLESCRIPT TOOLS
 
@@ -129,11 +181,11 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 
 **OUTPUT FORMAT:**
 
-🔹 Якщо item простий (1-2 tools):
-{"tool_calls": [{"server": "applescript", "tool": "<tool_name>", "parameters": {"code_snippet": "<applescript_code>"}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+🔹 ЗАВЖДИ створюй tool_calls (навіть для складних операцій):
+{"tool_calls": [{"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
 
-🔹 Якщо item складний (>3 tools потрібно):
-{"needs_split": true, "reasoning": "План вимагає надто багато дій", "suggested_splits": ["<step1>", "<step2>", "<step3>"], "tool_calls": [], "tts_phrase": "Потрібно розділити"}
+🔹 needs_split ТІЛЬКИ для екстремальних випадків (>10 додатків):
+{"needs_split": true, "reasoning": "Потрібно >10 різних додатків", "suggested_splits": ["<step1>", "<step2>"], "tool_calls": [], "tts_phrase": "Розділяю"}
 
 ⚠️ КРИТИЧНО: 
 - Використовуй ТІЛЬКИ параметр code_snippet (не language, не script)

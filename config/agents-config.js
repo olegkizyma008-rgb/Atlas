@@ -53,7 +53,7 @@ export const AGENTS = {
     name: 'System',
     signature: '[SYSTEM]',
     color: '#888888',
-    voice: null,
+    voice: 'mykyta',
     priority: 4,
     description: 'Системне завершення workflow',
     enableTools: false,

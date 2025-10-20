@@ -284,15 +284,19 @@ export class MCPTodoManager {
         apiResponse = apiResponse_attempt;
 
       } catch (primaryError) {
-        // Try fallback if primary fails
-        if (apiEndpointConfig?.fallback && !usedFallback) {
+        // Try fallback if primary fails AND fallback is properly configured
+        const shouldUseFallback = apiEndpointConfig?.fallback 
+          && apiEndpointConfig?.useFallback !== false
+          && !usedFallback;
+
+        if (shouldUseFallback) {
           this.logger.warn('mcp-todo', `[TODO] Primary API failed, attempting fallback endpoint...`, {
             category: 'mcp-todo',
             primaryError: primaryError.message,
             code: primaryError.code
           });
 
-          apiUrl = apiEndpointConfig?.fallback;
+          apiUrl = apiEndpointConfig.fallback;
           usedFallback = true;
           this.logger.system('mcp-todo', `[TODO] Using fallback API endpoint: ${apiUrl}`);
 
@@ -320,6 +324,16 @@ export class MCPTodoManager {
             throw fallbackError;
           }
         } else {
+          // No fallback configured or disabled - throw original error
+          if (!apiEndpointConfig?.fallback) {
+            this.logger.warn('mcp-todo', `[TODO] No fallback API configured, failing with primary error`, {
+              category: 'mcp-todo'
+            });
+          } else if (apiEndpointConfig?.useFallback === false) {
+            this.logger.warn('mcp-todo', `[TODO] Fallback API disabled in config, failing with primary error`, {
+              category: 'mcp-todo'
+            });
+          }
           throw primaryError;
         }
       }

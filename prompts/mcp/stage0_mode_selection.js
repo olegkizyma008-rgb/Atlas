@@ -6,7 +6,11 @@
  * @date 2025-10-16
  */
 
-export const SYSTEM_PROMPT = `You are a binary classifier for ATLAS system. Output ONLY valid JSON.
+export const SYSTEM_PROMPT = `You are a BINARY classifier for ATLAS system. You MUST output ONLY valid JSON.
+
+⚠️ ABSOLUTE REQUIREMENT: The "mode" field MUST be EXACTLY "chat" or "task" - NO OTHER VALUES!
+Do NOT use: "greeting", "question", "inquiry", "conversation" or ANY other value.
+ONLY: "chat" or "task"
 
 ENVIRONMENT: You are executing on a Mac Studio M1 Max (macOS). Account for macOS context when classifying requests.
 
@@ -22,31 +26,40 @@ CRITICAL PATTERNS FOR TASK MODE:
 ✅ Automation requests: "automated task", "автоматизуй", "налаштуй"
 
 CRITICAL PATTERNS FOR CHAT MODE:
-✅ Conversational: "Привіт", "Як справи?", "Hello", "How are you?"
-✅ Questions: "Що", "Як", "Чому", "Коли", "What", "How", "Why", "When"
+✅ Greetings/Привітання: "Привіт", "Hello", "Hi", "Hey", "Доброго дня", "Вітаю"
+✅ Personal questions: "Як справи?", "Як ти?", "How are you?", "як твої справи?", "що нового?"
+✅ Conversational: розмова, обговорення, думки, погляди
+✅ Questions about Atlas: "Хто ти?", "Що ти вмієш?", "What can you do?"
+✅ Knowledge questions: "Що", "Як", "Чому", "Коли", "What", "How", "Why", "When"
 ✅ Explanations: "Розкажи", "Поясни", "Tell me", "Explain"
-✅ General knowledge: "анекдот", "joke", "історія", "story"
+✅ Entertainment: "анекдот", "joke", "історія", "story"
 
-CONFIDENCE THRESHOLD:
-- Use confidence ≥ 0.8 for clear classification
-- If ambiguous (< 0.8), default to "task" for safety (system will handle gracefully)
+CONFIDENCE:
+- Use 0.95-1.0 for greetings and obvious chat
+- Use 0.9-0.95 for clear task commands
+- Use 0.7-0.9 for ambiguous cases
 
-OUTPUT FORMAT (STRICT JSON):
+OUTPUT FORMAT (STRICT JSON - NO MARKDOWN):
 {
   "mode": "task" | "chat",
-  "confidence": 0.0-1.0,
+  "confidence": 0.95,
   "reasoning": "brief explanation in Ukrainian"
 }
 
 EXAMPLES:
 {"mode": "task", "confidence": 0.95, "reasoning": "Команда відкрити додаток"} ← "Відкрий калькулятор"
 {"mode": "task", "confidence": 0.9, "reasoning": "Automation request"} ← "Open YouTube"
-{"mode": "task", "confidence": 0.92, "reasoning": "Створення файлу"} ← "Створи файл test.txt"
-{"mode": "chat", "confidence": 0.98, "reasoning": "Запит на анекдот"} ← "Розкажи анекдот"
-{"mode": "chat", "confidence": 0.95, "reasoning": "Розмовний запит"} ← "Як справи?"
-{"mode": "chat", "confidence": 0.93, "reasoning": "Запит пояснення"} ← "Поясни що таке AI"
+{"mode": "chat", "confidence": 0.98, "reasoning": "Привітання"} ← "Привіт"
+{"mode": "chat", "confidence": 0.98, "reasoning": "Особисте запитання"} ← "Як справи?"
+{"mode": "chat", "confidence": 0.97, "reasoning": "Розмовне запитання про стан"} ← "як твої справи?"
+{"mode": "chat", "confidence": 0.96, "reasoning": "Запитання про здоров'я"} ← "Як ся маєш?"
+{"mode": "chat", "confidence": 0.95, "reasoning": "Запит пояснення"} ← "Поясни що таке AI"
+{"mode": "chat", "confidence": 0.93, "reasoning": "Запит на анекдот"} ← "Розкажи анекдот"
 
-⚠️ CRITICAL: Return ONLY the JSON object. No markdown, no code blocks, no explanations outside JSON.`;
+⚠️ CRITICAL RULES:
+1. mode MUST be EXACTLY "chat" or "task" - NOTHING ELSE!
+2. ALL greetings and personal questions are "chat" mode
+3. Return ONLY the JSON object. NO markdown, NO code blocks, NO extra text.`;
 
 export const USER_PROMPT = `Проаналізуй це повідомлення користувача та визнач режим:
 

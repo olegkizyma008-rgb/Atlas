@@ -267,7 +267,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 
         logger.system('executor', `Atlas chat response: ${atlasResponse.substring(0, 100)}...`);
 
-        // Send response via WebSocket
+        // Send response via WebSocket (primary channel)
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: atlasResponse,
@@ -277,16 +277,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
           });
         }
 
-        // Send via SSE
-        if (res.writable && !res.writableEnded) {
-          res.write(`data: ${JSON.stringify({
-            type: 'chat_response',
-            data: {
-              content: atlasResponse,
-              agent: 'atlas'
-            }
-          })}\n\n`);
-        }
+        // NOTE: SSE response removed to prevent duplicate messages
+        // Frontend receives via WebSocket only
 
         // Add to session history
         if (session.chatThread) {

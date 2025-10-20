@@ -72,7 +72,8 @@ export const AI_MODEL_CONFIG = {
   get apiEndpoint() {
     const primary = process.env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
     const fallback = process.env.LLM_API_FALLBACK_ENDPOINT;
-    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true';
+    // Only enable fallback if it's explicitly set AND not empty
+    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true' && fallback && fallback.trim().length > 0;
 
     return {
       primary,
@@ -137,7 +138,8 @@ export const MCP_MODEL_CONFIG = {
   get apiEndpoint() {
     const primary = process.env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
     const fallback = process.env.LLM_API_FALLBACK_ENDPOINT;
-    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true';
+    // Only enable fallback if it's explicitly set AND not empty
+    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true' && fallback && fallback.trim().length > 0;
 
     return {
       primary,
@@ -149,13 +151,13 @@ export const MCP_MODEL_CONFIG = {
   stages: {
     mode_selection: {
       get model() {
-        return process.env.MCP_MODEL_MODE_SELECTION || 'atlas-phi-4-mini-instruct';
+        return process.env.MCP_MODEL_MODE_SELECTION || 'atlas-ministral-3b';
       },
       get temperature() {
         return parseFloat(process.env.MCP_TEMP_MODE_SELECTION || '0.05');
       },
-      max_tokens: 50,
-      description: 'Бінарна класифікація task vs chat (Microsoft Phi-4 Mini)'
+      max_tokens: 150,
+      description: 'Бінарна класифікація task vs chat (Mistral 3B - швидка і точна)'
     },
     backend_selection: {
       get model() {
@@ -169,13 +171,13 @@ export const MCP_MODEL_CONFIG = {
     },
     todo_planning: {
       get model() {
-        return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-large-2411';
+        return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(process.env.MCP_TEMP_TODO_PLANNING || '0.3');
       },
       max_tokens: 4000,
-      description: 'Atlas TODO Planning (GPT-4o - найкраще reasoning)'
+      description: 'Atlas TODO Planning (GPT-4o-mini - швидке reasoning)'
     },
     plan_tools: {
       get model() {
@@ -209,13 +211,13 @@ export const MCP_MODEL_CONFIG = {
     },
     replan_todo: {
       get model() {
-        return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-mistral-large-2411';
+        return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(process.env.MCP_TEMP_REPLAN_TODO || '0.3');
       },
       max_tokens: 3000,
-      description: 'Atlas Replan TODO - глибокий аналіз (Mistral Large)'
+      description: 'Atlas Replan TODO - глибокий аналіз (GPT-4o-mini)'
     },
     final_summary: {
       get model() {
@@ -340,10 +342,8 @@ export const AI_BACKEND_CONFIG = {
       servers: {
         filesystem: {
           command: 'npx',
-          args: ['-y', '@modelcontextprotocol/server-filesystem'],
-          env: {
-            ALLOWED_DIRECTORIES: '/Users,/tmp,/Desktop,/Applications'
-          }
+          args: ['-y', '@modelcontextprotocol/server-filesystem', '/Users/dev/Desktop', '/Users/dev/Documents', '/tmp'],
+          env: {}
         },
         playwright: {
           command: 'npx',

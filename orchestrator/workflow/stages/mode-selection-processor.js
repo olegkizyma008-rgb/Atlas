@@ -166,18 +166,71 @@ export class ModeSelectionProcessor {
             // Parse JSON
             const parsed = JSON.parse(cleanResponse);
 
-            // Validate structure
-            if (!parsed.mode || !['chat', 'task'].includes(parsed.mode)) {
-                throw new Error(`Invalid mode: ${parsed.mode}`);
+            // Intelligent mode mapping for non-standard values
+            const modeMapping = {
+                'greeting': 'chat',
+                'conversation': 'chat',
+                'question': 'chat',
+                'inquiry': 'chat',
+                'informal inquiry': 'chat',
+                'personal inquiry': 'chat',
+                'casual inquiry': 'chat',
+                'casual': 'chat',
+                'informal': 'chat',
+                'casual/informal': 'chat',
+                'friendly': 'chat',
+                'personal': 'chat',
+                'chat_mode': 'chat',
+                'task_mode': 'task',
+                'action': 'task',
+                'command': 'task'
+            };
+
+            // Map mode if needed
+            let normalizedMode = parsed.mode;
+            if (parsed.mode && modeMapping[parsed.mode.toLowerCase()]) {
+                normalizedMode = modeMapping[parsed.mode.toLowerCase()];
+                this.logger.system('mode-selection', `[STAGE-0-MCP] 🔄 Mapped "${parsed.mode}" → "${normalizedMode}"`);
             }
 
-            if (typeof parsed.confidence !== 'number' || parsed.confidence < 0 || parsed.confidence > 1) {
-                throw new Error(`Invalid confidence: ${parsed.confidence}`);
+            // Validate structure
+            if (!normalizedMode || !['chat', 'task'].includes(normalizedMode)) {
+                throw new Error(`Invalid mode after mapping: ${parsed.mode} → ${normalizedMode}`);
+            }
+
+            // Convert string confidence to number
+            let confidence = parsed.confidence;
+            if (typeof confidence === 'string') {
+                const confidenceMap = {
+                    'high': 0.95,
+                    'medium': 0.7,
+                    'low': 0.5,
+                    'very_high': 0.98,
+                    'very_low': 0.3
+                };
+                if (confidenceMap[confidence.toLowerCase()]) {
+                    confidence = confidenceMap[confidence.toLowerCase()];
+                    this.logger.system('mode-selection', `[STAGE-0-MCP] 🔄 Converted confidence "${parsed.confidence}" → ${confidence}`);
+                } else {
+                    // Try to parse as number
+                    confidence = parseFloat(confidence);
+                }
+            }
+
+            // Normalize confidence if it's a percentage (> 1)
+            if (typeof confidence === 'number' && confidence > 1) {
+                const originalConfidence = confidence;
+                confidence = confidence / 100;
+                this.logger.system('mode-selection', `[STAGE-0-MCP] 🔄 Normalized confidence ${originalConfidence} → ${confidence}`);
+            }
+
+            if (typeof confidence !== 'number' || confidence < 0 || confidence > 1) {
+                throw new Error(`Invalid confidence after conversion: ${parsed.confidence} → ${confidence}`);
             }
 
             return {
-                mode: parsed.mode,
-                confidence: parsed.confidence,
+                mode: normalizedMode,
+                confidence: confidence,
                 reasoning: parsed.reasoning || 'No reasoning provided'
             };
 

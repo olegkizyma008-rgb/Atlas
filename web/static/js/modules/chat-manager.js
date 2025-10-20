@@ -531,11 +531,14 @@ export class ChatManager {
     }
 
     // Захист від дублювання TTS за messageId
-    const ttsKey = `tts_${messageId || 'unknown'}`;
+    const ttsKey = `tts_${messageId || 'unknown'}_${agent}`;
     if (this._processedTTS?.has(ttsKey)) {
       this.logger.debug(`TTS already processed for message: ${ttsKey}`);
       return message;
     }
+    
+    // DEBUG: Log messageId для діагностики дублювання
+    console.log('[CHAT] 🔑 TTS Key:', { messageId, agent, ttsKey });
 
     // Ініціалізуємо Set для відстеження оброблених TTS
     if (!this._processedTTS) {
@@ -580,11 +583,12 @@ export class ChatManager {
           this._processedTTS.add(ttsKey);
 
           // Визначаємо чи потрібно чанкування: тільки для task режиму
-          const isTaskMode = mode === 'task';
+          const actualMode = mode || 'chat';
+          const isTaskMode = actualMode === 'task';
           const shouldChunk = isTaskMode && this.enableChunking && textForTTS.length > 500;
 
-          this.logger.info(`🎵 Queueing TTS for ${agent} (voice: ${ttsVoice}, mode: ${mode || 'chat'}, fullText: ${this.fullTextMode ? 'YES' : 'NO'}, chunking: ${shouldChunk ? 'YES' : 'NO'}, length: ${textForTTS.length})`);
-          console.log('[CHAT] 🎵 Queueing TTS:', { agent, ttsVoice, mode: mode || 'chat', length: textForTTS.length });
+          this.logger.info(`🎵 Queueing TTS for ${agent} (voice: ${ttsVoice}, mode: ${actualMode}, fullText: ${this.fullTextMode ? 'YES' : 'NO'}, chunking: ${shouldChunk ? 'YES' : 'NO'}, length: ${textForTTS.length})`);
+          console.log('[CHAT] 🎵 Queueing TTS:', { agent, ttsVoice, mode: actualMode, length: textForTTS.length });
 
           // Емітимо події для UI
           this.emit('tts-start', { agent, voice: ttsVoice, text: textForTTS, mode });
@@ -602,13 +606,13 @@ export class ChatManager {
 
           // CRITICAL FIX: Використовуємо чергу TTS щоб поточне озвучення завершилось перед наступним
           // Це запобігає ситуації коли Атлас ще говорить завдання, а Тетяна вже виконує його
-          const ttsOptions = { mode: mode || 'chat' };
+          const ttsOptions = { mode: actualMode };
           await this.ttsManager.addToQueue(textForTTS, agent, ttsOptions);
 
           this.logger.info(`✅ TTS completed for ${agent}`);
 
           // CRITICAL (11.10.2025 - 17:40): Debug logging для conversation loop
-          const eventData = { agent, voice: ttsVoice, mode: mode || 'chat' };
+          const eventData = { agent, voice: ttsVoice, mode: actualMode };
           console.log('[CHAT] 📢 Emitting tts-stop event:', eventData, {
             hasEventHandlers: this.eventHandlers.has('tts-stop'),
             handlersCount: this.eventHandlers.get('tts-stop')?.size || 0

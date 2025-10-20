@@ -130,16 +130,26 @@ export class TTSSyncManager {
         }
 
         // FIXED 14.10.2025 NIGHT - Send to frontend TTS via WebSocket (use internal wsManager)
+        // ENHANCED 21.10.2025 - Added detailed logging for debugging TTS issues
+        this.logger.system('tts-sync', `[TTS-SYNC] 🔍 TTS Debug: wsManager=${!!this.wsManager}, phrase="${phrase.substring(0, 50)}...", agent=${agent}, mode=${validMode}`);
+        
         if (this.wsManager) {
             try {
-                this.logger.system('tts-sync', `[TTS-SYNC] 🔊 Sending TTS to frontend: "${phrase}" (agent: ${agent}, mode: ${validMode})`);
+                this.logger.system('tts-sync', `[TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket...`);
+                this.logger.system('tts-sync', `[TTS-SYNC]    - Channel: chat, Event: agent_message`);
+                this.logger.system('tts-sync', `[TTS-SYNC]    - Agent: ${agent}, Mode: ${validMode}`);
+                this.logger.system('tts-sync', `[TTS-SYNC]    - Phrase: "${phrase}"`);
+                
                 this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
                     content: phrase,
                     agent: agent,
                     ttsContent: phrase,
                     mode: validMode,
-                    messageId: `tts_${Date.now()}`
+                    messageId: `tts_${Date.now()}`,
+                    timestamp: new Date().toISOString()
                 });
+                
+                this.logger.system('tts-sync', `[TTS-SYNC] ✅ WebSocket broadcast completed`);
                 
                 // Simulate delay based on phrase length for synchronization
                 const estimatedDuration = Math.min(phrase.length * 50, finalDuration);
@@ -148,12 +158,27 @@ export class TTSSyncManager {
                 this.logger.system('tts-sync', `[TTS-SYNC] ✅ TTS sent successfully (estimated: ${estimatedDuration}ms)`);
                 return Promise.resolve();
             } catch (error) {
-                this.logger.error(`[TTS-SYNC] Failed to send TTS via WebSocket: ${error.message}`, { 
+                this.logger.error(`[TTS-SYNC] ❌ Failed to send TTS via WebSocket: ${error.message}`, { 
                     category: 'tts-sync', 
                     component: 'tts-sync',
                     stack: error.stack
                 });
+                this.logger.error(`[TTS-SYNC] Error details: ${JSON.stringify({
+                    hasWsManager: !!this.wsManager,
+                    hasBroadcast: !!(this.wsManager && this.wsManager.broadcastToSubscribers),
+                    agent: agent,
+                    phrase: phrase.substring(0, 100)
+                })}`, {
+                    category: 'tts-sync',
+                    component: 'tts-sync'
+                });
             }
+        } else {
+            this.logger.warn(`[TTS-SYNC] ⚠️ WebSocket Manager not available - TTS will be queued but not sent`, {
+                category: 'tts-sync',
+                component: 'tts-sync',
+                phrase: phrase.substring(0, 50)
+            });
         }
 
         // Fallback: Create queue item (original logic)

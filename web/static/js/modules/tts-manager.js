@@ -714,16 +714,27 @@ export class TTSManager {
     }
   }
 
-  // Queue management for sequential playback
+  // Queue management for sequential playback with agent priority filtering
   async addToQueue(text, agent = 'atlas', options = {}) {
+    // ФІЛЬТР СИСТЕМНИХ ПОВІДОМЛЕНЬ: перевіряємо пріоритет агента
+    const agentPriority = TTS_CONFIG.queue?.priorityByAgent?.[agent];
+    if (agentPriority && agentPriority > 10) { // Пріоритет > 10 означає пропуск
+      this.logger.debug(`Skipping TTS for agent ${agent} (priority: ${agentPriority})`);
+      return Promise.resolve(); // Пропускаємо озвучення системних повідомлень
+    }
+
     return new Promise((resolve, reject) => {
       this.queue.push({
         text,
         agent,
         options,
         resolve,
-        reject
+        reject,
+        priority: agentPriority || 1 // Додаємо пріоритет для сортування черги
       });
+
+      // Сортуємо чергу за пріоритетом (нижчий номер = вищий пріоритет)
+      this.queue.sort((a, b) => (a.priority || 999) - (b.priority || 999));
 
       this.processQueue();
     });

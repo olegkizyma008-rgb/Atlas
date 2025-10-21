@@ -169,6 +169,7 @@ export class GrishaVerifyItemProcessor {
             const summary = this._generateVerificationSummary(currentItem, verification);
 
             // FIXED 2025-10-21: Send verification result to chat via WebSocket
+            // NOTE: TTS is sent from executor-v3.js to maintain proper sequence
             if (this.wsManager) {
                 try {
                     // Build detailed message about verification result
@@ -179,22 +180,51 @@ export class GrishaVerifyItemProcessor {
                         verificationMessage = `❌ Не підтверджено: ${verification.reason}`;
                     }
 
-                    // ВИПРАВЛЕНО 21.10.2025: Короткий ttsContent для Гріші БЕЗ англійського тексту
-                    // visual_evidence.observed містить англійський текст від Vision API - не озвучуємо його
-                    const shortTTS = verification.verified 
-                        ? `Підтверджено` 
-                        : `Не підтверджено`;
+                    // Store verification phrases for executor to use
+                    if (!this._verifyPhraseIndex) {
+                        this._verifyPhraseIndex = 0;
+                    }
                     
+                    const verifySuccessPhrases = [
+                        'Підтверджено',
+                        'Все правильно',
+                        'Виконано коректно',
+                        'Перевірено, все гаразд',
+                        'Результат вірний',
+                        'Все на місці'
+                    ];
+                    
+                    const verifyFailurePhrases = [
+                        'Не підтверджено',
+                        'Є проблема',
+                        'Щось не так',
+                        'Потрібна корекція',
+                        'Виявлено помилку',
+                        'Не відповідає очікуванням'
+                    ];
+                    
+                    let shortTTS;
+                    if (verification.verified) {
+                        shortTTS = verifySuccessPhrases[this._verifyPhraseIndex % verifySuccessPhrases.length];
+                    } else {
+                        shortTTS = verifyFailurePhrases[this._verifyPhraseIndex % verifyFailurePhrases.length];
+                    }
+                    this._verifyPhraseIndex++;
+                    
+                    // Send chat message WITHOUT TTS - TTS will be sent from executor in correct order
                     this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
                         content: verificationMessage,
                         agent: 'grisha',
-                        ttsContent: shortTTS,
+                        ttsContent: null, // NO TTS HERE - sent from executor
                         mode: 'normal',
                         sessionId: context.session?.id,
                         timestamp: new Date().toISOString()
                     });
                     
-                    this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ✅ Verification result sent to chat');
+                    // Store TTS phrase in verification result for executor to use
+                    verification.tts_phrase = shortTTS;
+                    
+                    this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ✅ Verification result sent to chat (TTS deferred to executor)');
                 } catch (wsError) {
                     this.logger.warn(`[VISUAL-GRISHA] Failed to send verification result to chat: ${wsError.message}`);
                 }

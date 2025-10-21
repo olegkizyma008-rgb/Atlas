@@ -157,7 +157,9 @@ export class VisionAnalysisService {
     if (this.port4000Available) {
       this.logger.system('vision-analysis', '[VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec)');
       this.visionProvider = 'port4000';
-      this.visionModel = 'fast'; // Placeholder - will use whatever model is on port 4000
+      // Use actual vision model from config instead of placeholder
+      const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_analysis');
+      this.visionModel = visionConfig.model;
     } else {
       // Check Ollama as fallback (slow but free)
       this.ollamaAvailable = await this._checkOllamaAvailability();

@@ -60,7 +60,7 @@ export class TTSSyncManager {
         
         // Configuration
         this.config = {
-            maxQueueSize: 5,
+            maxQueueSize: 7,
             skipQuickIfQueueFull: true,
             modes: {
                 quick: {
@@ -119,7 +119,7 @@ export class TTSSyncManager {
         const finalPriority = priority || modeConfig.priority;
 
         // Smart skipping for quick phrases when queue is full
-        if (validMode === 'quick' && this.config.skipQuickIfQueueFull && this.queue.length >= 2) {
+        if (validMode === 'quick' && this.config.skipQuickIfQueueFull && this.queue.length >= 5) {
             this.logger.system('tts-sync', `[TTS-SYNC] ⏭️ Skipping quick phrase (queue busy): "${phrase}"`);
             return Promise.resolve();
         }

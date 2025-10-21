@@ -588,8 +588,55 @@ export class ChatManager {
     this.emit('workflow-complete', data);
   }
 
-  async handleAgentMessage(messageData) {
-    const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized } = messageData;
+  async handleAgentMessage(data) {
+    const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized } = data;
+
+    if (!content) {
+      this.logger.warn('Received agent message with no content');
+      return;
+    }
+
+    // FILTER 21.10.2025: Skip system duplicate messages (summary from Grisha)
+    // Agent messages already contain the information, no need for system duplicates
+    if (agent === 'system' || agent === 'grisha') {
+      // Check if this is a verification summary (contains "Візуально підтверджено" or "Візуальні докази")
+      if (content.includes('✅ ✅ Візуально підтверджено') || 
+          content.includes('Візуальні докази:') ||
+          content.includes('Впевненість:')) {
+        this.logger.debug('Skipping system verification summary (duplicate of agent message)');
+        return;
+      }
+      
+      // Check if this is an execution summary (contains "✅ ✅ Виконано")
+      if (content.includes('✅ ✅ Виконано:')) {
+        this.logger.debug('Skipping system execution summary (duplicate of agent message)');
+        return;
+      }
+    }
+
+    this.logger.debug(`📨 Agent message from ${agent}:`, {
+      contentLength: content.length,
+      ttsContentLength: ttsContent?.length,
+      voice,
+      mode,
+      messageId
+    });
+
+    // Додаємо повідомлення в чат
+    const message = this.addMessage(content, agent);
+
+    // ВИПРАВЛЕНО 21.10.2025: Відправляємо підтвердження для Тетяни
+    if (agent === 'tetyana' && this.currentSession && messageId) {
+      // Чекаємо один кадр, щоб гарантовано відбулася отрисовка DOM
+      requestAnimationFrame(() => {
+        orchestratorClient.post('/chat/confirm', {
+          sessionId: this.currentSession,
+          messageId
+        }).catch(err => {
+          this.logger.debug('Failed to send chat confirmation:', err?.message || err);
+        });
+      });
+    }
 
     // ENHANCED 19.10.2025 - More detailed logging for TTS debugging
     console.log('[CHAT] 📨 handleAgentMessage called:', {
@@ -612,22 +659,8 @@ export class ChatManager {
       window.atlasLogger.success(statusText, `Agent-${agentName}`);
     }
 
-    this.emit('agent-response-start', messageData);
-    const message = this.addMessage(content, agent);
+    this.emit('agent-response-start', { agent, content });
     this.emit('agent-response-complete', { agent, message });
-
-    // Миттєве підтвердження рендера повідомлення Тетяни для розблокування workflow на бекенді
-    if (agent === 'tetyana' && this.currentSession && messageId) {
-      // Чекаємо один кадр, щоб гарантовано відбулася отрисовка DOM
-      requestAnimationFrame(() => {
-        orchestratorClient.post('/chat/confirm', {
-          sessionId: this.currentSession,
-          messageId
-        }).catch(err => {
-          this.logger.debug('Failed to send chat confirmation:', err?.message || err);
-        });
-      });
-    }
 
     // Захист від дублювання TTS за messageId
     const ttsKey = `tts_${messageId || 'unknown'}_${agent}`;

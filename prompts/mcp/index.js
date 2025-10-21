@@ -37,6 +37,7 @@ import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.
 import atlasAdjustTodo from './atlas_adjust_todo.js';
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
 import mcpFinalSummary from './mcp_final_summary.js';
+import llmToolValidator from './llm_tool_validator.js';  // NEW 21.10.2025 - LLM tool validation
 
 export const MCP_PROMPTS = {
     // Stage 0-MCP: Mode Selection (NEW 16.10.2025)
@@ -77,7 +78,10 @@ export const MCP_PROMPTS = {
     ATLAS_REPLAN_TODO: atlasReplanTodo,
 
     // Stage 8-MCP: Final summary
-    MCP_FINAL_SUMMARY: mcpFinalSummary
+    MCP_FINAL_SUMMARY: mcpFinalSummary,
+
+    // Tool Validation: LLM-based tool validation (NEW 21.10.2025)
+    LLM_TOOL_VALIDATOR: llmToolValidator
 };
 
 export default MCP_PROMPTS;
@@ -99,5 +103,6 @@ export {
     grishaVisualVerifyItem,  // NEW 17.10.2025
     atlasAdjustTodo,
     atlasReplanTodo,  // NEW 18.10.2025
-    mcpFinalSummary
+    mcpFinalSummary,
+    llmToolValidator  // NEW 21.10.2025
 };

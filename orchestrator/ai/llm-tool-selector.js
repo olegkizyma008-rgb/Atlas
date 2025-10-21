@@ -4,12 +4,13 @@
  * 
  * Inspired by Goose's tool validation system
  * 
- * @version 2.1.0
+ * @version 2.2.0
  * @date 2025-10-21
  */
 
 import logger from '../utils/logger.js';
 import SecurityConfig from '../../config/security-config.js';
+import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
 
 const {
   LLM_VALIDATOR_CONFIG,
@@ -101,23 +102,18 @@ export class LLMToolValidator {
         }
 
         // STEP 2: LLM validation for complex cases
-        const prompt = this._buildValidationPrompt(toolCalls, context, preValidation);
+        const userPrompt = this._buildValidationPrompt(toolCalls, context, preValidation);
 
         try {
-            const response = await this.llmClient.complete({
-                messages: [
-                    { 
-                        role: 'system', 
-                        content: 'You are a security and validation expert. Analyze tool calls for safety, correctness, and relevance.' 
-                    },
-                    { role: 'user', content: prompt }
-                ],
+            // Use LLMClient.generate() method
+            const responseContent = await this.llmClient.generate({
+                systemPrompt: MCP_PROMPTS.LLM_TOOL_VALIDATOR,
+                prompt: userPrompt,
                 temperature: this.config.temperature,
-                max_tokens: this.config.maxTokens,
-                timeout: this.config.timeout
+                max_tokens: this.config.maxTokens
             });
 
-            const validationResults = this._parseValidation(response.content, toolCalls);
+            const validationResults = this._parseValidation(responseContent, toolCalls);
 
             // Update stats
             const blocked = validationResults.filter(v => !v.valid && (v.risk === 'high' || v.risk === 'critical')).length;
@@ -283,6 +279,7 @@ Return ONLY the JSON array, no other text.`;
 
     /**
      * Parse LLM validation response
+     * NEW 21.10.2025: Updated to handle new prompt format with {"validations": [...]}
      * 
      * @param {string} content - LLM response
      * @param {Array<Object>} toolCalls - Original tool calls
@@ -291,17 +288,42 @@ Return ONLY the JSON array, no other text.`;
      */
     _parseValidation(content, toolCalls) {
         try {
-            // Extract JSON from response
-            const jsonMatch = content.match(/\[[\s\S]*\]/);
-            if (!jsonMatch) {
-                throw new Error('No JSON array found in response');
+            // STEP 1: Try to extract JSON from markdown code blocks
+            let jsonText = content;
+            const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (codeBlockMatch) {
+                jsonText = codeBlockMatch[1].trim();
             }
 
-            const validations = JSON.parse(jsonMatch[0]);
+            // STEP 2: Try to parse as complete JSON object
+            let parsed;
+            try {
+                parsed = JSON.parse(jsonText);
+            } catch (e) {
+                // STEP 3: Try to extract JSON object from text
+                const jsonMatch = jsonText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsed = JSON.parse(jsonMatch[0]);
+                } else {
+                    // STEP 4: Try to extract array directly (legacy format)
+                    const arrayMatch = jsonText.match(/\[[\s\S]*\]/);
+                    if (arrayMatch) {
+                        parsed = { validations: JSON.parse(arrayMatch[0]) };
+                    } else {
+                        throw new Error('No valid JSON found in response');
+                    }
+                }
+            }
 
+            // Extract validations array
+            const validations = parsed.validations || parsed;
+            
             if (!Array.isArray(validations)) {
-                throw new Error('Response is not an array');
+                throw new Error('Validations is not an array');
             }
+
+            logger.debug('llm-tool-validator', 
+                `✅ Parsed ${validations.length} validation results`);
 
             // Ensure we have validation for each tool call
             return toolCalls.map((tc, idx) => {
@@ -317,8 +339,10 @@ Return ONLY the JSON array, no other text.`;
             });
 
         } catch (error) {
-            logger.warn('llm-tool-validator', 
+            logger.error('llm-tool-validator', 
                 `Failed to parse validation: ${error.message}`);
+            logger.debug('llm-tool-validator', 
+                `Raw content: ${content.substring(0, 200)}...`);
             
             // Fallback: approve all with warning
             return toolCalls.map(tc => ({

@@ -395,16 +395,34 @@ export class MCPTodoManager {
       this.logger.system('mcp-todo', `[TODO] Created ${todo.mode} TODO with ${todo.items.length} items (complexity: ${todo.complexity}/10)`);
 
       // FIXED 2025-10-21: Generate short TTS phrase and send with full message
+      // ENHANCED 2025-10-21: Added rotating phrases for variety
       const itemCount = todo.items.length;
       const taskDescription = this._extractTaskDescription(request);
 
+      // Rotating intro phrases (cycles through on each new task)
+      if (!this._phraseRotationIndex) {
+        this._phraseRotationIndex = 0;
+      }
+      
+      const introPhrases = [
+        'Починаю виконувати завдання',
+        'Зрозумів суть завдання, розпочинаю',
+        'Прийняв завдання, починаю',
+        'Добре, розумію завдання',
+        'Приступаю до виконання',
+        'Все зрозуміло, починаю'
+      ];
+      
+      const introPhrase = introPhrases[this._phraseRotationIndex % introPhrases.length];
+      this._phraseRotationIndex++;
+
       let ttsPhrase;
       if (itemCount === 1) {
-        ttsPhrase = `Розумію, ${taskDescription}. Один крок, виконую`;
+        ttsPhrase = `${introPhrase}. ${taskDescription}`;
       } else if (itemCount <= 3) {
-        ttsPhrase = `Добре, ${taskDescription}. План з ${itemCount} кроків, починаю`;
+        ttsPhrase = `${introPhrase}. ${taskDescription}, ${itemCount} кроки`;
       } else {
-        ttsPhrase = `Зрозумів, ${taskDescription}. Складне завдання, ${itemCount} кроків. Приступаю`;
+        ttsPhrase = `${introPhrase}. ${taskDescription}, ${itemCount} кроків`;
       }
 
       // Send full message with short TTS content

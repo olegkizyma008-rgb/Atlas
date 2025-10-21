@@ -2,7 +2,14 @@
  * ATLAS System Configuration
  * Centralizes system-level metadata, user preferences, chat/UX options
  * and environment feature flags.
+ *
+ * Browser-compatible: Works in both Node.js and browser environments
  */
+
+/**
+ * Browser-safe process.env access
+ */
+const env = typeof process !== 'undefined' ? process.env : {};
 
 /**
  * High-level system metadata.
@@ -11,8 +18,8 @@ export const SYSTEM_INFO = {
   version: '5.0.0',
   name: 'ATLAS WORKFLOW SYSTEM',
   description: 'Багатоагентна система з голосовим управлінням та MCP workflow',
-  build: process.env.BUILD_NUMBER || 'dev',
-  environment: process.env.NODE_ENV || 'development',
+  build: env.BUILD_NUMBER || 'dev',
+  environment: env.NODE_ENV || 'development',
   configVersion: '2025-10-20'
 };
 
@@ -77,23 +84,24 @@ export const SECURITY_CONFIG = {
 };
 
 /**
- * Build environment feature flags derived from process env.
+ * Build environment feature flags derived from environment.
+ * Browser-compatible version that works with or without process.env
  */
-export function buildEnvConfig(env = process.env) {
+export function buildEnvConfig(environment = env) {
   return {
-    isDevelopment: env.NODE_ENV === 'development',
-    isProduction: env.NODE_ENV === 'production',
-    isTest: env.NODE_ENV === 'test',
+    isDevelopment: environment.NODE_ENV === 'development',
+    isProduction: environment.NODE_ENV === 'production',
+    isTest: environment.NODE_ENV === 'test',
     features: {
-      tts: env.ENABLE_TTS !== 'false',
-      voice: env.ENABLE_VOICE !== 'false',
-      simulation: env.ENABLE_SIMULATION === 'true',
-      logging: env.ENABLE_LOGGING !== 'false',
-      monitoring: env.ENABLE_MONITORING !== 'false'
+      tts: environment.ENABLE_TTS !== 'false',
+      voice: environment.ENABLE_VOICE !== 'false',
+      simulation: environment.ENABLE_SIMULATION === 'true',
+      logging: environment.ENABLE_LOGGING !== 'false',
+      monitoring: environment.ENABLE_MONITORING !== 'false'
     },
     external: {
-      openaiApiKey: env.OPENAI_API_KEY,
-      githubToken: env.GITHUB_TOKEN
+      openaiApiKey: environment.OPENAI_API_KEY,
+      githubToken: environment.GITHUB_TOKEN
     }
   };
 }

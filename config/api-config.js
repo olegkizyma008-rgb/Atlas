@@ -5,7 +5,14 @@
  * Версія: 4.0.0
  * Автор: Atlas System
  * Дата створення: 2025-10-09
+ *
+ * Browser-compatible: Works in both Node.js and browser environments
  */
+
+/**
+ * Browser-safe process.env access
+ */
+const env = typeof process !== 'undefined' ? process.env : {};
 
 // === МЕРЕЖЕВІ НАЛАШТУВАННЯ ===
 export const NETWORK_CONFIG = {
@@ -86,8 +93,8 @@ export const API_ENDPOINTS = Object.entries(NETWORK_CONFIG.services).reduce((acc
 
 // === TTS КОНФІГУРАЦІЯ ===
 export const TTS_CONFIG = {
-  enabled: process.env.ENABLE_TTS !== 'false',
-  mode: process.env.TTS_MODE || 'real', // 'real' | 'mock'
+  enabled: env.ENABLE_TTS !== 'false',
+  mode: env.TTS_MODE || 'real', // 'real' | 'mock'
 
   // Голоси - Атлас завжди використовує mykyta
   defaultVoice: 'mykyta',

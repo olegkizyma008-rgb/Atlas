@@ -1,7 +1,14 @@
 /**
  * ATLAS Model Configuration
  * Містить конфігурацію AI/MCP моделей та vision налаштування.
+ *
+ * Browser-compatible: Works in both Node.js and browser environments
  */
+
+/**
+ * Browser-safe process.env access
+ */
+const env = typeof process !== 'undefined' ? process.env : {};
 
 // === VISION MODELS CONFIGURATION (UPDATED 18.10.2025) ===
 export const VISION_CONFIG = {
@@ -85,40 +92,40 @@ export const AI_MODEL_CONFIG = {
   models: {
     classification: {
       get model() {
-        return process.env.AI_MODEL_CLASSIFICATION || 'atlas-ministral-3b';
+        return env.AI_MODEL_CLASSIFICATION || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.AI_TEMP_CLASSIFICATION || '0.05');
+        return parseFloat(env.AI_TEMP_CLASSIFICATION || '0.05');
       },
       max_tokens: 50,
       description: 'Бінарна класифікація - максимальна точність'
     },
     chat: {
       get model() {
-        return process.env.AI_MODEL_CHAT || 'atlas-mistral-medium-2505';
+        return env.AI_MODEL_CHAT || 'atlas-mistral-medium-2505';
       },
       get temperature() {
-        return parseFloat(process.env.AI_TEMP_CHAT || '0.7');
+        return parseFloat(env.AI_TEMP_CHAT || '0.7');
       },
       max_tokens: 500,
       description: 'Природні розмови - креативність (Mistral Medium)'
     },
     analysis: {
       get model() {
-        return process.env.AI_MODEL_ANALYSIS || 'atlas-gpt-4o-mini';
+        return env.AI_MODEL_ANALYSIS || 'atlas-gpt-4o-mini';
       },
       get temperature() {
-        return parseFloat(process.env.AI_TEMP_ANALYSIS || '0.2');
+        return parseFloat(env.AI_TEMP_ANALYSIS || '0.2');
       },
       max_tokens: 1000,
       description: 'Аналіз та контекст - точність'
     },
     tts_optimization: {
       get model() {
-        return process.env.AI_MODEL_TTS_OPT || 'atlas-ministral-3b';
+        return env.AI_MODEL_TTS_OPT || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.AI_TEMP_TTS_OPT || '0.15');
+        return parseFloat(env.AI_TEMP_TTS_OPT || '0.15');
       },
       max_tokens: 300,
       description: 'Оптимізація для TTS - стабільність'
@@ -136,152 +143,152 @@ export const AI_MODEL_CONFIG = {
 // === MCP MODELS CONFIGURATION ===
 export const MCP_MODEL_CONFIG = {
   get apiEndpoint() {
-    const primary = process.env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
-    const fallback = process.env.LLM_API_FALLBACK_ENDPOINT;
+    const primary = env.LLM_API_ENDPOINT || 'http://localhost:4000/v1/chat/completions';
+    const fallback = env.LLM_API_FALLBACK_ENDPOINT;
     // Only enable fallback if it's explicitly set AND not empty
-    const useFallback = process.env.LLM_API_USE_FALLBACK === 'true' && fallback && fallback.trim().length > 0;
+    const useFallback = env.LLM_API_USE_FALLBACK === 'true' && fallback && fallback.trim().length > 0;
 
     return {
       primary,
       fallback: fallback || null,
       useFallback,
-      timeout: parseInt(process.env.LLM_API_TIMEOUT || '60000', 10)
+      timeout: parseInt(env.LLM_API_TIMEOUT || '60000', 10)
     };
   },
   stages: {
     mode_selection: {
       get model() {
-        return process.env.MCP_MODEL_MODE_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_MODE_SELECTION || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_MODE_SELECTION || '0.05');
+        return parseFloat(env.MCP_TEMP_MODE_SELECTION || '0.05');
       },
       max_tokens: 150,
       description: 'Бінарна класифікація task vs chat (Mistral 3B - швидка і точна)'
     },
     backend_selection: {
       get model() {
-        return process.env.MCP_MODEL_BACKEND_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_BACKEND_SELECTION || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_BACKEND_SELECTION || '0.05');
+        return parseFloat(env.MCP_TEMP_BACKEND_SELECTION || '0.05');
       },
       max_tokens: 50,
       description: 'Keyword routing - точність (deprecated)'
     },
     todo_planning: {
       get model() {
-        return process.env.MCP_MODEL_TODO_PLANNING || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_TODO_PLANNING || 'atlas-gpt-4o-mini';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_TODO_PLANNING || '0.3');
+        return parseFloat(env.MCP_TEMP_TODO_PLANNING || '0.3');
       },
       max_tokens: 4000,
       description: 'Atlas TODO Planning (GPT-4o-mini - швидке reasoning)'
     },
     plan_tools: {
       get model() {
-        return process.env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_PLAN_TOOLS || '0.1');
+        return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');
       },
       max_tokens: 2500,
       description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
     },
     verify_item: {
       get model() {
-        return process.env.MCP_MODEL_VERIFY_ITEM || 'atlas-mistral-small-2503';
+        return env.MCP_MODEL_VERIFY_ITEM || 'atlas-mistral-small-2503';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_VERIFY_ITEM || '0.15');
+        return parseFloat(env.MCP_TEMP_VERIFY_ITEM || '0.15');
       },
       max_tokens: 800,
       description: 'Grisha Verify Item - швидка верифікація (Mistral Small)'
     },
     adjust_todo: {
       get model() {
-        return process.env.MCP_MODEL_ADJUST_TODO || 'atlas-mistral-medium-2505';
+        return env.MCP_MODEL_ADJUST_TODO || 'atlas-mistral-medium-2505';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_ADJUST_TODO || '0.2');
+        return parseFloat(env.MCP_TEMP_ADJUST_TODO || '0.2');
       },
       max_tokens: 1500,
       description: 'Atlas Adjust TODO - точна корекція (Mistral Medium)'
     },
     replan_todo: {
       get model() {
-        return process.env.MCP_MODEL_REPLAN_TODO || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_REPLAN_TODO || 'atlas-gpt-4o-mini';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_REPLAN_TODO || '0.3');
+        return parseFloat(env.MCP_TEMP_REPLAN_TODO || '0.3');
       },
       max_tokens: 3000,
       description: 'Atlas Replan TODO - глибокий аналіз (GPT-4o-mini)'
     },
     final_summary: {
       get model() {
-        return process.env.MCP_MODEL_FINAL_SUMMARY || 'atlas-ministral-3b';
+        return env.MCP_MODEL_FINAL_SUMMARY || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_FINAL_SUMMARY || '0.5');
+        return parseFloat(env.MCP_TEMP_FINAL_SUMMARY || '0.5');
       },
       max_tokens: 600,
       description: 'Final Summary для користувача - природність'
     },
     vision_analysis: {
       get model() {
-        return process.env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct';
+        return env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_VISION || '0.2');
+        return parseFloat(env.MCP_TEMP_VISION || '0.2');
       },
       max_tokens: 1000,
       description: 'Vision Analysis - аналіз скріншотів (GPT-4o vision)'
     },
     vision_fallback: {
       get model() {
-        return process.env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision';
+        return env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision';
       },
       endpoint: 'http://localhost:11434/api/generate',
       description: 'Ollama local vision - безкоштовний fallback (повільний)'
     },
     server_selection: {
       get model() {
-        return process.env.MCP_MODEL_SERVER_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_SERVER_SELECTION || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_SERVER_SELECTION || '0.05');
+        return parseFloat(env.MCP_TEMP_SERVER_SELECTION || '0.05');
       },
       max_tokens: 50,
       description: 'MCP Server Selection - швидка класифікація серверів'
     },
     state_analysis: {
       get model() {
-        return process.env.MCP_MODEL_STATE_ANALYSIS || 'atlas-ministral-3b';
+        return env.MCP_MODEL_STATE_ANALYSIS || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_STATE_ANALYSIS || '0.1');
+        return parseFloat(env.MCP_TEMP_STATE_ANALYSIS || '0.1');
       },
       max_tokens: 100,
       description: 'State Analysis - аналіз станів агентів'
     },
     screenshot_adjustment: {
       get model() {
-        return process.env.MCP_MODEL_SCREENSHOT_ADJ || 'atlas-phi-4-multimodal-instruct';
+        return env.MCP_MODEL_SCREENSHOT_ADJ || 'atlas-phi-4-multimodal-instruct';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_SCREENSHOT_ADJ || '0.2');
+        return parseFloat(env.MCP_TEMP_SCREENSHOT_ADJ || '0.2');
       },
       max_tokens: 2000,
       description: 'Screenshot Adjustment - аналіз скріншотів (Phi-4 Multimodal)'
     },
     tts_optimization: {
       get model() {
-        return process.env.MCP_MODEL_TTS_OPT || 'atlas-ministral-3b';
+        return env.MCP_MODEL_TTS_OPT || 'atlas-ministral-3b';
       },
       get temperature() {
-        return parseFloat(process.env.MCP_TEMP_TTS_OPT || '0.3');
+        return parseFloat(env.MCP_TEMP_TTS_OPT || '0.3');
       },
       max_tokens: 200,
       description: 'TTS Optimization - оптимізація тексту для озвучки'
@@ -300,38 +307,38 @@ export const AI_BACKEND_CONFIG = {
   disableFallback: true,
   retry: {
     get maxAttempts() {
-      return parseInt(process.env.MCP_MAX_ATTEMPTS || '3', 10);
+      return parseInt(env.MCP_MAX_ATTEMPTS || '3', 10);
     },
     get timeoutMs() {
-      return parseInt(process.env.MCP_TIMEOUT_MS || '30000', 10);
+      return parseInt(env.MCP_TIMEOUT_MS || '30000', 10);
     },
     get exponentialBackoff() {
-      return process.env.MCP_EXPONENTIAL_BACKOFF !== 'false';
+      return env.MCP_EXPONENTIAL_BACKOFF !== 'false';
     },
     itemExecution: {
       get maxAttempts() {
-        return parseInt(process.env.MCP_ITEM_MAX_ATTEMPTS || '2', 10);
+        return parseInt(env.MCP_ITEM_MAX_ATTEMPTS || '2', 10);
       }
     },
     replanning: {
       get maxAttempts() {
-        return parseInt(process.env.MCP_REPLANNING_MAX_ATTEMPTS || '3', 10);
+        return parseInt(env.MCP_REPLANNING_MAX_ATTEMPTS || '3', 10);
       }
     },
     toolPlanning: {
       get maxAttempts() {
-        return parseInt(process.env.MCP_TOOL_PLANNING_MAX_ATTEMPTS || '3', 10);
+        return parseInt(env.MCP_TOOL_PLANNING_MAX_ATTEMPTS || '3', 10);
       },
       get retryDelay() {
-        return parseInt(process.env.MCP_TOOL_PLANNING_RETRY_DELAY || '2000', 10);
+        return parseInt(env.MCP_TOOL_PLANNING_RETRY_DELAY || '2000', 10);
       }
     },
     circuitBreaker: {
       get threshold() {
-        return parseInt(process.env.MCP_CIRCUIT_BREAKER_THRESHOLD || '3', 10);
+        return parseInt(env.MCP_CIRCUIT_BREAKER_THRESHOLD || '3', 10);
       },
       get resetTimeout() {
-        return parseInt(process.env.MCP_CIRCUIT_BREAKER_RESET_MS || '60000', 10);
+        return parseInt(env.MCP_CIRCUIT_BREAKER_RESET_MS || '60000', 10);
       }
     }
   },
@@ -356,7 +363,7 @@ export const AI_BACKEND_CONFIG = {
           command: 'npx',
           args: ['-y', 'super-shell-mcp'],
           env: {
-            SHELL: process.env.SHELL || '/bin/zsh'
+            SHELL: env.SHELL || '/bin/zsh'
           }
         },
         applescript: {

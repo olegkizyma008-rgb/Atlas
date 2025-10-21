@@ -5,7 +5,7 @@
 
 import { BaseService } from './core/base-service.js';
 import { EventManager, Events } from './events/event-manager.js';
-import { VOICE_CONFIG } from '../../core/config.js';
+// NOTE: VOICE_CONFIG moved to other modules; manager does not need direct import
 import { createLogger } from './core/logger.js';
 
 // Імпорт всіх сервісів
@@ -408,7 +408,6 @@ export class VoiceControlManager extends BaseService {
   setupCrossServiceCallbacks() {
     // Microphone -> Whisper інтеграція
     const micService = this.services.get('microphone');
-    const whisperService = this.services.get('whisper');
 
     // ✅ ВИДАЛЕНО дублікат обробника - WhisperService вже підписаний на AUDIO_READY_FOR_TRANSCRIPTION
     // У WhisperService.subscribeToMicrophoneEvents() є власний обробник

@@ -82,11 +82,24 @@ OPTIMIZE_FOR_M1_MAX="${OPTIMIZE_FOR_M1_MAX:-true}"
 # =============================================================================
 
 print_header() {
-    echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${WHITE}               ATLAS INTELLIGENT SYSTEM MANAGER                ${CYAN}║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    # Hacker-style wide header
+    local width=96
+    local title="ATLAS INTELLIGENT SYSTEM MANAGER"
+    
+    # Create the horizontal line
+    printf -v line '%*s' "$width" ''
+    line=${line// /═}
+    
+    # Calculate padding for centering the title
+    local title_len=${#title}
+    local padding_total=$((width - title_len))
+    local padding_left=$((padding_total / 2))
+    local padding_right=$((padding_total - padding_left))
+    
+    printf "\n"
+    printf "${GREEN}╔%s╗${NC}\n" "$line"
+    printf "${GREEN}║%*s${WHITE}%s${NC}%*s${GREEN}║${NC}\n" "$padding_left" "" "$title" "$padding_right" ""
+    printf "${GREEN}╚%s╝${NC}\n\n" "$line"
 }
 
 log_info() {
@@ -472,7 +485,29 @@ cmd_start() {
     log_info "Starting ATLAS v5.0 System (Pure MCP Mode)..."
     
     init_directories
-    
+
+    # Removed duplicate accessibility check - now handled in status display
+    # Run accessibility pre-check before starting any services that may require GUI permissions
+    ACCESS_CHECK_SCRIPT="$REPO_ROOT/orchestrator/utils/run_accessibility_check.js"
+    if [ -f "$ACCESS_CHECK_SCRIPT" ]; then
+        node "$ACCESS_CHECK_SCRIPT" --check-only >/dev/null 2>&1
+        local rc=$?
+        if [ $rc -eq 0 ]; then
+            export ACCESSIBILITY_CHECK_PASSED=1
+            log_info "Accessibility pre-check passed"
+        elif [ $rc -eq 3 ]; then
+            log_error "Accessibility permissions NOT granted. Aborting startup. Please grant Accessibility and Screen Recording permissions and retry."
+            exit 1
+        elif [ $rc -eq 2 ]; then
+            log_error "Accessibility pre-check encountered an internal error (code: $rc). Aborting startup. Check logs: $LOGS_DIR/orchestrator.log"
+            exit 1
+        else
+            log_warn "Accessibility pre-check returned exit code $rc — continuing startup"
+        fi
+    else
+        log_warn "Accessibility pre-check script not found: $ACCESS_CHECK_SCRIPT — skipping"
+    fi
+
     # Start all services in order
     start_tts_service
     start_whisper_service
@@ -487,20 +522,11 @@ cmd_start() {
     log_info "Waiting for services to initialize..."
     sleep 5
     
-    # Check health
+    # Show system status after startup
+    echo ""
     cmd_status
-    
     echo ""
     log_success "ATLAS System Started Successfully!"
-    echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${WHITE}                     ACCESS POINTS                             ${CYAN}║${NC}"
-    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}║${WHITE} 🌐 Web Interface:     http://localhost:$FRONTEND_PORT              ${CYAN}║${NC}"
-    echo -e "${CYAN}║${WHITE} 🎭 Orchestrator API:  http://localhost:$ORCHESTRATOR_PORT              ${CYAN}║${NC}"
-    echo -e "${CYAN}║${WHITE} 🔧 Recovery Bridge:   ws://localhost:$RECOVERY_PORT               ${CYAN}║${NC}"
-    echo -e "${CYAN}║${WHITE} 🤖 LLM API:           http://localhost:4000                 ${CYAN}║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
 
@@ -559,7 +585,7 @@ cmd_stop() {
     
     # Note about external API port
     if ! check_port "4000"; then
-        log_info "External LLM API service is running on port 4000 (not touched - managed separately)"
+        log_info "External LLM API service is running on port 4000 (not touched - managed окремо)"
     fi
     
     # Clean up PID files
@@ -578,35 +604,101 @@ cmd_restart() {
 }
 
 cmd_status() {
-    echo ""
-    echo -e "${CYAN}System Status:${NC}"
-    echo "─────────────────────────────────────────"
+    # Hacker-style wide status display (left-aligned)
+    local BOX_W=98
+    local INNER_W=$((BOX_W - 2))
+    
+    # Create horizontal lines
+    printf -v line '%*s' "$BOX_W" ''
+    line=${line// /═}
+    printf -v separator '%*s' "$BOX_W" ''
+    separator=${separator// /─}
+
+    # Column widths
+    local COL1_W=48
+    local COL2_W=$((BOX_W - COL1_W - 3))
+
+    printf "\n"
+    printf "${GREEN}╔%s╗${NC}\n" "$line"
+    
+    # Title row
+    local title="🚀 ATLAS v5.0 :: SYSTEM STATUS :: $(date +"%Y-%m-%d %H:%M:%S")"
+    printf "${GREEN}║ %-${INNER_W}s ║${NC}\n" "${WHITE}${title}${NC}"
+
+    # Header separator
+    printf "${GREEN}╠%s╣${NC}\n" "$separator"
+    
+    # Column headers
+    printf "${GREEN}║ ${WHITE}%-${COL1_W}s${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "SYSTEM COMPONENTS" "ACCESS POINTS"
+    printf "${GREEN}╠%s╣${NC}\n" "$separator"
     
     check_service() {
         local name=$1
         local pidfile=$2
         local port=$3
-        
-        printf "%-20s " "$name:"
-        
-        if [ -f "$pidfile" ] && ps -p $(cat "$pidfile") > /dev/null 2>&1; then
-            echo -e "${GREEN}● RUNNING${NC} (PID: $(cat "$pidfile"), Port: $port)"
+        local url=$4
+
+        local status_text status_color
+        if [ -f "$pidfile" ] && ps -p "$(cat "$pidfile")" > /dev/null 2>&1; then
+            status_text="● RUNNING"
+            status_color=$GREEN
         elif ! check_port "$port"; then
-            echo -e "${YELLOW}● PORT IN USE${NC} (Port: $port, external process)"
+            status_text="● PORT IN USE"
+            status_color=$YELLOW
         else
-            echo -e "${RED}● STOPPED${NC}"
+            status_text="● STOPPED"
+            status_color=$RED
         fi
+
+        local left_col
+        left_col=$(printf "%-22s ${status_color}%-15s${NC} ${WHITE}(%s)${NC}" "${WHITE}${name}${NC}" "$status_text" "$port")
+        printf "${GREEN}║ ${left_col} ${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "$url"
     }
     
-    check_service "Frontend" "$LOGS_DIR/frontend.pid" "$FRONTEND_PORT"
-    check_service "Orchestrator" "$LOGS_DIR/orchestrator.pid" "$ORCHESTRATOR_PORT"
-    check_service "Recovery Bridge" "$LOGS_DIR/recovery.pid" "$RECOVERY_PORT"
-    check_service "TTS Service" "$LOGS_DIR/tts.pid" "$TTS_PORT"
-    check_service "Whisper Service" "$LOGS_DIR/whisper.pid" "$WHISPER_SERVICE_PORT"
+    # Display services
+    check_service "Frontend" "$LOGS_DIR/frontend.pid" "$FRONTEND_PORT" "http://localhost:$FRONTEND_PORT"
+    check_service "Orchestrator" "$LOGS_DIR/orchestrator.pid" "$ORCHESTRATOR_PORT" "http://localhost:$ORCHESTRATOR_PORT"
+    check_service "Recovery Bridge" "$LOGS_DIR/recovery.pid" "$RECOVERY_PORT" "ws://localhost:$RECOVERY_PORT"
+    check_service "TTS Service" "$LOGS_DIR/tts.pid" "$TTS_PORT" ""
+    check_service "Whisper Service" "$LOGS_DIR/whisper.pid" "$WHISPER_SERVICE_PORT" ""
     
     if [ "$ENABLE_LOCAL_FALLBACK" = "true" ]; then
-        check_service "Fallback LLM" "$LOGS_DIR/fallback.pid" "$FALLBACK_PORT"
+        check_service "Fallback LLM" "$LOGS_DIR/fallback.pid" "$FALLBACK_PORT" ""
     fi
+    
+    # LLM API status
+    local llm_status_text llm_status_color
+    if ! check_port "4000"; then
+        llm_status_text="● RUNNING"
+        llm_status_color=$GREEN
+    else
+        llm_status_text="● NOT DETECTED"
+        llm_status_color=$YELLOW
+    fi
+    local llm_left_col
+    llm_left_col=$(printf "%-22s ${llm_status_color}%-15s${NC} ${WHITE}(4000)${NC}" "${WHITE}LLM API${NC}" "$llm_status_text")
+    printf "${GREEN}║ ${llm_left_col} ${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "http://localhost:4000"
+
+    # Accessibility status
+    printf "${GREEN}╠%s╣${NC}\n" "$separator"
+    ACCESS_CHECK_SCRIPT="$REPO_ROOT/orchestrator/utils/run_accessibility_check.js"
+    local access_msg
+    if [ -f "$ACCESS_CHECK_SCRIPT" ]; then
+        node "$ACCESS_CHECK_SCRIPT" --check-only >/dev/null 2>&1
+        local a_rc=$?
+        if [ $a_rc -eq 0 ]; then
+            access_msg="${GREEN}✓ ACCESS GRANTED :: System has full accessibility permissions"
+        elif [ $a_rc -eq 3 ]; then
+            access_msg="${RED}✗ ACCESS DENIED :: Grant accessibility permissions for full features"
+        else
+            access_msg="${YELLOW}⚠ ACCESS UNKNOWN :: Error checking accessibility status"
+        fi
+    else
+        access_msg="${YELLOW}⚠ ACCESS UNKNOWN :: Accessibility check script not found"
+    fi
+    printf "${GREEN}║ %-${INNER_W}s ║${NC}\n" "${access_msg}${NC}"
+    
+    printf "${GREEN}╚%s╝${NC}\n\n" "$line"
 }
 
 cmd_logs() {

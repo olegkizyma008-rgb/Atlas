@@ -227,8 +227,22 @@ export class DIContainer {
         // Викликаємо onInit hooks
         for (const [name, hooks] of this.lifecycleHooks.entries()) {
             if (hooks.onInit) {
-                const instance = this.singletons.get(name);
+                let instance = this.singletons.get(name);
                 if (instance) {
+                    // Якщо singleton — це Promise (async factory), дочекатися резолва
+                    if (typeof instance.then === 'function') {
+                        try {
+                            const resolved = await instance;
+                            this.singletons.set(name, resolved);
+                            instance = resolved;
+                        } catch (err) {
+                            logger.error?.(`[DI] Error initializing async singleton ${name}: ${err?.message || err}`) ||
+                                console.error(`[DI] Error initializing async singleton ${name}:`, err);
+                            // Пропускаємо onInit для цього сервісу
+                            continue;
+                        }
+                    }
+
                     await hooks.onInit.call(instance);
                     logger.debug?.(`[DI] Initialized: ${name}`) ||
                         console.log(`[DI] Initialized: ${name}`);
@@ -259,8 +273,20 @@ export class DIContainer {
         // Викликаємо onStart hooks
         for (const [name, hooks] of this.lifecycleHooks.entries()) {
             if (hooks.onStart) {
-                const instance = this.singletons.get(name);
+                let instance = this.singletons.get(name);
                 if (instance) {
+                    if (typeof instance.then === 'function') {
+                        try {
+                            const resolved = await instance;
+                            this.singletons.set(name, resolved);
+                            instance = resolved;
+                        } catch (err) {
+                            logger.error?.(`[DI] Error starting async singleton ${name}: ${err?.message || err}`) ||
+                                console.error(`[DI] Error starting async singleton ${name}:`, err);
+                            continue;
+                        }
+                    }
+
                     await hooks.onStart.call(instance);
                     logger.debug?.(`[DI] Started: ${name}`) ||
                         console.log(`[DI] Started: ${name}`);
@@ -295,14 +321,27 @@ export class DIContainer {
 
         for (const [name, lifecycle] of hooks) {
             if (lifecycle.onStop) {
-                const instance = this.singletons.get(name);
+                let instance = this.singletons.get(name);
                 if (instance) {
+                    if (typeof instance.then === 'function') {
+                        try {
+                            const resolved = await instance;
+                            this.singletons.set(name, resolved);
+                            instance = resolved;
+                        } catch (err) {
+                            logger.error?.(`[DI] Error resolving async singleton ${name} during stop: ${err?.message || err}`) ||
+                                console.error(`[DI] Error resolving async singleton ${name} during stop:`, err);
+                            // Якщо не вдалось отримати інстанс — пропускаємо
+                            continue;
+                        }
+                    }
+
                     try {
                         await lifecycle.onStop.call(instance);
                         logger.debug?.(`[DI] Stopped: ${name}`) ||
                             console.log(`[DI] Stopped: ${name}`);
                     } catch (error) {
-                        logger.error?.(`[DI] Error stopping ${name}:`, error) ||
+                        logger.error?.(`[DI] Error stopping ${name}: ${error?.message || error}`) ||
                             console.error(`[DI] Error stopping ${name}:`, error);
                     }
                 }

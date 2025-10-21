@@ -17,6 +17,7 @@ import { MCPTodoManager } from '../workflow/mcp-todo-manager.js';
 import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
 import { VisionAnalysisService } from '../services/vision-analysis-service.js';
 import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
+import AccessibilityChecker from '../utils/accessibility-checker.js';
 import {
     ModeSelectionProcessor,
     AtlasTodoPlanningProcessor,
@@ -193,6 +194,33 @@ export function registerUtilityServices(container) {
         logger.error('startup', `[DI-UTILITY] ❌ Failed to register visionAnalysis: ${visionError.message}`);
     }
 
+    // Accessibility Checker - macOS Accessibility & Screen Recording
+    if (process.env.ACCESSIBILITY_CHECK_PASSED === '1') {
+        logger.system('startup', '[DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1)');
+    } else {
+        container.singleton('accessibilityChecker', (c) => {
+            const logger = c.resolve('logger');
+            const config = c.resolve('config');
+            return new AccessibilityChecker({ logger, config });
+        }, {
+            dependencies: ['logger', 'config'],
+            metadata: { category: 'utilities', priority: 46 },
+            lifecycle: {
+                onInit: async function () {
+                    try {
+                        const result = await this.checkAndPrompt();
+                        if (!result.ok) {
+                            // Log a warning but do not abort startup — services may run with reduced capabilities
+                            logger.warn('startup', `[DI] AccessibilityChecker: ${result.reason || 'not granted'}`);
+                        }
+                    } catch (err) {
+                        logger.error('startup', `[DI] AccessibilityChecker error: ${err?.message || err}`);
+                    }
+                }
+            }
+        });
+    }
+
     return container;
 }
 
@@ -232,16 +260,16 @@ export function registerMCPWorkflowServices(container) {
     container.singleton('tetyanaToolSystem', async (c) => {
         const mcpManager = c.resolve('mcpManager');
         const config = c.resolve('config');
-        
+
         // Create LLM client for validation
         const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
         let llmClient = null;
-        
+
         if (llmConfig) {
             const { LLMClient } = await import('../ai/llm-client.js');
             llmClient = new LLMClient(llmConfig);
         }
-        
+
         return new TetyanaToolSystem(mcpManager, llmClient);
     }, {
         dependencies: ['mcpManager', 'config'],
@@ -251,11 +279,11 @@ export function registerMCPWorkflowServices(container) {
                 // Initialize TetyanaToolSystem (load extensions, prepare inspectors)
                 await this.initialize();
                 const stats = this.getStatistics();
-                logger.system('startup', 
+                logger.system('startup',
                     `[DI] 🎯 TetyanaToolSystem initialized: ${stats.totalTools} tools from ${stats.totalServers} servers (${stats.availableServers.join(', ')})`);
-                
+
                 if (stats.llmValidator) {
-                    logger.system('startup', 
+                    logger.system('startup',
                         `[DI] 🛡️ LLM Validator ACTIVE - ${stats.llmValidator.totalValidations} validations ready`);
                 }
             }

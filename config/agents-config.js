@@ -40,7 +40,7 @@ export const AGENTS = {
     name: 'Гриша',
     signature: '[ГРИША]',
     color: '#ffff00',
-    voice: 'dmytro',
+    voice: 'oleksa',  // Змінено з dmytro на oleksa (працюючий голос)
     priority: 3,
     description: 'Верифікатор результатів та фінальний контроль',
     enableTools: true,

@@ -22,7 +22,7 @@ if [ -f "$REPO_ROOT/.env" ]; then
     set +a
 fi
 
-# ANSI escape codes для кольорового виводу
+# ANSI escape codes для кольорового виводу (hacker-style)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -30,6 +30,9 @@ BLUE='\033[0;34m'
 MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 WHITE='\033[1;37m'
+BRIGHT_GREEN='\033[1;32m'
+BRIGHT_CYAN='\033[1;36m'
+DIM='\033[2m'
 NC='\033[0m' # No Color
 
 # =============================================================================
@@ -604,9 +607,8 @@ cmd_restart() {
 }
 
 cmd_status() {
-    # Hacker-style wide status display (left-aligned)
-    local BOX_W=98
-    local INNER_W=$((BOX_W - 2))
+    # Hacker-style wide status display with proper alignment
+    local BOX_W=100
     
     # Create horizontal lines
     printf -v line '%*s' "$BOX_W" ''
@@ -614,23 +616,23 @@ cmd_status() {
     printf -v separator '%*s' "$BOX_W" ''
     separator=${separator// /─}
 
-    # Column widths
-    local COL1_W=48
-    local COL2_W=$((BOX_W - COL1_W - 3))
-
     printf "\n"
-    printf "${GREEN}╔%s╗${NC}\n" "$line"
+    printf "${BRIGHT_GREEN}╔%s╗${NC}\n" "$line"
     
-    # Title row
-    local title="🚀 ATLAS v5.0 :: SYSTEM STATUS :: $(date +"%Y-%m-%d %H:%M:%S")"
-    printf "${GREEN}║ %-${INNER_W}s ║${NC}\n" "${WHITE}${title}${NC}"
+    # Title row with timestamp - hacker style with bright colors
+    local timestamp="$(date +"%Y-%m-%d %H:%M:%S")"
+    # Calculate exact padding: "🚀 ATLAS v5.0 :: SYSTEM STATUS :: 2025-10-21 18:41:10" 
+    # Total visible chars needed: 98 (100 - 2 for borders)
+    # Content: 🚀(2) + " ATLAS v5.0 "(12) + "::"(2) + " SYSTEM STATUS "(15) + "::"(2) + " "(1) + timestamp(19) = 53 chars
+    # Padding needed: 98 - 53 = 45
+    printf "${BRIGHT_GREEN}║${NC} ${BRIGHT_CYAN}🚀 ATLAS v5.0${NC} ${DIM}::${NC} ${WHITE}SYSTEM STATUS${NC} ${DIM}::${NC} ${YELLOW}%s${NC}%-45s${BRIGHT_GREEN}║${NC}\n" "$timestamp" ""
 
     # Header separator
-    printf "${GREEN}╠%s╣${NC}\n" "$separator"
+    printf "${BRIGHT_GREEN}╠%s╣${NC}\n" "$separator"
     
-    # Column headers
-    printf "${GREEN}║ ${WHITE}%-${COL1_W}s${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "SYSTEM COMPONENTS" "ACCESS POINTS"
-    printf "${GREEN}╠%s╣${NC}\n" "$separator"
+    # Column headers - properly spaced with hacker-style colors
+    printf "${BRIGHT_GREEN}║${NC} ${BRIGHT_CYAN}%-50s${NC}${BRIGHT_GREEN}│${NC} ${BRIGHT_CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" "SYSTEM COMPONENTS" "ACCESS POINTS"
+    printf "${BRIGHT_GREEN}╠%s╣${NC}\n" "$separator"
     
     check_service() {
         local name=$1
@@ -638,21 +640,29 @@ cmd_status() {
         local port=$3
         local url=$4
 
-        local status_text status_color
+        local status_text status_color status_icon
         if [ -f "$pidfile" ] && ps -p "$(cat "$pidfile")" > /dev/null 2>&1; then
-            status_text="● RUNNING"
-            status_color=$GREEN
+            status_text="RUNNING    "
+            status_color="${GREEN}"
+            status_icon="●"
         elif ! check_port "$port"; then
-            status_text="● PORT IN USE"
-            status_color=$YELLOW
+            status_text="PORT IN USE"
+            status_color="${YELLOW}"
+            status_icon="●"
         else
-            status_text="● STOPPED"
-            status_color=$RED
+            status_text="STOPPED    "
+            status_color="${RED}"
+            status_icon="●"
         fi
 
-        local left_col
-        left_col=$(printf "%-22s ${status_color}%-15s${NC} ${WHITE}(%s)${NC}" "${WHITE}${name}${NC}" "$status_text" "$port")
-        printf "${GREEN}║ ${left_col} ${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "$url"
+        # Format left column: Name (20 chars) + Status (13 chars) + Port (7 chars) = 40 chars total
+        local name_part=$(printf "%-20s" "$name")
+        local status_part=$(printf "%s %-11s" "$status_icon" "$status_text")
+        local port_part=$(printf "(%4s)" "$port")
+        
+        # Print with exact spacing and hacker-style colors
+        printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" \
+            "$name_part" "$status_part" "$port_part" "$url"
     }
     
     # Display services
@@ -669,36 +679,55 @@ cmd_status() {
     # LLM API status
     local llm_status_text llm_status_color
     if ! check_port "4000"; then
-        llm_status_text="● RUNNING"
-        llm_status_color=$GREEN
+        llm_status_text="RUNNING    "
+        llm_status_color="${GREEN}"
     else
-        llm_status_text="● NOT DETECTED"
-        llm_status_color=$YELLOW
+        llm_status_text="NOT DETECTED"
+        llm_status_color="${YELLOW}"
     fi
-    local llm_left_col
-    llm_left_col=$(printf "%-22s ${llm_status_color}%-15s${NC} ${WHITE}(4000)${NC}" "${WHITE}LLM API${NC}" "$llm_status_text")
-    printf "${GREEN}║ ${llm_left_col} ${CYAN}│${WHITE} %-${COL2_W}s ${GREEN}║${NC}\n" "http://localhost:4000"
+    
+    local llm_name_part=$(printf "%-20s" "LLM API")
+    local llm_status_part=$(printf "● %-11s" "$llm_status_text")
+    local llm_port_part=$(printf "(%4s)" "4000")
+    
+    printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${llm_status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" \
+        "$llm_name_part" "$llm_status_part" "$llm_port_part" "http://localhost:4000"
 
     # Accessibility status
-    printf "${GREEN}╠%s╣${NC}\n" "$separator"
+    printf "${BRIGHT_GREEN}╠%s╣${NC}\n" "$separator"
     ACCESS_CHECK_SCRIPT="$REPO_ROOT/orchestrator/utils/run_accessibility_check.js"
-    local access_msg
+    local access_icon access_text
     if [ -f "$ACCESS_CHECK_SCRIPT" ]; then
         node "$ACCESS_CHECK_SCRIPT" --check-only >/dev/null 2>&1
         local a_rc=$?
         if [ $a_rc -eq 0 ]; then
-            access_msg="${GREEN}✓ ACCESS GRANTED :: System has full accessibility permissions"
+            access_icon="${BRIGHT_GREEN}✓${NC}"
+            access_text="ACCESS GRANTED"
+            # Total: ✓(1) + " "(1) + "ACCESS GRANTED"(14) + " "(1) + "::"(2) + " "(1) + "System has full accessibility permissions"(42) = 62
+            # Padding: 98 - 62 = 36
+            printf "${BRIGHT_GREEN}║${NC} ${access_icon} ${WHITE}%s${NC} ${DIM}::${NC} ${CYAN}System has full accessibility permissions${NC}%-36s${BRIGHT_GREEN}║${NC}\n" "$access_text" ""
         elif [ $a_rc -eq 3 ]; then
-            access_msg="${RED}✗ ACCESS DENIED :: Grant accessibility permissions for full features"
+            access_icon="${RED}✗${NC}"
+            access_text="ACCESS DENIED "
+            # Total: ✗(1) + " "(1) + "ACCESS DENIED "(14) + " "(1) + "::"(2) + " "(1) + "Grant accessibility permissions for full features"(50) = 70
+            # Padding: 98 - 70 = 28
+            printf "${BRIGHT_GREEN}║${NC} ${access_icon} ${WHITE}%s${NC} ${DIM}::${NC} ${YELLOW}Grant accessibility permissions for full features${NC}%-28s${BRIGHT_GREEN}║${NC}\n" "$access_text" ""
         else
-            access_msg="${YELLOW}⚠ ACCESS UNKNOWN :: Error checking accessibility status"
+            access_icon="${YELLOW}⚠${NC}"
+            access_text="ACCESS UNKNOWN"
+            # Total: ⚠(1) + " "(1) + "ACCESS UNKNOWN"(14) + " "(1) + "::"(2) + " "(1) + "Error checking accessibility status"(35) = 55
+            # Padding: 98 - 55 = 43
+            printf "${BRIGHT_GREEN}║${NC} ${access_icon} ${WHITE}%s${NC} ${DIM}::${NC} ${YELLOW}Error checking accessibility status${NC}%-43s${BRIGHT_GREEN}║${NC}\n" "$access_text" ""
         fi
     else
-        access_msg="${YELLOW}⚠ ACCESS UNKNOWN :: Accessibility check script not found"
+        access_icon="${YELLOW}⚠${NC}"
+        access_text="ACCESS UNKNOWN"
+        # Total: ⚠(1) + " "(1) + "ACCESS UNKNOWN"(14) + " "(1) + "::"(2) + " "(1) + "Accessibility check script not found"(37) = 57
+        # Padding: 98 - 57 = 41
+        printf "${BRIGHT_GREEN}║${NC} ${access_icon} ${WHITE}%s${NC} ${DIM}::${NC} ${YELLOW}Accessibility check script not found${NC}%-41s${BRIGHT_GREEN}║${NC}\n" "$access_text" ""
     fi
-    printf "${GREEN}║ %-${INNER_W}s ║${NC}\n" "${access_msg}${NC}"
     
-    printf "${GREEN}╚%s╝${NC}\n\n" "$line"
+    printf "${BRIGHT_GREEN}╚%s╝${NC}\n\n" "$line"
 }
 
 cmd_logs() {

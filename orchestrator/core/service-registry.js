@@ -256,26 +256,34 @@ export function registerMCPWorkflowServices(container) {
     });
 
     // NEW 2025-10-20: TetyanaToolSystem - Goose-inspired tool management
-    // UPDATED 2025-10-21: Added LLM client for validation
-    container.singleton('tetyanaToolSystem', async (c) => {
+    // FIXED 2025-10-21: Removed async from factory (DI Container doesn't support async factories)
+    container.singleton('tetyanaToolSystem', (c) => {
         const mcpManager = c.resolve('mcpManager');
         const config = c.resolve('config');
 
-        // Create LLM client for validation
-        const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
-        let llmClient = null;
-
-        if (llmConfig) {
-            const { LLMClient } = await import('../ai/llm-client.js');
-            llmClient = new LLMClient(llmConfig);
-        }
-
-        return new TetyanaToolSystem(mcpManager, llmClient);
+        // Create TetyanaToolSystem without LLM client first
+        // LLM client will be loaded asynchronously in onInit
+        return new TetyanaToolSystem(mcpManager, null);
     }, {
         dependencies: ['mcpManager', 'config'],
         metadata: { category: 'workflow', priority: 54 },
         lifecycle: {
             onInit: async function () {
+                // Load LLM client asynchronously
+                const config = container.resolve('config');
+                const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
+
+                if (llmConfig) {
+                    try {
+                        const { LLMClient } = await import('../ai/llm-client.js');
+                        this.llmClient = new LLMClient(llmConfig);
+                        this.llmValidator = new (await import('../ai/llm-tool-selector.js')).LLMToolValidator(this.llmClient);
+                        logger.system('startup', '[DI] 🛡️ LLM client loaded for TetyanaToolSystem');
+                    } catch (error) {
+                        logger.warn('startup', `[DI] ⚠️ Failed to load LLM client: ${error.message}`);
+                    }
+                }
+
                 // Initialize TetyanaToolSystem (load extensions, prepare inspectors)
                 await this.initialize();
                 const stats = this.getStatistics();

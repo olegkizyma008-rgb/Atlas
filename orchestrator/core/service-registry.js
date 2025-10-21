@@ -228,11 +228,23 @@ export function registerMCPWorkflowServices(container) {
     });
 
     // NEW 2025-10-20: TetyanaToolSystem - Goose-inspired tool management
-    container.singleton('tetyanaToolSystem', (c) => {
+    // UPDATED 2025-10-21: Added LLM client for validation
+    container.singleton('tetyanaToolSystem', async (c) => {
         const mcpManager = c.resolve('mcpManager');
-        return new TetyanaToolSystem(mcpManager);
+        const config = c.resolve('config');
+        
+        // Create LLM client for validation
+        const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
+        let llmClient = null;
+        
+        if (llmConfig) {
+            const { LLMClient } = await import('../ai/llm-client.js');
+            llmClient = new LLMClient(llmConfig);
+        }
+        
+        return new TetyanaToolSystem(mcpManager, llmClient);
     }, {
-        dependencies: ['mcpManager'],
+        dependencies: ['mcpManager', 'config'],
         metadata: { category: 'workflow', priority: 54 },
         lifecycle: {
             onInit: async function () {
@@ -241,6 +253,11 @@ export function registerMCPWorkflowServices(container) {
                 const stats = this.getStatistics();
                 logger.system('startup', 
                     `[DI] 🎯 TetyanaToolSystem initialized: ${stats.totalTools} tools from ${stats.totalServers} servers (${stats.availableServers.join(', ')})`);
+                
+                if (stats.llmValidator) {
+                    logger.system('startup', 
+                        `[DI] 🛡️ LLM Validator ACTIVE - ${stats.llmValidator.totalValidations} validations ready`);
+                }
             }
         }
     });

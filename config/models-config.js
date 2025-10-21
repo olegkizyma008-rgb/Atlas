@@ -380,8 +380,12 @@ export const AI_BACKEND_CONFIG = {
       llm: {
         provider: 'atlas',
         apiEndpoint: 'http://localhost:4000/v1/chat/completions',
-        model: 'atlas-ministral-3b',
-        temperature: 0.3
+        get model() {
+          return env.MCP_LLM_MODEL || 'atlas-gpt-4o-mini';  // GPT-4o-mini for LLM Tool Validator
+        },
+        get temperature() {
+          return parseFloat(env.MCP_LLM_TEMPERATURE || '0.1');  // Low temperature for consistent validation
+        }
       },
       useFor: [
         'file_operations',

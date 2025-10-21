@@ -14,6 +14,10 @@
 import { MCPExtensionManager } from './mcp-extension-manager.js';
 import { createDefaultInspectionManager } from './tool-inspectors.js';
 import { ToolDispatcher } from './tool-dispatcher.js';
+import { ToolHistoryManager } from './tool-history-manager.js';
+import { ToolInspectionManager } from './tool-inspection-manager.js';
+import { RepetitionInspector } from './inspectors/repetition-inspector.js';
+import { LLMToolValidator } from './llm-tool-selector.js';  // Renamed from LLMToolSelector
 import logger from '../utils/logger.js';
 
 /**
@@ -21,11 +25,15 @@ import logger from '../utils/logger.js';
  * Main facade for tool management and execution
  */
 export class TetyanaToolSystem {
-    constructor(mcpManager) {
+    constructor(mcpManager, llmClient = null) {
         this.mcpManager = mcpManager;
+        this.llmClient = llmClient;
         this.extensionManager = null;
-        this.inspectionManager = null;
+        this.inspectionManager = null;  // Legacy inspector
+        this.newInspectionManager = null;  // NEW: Enhanced inspection system
         this.dispatcher = null;
+        this.historyManager = null;  // NEW: Tool history tracking
+        this.llmValidator = null;  // NEW: LLM-based validation (ALWAYS ACTIVE)
         this.initialized = false;
         this.mode = 'task'; // 'task' or 'chat'
     }
@@ -46,10 +54,31 @@ export class TetyanaToolSystem {
             this.extensionManager = new MCPExtensionManager(this.mcpManager);
             await this.extensionManager.initialize();
 
-            // STEP 2: Initialize Inspection Manager
+            // STEP 2: Initialize Inspection Manager (Legacy)
             this.inspectionManager = createDefaultInspectionManager(this.mode);
 
-            // STEP 3: Initialize Dispatcher
+            // STEP 3: Initialize NEW Inspection Manager with RepetitionInspector
+            this.newInspectionManager = new ToolInspectionManager();
+            const repetitionInspector = new RepetitionInspector({
+                maxConsecutiveRepetitions: 3,
+                maxTotalCalls: 10
+            });
+            this.newInspectionManager.addInspector(repetitionInspector);
+            logger.system('tetyana-tool-system', '🔍 Enhanced Inspection Manager initialized');
+
+            // STEP 4: Initialize Tool History Manager
+            this.historyManager = new ToolHistoryManager({ maxSize: 100 });
+            logger.system('tetyana-tool-system', '📊 Tool History Manager initialized');
+
+            // STEP 4.5: Initialize LLM Tool Validator (ALWAYS ACTIVE if LLM client available)
+            if (this.llmClient) {
+                this.llmValidator = new LLMToolValidator(this.llmClient);
+                logger.system('tetyana-tool-system', '🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE)');
+            } else {
+                logger.warn('tetyana-tool-system', '⚠️ LLM client not provided, LLM validation disabled');
+            }
+
+            // STEP 5: Initialize Dispatcher
             this.dispatcher = new ToolDispatcher(
                 this.extensionManager,
                 this.inspectionManager
@@ -103,10 +132,16 @@ export class TetyanaToolSystem {
                 `🎯 Filtered to servers: ${selectedServers.join(', ')}`);
         }
 
+        // NEW: Add history context for LLM
+        const historyContext = this.historyManager.formatForPrompt(5);
+        const historyStats = this.historyManager.getStatistics();
+
         return {
             tools: prepared.tools,
             toolsSummary: prepared.toolsSummary,
             systemPromptAddition: prepared.systemPromptAddition,
+            historyContext,  // NEW: History for LLM context
+            historyStats,    // NEW: Statistics
             metadata: prepared.metadata
         };
     }
@@ -140,8 +175,128 @@ export class TetyanaToolSystem {
         // Add mode to context
         context.mode = this.mode;
 
-        // Execute through dispatcher (includes inspection)
+        const startTime = Date.now();
+
+        // STEP 1: Run repetition inspection
+        const inspectionResults = await this.newInspectionManager.inspectTools(toolCalls, context);
+        const processedResults = this.newInspectionManager.processResults(inspectionResults);
+
+        // Handle denied tools from repetition inspector
+        if (processedResults.denied.length > 0) {
+            logger.warn('tetyana-tool-system', 
+                `⛔ ${processedResults.denied.length} tool(s) denied by repetition inspector`);
+            
+            const deniedResults = processedResults.denied.map(d => ({
+                success: false,
+                error: d.results[0].reason,
+                inspector: d.results[0].inspector,
+                metadata: d.results[0].metadata
+            }));
+
+            return {
+                results: deniedResults,
+                all_successful: false,
+                successful_calls: 0,
+                failed_calls: deniedResults.length,
+                inspection: {
+                    repetition: { denied: processedResults.denied.length },
+                    llmValidation: { skipped: true }
+                }
+            };
+        }
+
+        // STEP 2: Run LLM validation (ALWAYS ACTIVE if available)
+        if (this.llmValidator) {
+            logger.system('tetyana-tool-system', '🛡️ Running LLM validation...');
+            
+            try {
+                const validationResults = await this.llmValidator.validateToolCalls(toolCalls, {
+                    userIntent: context.userIntent || context.itemAction || 'Unknown',
+                    itemAction: context.itemAction
+                });
+
+                const validationCheck = this.llmValidator.checkValidation(validationResults);
+
+                // BLOCK high-risk tools
+                if (validationCheck.shouldBlock) {
+                    logger.error('tetyana-tool-system', 
+                        `🚫 LLM Validator BLOCKED execution: ${validationCheck.summary}`);
+                    
+                    const blockedResults = validationCheck.highRisk.map(v => ({
+                        success: false,
+                        error: `BLOCKED by LLM Validator: ${v.reasoning}`,
+                        validator: 'llm',
+                        risk: v.risk,
+                        suggestion: v.suggestion
+                    }));
+
+                    return {
+                        results: blockedResults,
+                        all_successful: false,
+                        successful_calls: 0,
+                        failed_calls: blockedResults.length,
+                        inspection: {
+                            repetition: { allowed: processedResults.allowed.length },
+                            llmValidation: {
+                                blocked: validationCheck.highRisk.length,
+                                summary: validationCheck.summary,
+                                details: validationCheck.highRisk
+                            }
+                        }
+                    };
+                }
+
+                // WARN about medium-risk tools but continue
+                if (validationCheck.shouldWarn) {
+                    logger.warn('tetyana-tool-system', 
+                        `⚠️ LLM Validator warnings: ${validationCheck.summary}`);
+                }
+
+                logger.system('tetyana-tool-system', 
+                    `✅ LLM validation passed: ${validationCheck.summary}`);
+
+            } catch (error) {
+                logger.error('tetyana-tool-system', 
+                    `LLM validation error: ${error.message} - continuing with execution`);
+            }
+        }
+
+        // STEP 3: Execute through dispatcher (includes legacy inspection)
         const result = await this.dispatcher.dispatchToolCalls(toolCalls, context);
+
+        // Add inspection metadata to result
+        result.inspection = {
+            repetition: {
+                denied: processedResults.denied.length,
+                requireApproval: processedResults.requireApproval.length,
+                allowed: processedResults.allowed.length
+            },
+            llmValidation: {
+                executed: this.llmValidator !== null,
+                summary: '✅ Passed validation'
+            }
+        };
+
+        // NEW: Record each tool call in history
+        if (result.results && Array.isArray(result.results)) {
+            for (let i = 0; i < result.results.length; i++) {
+                const toolCall = toolCalls[i];
+                const toolResult = result.results[i];
+                
+                if (toolCall) {
+                    const duration = toolResult.duration || (Date.now() - startTime) / toolCalls.length;
+                    
+                    this.historyManager.recordToolCall(
+                        toolCall.server,
+                        toolCall.tool,
+                        toolCall.parameters,
+                        toolResult.success || false,
+                        duration,
+                        { context: context.itemId || 'unknown' }
+                    );
+                }
+            }
+        }
 
         logger.system('tetyana-tool-system', 
             `✅ Execution completed: ${result.successful_calls}/${toolCalls.length} successful`);
@@ -258,11 +413,18 @@ export class TetyanaToolSystem {
      * Useful when starting new task
      */
     resetRepetitionHistory() {
+        // Reset new inspection manager
+        if (this.newInspectionManager) {
+            this.newInspectionManager.resetAll();
+            logger.debug('tetyana-tool-system', 'Enhanced inspection manager reset');
+        }
+        
+        // Reset legacy inspector
         if (this.inspectionManager) {
             const repetitionInspector = this.inspectionManager.getInspector('repetition');
             if (repetitionInspector && repetitionInspector.reset) {
                 repetitionInspector.reset();
-                logger.debug('tetyana-tool-system', 'Repetition history reset');
+                logger.debug('tetyana-tool-system', 'Legacy repetition history reset');
             }
         }
     }
@@ -279,17 +441,71 @@ export class TetyanaToolSystem {
     }
 
     /**
+     * Get tool history
+     * NEW: Access to tool execution history
+     */
+    getToolHistory(limit = 10) {
+        this._ensureInitialized();
+        return this.historyManager.getRecentCalls(limit);
+    }
+
+    /**
+     * Get history statistics
+     * NEW: Tool usage statistics
+     */
+    getHistoryStatistics() {
+        this._ensureInitialized();
+        return this.historyManager.getStatistics();
+    }
+
+    /**
+     * Clear tool history
+     * NEW: Reset history (useful for new sessions)
+     */
+    clearHistory() {
+        if (this.historyManager) {
+            this.historyManager.clear();
+            logger.system('tetyana-tool-system', '🗑️ Tool history cleared');
+        }
+    }
+
+    /**
+     * Get inspection statistics
+     * NEW: Access to inspection system stats
+     */
+    getInspectionStatistics() {
+        this._ensureInitialized();
+        return this.newInspectionManager ? this.newInspectionManager.getStatistics() : null;
+    }
+
+    /**
+     * Get LLM validator statistics
+     * NEW: Access to LLM validation stats
+     */
+    getValidatorStatistics() {
+        this._ensureInitialized();
+        return this.llmValidator ? this.llmValidator.getStatistics() : null;
+    }
+
+    /**
      * Get system statistics
      */
     getStatistics() {
         this._ensureInitialized();
+
+        const historyStats = this.historyManager ? this.historyManager.getStatistics() : null;
+        const inspectionStats = this.newInspectionManager ? this.newInspectionManager.getStatistics() : null;
+        const validatorStats = this.llmValidator ? this.llmValidator.getStatistics() : null;
 
         return {
             totalTools: this.extensionManager.getTotalToolCount(),
             totalServers: this.extensionManager.getExtensionNames().length,
             availableServers: this.extensionManager.getExtensionNames(),
             mode: this.mode,
-            initialized: this.initialized
+            initialized: this.initialized,
+            history: historyStats,  // NEW: Include history stats
+            inspection: inspectionStats,  // NEW: Include inspection stats
+            llmValidator: validatorStats  // NEW: Include validator stats (ALWAYS ACTIVE)
         };
     }
 }

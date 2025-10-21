@@ -129,10 +129,15 @@ export class TetyanaПlanToolsProcessor {
             // Plan tools using MCPTodoManager with dynamic tools list + specialized prompt
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Calling mcpTodoManager.planTools()...`);
 
-            const plan = await this.mcpTodoManager.planTools(currentItem, todo, { 
+            // NEW: Include history context if available
+            const planOptions = { 
                 toolsSummary: toolsData.toolsSummary,
-                promptOverride  // Pass specialized prompt name
-            });
+                promptOverride,  // Pass specialized prompt name
+                historyContext: toolsData.historyContext,  // NEW: Tool usage history
+                historyStats: toolsData.historyStats  // NEW: Statistics
+            };
+
+            const plan = await this.mcpTodoManager.planTools(currentItem, todo, planOptions);
 
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] planTools() returned: ${JSON.stringify(plan).substring(0, 300)}`);
 

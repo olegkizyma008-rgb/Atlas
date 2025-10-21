@@ -103,7 +103,8 @@ export class TTSSyncManager {
             duration,
             priority,
             skipIfBusy = false,
-            agent = 'tetyana'
+            agent = 'tetyana',
+            sessionId = null
         } = options;
 
         // FIXED 14.10.2025 NIGHT - Validate mode and fix typo
@@ -146,6 +147,7 @@ export class TTSSyncManager {
                     ttsContent: phrase,
                     mode: validMode,
                     messageId: `tts_${Date.now()}`,
+                    sessionId: sessionId,
                     timestamp: new Date().toISOString()
                 });
                 

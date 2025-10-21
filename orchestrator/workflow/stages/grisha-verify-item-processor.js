@@ -34,11 +34,13 @@ export class GrishaVerifyItemProcessor {
     /**
      * @param {Object} dependencies
      * @param {Object} dependencies.mcpTodoManager - MCPTodoManager instance (for messaging)
+     * @param {Object} dependencies.wsManager - WebSocket manager for chat updates
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.config - Visual verification config
      */
-    constructor({ mcpTodoManager, logger: loggerInstance, config = {} }) {
+    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {} }) {
         this.mcpTodoManager = mcpTodoManager;
+        this.wsManager = wsManager;
         this.logger = loggerInstance || logger;
 
         // Initialize visual services
@@ -165,6 +167,32 @@ export class GrishaVerifyItemProcessor {
 
             // Generate summary
             const summary = this._generateVerificationSummary(currentItem, verification);
+
+            // FIXED 2025-10-21: Send verification result to chat via WebSocket
+            if (this.wsManager) {
+                try {
+                    // Build detailed message about verification result
+                    let verificationMessage;
+                    if (verification.verified) {
+                        verificationMessage = `✅ Візуально підтверджено: "${currentItem.action}"\n${verification.visual_evidence.observed}`;
+                    } else {
+                        verificationMessage = `❌ Не підтверджено: ${verification.reason}`;
+                    }
+
+                    this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                        content: verificationMessage,
+                        agent: 'grisha',
+                        ttsContent: verification.verified ? `Підтверджено. ${verification.visual_evidence.observed}` : verification.reason,
+                        mode: 'normal',
+                        sessionId: context.session?.id,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ✅ Verification result sent to chat');
+                } catch (wsError) {
+                    this.logger.warn(`[VISUAL-GRISHA] Failed to send verification result to chat: ${wsError.message}`);
+                }
+            }
 
             // Determine next action
             const nextAction = this._determineNextAction(verification, currentItem);

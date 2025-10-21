@@ -567,30 +567,24 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
-          // Send TTS for item start
-          logger.system('executor', `[TTS-DEBUG] Checking TTS for item start: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.start=${item.tts?.start}`);
-          
-          if (wsManager && item.tts?.start) {
+          // ENHANCED 21.10.2025 - Send TTS through TTSSyncManager for centralized handling
+          const ttsSyncManager = container.resolve('ttsSyncManager');
+          if (ttsSyncManager && item.tts?.start) {
             try {
-              logger.system('executor', `[TTS] 🔊 Sending start TTS: "${item.tts.start}" (agent: tetyana)`);
-              wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                content: item.tts.start,
-                agent: 'tetyana',
-                ttsContent: item.tts.start,
+              logger.system('executor', `[TTS] 🔊 Sending start TTS via TTSSyncManager: "${item.tts.start}"`);
+              await ttsSyncManager.speak(item.tts.start, {
                 mode: 'normal',
-                sessionId: session.id,
-                timestamp: new Date().toISOString()
+                agent: 'tetyana',
+                sessionId: session.id
               });
               logger.system('executor', `[TTS] ✅ Start TTS sent successfully`);
             } catch (error) {
-              logger.error(`[TTS] ❌ Failed to send TTS start message: ${error.message}`, {
+              logger.error(`[TTS] ❌ Failed to send TTS: ${error.message}`, {
                 category: 'executor',
                 component: 'executor',
                 stack: error.stack
               });
             }
-          } else {
-            logger.warn(`[TTS] ⚠️ Skipping start TTS: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.start=${item.tts?.start}`);
           }
 
           const execResult = await executeProcessor.execute({
@@ -621,31 +615,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
-          // Send TTS for verification start
-          logger.system('executor', `[TTS-DEBUG] Checking TTS for verify: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.verify=${item.tts?.verify}`);
-          
-          if (wsManager && item.tts?.verify) {
-            try {
-              logger.system('executor', `[TTS] 🔊 Sending verify TTS: "${item.tts.verify}" (agent: grisha)`);
-              wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                content: item.tts.verify,
-                agent: 'grisha',
-                ttsContent: item.tts.verify,
-                mode: 'normal',
-                sessionId: session.id,
-                timestamp: new Date().toISOString()
-              });
-              logger.system('executor', `[TTS] ✅ Verify TTS sent successfully`);
-            } catch (error) {
-              logger.error(`[TTS] ❌ Failed to send TTS verify message: ${error.message}`, {
-                category: 'executor',
-                component: 'executor',
-                stack: error.stack
-              });
-            }
-          } else {
-            logger.warn(`[TTS] ⚠️ Skipping verify TTS: wsManager=${!!wsManager}, item.tts=${!!item.tts}, item.tts.verify=${item.tts?.verify}`);
-          }
+          // FIXED 2025-10-21: Removed duplicate TTS message from executor
+          // Grisha now sends detailed verification result with TTS directly from verify processor
 
           // ✅ FIX: Adaptive delay before screenshot verification
           // App launches need more time, other operations need less
@@ -688,16 +659,13 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
               attempts: attempt
             });
 
-            // Send TTS for success
-            if (wsManager && item.tts?.success) {
+            // ENHANCED 21.10.2025 - Send TTS through TTSSyncManager
+            if (ttsSyncManager && item.tts?.success) {
               try {
-                wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                  content: item.tts.success,
-                  agent: 'tetyana',
-                  ttsContent: item.tts.success,
+                await ttsSyncManager.speak(item.tts.success, {
                   mode: 'normal',
-                  sessionId: session.id,
-                  timestamp: new Date().toISOString()
+                  agent: 'tetyana',
+                  sessionId: session.id
                 });
               } catch (error) {
                 logger.warn(`Failed to send TTS success message: ${error.message}`);

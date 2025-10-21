@@ -161,11 +161,12 @@ export class MCPTodoManager {
      *
      * @param {string} message - Message to send
      * @param {string} type - Message type or agent name (tetyana, grisha, atlas, agent, info, success, error, progress)
+     * @param {string} [ttsContent] - Optional short text for TTS (if not provided, uses message)
      * @private
      */
-  _sendChatMessage(message, type = 'info') {
+  _sendChatMessage(message, type = 'info', ttsContent = null) {
     // DEBUG 14.10.2025 - Log every call
-    this.logger.system('mcp-todo', `[TODO] _sendChatMessage called: "${message}" (type: ${type}, wsManager: ${!!this.wsManager})`);
+    this.logger.system('mcp-todo', `[TODO] _sendChatMessage called: "${message}" (type: ${type}, wsManager: ${!!this.wsManager}, hasTTS: ${!!ttsContent})`);
 
     if (!this.wsManager) {
       this.logger.warn(`[MCP-TODO] WebSocket Manager not available, skipping chat message`, {
@@ -195,12 +196,21 @@ export class MCPTodoManager {
         }
 
         this.logger.system('mcp-todo', `[TODO] Broadcasting agent message: chat/agent_message (agent: ${agentName})`);
-        this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
+        
+        // FIXED 2025-10-21: Add ttsContent for short TTS phrases
+        const messageData = {
           content: message,
           agent: agentName,
           sessionId: this.currentSessionId,
           timestamp: new Date().toISOString()
-        });
+        };
+        
+        // Add ttsContent only if provided (for short TTS instead of full message)
+        if (ttsContent) {
+          messageData.ttsContent = ttsContent;
+        }
+        
+        this.wsManager.broadcastToSubscribers('chat', 'agent_message', messageData);
       } else {
         // Send as chat_message (will show as [SYSTEM])
         this.logger.system('mcp-todo', `[TODO] Broadcasting system message: chat/chat_message`);
@@ -384,33 +394,24 @@ export class MCPTodoManager {
 
       this.logger.system('mcp-todo', `[TODO] Created ${todo.mode} TODO with ${todo.items.length} items (complexity: ${todo.complexity}/10)`);
 
-      // Send chat message (ADDED 14.10.2025, FIXED 16.10.2025 - from Atlas)
+      // FIXED 2025-10-21: Generate short TTS phrase and send with full message
+      const itemCount = todo.items.length;
+      const taskDescription = this._extractTaskDescription(request);
+
+      let ttsPhrase;
+      if (itemCount === 1) {
+        ttsPhrase = `Розумію, ${taskDescription}. Один крок, виконую`;
+      } else if (itemCount <= 3) {
+        ttsPhrase = `Добре, ${taskDescription}. План з ${itemCount} кроків, починаю`;
+      } else {
+        ttsPhrase = `Зрозумів, ${taskDescription}. Складне завдання, ${itemCount} кроків. Приступаю`;
+      }
+
+      // Send full message with short TTS content
       const itemsList = todo.items.map((item, idx) => `  ${idx + 1}. ${item.action}`).join('\n');
       const todoMessage = `📋 📋 ${todo.mode === 'extended' ? 'Розширений' : 'Стандартний'} план виконання (${todo.items.length} ${this._getPluralForm(todo.items.length, 'пункт', 'пункти', 'пунктів')}):\n\n${itemsList}\n\n⏱️ Орієнтовний час виконання: ${Math.ceil(todo.items.length * 8)} секунд`;
-      this._sendChatMessage(todoMessage, 'atlas');
-
-      // TTS feedback (optional - skip if TTS not available)
-      if (this.tts && typeof this.tts.speak === 'function') {
-        try {
-          // ENHANCED 14.10.2025 NIGHT - Atlas speaks about the plan with more personality
-          const itemCount = todo.items.length;
-          const taskDescription = this._extractTaskDescription(request);
-
-          let atlasPhrase;
-          if (itemCount === 1) {
-            atlasPhrase = `Розумію, ${taskDescription}. Один крок, виконую`;
-          } else if (itemCount <= 3) {
-            atlasPhrase = `Добре, ${taskDescription}. План з ${itemCount} кроків, починаю`;
-          } else {
-            atlasPhrase = `Зрозумів, ${taskDescription}. Складне завдання, ${itemCount} кроків. Приступаю`;
-          }
-
-          // FIXED 14.10.2025 NIGHT - Atlas voice for TODO announcement
-          await this._safeTTSSpeak(atlasPhrase, { mode: 'detailed', duration: 3000, agent: 'atlas' });
-        } catch (ttsError) {
-          this.logger.warn(`[MCP-TODO] TTS feedback failed: ${ttsError.message}`, { category: 'mcp-todo', component: 'mcp-todo' });
-        }
-      }
+      
+      this._sendChatMessage(todoMessage, 'atlas', ttsPhrase);
 
       return todo;
 

@@ -575,10 +575,10 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 
 🚨 CRITICAL VERIFICATION RULES:
 1. READ THE EXACT VALUES from the screenshot - do NOT assume or guess
-2. If success criteria mentions specific numbers/text - verify EXACT match
-3. Do NOT say "verified: true" just because something similar exists
-4. EXTRACT the actual value you see and compare it to what's expected
-5. If numbers don't match EXACTLY - return "verified: false"
+2. EXTRACT the actual value you see, then COMPARE to what's expected
+3. If observed value MATCHES expected → verified: true
+4. If observed value DIFFERS from expected → verified: false
+5. Do NOT use "shows X, not X" format - that's nonsensical!
 
 **Instructions:**
 1. Carefully examine the screenshot
@@ -588,11 +588,18 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 5. Provide specific visual evidence from the screenshot
 6. Return ONLY a JSON object with NO markdown formatting
 
-**Example - Calculator verification:**
+**Example 1 - Success (numbers MATCH):**
+- Success Criteria: "Calculator shows result 6"
+- Screenshot shows: "6"
+- Correct response: {"verified": true, "reason": "Calculator displays 6, which matches the expected result", "visual_evidence": {"observed": "6", "matches_criteria": true}}
+
+**Example 2 - Failure (numbers DIFFER):**
 - Success Criteria: "Calculator shows result 666"
 - Screenshot shows: "87"
-- Correct response: {"verified": false, "reason": "Calculator shows 87, not 666"}
-- WRONG response: {"verified": true, "reason": "Calculator shows result 666"} ❌
+- Correct response: {"verified": false, "reason": "Calculator displays 87, but expected result is 666", "visual_evidence": {"observed": "87", "matches_criteria": false}}
+
+**WRONG Example (DO NOT DO THIS):**
+- ❌ {"reason": "Calculator shows 6, not 6"} ← This is NONSENSE! If you see 6 and expect 6, it's verified: true!
 
 **Required JSON format:**
 {

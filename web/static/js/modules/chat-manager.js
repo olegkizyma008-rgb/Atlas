@@ -9,14 +9,25 @@ import { orchestratorClient } from '../core/api-client.js';
 import { TTSManager } from './tts-manager.js';
 
 export class ChatManager {
-  constructor() {
-    this.logger = new logger.constructor('CHAT');
+  constructor(options = {}) {
+    this.logger = options.logger || new logger.constructor('CHAT');
     this.ttsManager = new TTSManager();
 
     this.messages = [];
     this.isStreaming = false;
     this.isStreamPending = false;
     this.currentSession = null;
+
+    this.chatContainer = null;
+    this.chatMessages = null;
+    this.chatInput = null;
+    this.sendButton = null;
+    this.streamingTimeout = null;
+    this._ttsSequence = Promise.resolve();
+    // ADDED 21.10.2025 - Message queue with sequence tracking
+    this.messageQueue = [];
+    this.processingQueue = false;
+    this.lastProcessedSequence = 0;
 
     /** @type {Map<string, Set<Function>>} */
     this.eventHandlers = new Map();
@@ -393,10 +404,8 @@ export class ChatManager {
 
     switch (data.type) {
       case 'agent_message':
-        this._ttsSequence = (this._ttsSequence || Promise.resolve()).then(() =>
-          this.handleAgentMessage(data.data)
-        );
-        await this._ttsSequence;
+        // ENHANCED 21.10.2025 - Queue messages with sequence tracking
+        this.enqueueMessage(data);
         break;
       case 'status_update':
         this.handleStatusUpdate(data.data);
@@ -452,6 +461,93 @@ export class ChatManager {
         break;
       default:
         this.logger.debug('Unknown stream message type', data.type);
+    }
+  }
+
+  /**
+   * ADDED 21.10.2025 - Enqueue message with sequence tracking
+   */
+  enqueueMessage(data) {
+    const message = {
+      ...data,
+      queuedAt: Date.now()
+    };
+    
+    this.messageQueue.push(message);
+    this.logger.debug('Message enqueued', {
+      type: data.type,
+      sequenceId: data.data?.sequenceId,
+      sessionSequenceId: data.data?.sessionSequenceId,
+      queueLength: this.messageQueue.length
+    });
+    
+    // Process queue if not already processing
+    if (!this.processingQueue) {
+      this.processMessageQueue();
+    }
+  }
+
+  /**
+   * ADDED 21.10.2025 - Process message queue with sequence ordering
+   */
+  async processMessageQueue() {
+    if (this.processingQueue || this.messageQueue.length === 0) {
+      return;
+    }
+
+    this.processingQueue = true;
+
+    try {
+      // Sort queue by sessionSequenceId (if available) or sequenceId
+      this.messageQueue.sort((a, b) => {
+        const aSeq = a.data?.sessionSequenceId || a.data?.sequenceId || 0;
+        const bSeq = b.data?.sessionSequenceId || b.data?.sequenceId || 0;
+        return aSeq - bSeq;
+      });
+
+      // Process messages in order
+      while (this.messageQueue.length > 0) {
+        const message = this.messageQueue[0];
+        const sequenceId = message.data?.sessionSequenceId || message.data?.sequenceId || 0;
+
+        // Skip if we've already processed this sequence
+        if (sequenceId <= this.lastProcessedSequence && sequenceId > 0) {
+          this.logger.warn('Skipping duplicate/old message', { sequenceId, lastProcessed: this.lastProcessedSequence });
+          this.messageQueue.shift();
+          continue;
+        }
+
+        // Process message
+        this.logger.debug('Processing message from queue', {
+          type: message.type,
+          sequenceId,
+          queueLength: this.messageQueue.length
+        });
+
+        if (message.type === 'agent_message') {
+          await this.handleAgentMessage(message.data);
+        }
+
+        // Update last processed sequence
+        if (sequenceId > 0) {
+          this.lastProcessedSequence = sequenceId;
+        }
+
+        // Remove processed message
+        this.messageQueue.shift();
+
+        // Small delay between messages for smoother UX
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    } catch (error) {
+      this.logger.error('Error processing message queue:', error);
+    } finally {
+      this.processingQueue = false;
+
+      // Check if more messages arrived while processing
+      if (this.messageQueue.length > 0) {
+        setTimeout(() => this.processMessageQueue(), 100);
+      }
     }
   }
 

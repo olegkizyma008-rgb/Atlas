@@ -358,11 +358,12 @@ export function registerMCPProcessors(container) {
         return new GrishaVerifyItemProcessor({
             mcpTodoManager: c.resolve('mcpTodoManager'),
             mcpManager: c.resolve('mcpManager'),
+            wsManager: c.resolve('wsManager'),  // FIXED 2025-10-21: Added for chat messages
             visionAnalysis: c.resolve('visionAnalysis'),
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpTodoManager', 'mcpManager', 'visionAnalysis', 'logger'],
+        dependencies: ['mcpTodoManager', 'mcpManager', 'wsManager', 'visionAnalysis', 'logger'],
         metadata: { category: 'processors', priority: 40 }
     });
 

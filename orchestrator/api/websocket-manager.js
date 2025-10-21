@@ -13,6 +13,9 @@ class WebSocketManager {
     this.clients = new Map();
     this.heartbeatInterval = 30000; // 30 секунд
     this.heartbeatTimer = null;
+    // ADDED 21.10.2025 - Sequence tracking for message ordering
+    this.messageSequence = 0;
+    this.sessionSequences = new Map(); // sessionId -> sequence counter
   }
 
   /**
@@ -336,13 +339,34 @@ class WebSocketManager {
 
   /**
      * Broadcast повідомлення всім клієнтам з певною підпискою
+     * ENHANCED 21.10.2025 - Added sequence tracking for message ordering
      */
   broadcastToSubscribers(channel, type, data) {
     let sentCount = 0;
 
+    // ADDED 21.10.2025 - Add global sequence ID
+    const sequenceId = ++this.messageSequence;
+    
+    // ADDED 21.10.2025 - Add session-specific sequence if sessionId present
+    let sessionSequenceId = null;
+    if (data && data.sessionId) {
+      if (!this.sessionSequences.has(data.sessionId)) {
+        this.sessionSequences.set(data.sessionId, 0);
+      }
+      sessionSequenceId = ++this.sessionSequences.get(data.sessionId);
+    }
+
+    // ADDED 21.10.2025 - Enhance data with sequence tracking
+    const enhancedData = {
+      ...data,
+      sequenceId,
+      sessionSequenceId,
+      broadcastTimestamp: Date.now()
+    };
+
     for (const [clientId, client] of this.clients) {
       if (client.subscriptions.has(channel) && client.ws.readyState === 1) {
-        if (this.sendToClient(clientId, type, data)) {
+        if (this.sendToClient(clientId, type, enhancedData)) {
           sentCount++;
         }
       }
@@ -351,6 +375,8 @@ class WebSocketManager {
     logger.debug(`Broadcast to ${channel} subscribers`, {
       channel,
       type,
+      sequenceId,
+      sessionSequenceId,
       sentTo: sentCount,
       totalClients: this.clients.size
     });

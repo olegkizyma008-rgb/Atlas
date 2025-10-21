@@ -353,7 +353,9 @@ class WebSocketManager {
       if (!this.sessionSequences.has(data.sessionId)) {
         this.sessionSequences.set(data.sessionId, 0);
       }
-      sessionSequenceId = ++this.sessionSequences.get(data.sessionId);
+      const currentSeq = this.sessionSequences.get(data.sessionId);
+      sessionSequenceId = currentSeq + 1;
+      this.sessionSequences.set(data.sessionId, sessionSequenceId);
     }
 
     // ADDED 21.10.2025 - Enhance data with sequence tracking

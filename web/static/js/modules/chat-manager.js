@@ -536,8 +536,11 @@ export class ChatManager {
         // Remove processed message
         this.messageQueue.shift();
 
-        // Small delay between messages for smoother UX
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Delay between messages to allow TTS to complete and user to perceive each message
+        // Estimate based on message length: ~100ms per word + 500ms base delay
+        const words = (message.data?.content || '').split(/\s+/).length;
+        const estimatedDelay = Math.max(800, Math.min(words * 100 + 500, 3000));
+        await new Promise(resolve => setTimeout(resolve, estimatedDelay));
       }
     } catch (error) {
       this.logger.error('Error processing message queue:', error);

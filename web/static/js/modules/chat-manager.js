@@ -705,9 +705,9 @@ export class ChatManager {
           // Це запобігає ситуації коли Атлас ще говорить завдання, а Тетяна вже виконує його
           const ttsOptions = { mode: actualMode };
           
-          // ВИПРАВЛЕНО 21.10.2025: Не чекаємо на завершення TTS для Grisha та інших агентів
-          // Інакше черга блокується і наступні повідомлення не обробляються
-          this.ttsManager.addToQueue(textForTTS, agent, ttsOptions).catch(err => {
+          // ВИПРАВЛЕНО 21.10.2025: Чекаємо на завершення TTS для послідовної черги
+          // Це гарантує що всі TTS (Atlas, Tetyana, Grisha) озвучуються по черзі
+          await this.ttsManager.addToQueue(textForTTS, agent, ttsOptions).catch(err => {
             this.logger.debug(`TTS queue failed for ${agent}:`, err?.message || err);
           });
 
@@ -910,7 +910,7 @@ export class ChatManager {
   }
 
   // FIXED 16.10.2025 - Handler for chat_response event (chat mode)
-  handleChatResponse(data) {
+  async handleChatResponse(data) {
     this.logger.info('💬 Chat response received', data);
     const content = data.content || data.message || '';
     const agent = data.agent || 'atlas';
@@ -923,7 +923,7 @@ export class ChatManager {
         const agentConfig = AGENTS[agent];
         const voice = agentConfig?.voice;
         if (voice) {
-          this.ttsManager.addToQueue(content, agent, { mode: 'chat' })
+          await this.ttsManager.addToQueue(content, agent, { mode: 'chat' })
             .catch(err => this.logger.debug('TTS failed:', err?.message || err));
         }
       }

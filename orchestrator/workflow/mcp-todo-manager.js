@@ -694,8 +694,8 @@ export class MCPTodoManager {
         this._sendChatMessage(`✅ ✅ Виконано: "${item.action}"`, 'tetyana');
         await this._safeTTSSpeak(execution.tts_phrase, { mode: 'normal', duration: 800, agent: 'tetyana' });
         
-        // Grisha озвучує результат перевірки
-        await this._safeTTSSpeak(verification.tts_phrase, { mode: 'normal', duration: 800, agent: 'grisha' });
+        // ВИПРАВЛЕНО 21.10.2025: Grisha TTS вже відправляється через WebSocket в grisha-verify-item-processor.js
+        // Не потрібно дублювати тут
 
         // Check verification result
         if (verification.verified) {
@@ -705,9 +705,7 @@ export class MCPTodoManager {
 
           this.logger.system('mcp-todo', `[TODO] ✅ Item ${item.id} completed on attempt ${attempt}`);
           // Chat message already sent by verifyItem()
-
-          // FIXED 14.10.2025 NIGHT - Grisha confirms success
-          await this._safeTTSSpeak(verification.tts_phrase || '✅ Виконано', { mode: 'quick', duration: 100, agent: 'grisha' });
+          // ВИДАЛЕНО 21.10.2025: Дублююча TTS для Grisha - вже є в WebSocket
 
           return { status: 'completed', attempts: attempt, item };
         }

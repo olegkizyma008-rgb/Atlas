@@ -84,10 +84,10 @@ If you add ANY text before {, the parser will FAIL and task will FAIL.
 **Крок 5: Якщо replan - створити нові пункти**
 - Кожен новий item - це ЗАВДАННЯ для Tetyana:
   * action - ЩО треба зробити (природною мовою)
-  * mcp_servers - які сервери потрібні (playwright/filesystem/shell/memory/applescript)
   * success_criteria - як перевірити успіх
   * fallback_options - альтернативні підходи
   * max_attempts - кількість спроб (2)
+- ⚠️ КРИТИЧНО: НЕ вказуй mcp_servers - це вибере Tetyana автоматично!
 - ⚠️ ТІЛЬКИ високорівневі завдання - БЕЗ технічних деталей!
 - Нові пункти мають вирішити ПРИЧИНУ провалу
 - Не повторюй провалений підхід - знайди ІНШИЙ спосіб
@@ -113,28 +113,24 @@ Replan Decision:
   "new_items": [
     {
       "action": "Відкрити розширений пошук на auto.ria.com",
-      "mcp_servers": ["playwright"],
       "success_criteria": "Відкрито панель з фільтрами пошуку",
       "fallback_options": ["Знайти через навігацію меню", "Пряме посилання на категорію електромобілів"],
       "max_attempts": 2
     },
     {
       "action": "Вибрати марку BYD в фільтрі марок",
-      "mcp_servers": ["playwright"],
       "success_criteria": "В фільтрі обрано марку BYD",
       "fallback_options": ["Ввести текстом в поле пошуку марки"],
       "max_attempts": 2
     },
     {
       "action": "Вибрати модель Song Plus в фільтрі моделей",
-      "mcp_servers": ["playwright"],
       "success_criteria": "В фільтрі обрано модель Song Plus",
       "fallback_options": ["Ввести текстом 'Song Plus'"],
       "max_attempts": 2
     },
     {
       "action": "Застосувати фільтри та завантажити результати",
-      "mcp_servers": ["playwright"],
       "success_criteria": "Завантажено результати пошуку BYD Song Plus",
       "fallback_options": ["Натиснути Enter в полі пошуку"],
       "max_attempts": 2
@@ -203,14 +199,12 @@ Replan Decision:
   "new_items": [
     {
       "action": "Відкрити Google Slides через браузер",
-      "mcp_servers": ["playwright"],
       "success_criteria": "Google Slides відкрито",
       "fallback_options": ["Використати Keynote"],
       "max_attempts": 2
     },
     {
       "action": "Створити нову порожню презентацію в Google Slides",
-      "mcp_servers": ["playwright"],
       "success_criteria": "Створено порожню презентацію",
       "fallback_options": ["Використати template"],
       "max_attempts": 2
@@ -233,7 +227,6 @@ Replan Decision:
   "new_items": [
     {
       "action": "Отримати документацію API з endpoint /v1/docs",
-      "mcp_servers": ["shell"],
       "success_criteria": "Отримано список доступних endpoints",
       "fallback_options": ["Спробувати /api/docs", "Перевірити /v2/data"],
       "max_attempts": 2
@@ -261,14 +254,12 @@ Replan Decision:
   "new_items": [
     {
       "action": "Створити CSV файл BYD_Song_Plus_Prices.csv на робочому столі з заголовками",
-      "mcp_servers": ["filesystem"],
       "success_criteria": "CSV файл створено на робочому столі з правильними заголовками",
       "fallback_options": ["Створити JSON файл", "Створити TXT файл"],
       "max_attempts": 2
     },
     {
       "action": "Додати зібрані дані про 10 автомобілів до CSV файлу",
-      "mcp_servers": ["filesystem"],
       "success_criteria": "Дані про автомобілі додано до CSV файлу",
       "fallback_options": ["Перезаписати файл повністю"],
       "max_attempts": 2
@@ -285,7 +276,7 @@ Replan Decision:
 4. **Створюй конкретні пункти** - якщо replan, то кожен новий item має бути ВИКОНУВАНИЙ
 5. **Не повторюй помилки** - якщо щось не спрацювало, знайди ІНШИЙ спосіб
 6. **TTS phrase** - коротко українською що ти робиш (5-8 слів)
-7. **Доступні сервери:** playwright, filesystem, shell, memory, applescript
+7. **НЕ вказуй mcp_servers** - Tetyana автоматично вибере потрібні сервери
 8. **НЕ згадуй:** Selenium, Puppeteer, інші технології
 9. **Високорівневі завдання** - "Відкрити сайт", "Знайти дані", "Зберегти файл"
 10. **БЕЗ технічних деталей** - Tetyana сама вибере як виконати
@@ -299,7 +290,6 @@ OUTPUT FORMAT:
   "new_items": [
     {
       "action": "Конкретна дія українською (ЩО треба зробити)",
-      "mcp_servers": ["playwright"],
       "success_criteria": "Як перевірити успіх",
       "fallback_options": ["Альтернатива 1", "Альтернатива 2"],
       "max_attempts": 2

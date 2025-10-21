@@ -1011,6 +1011,41 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       res
     });
 
+    // ВИПРАВЛЕНО 21.10.2025: Додаємо фінальне повідомлення від Atlas
+    const completedCount = todo.items.filter(item => item.status === 'completed').length;
+    const totalCount = todo.items.length;
+    const successRate = Math.round((completedCount / totalCount) * 100);
+    
+    let atlasFinalMessage;
+    let atlasTTS;
+    if (summaryResult.success && successRate === 100) {
+      atlasFinalMessage = `✅ Завдання виконано повністю! Всі ${totalCount} пунктів успішно завершені.`;
+      atlasTTS = `Завдання виконано повністю`;
+    } else if (successRate >= 50) {
+      atlasFinalMessage = `⚠️ Завдання виконано частково: ${completedCount} з ${totalCount} пунктів (${successRate}% успіху)`;
+      atlasTTS = `Виконано ${completedCount} з ${totalCount} пунктів`;
+    } else {
+      atlasFinalMessage = `❌ Завдання не вдалося виконати: лише ${completedCount} з ${totalCount} пунктів завершені`;
+      atlasTTS = `Завдання не виконано`;
+    }
+
+    // Відправляємо фінальне повідомлення від Atlas через WebSocket
+    if (wsManager) {
+      try {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: atlasFinalMessage,
+          agent: 'atlas',
+          ttsContent: atlasTTS,
+          mode: 'task',
+          sessionId: session.id,
+          timestamp: new Date().toISOString()
+        });
+        logger.system('executor', '[ATLAS-FINAL] ✅ Final completion message sent');
+      } catch (wsError) {
+        logger.warn(`[ATLAS-FINAL] Failed to send final message: ${wsError.message}`);
+      }
+    }
+
     // Send final summary to frontend
     if (res.writable && !res.writableEnded) {
       res.write(`data: ${JSON.stringify({
@@ -1019,7 +1054,10 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
           success: summaryResult.success,
           summary: summaryResult.summary,
           metrics: summaryResult.metadata?.metrics || {},
-          duration: Date.now() - workflowStart
+          duration: Date.now() - workflowStart,
+          completedCount,
+          totalCount,
+          successRate
         }
       })}\n\n`);
     }

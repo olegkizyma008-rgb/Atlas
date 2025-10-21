@@ -682,15 +682,19 @@ export class MCPTodoManager {
 
         // Stage 2.2: Execute Tools (Tetyana) - using potentially adjusted plan
         const execution = await this.executeTools(finalPlan, item);
-        this._sendChatMessage(`✅ ✅ Виконано: "${item.action}"`, 'tetyana');
-        await this._safeTTSSpeak(execution.tts_phrase, { mode: 'normal', duration: 800, agent: 'tetyana' });
 
         // Stage 2.3: Verify Item (Grisha) - with same pre-selected servers
         const verification = await this.verifyItem(item, execution, {
           selectedServers,  // ADDED 16.10.2025 - Pass same servers to Grisha
           toolsSummary
         });
-        // FIXED 14.10.2025 NIGHT - Grisha's voice for verification
+
+        // ВИПРАВЛЕНО 21.10.2025: Правильна послідовність - Tetyana confirm ПЕРЕД Grisha verify
+        // Tetyana підтверджує виконання
+        this._sendChatMessage(`✅ ✅ Виконано: "${item.action}"`, 'tetyana');
+        await this._safeTTSSpeak(execution.tts_phrase, { mode: 'normal', duration: 800, agent: 'tetyana' });
+        
+        // Grisha озвучує результат перевірки
         await this._safeTTSSpeak(verification.tts_phrase, { mode: 'normal', duration: 800, agent: 'grisha' });
 
         // Check verification result

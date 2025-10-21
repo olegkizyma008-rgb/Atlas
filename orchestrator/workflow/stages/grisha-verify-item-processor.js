@@ -179,10 +179,16 @@ export class GrishaVerifyItemProcessor {
                         verificationMessage = `❌ Не підтверджено: ${verification.reason}`;
                     }
 
+                    // ВИПРАВЛЕНО 21.10.2025: Короткий ttsContent для Гріші БЕЗ англійського тексту
+                    // visual_evidence.observed містить англійський текст від Vision API - не озвучуємо його
+                    const shortTTS = verification.verified 
+                        ? `Підтверджено` 
+                        : `Не підтверджено`;
+                    
                     this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
                         content: verificationMessage,
                         agent: 'grisha',
-                        ttsContent: verification.verified ? `Підтверджено. ${verification.visual_evidence.observed}` : verification.reason,
+                        ttsContent: shortTTS,
                         mode: 'normal',
                         sessionId: context.session?.id,
                         timestamp: new Date().toISOString()

@@ -644,18 +644,16 @@ export class ChatManager {
       this._processedTTS = new Set();
     }
 
-    // TTS відтворення - віддаємо перевагу оптимізованому тексту, якщо він доступний
+    // TTS відтворення - ЗАВЖДИ використовуємо ttsContent для короткого озвучення
+    // content - це повний текст для UI, ttsContent - короткий для TTS
     let textForTTS;
     if (ttsOptimized && ttsContent && ttsContent.trim()) {
       textForTTS = ttsContent.trim();
       this.logger.debug(`Using optimized TTS content: ${textForTTS.length} characters`);
-    } else if (this.fullTextMode) {
-      // Повний текст (content) - замість скороченого ttsContent
-      textForTTS = content;
-      this.logger.debug(`Using full text mode for TTS: ${content?.length || 0} characters`);
     } else {
-      // Стандартний режим (скорочений текст)
+      // ВИПРАВЛЕНО 21.10.2025: Завжди використовуємо ttsContent (короткий), а не content (повний)
       textForTTS = ttsContent || content;
+      this.logger.debug(`Using ttsContent for TTS: ${textForTTS?.length || 0} characters`);
     }
 
     // КРИТИЧНЕ ВИПРАВЛЕННЯ: Видаляємо сигнатури агентів [ATLAS], [ТЕТЯНА], [ГРИША] перед TTS
@@ -706,7 +704,12 @@ export class ChatManager {
           // CRITICAL FIX: Використовуємо чергу TTS щоб поточне озвучення завершилось перед наступним
           // Це запобігає ситуації коли Атлас ще говорить завдання, а Тетяна вже виконує його
           const ttsOptions = { mode: actualMode };
-          await this.ttsManager.addToQueue(textForTTS, agent, ttsOptions);
+          
+          // ВИПРАВЛЕНО 21.10.2025: Не чекаємо на завершення TTS для Grisha та інших агентів
+          // Інакше черга блокується і наступні повідомлення не обробляються
+          this.ttsManager.addToQueue(textForTTS, agent, ttsOptions).catch(err => {
+            this.logger.debug(`TTS queue failed for ${agent}:`, err?.message || err);
+          });
 
           this.logger.info(`✅ TTS completed for ${agent}`);
 

@@ -137,7 +137,7 @@ export const TTS_CONFIG = {
       'atlas': 1,
       'tetyana': 2,
       'grisha': 3,
-      'system': 4
+      'system': 999           // Системні повідомлення озвучуються ОСТАННІМИ
     }
   },
 

@@ -1152,12 +1152,22 @@ Create precise MCP tool execution plan.
               timeout: timeoutMs,
               maxContentLength: 50 * 1024 * 1024,  // 50MB
               maxBodyLength: 50 * 1024 * 1024,  // 50MB
-              validateStatus: (status) => status < 500 // Don't throw on 4xx
+              validateStatus: (status) => status < 600 // Accept all responses to handle manually
             });
             
-            // Check for server errors
+            // Check for rate limit errors (need retry with longer delay)
+            if (apiResponse.status === 500 && apiResponse.data?.error?.code === 'RATE_LIMIT') {
+              throw new Error('RATE_LIMIT_EXCEEDED');
+            }
+            
+            // Check for other server errors
             if (apiResponse.status >= 500) {
               throw new Error(`Server error: ${apiResponse.status}`);
+            }
+            
+            // Check for client errors (don't retry)
+            if (apiResponse.status >= 400 && apiResponse.status < 500) {
+              throw new Error(`Client error: ${apiResponse.status} - ${apiResponse.data?.error?.message || 'Unknown error'}`);
             }
             
             break; // Success, exit retry loop
@@ -1169,8 +1179,12 @@ Create precise MCP tool execution plan.
               throw retryError;
             }
             
-            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-            this.logger.warn(`[MCP-TODO] Retry ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
+            // Special handling for rate limits - longer delay
+            const isRateLimit = retryError.message === 'RATE_LIMIT_EXCEEDED';
+            const baseDelay = isRateLimit ? 3000 : 1000;
+            const delay = Math.min(baseDelay * Math.pow(2, retryCount - 1), 10000);
+            
+            this.logger.warn(`[MCP-TODO] ${isRateLimit ? 'Rate limit hit' : 'Retry'} ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
               category: 'mcp-todo',
               component: 'mcp-todo'
             });
@@ -1182,7 +1196,7 @@ Create precise MCP tool execution plan.
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
 
       } catch (apiError) {
-        this.logger.error(`[MCP-TODO] LLM API call failed: ${apiError.message}`, {
+        this.logger.error(`[MCP-TODO] LLM API call failed after ${maxRetries} attempts: ${apiError.message}`, {
           category: 'mcp-todo',
           component: 'mcp-todo',
           errorName: apiError.name,
@@ -1193,6 +1207,7 @@ Create precise MCP tool execution plan.
         // Handle specific error cases
         if (apiError.code === 'ECONNREFUSED') {
           // Try fallback endpoints
+          this.logger.system('mcp-todo', '[TODO] Primary API unavailable, trying fallback endpoints...');
           const fallbackResult = await this._tryFallbackLLM(requestBody);
           if (fallbackResult) {
             apiResponse = fallbackResult;
@@ -1201,6 +1216,8 @@ Create precise MCP tool execution plan.
           }
         } else if (apiError.code === 'ETIMEDOUT' || apiError.code === 'ECONNABORTED') {
           throw new Error(`LLM API timeout after ${timeoutMs}ms`);
+        } else if (apiError.message === 'RATE_LIMIT_EXCEEDED') {
+          throw new Error('Rate limit exceeded after 3 retries. Please wait and try again.');
         } else {
           throw new Error(`LLM API error: ${apiError.message}`);
         }
@@ -3339,7 +3356,7 @@ Select 1-2 most relevant servers.
             })
           },
           timeout: 30000,
-          validateStatus: (status) => status < 500
+          validateStatus: (status) => status < 600 // Accept all responses
         });
         
         if (response.status === 200) {

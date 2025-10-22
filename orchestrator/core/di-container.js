@@ -214,8 +214,7 @@ export class DIContainer {
     async initialize() {
         const logger = this.has('logger') ? this.resolve('logger') : console;
 
-        logger.info?.('[DI] Initializing services...') ||
-            console.log('[DI] Initializing services...');
+        logger.info?.('[DI] Initializing services...');
 
         // Резолвимо всі singletons для ініціалізації
         for (const [name, service] of this.services.entries()) {
@@ -244,14 +243,12 @@ export class DIContainer {
                     }
 
                     await hooks.onInit.call(instance);
-                    logger.debug?.(`[DI] Initialized: ${name}`) ||
-                        console.log(`[DI] Initialized: ${name}`);
+                    logger.debug?.(`[DI] Initialized: ${name}`);
                 }
             }
         }
 
-        logger.info?.('[DI] All services initialized') ||
-            console.log('[DI] All services initialized');
+        logger.info?.('[DI] All services initialized');
     }
 
     /**
@@ -267,8 +264,7 @@ export class DIContainer {
 
         const logger = this.has('logger') ? this.resolve('logger') : console;
 
-        logger.info?.('[DI] Starting services...') ||
-            console.log('[DI] Starting services...');
+        logger.info?.('[DI] Starting services...');
 
         // Викликаємо onStart hooks
         for (const [name, hooks] of this.lifecycleHooks.entries()) {
@@ -288,16 +284,14 @@ export class DIContainer {
                     }
 
                     await hooks.onStart.call(instance);
-                    logger.debug?.(`[DI] Started: ${name}`) ||
-                        console.log(`[DI] Started: ${name}`);
+                    logger.debug?.(`[DI] Started: ${name}`);
                 }
             }
         }
 
         this.started = true;
 
-        logger.info?.('[DI] All services started') ||
-            console.log('[DI] All services started');
+        logger.info?.('[DI] All services started');
     }
 
     /**
@@ -313,8 +307,7 @@ export class DIContainer {
 
         const logger = this.has('logger') ? this.resolve('logger') : console;
 
-        logger.info?.('[DI] Stopping services...') ||
-            console.log('[DI] Stopping services...');
+        logger.info?.('[DI] Stopping services...');
 
         // Викликаємо onStop hooks у зворотному порядку
         const hooks = Array.from(this.lifecycleHooks.entries()).reverse();
@@ -338,8 +331,7 @@ export class DIContainer {
 
                     try {
                         await lifecycle.onStop.call(instance);
-                        logger.debug?.(`[DI] Stopped: ${name}`) ||
-                            console.log(`[DI] Stopped: ${name}`);
+                        logger.debug?.(`[DI] Stopped: ${name}`);
                     } catch (error) {
                         logger.error?.(`[DI] Error stopping ${name}: ${error?.message || error}`) ||
                             console.error(`[DI] Error stopping ${name}:`, error);
@@ -350,8 +342,7 @@ export class DIContainer {
 
         this.started = false;
 
-        logger.info?.('[DI] All services stopped') ||
-            console.log('[DI] All services stopped');
+        logger.info?.('[DI] All services stopped');
     }
 
     /**
@@ -388,13 +379,14 @@ export class DIContainer {
      * Debug - виводить інформацію про контейнер
      */
     debug() {
-        console.group('🔧 DI Container Debug');
-        console.log('Registered services:', this.getServices());
-        console.log('Singletons:', Array.from(this.singletons.keys()));
-        console.log('Currently resolving:', Array.from(this.resolving));
-        console.log('Started:', this.started);
-        console.log('Lifecycle hooks:', Array.from(this.lifecycleHooks.keys()));
-        console.groupEnd();
+        const logger = this.has('logger') ? this.resolve('logger') : console;
+        logger.debug?.('🔧 DI Container Debug', {
+            services: this.getServices(),
+            singletons: Array.from(this.singletons.keys()),
+            resolving: Array.from(this.resolving),
+            started: this.started,
+            lifecycleHooks: Array.from(this.lifecycleHooks.keys())
+        });
     }
 }
 

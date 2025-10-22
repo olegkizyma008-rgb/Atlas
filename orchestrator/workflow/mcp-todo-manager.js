@@ -1105,10 +1105,9 @@ Create precise MCP tool execution plan.
         // Wait for rate limit (ADDED 14.10.2025)
         await this._waitForRateLimit();
 
-        // FIXED 14.10.2025 - Increase timeout for reasoning models
-        // FIXED 15.10.2025 - Increase to 180s for ALL models (web scraping може бути повільним)
+        // FIXED 2025-10-22 - Optimized timeout configuration
         const isReasoningModel = modelConfig.model.includes('reasoning') || modelConfig.model.includes('phi-4');
-        const timeoutMs = isReasoningModel ? 180000 : 120000;  // 180s for reasoning, 120s for others
+        const timeoutMs = isReasoningModel ? 90000 : 30000;  // 90s for reasoning, 30s for fast models
 
         // NEW 2025-10-22: Build JSON Schema for tool_calls to enforce valid tool names (Goose-style)
         const toolSchema = this._buildToolCallsSchema(availableTools);
@@ -1142,17 +1141,47 @@ Create precise MCP tool execution plan.
           this.logger.system('mcp-todo', `[TODO] 🔒 Using JSON Schema with ${toolSchema.properties.tool_calls.items.properties.tool.enum.length} valid tool names`);
         }
 
-        apiResponse = await axios.post(apiUrl, requestBody, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: timeoutMs,
-          maxContentLength: 50 * 1024 * 1024,  // 50MB
-          maxBodyLength: 50 * 1024 * 1024  // 50MB
-        });
+        // Add retry logic for transient failures
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+          try {
+            apiResponse = await axios.post(apiUrl, requestBody, {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: timeoutMs,
+              maxContentLength: 50 * 1024 * 1024,  // 50MB
+              maxBodyLength: 50 * 1024 * 1024,  // 50MB
+              validateStatus: (status) => status < 500 // Don't throw on 4xx
+            });
+            
+            // Check for server errors
+            if (apiResponse.status >= 500) {
+              throw new Error(`Server error: ${apiResponse.status}`);
+            }
+            
+            break; // Success, exit retry loop
+            
+          } catch (retryError) {
+            retryCount++;
+            
+            if (retryCount >= maxRetries) {
+              throw retryError;
+            }
+            
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+            this.logger.warn(`[MCP-TODO] Retry ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo'
+            });
+            
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
 
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
 
       } catch (apiError) {
-        // FIXED 14.10.2025 - Use correct logger signature for error() method
         this.logger.error(`[MCP-TODO] LLM API call failed: ${apiError.message}`, {
           category: 'mcp-todo',
           component: 'mcp-todo',
@@ -1160,10 +1189,21 @@ Create precise MCP tool execution plan.
           code: apiError.code,
           stack: apiError.stack
         });
+        
+        // Handle specific error cases
         if (apiError.code === 'ECONNREFUSED') {
-          throw new Error('LLM API not available at localhost:4000. Start it with: ./start-llm-api-4000.sh');
+          // Try fallback endpoints
+          const fallbackResult = await this._tryFallbackLLM(requestBody);
+          if (fallbackResult) {
+            apiResponse = fallbackResult;
+          } else {
+            throw new Error('LLM API not available. Start it with: ./start-llm-api-4000.sh');
+          }
+        } else if (apiError.code === 'ETIMEDOUT' || apiError.code === 'ECONNABORTED') {
+          throw new Error(`LLM API timeout after ${timeoutMs}ms`);
+        } else {
+          throw new Error(`LLM API error: ${apiError.message}`);
         }
-        throw new Error(`LLM API error: ${apiError.message}`);
       }
 
       // FIXED 16.10.2025 - Add validation for API response structure
@@ -3275,6 +3315,48 @@ Select 1-2 most relevant servers.
     };
   }
 
+  /**
+   * Try fallback LLM endpoints when primary fails
+   * @private
+   */
+  async _tryFallbackLLM(requestBody) {
+    const fallbackEndpoints = [
+      'http://localhost:11434/v1/chat/completions',  // Ollama
+      'https://openrouter.ai/api/v1/chat/completions'  // OpenRouter
+    ];
+    
+    for (const endpoint of fallbackEndpoints) {
+      try {
+        this.logger.system('mcp-todo', `[TODO] Trying fallback LLM endpoint: ${endpoint}`);
+        
+        const response = await axios.post(endpoint, requestBody, {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(endpoint.includes('openrouter') && {
+              'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
+              'HTTP-Referer': 'https://atlas.local',
+              'X-Title': 'Atlas MCP'
+            })
+          },
+          timeout: 30000,
+          validateStatus: (status) => status < 500
+        });
+        
+        if (response.status === 200) {
+          this.logger.system('mcp-todo', `[TODO] Fallback LLM succeeded: ${endpoint}`);
+          return response;
+        }
+      } catch (error) {
+        this.logger.warn(`[MCP-TODO] Fallback endpoint failed: ${endpoint}: ${error.message}`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
+        });
+      }
+    }
+    
+    return null;
+  }
+  
   /**
    * Generate fallback plan for common operations
    * @private

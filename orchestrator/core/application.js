@@ -52,8 +52,7 @@ export class Application {
     async initializeServices() {
         // Configure Axios з retry logic для 429 помилок
         configureAxios();
-        this.logger?.system?.('axios', 'Axios configured with 429 rate limit handling') ||
-            console.log('[INIT] Axios configured with 429 rate limit handling');
+        this.logger?.system?.('axios', 'Axios configured with 429 rate limit handling');
 
         // Реєструємо всі сервіси
         registerAllServices(this.container);
@@ -174,7 +173,7 @@ export class Application {
      * Graceful shutdown
      */
     async shutdown() {
-        console.log('Shutting down gracefully...');
+        this.logger?.system?.('app', 'Shutting down gracefully...');
 
         try {
             // Зупиняємо сервіси через DI lifecycle

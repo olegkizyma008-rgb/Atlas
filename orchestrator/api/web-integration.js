@@ -105,7 +105,7 @@ class WebIntegrationManager extends EventEmitter {
       emotion: options.emotion || 'focused'
     });
 
-    console.log('TTS visualization started', options.voice || 'unknown', text);
+    // TTS visualization started - logged via event emission
 
     this.emit('tts-start', {
       text,
@@ -136,7 +136,7 @@ class WebIntegrationManager extends EventEmitter {
       emotion: 'calm'
     });
 
-    console.log('TTS visualization stopped');
+    // TTS visualization stopped - logged via event emission
 
     this.emit('tts-stop', {
       previous: previousState,
@@ -243,7 +243,7 @@ class WebIntegrationManager extends EventEmitter {
       this.activeConnections.delete(ws);
     });
 
-    console.log('WebSocket connection added');
+    // WebSocket connection added - logged via event emission
   }
 
   /**
@@ -280,7 +280,7 @@ class WebIntegrationManager extends EventEmitter {
     const removedCount = initialLength - this.logBuffer.length;
 
     if (removedCount > 0) {
-      console.log(`Cleared ${removedCount} old log entries`);
+      // Log buffer cleanup - ${removedCount} entries removed
     }
 
     return removedCount;

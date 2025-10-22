@@ -31,21 +31,40 @@ export class LLMClient {
   async initialize() {
     logger.system('llm-client', `[LLM Client] Initializing (${this.model} @ ${this.endpoint})`);
 
-    // Перевірка доступності endpoint
-    try {
-      const healthCheck = await fetch(this.endpoint.replace('/v1/chat/completions', '/health'), {
-        method: 'GET',
-        timeout: 3000
-      }).catch(() => null);
+    // Перевірка доступності endpoint з retry logic
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const healthCheck = await fetch(this.endpoint.replace('/v1/chat/completions', '/health'), {
+          method: 'GET',
+          signal: controller.signal
+        }).catch(() => null);
+        
+        clearTimeout(timeoutId);
 
-      if (healthCheck && healthCheck.ok) {
-        logger.system('llm-client', '[LLM Client] ✅ LLM endpoint is available');
-      } else {
-        logger.warn('llm-client', '[LLM Client] ⚠️ LLM endpoint health check failed');
+        if (healthCheck && healthCheck.ok) {
+          logger.system('llm-client', '[LLM Client] ✅ LLM endpoint is available');
+          return;
+        } else {
+          logger.warn('llm-client', `[LLM Client] ⚠️ LLM endpoint health check failed (attempt ${4 - retries}/3)`);
+        }
+      } catch (error) {
+        logger.warn('llm-client', `[LLM Client] ⚠️ Could not verify endpoint: ${error.message} (attempt ${4 - retries}/3)`);
       }
-    } catch (error) {
-      logger.warn('llm-client', `[LLM Client] ⚠️ Could not verify endpoint: ${error.message}`);
+      
+      retries--;
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
+    
+    logger.error('[LLM Client] Failed to verify endpoint after 3 attempts', {
+      category: 'llm-client',
+      component: 'llm-client'
+    });
   }
 
   /**
@@ -100,42 +119,9 @@ export class LLMClient {
     });
 
     // API request
-    const requestBody = {
-      model: this.model,
-      messages,
-      temperature: this.temperature,
-      max_tokens: 2000
-    };
+    const response = await this.complete(messages);
 
-    try {
-      const startTime = Date.now();
-
-      const response = await fetch(this.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`LLM API error: ${response.status} ${errorText}`);
-      }
-
-      const data = await response.json();
-      const latency = Date.now() - startTime;
-
-      const content = data.choices?.[0]?.message?.content || '';
-
-      logger.debug('llm-client', `[LLM Client] ✅ Generated (${latency}ms, ${content.length} chars)`);
-
-      return content;
-
-    } catch (error) {
-      logger.error('llm-client', `[LLM Client] ❌ Generation failed: ${error.message}`);
-      throw error;
-    }
+    return response;
   }
 
   /**

@@ -178,23 +178,23 @@ export const MCP_MODEL_CONFIG = {
     },
     todo_planning: {
       get model() {
-        return env.MCP_MODEL_TODO_PLANNING || 'ext-mistral-codestral-latest';
+        return env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-medium-2505';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_TODO_PLANNING || '0.3');
       },
       max_tokens: 4000,
-      description: 'Atlas TODO Planning (Codestral - code-focused reasoning)'
+      description: 'Atlas TODO Planning (Mistral Medium - reliable reasoning)'
     },
     plan_tools: {
       get model() {
-        return env.MCP_MODEL_PLAN_TOOLS || 'ext-mistral-codestral-latest';
+        return env.MCP_MODEL_PLAN_TOOLS || 'atlas-mistral-medium-2505';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');
       },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (Codestral)'
+      description: 'Tetyana Plan Tools - чистий JSON (Mistral Medium)'
     },
     verification_eligibility: {
       get model() {
@@ -228,13 +228,13 @@ export const MCP_MODEL_CONFIG = {
     },
     replan_todo: {
       get model() {
-        return env.MCP_MODEL_REPLAN_TODO || 'ext-mistral-codestral-latest';
+        return env.MCP_MODEL_REPLAN_TODO || 'atlas-mistral-medium-2505';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_REPLAN_TODO || '0.3');
       },
       max_tokens: 3000,
-      description: 'Atlas Replan TODO - глибокий аналіз (Codestral)'
+      description: 'Atlas Replan TODO - глибокий аналіз (Mistral Medium)'
     },
     final_summary: {
       get model() {

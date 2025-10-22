@@ -178,23 +178,23 @@ export const MCP_MODEL_CONFIG = {
     },
     todo_planning: {
       get model() {
-        return env.MCP_MODEL_TODO_PLANNING || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_TODO_PLANNING || 'x-ai-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_TODO_PLANNING || '0.3');
       },
       max_tokens: 4000,
-      description: 'Atlas TODO Planning (GPT-4o-mini - швидке reasoning)'
+      description: 'Atlas TODO Planning (Codestral - code-focused reasoning)'
     },
     plan_tools: {
       get model() {
-        return env.MCP_MODEL_PLAN_TOOLS || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_PLAN_TOOLS || 'x-ai-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');
       },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
+      description: 'Tetyana Plan Tools - чистий JSON (Codestral)'
     },
     verification_eligibility: {
       get model() {

@@ -228,13 +228,13 @@ export const MCP_MODEL_CONFIG = {
     },
     replan_todo: {
       get model() {
-        return env.MCP_MODEL_REPLAN_TODO || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_REPLAN_TODO || 'ext-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_REPLAN_TODO || '0.3');
       },
       max_tokens: 3000,
-      description: 'Atlas Replan TODO - глибокий аналіз (GPT-4o-mini)'
+      description: 'Atlas Replan TODO - глибокий аналіз (Codestral)'
     },
     final_summary: {
       get model() {

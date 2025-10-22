@@ -953,6 +953,10 @@ export class MCPTodoManager {
       else if (options.toolsSummary) {
         toolsSummary = options.toolsSummary;
         this.logger.system('mcp-todo', `[TODO] Using provided tools summary (${toolsSummary.length} chars)`);
+
+        if (typeof this.mcpManager.listTools === 'function') {
+          availableTools = this.mcpManager.listTools();
+        }
       }
       // FALLBACK: Generate summary for ALL servers (not recommended - 92+ tools)
       else {
@@ -968,6 +972,32 @@ export class MCPTodoManager {
           category: 'mcp-todo',
           component: 'mcp-todo'
         });
+
+        if (typeof this.mcpManager.listTools === 'function') {
+          availableTools = this.mcpManager.listTools();
+        }
+      }
+
+      // SAFETY NET: Ensure availableTools populated for JSON Schema validation
+      if (!availableTools || availableTools.length === 0) {
+        if (typeof this.mcpManager.listTools === 'function') {
+          availableTools = this.mcpManager.listTools();
+        }
+      }
+
+      if (!availableTools || availableTools.length === 0) {
+        const serverNames = Array.from(this.mcpManager?.servers?.keys?.() || []);
+        if (serverNames.length > 0 && typeof this.mcpManager.getToolsFromServers === 'function') {
+          availableTools = this.mcpManager.getToolsFromServers(serverNames);
+        }
+      }
+
+      if (!availableTools || availableTools.length === 0) {
+        this.logger.error('[MCP-TODO] ❌ No available tools loaded from MCP servers', {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
+        });
+        throw new Error('Tool planning failed: no available tools loaded from MCP servers');
       }
 
       // Import Tetyana Plan Tools prompt

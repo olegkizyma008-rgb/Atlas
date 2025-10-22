@@ -2249,8 +2249,21 @@ Context: ${JSON.stringify(context, null, 2)}
       } else {
         parsed = cleanResponse;
       }
+      // FIXED 2025-10-22 - Auto-fix null server by extracting from tool name
+      const toolCalls = (parsed.tool_calls || []).map(call => {
+        // If server is null/undefined, extract from tool name (format: server__tool)
+        if (!call.server && call.tool && call.tool.includes('__')) {
+          const parts = call.tool.split('__');
+          if (parts.length >= 2) {
+            call.server = parts[0];
+            this.logger.system('mcp-todo', `[TODO] Auto-fixed null server: ${call.server} (from tool: ${call.tool})`);
+          }
+        }
+        return call;
+      });
+      
       return {
-        tool_calls: parsed.tool_calls || [],
+        tool_calls: toolCalls,
         reasoning: parsed.reasoning || ''
       };
     } catch (error) {

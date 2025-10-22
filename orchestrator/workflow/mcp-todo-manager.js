@@ -1080,7 +1080,10 @@ Create precise MCP tool execution plan.
         const isReasoningModel = modelConfig.model.includes('reasoning') || modelConfig.model.includes('phi-4');
         const timeoutMs = isReasoningModel ? 180000 : 120000;  // 180s for reasoning, 120s for others
 
-        apiResponse = await axios.post(apiUrl, {
+        // NEW 2025-10-22: Build JSON Schema for tool_calls to enforce valid tool names (Goose-style)
+        const toolSchema = this._buildToolCallsSchema(availableTools);
+
+        const requestBody = {
           model: modelConfig.model,
           messages: [
             {
@@ -1094,7 +1097,22 @@ Create precise MCP tool execution plan.
           ],
           temperature: modelConfig.temperature,
           max_tokens: modelConfig.max_tokens
-        }, {
+        };
+
+        // Add response_format with JSON Schema if tools are available
+        if (toolSchema) {
+          requestBody.response_format = {
+            type: 'json_schema',
+            json_schema: {
+              name: 'tool_plan',
+              strict: true,
+              schema: toolSchema
+            }
+          };
+          this.logger.system('mcp-todo', `[TODO] 🔒 Using JSON Schema with ${toolSchema.properties.tool_calls.items.properties.tool.enum.length} valid tool names`);
+        }
+
+        apiResponse = await axios.post(apiUrl, requestBody, {
           headers: { 'Content-Type': 'application/json' },
           timeout: timeoutMs,
           maxContentLength: 50 * 1024 * 1024,  // 50MB
@@ -2632,6 +2650,78 @@ Context: ${JSON.stringify(context, null, 2)}
     if (mod10 === 1 && mod100 !== 11) return one;
     if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
     return many;
+  }
+
+  /**
+   * Build JSON Schema for tool_calls to enforce valid tool names (Goose-style)
+   * NEW 2025-10-22: Prevents LLM from inventing tool names
+   * 
+   * @param {Array} availableTools - List of available tools from MCP servers
+   * @returns {Object|null} JSON Schema object or null if no tools
+   * @private
+   */
+  _buildToolCallsSchema(availableTools) {
+    if (!availableTools || availableTools.length === 0) {
+      return null;
+    }
+
+    // Extract valid tool names (with server prefix)
+    const validToolNames = availableTools.map(t => t.name);
+    
+    // Extract valid server names
+    const validServerNames = [...new Set(availableTools.map(t => t.server))];
+
+    this.logger.system('mcp-todo', `[TODO] 🔒 Building JSON Schema with ${validToolNames.length} valid tools from ${validServerNames.length} servers`);
+
+    // Build strict JSON Schema
+    return {
+      type: 'object',
+      properties: {
+        tool_calls: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              server: {
+                type: 'string',
+                enum: validServerNames,
+                description: 'MCP server name'
+              },
+              tool: {
+                type: 'string',
+                enum: validToolNames,
+                description: 'Exact tool name from available tools (with server prefix)'
+              },
+              parameters: {
+                type: 'object',
+                description: 'Tool parameters as key-value pairs',
+                additionalProperties: true
+              },
+              reasoning: {
+                type: 'string',
+                description: 'Why this tool is needed'
+              }
+            },
+            required: ['server', 'tool', 'parameters'],
+            additionalProperties: false
+          }
+        },
+        reasoning: {
+          type: 'string',
+          description: 'Overall plan reasoning'
+        },
+        tts_phrase: {
+          type: 'string',
+          description: 'User-friendly TTS phrase'
+        },
+        needs_split: {
+          type: 'boolean',
+          description: 'Whether item needs to be split into smaller items'
+        }
+      },
+      required: ['tool_calls', 'reasoning'],
+      additionalProperties: false
+    };
   }
 
   /**

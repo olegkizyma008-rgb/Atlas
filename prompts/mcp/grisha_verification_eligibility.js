@@ -32,7 +32,7 @@ export const SYSTEM_PROMPT = `Ти Гріша — старший інспект�
       "description": "string",
       "server": "filesystem" | "shell" | "applescript" | "memory" | "playwright",
       "tool": "server__tool",              // формат з подвійним підкресленням (напр., filesystem__read_file)
-      "arguments": Object,                  // JSON з параметрами інструменту
+      "parameters": Object,                 // JSON з параметрами інструменту
       "expected_evidence": "string"        // що треба побачити в результаті
     }
   ],
@@ -45,7 +45,7 @@ export const SYSTEM_PROMPT = `Ти Гріша — старший інспект�
 - Якщо "visual_possible" = true, але впевненість < 60 або є критичні невідповідності — рекомендуй "data" або "hybrid".
 - Якщо "visual_possible" = false, обов'язково додай 1-3 "additional_checks".
 - Значення "tool" завжди у форматі server__tool (напр., "filesystem__read_file").
-- "arguments" має бути валідним JSON-об'єктом (без undefined, з подвійними лапками у ключах/рядках).
+- "parameters" має бути валідним JSON-об'єктом (без undefined, з подвійними лапками у ключах/рядках).
 - Якщо додаткові перевірки не потрібні, поверни порожній масив.
 - "analysis_focus" допоможе наступному етапу зрозуміти, на що дивитися у даних.
 
@@ -56,7 +56,7 @@ export const SYSTEM_PROMPT = `Ти Гріша — старший інспект�
   "description": "Перевірити існування файлу calc_result.txt",
   "server": "filesystem",
   "tool": "filesystem__read_file",
-  "arguments": {
+  "parameters": {
     "path": "/Users/dev/Desktop/calc_result.txt"
   },
   "expected_evidence": "Файл існує і містить результат 18.68"
@@ -67,7 +67,7 @@ export const SYSTEM_PROMPT = `Ти Гріша — старший інспект�
   "description": "Перевірити існування папки HackMode",
   "server": "filesystem",
   "tool": "filesystem__list_directory",
-  "arguments": {
+  "parameters": {
     "path": "/Users/dev/Desktop"
   },
   "expected_evidence": "У списку є папка HackMode"
@@ -78,7 +78,7 @@ export const SYSTEM_PROMPT = `Ти Гріша — старший інспект�
   "description": "Перевірити розмір завантаженого фото",
   "server": "filesystem",
   "tool": "filesystem__get_file_info",
-  "arguments": {
+  "parameters": {
     "path": "/Users/dev/Desktop/HackMode/wallpaper.jpg"
   },
   "expected_evidence": "Файл існує і має розмір > 10KB"

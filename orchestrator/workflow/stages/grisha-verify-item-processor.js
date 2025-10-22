@@ -576,7 +576,7 @@ export class GrishaVerifyItemProcessor {
                 tool_calls: verificationChecks.map(check => ({
                     server: check.server,
                     tool: check.tool,
-                    parameters: check.arguments || {},
+                    parameters: check.parameters || {},
                     reasoning: check.description,
                     expected_evidence: check.expected_evidence
                 })),

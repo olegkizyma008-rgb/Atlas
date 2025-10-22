@@ -482,15 +482,15 @@ export class GrishaVerifyItemProcessor {
         this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔧 Starting MCP tool verification...');
 
         try {
-            if (!this.tetyanaToolSystem) {
-                throw new Error('TetyanaToolSystem not available for MCP verification');
+            if (!this.mcpTodoManager) {
+                throw new Error('MCPTodoManager not available for MCP verification');
             }
 
-            // Build verification tool calls based on strategy and eligibility decision
-            const verificationCalls = this._buildMcpVerificationCalls(currentItem, strategy, eligibilityDecision);
+            // Build verification tool calls from eligibility decision
+            const verificationChecks = eligibilityDecision?.additional_checks || [];
             
-            if (verificationCalls.length === 0) {
-                this.logger.warn('[MCP-GRISHA] No verification tools available', {
+            if (verificationChecks.length === 0) {
+                this.logger.warn('[MCP-GRISHA] No verification checks available', {
                     category: 'grisha-verify-item'
                 });
                 return {
@@ -502,24 +502,34 @@ export class GrishaVerifyItemProcessor {
                 };
             }
 
-            this.logger.system('grisha-verify-item', `[MCP-GRISHA] Executing ${verificationCalls.length} verification tool(s)...`);
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] Creating verification TODO with ${verificationChecks.length} check(s)...`);
 
-            // Execute verification tools using TetyanaToolSystem (same as Tetyana)
-            const results = await this.tetyanaToolSystem.executeToolCalls(verificationCalls, {
-                mode: 'task',
-                userIntent: 'verification',
-                itemAction: currentItem.action,
-                itemId: currentItem.id
-            });
+            // Create verification TODO item (same structure as Atlas TODO)
+            const verificationTodo = {
+                id: `verify_${currentItem.id}_${Date.now()}`,
+                action: `Перевірити виконання: ${currentItem.action}`,
+                success_criteria: currentItem.success_criteria,
+                mcp_servers: verificationChecks.map(check => check.server).filter((v, i, a) => a.indexOf(v) === i),
+                parameters: {},
+                max_attempts: 1,
+                dependencies: [],
+                verification_checks: verificationChecks
+            };
+
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] Verification TODO: ${JSON.stringify(verificationTodo, null, 2)}`);
+
+            // Execute verification through MCP cycle (Stage 2.0 → 2.1 → 2.2)
+            // This uses the same workflow as Tetyana
+            const verificationResults = await this._executeVerificationThroughMcpCycle(verificationTodo, verificationChecks);
 
             // Analyze results
-            const verified = this._analyzeMcpResults(results, currentItem.success_criteria);
+            const verified = this._analyzeMcpResults(verificationResults, currentItem.success_criteria);
 
             const verification = {
                 verified: verified.success,
                 confidence: verified.confidence,
                 reason: verified.reason,
-                mcp_results: results,
+                mcp_results: verificationResults,
                 method: 'mcp',
                 mcp_server: strategy.mcpServer,
                 from_mcp_verification: true
@@ -545,6 +555,59 @@ export class GrishaVerifyItemProcessor {
                 method: 'mcp',
                 error: true
             };
+        }
+    }
+
+    /**
+     * Execute verification through MCP cycle (same as Tetyana)
+     * Creates a mini-workflow: server selection → tool planning → execution
+     * 
+     * @param {Object} verificationTodo - Verification TODO item
+     * @param {Array} verificationChecks - Verification checks from eligibility
+     * @returns {Promise<Object>} Execution results
+     * @private
+     */
+    async _executeVerificationThroughMcpCycle(verificationTodo, verificationChecks) {
+        this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔄 Executing through MCP cycle...');
+
+        try {
+            // Convert verification checks to tool plan format
+            const toolPlan = {
+                tool_calls: verificationChecks.map(check => ({
+                    server: check.server,
+                    tool: check.tool,
+                    parameters: check.arguments || {},
+                    reasoning: check.description,
+                    expected_evidence: check.expected_evidence
+                })),
+                reasoning: 'Verification checks from Grisha eligibility decision'
+            };
+
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] Tool plan: ${JSON.stringify(toolPlan, null, 2)}`);
+
+            // Execute tools using TetyanaToolSystem (same as Stage 2.2)
+            if (!this.tetyanaToolSystem) {
+                throw new Error('TetyanaToolSystem not available');
+            }
+
+            const results = await this.tetyanaToolSystem.executeToolCalls(toolPlan.tool_calls, {
+                mode: 'task',
+                userIntent: 'verification',
+                itemAction: verificationTodo.action,
+                itemId: verificationTodo.id
+            });
+
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] ✅ Execution complete: ${results.successful_count}/${results.total_count} successful`);
+
+            return results;
+
+        } catch (error) {
+            this.logger.error(`[MCP-GRISHA] ❌ MCP cycle execution failed: ${error.message}`, {
+                category: 'grisha-verify-item',
+                component: 'grisha-verify-item',
+                stack: error.stack
+            });
+            throw error;
         }
     }
 

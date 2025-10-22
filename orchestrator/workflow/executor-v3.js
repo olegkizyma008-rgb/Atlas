@@ -562,34 +562,20 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             sessionId: session.id
           });
 
-          // ENHANCED 21.10.2025 - Send TTS through TTSSyncManager for centralized handling
-          // ENHANCED 21.10.2025 - Added rotating intro phrases with task description
+          // REFACTORED 2025-10-22 - Tetyana speaks FULL action from TODO
           const ttsSyncManager = container.resolve('ttsSyncManager');
-          if (ttsSyncManager && item.tts?.start) {
+          if (ttsSyncManager && item.action) {
             try {
-              // Rotating intro phrases with task description
-              const introPhrases = [
-                'Виконую завдання',
-                'Роблю завдання, а саме,',
-                'Працюю над процесом наступним:',
-                'Приступаю до виконання завдання:',
-                'Беруся за процес:',
-                'Розпочинаю наступний етап:'
-              ];
+              // Speak full action as-is from TODO
+              const fullAction = item.action.toLowerCase();
               
-              const intro = introPhrases[phraseRotation.tetyanaStart % introPhrases.length];
-              phraseRotation.tetyanaStart++;
-              
-              // Build descriptive phrase with task action
-              const selectedPhrase = `${intro} ${item.action.toLowerCase()}`;
-              
-              logger.system('executor', `[TTS] 🔊 Sending start TTS via TTSSyncManager: "${selectedPhrase}"`);
-              await ttsSyncManager.speak(selectedPhrase, {
+              logger.system('executor', `[TTS] 🔊 Tetyana START: "${fullAction}"`);
+              await ttsSyncManager.speak(fullAction, {
                 mode: 'normal',
                 agent: 'tetyana',
                 sessionId: session.id
               });
-              logger.system('executor', `[TTS] ✅ Start TTS sent successfully`);
+              logger.system('executor', `[TTS] ✅ Tetyana start TTS sent`);
             } catch (error) {
               logger.error(`[TTS] ❌ Failed to send TTS: ${error.message}`, {
                 category: 'executor',
@@ -671,47 +657,44 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
               attempts: attempt
             });
 
-            // FIXED 21.10.2025 - Proper TTS sequence: Tetyana success → Grisha verify
-            // ENHANCED 21.10.2025 - Added rotating success phrases
-            // 1. Tetyana announces success FIRST
-            if (ttsSyncManager && item.tts?.success) {
+            // REFACTORED 2025-10-22 - Tetyana says short "done" phrase
+            // 1. Tetyana announces completion FIRST
+            if (ttsSyncManager) {
               try {
                 const successPhrases = [
-                  item.tts.success,
-                  'Завдання виконано',
+                  'Виконано',
                   'Готово',
-                  'Зроблено успішно',
-                  'Операція завершена',
-                  'Все виконано'
+                  'Зроблено',
+                  'Завершено'
                 ];
                 
                 const selectedPhrase = successPhrases[phraseRotation.tetyanaSuccess % successPhrases.length];
                 phraseRotation.tetyanaSuccess++;
                 
-                logger.system('executor', `[TTS] 🔊 Sending Tetyana SUCCESS TTS: "${selectedPhrase}"`);
+                logger.system('executor', `[TTS] 🔊 Tetyana SUCCESS: "${selectedPhrase}"`);
                 await ttsSyncManager.speak(selectedPhrase, {
                   mode: 'normal',
                   agent: 'tetyana',
                   sessionId: session.id
                 });
-                logger.system('executor', `[TTS] ✅ Tetyana SUCCESS TTS sent`);
+                logger.system('executor', `[TTS] ✅ Tetyana success sent`);
               } catch (error) {
-                logger.warn(`Failed to send TTS success message: ${error.message}`);
+                logger.warn(`Failed to send Tetyana success: ${error.message}`);
               }
             }
 
-            // 2. THEN Grisha confirms verification
+            // 2. THEN Grisha gives short verdict
             if (ttsSyncManager && verifyResult.verification?.tts_phrase) {
               try {
-                logger.system('executor', `[TTS] 🔊 Sending Grisha VERIFY TTS: "${verifyResult.verification.tts_phrase}"`);
+                logger.system('executor', `[TTS] 🔊 Grisha VERIFY: "${verifyResult.verification.tts_phrase}"`);
                 await ttsSyncManager.speak(verifyResult.verification.tts_phrase, {
                   mode: 'normal',
                   agent: 'grisha',
                   sessionId: session.id
                 });
-                logger.system('executor', `[TTS] ✅ Grisha VERIFY TTS sent`);
+                logger.system('executor', `[TTS] ✅ Grisha verify sent`);
               } catch (error) {
-                logger.warn(`Failed to send Grisha verification TTS: ${error.message}`);
+                logger.warn(`Failed to send Grisha verify: ${error.message}`);
               }
             }
 

@@ -413,10 +413,11 @@ export function registerMCPProcessors(container) {
             mcpManager: c.resolve('mcpManager'),
             wsManager: c.resolve('wsManager'),  // FIXED 2025-10-21: Added for chat messages
             visionAnalysis: c.resolve('visionAnalysis'),
+            tetyanaToolSystem: c.resolve('tetyanaToolSystem'),  // FIXED 2025-10-22: Required for MCP verification
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpTodoManager', 'mcpManager', 'wsManager', 'visionAnalysis', 'logger'],
+        dependencies: ['mcpTodoManager', 'mcpManager', 'wsManager', 'visionAnalysis', 'tetyanaToolSystem', 'logger'],
         metadata: { category: 'processors', priority: 40 }
     });
 

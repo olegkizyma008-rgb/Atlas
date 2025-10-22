@@ -427,7 +427,7 @@ export class MCPTodoManager {
 
       // Send full message with short TTS content
       const itemsList = todo.items.map((item, idx) => `  ${idx + 1}. ${item.action}`).join('\n');
-      const todoMessage = `📋 📋 ${todo.mode === 'extended' ? 'Розширений' : 'Стандартний'} план виконання (${todo.items.length} ${this._getPluralForm(todo.items.length, 'пункт', 'пункти', 'пунктів')}):\n\n${itemsList}\n\n⏱️ Орієнтовний час виконання: ${Math.ceil(todo.items.length * 8)} секунд`;
+      const todoMessage = `📋 ${todo.mode === 'extended' ? 'Розширений' : 'Стандартний'} план виконання (${todo.items.length} ${this._getPluralForm(todo.items.length, 'пункт', 'пункти', 'пунктів')}):\n\n${itemsList}\n\n⏱️ Орієнтовний час виконання: ${Math.ceil(todo.items.length * 8)} секунд`;
       
       this._sendChatMessage(todoMessage, 'atlas', ttsPhrase);
 
@@ -707,10 +707,9 @@ export class MCPTodoManager {
           toolsSummary
         });
 
-        // ВИПРАВЛЕНО 21.10.2025: Правильна послідовність - Tetyana confirm ПЕРЕД Grisha verify
-        // Tetyana підтверджує виконання
-        this._sendChatMessage(`✅ ✅ Виконано: "${item.action}"`, 'tetyana');
-        await this._safeTTSSpeak(execution.tts_phrase, { mode: 'normal', duration: 800, agent: 'tetyana' });
+        // REFACTORED 2025-10-22: Removed duplicate chat messages
+        // Chat messages now sent ONLY from executor-v3.js
+        // Tetyana TTS is sent from executor after execution completes
         
         // ВИПРАВЛЕНО 21.10.2025: Grisha TTS вже відправляється через WebSocket в grisha-verify-item-processor.js
         // Не потрібно дублювати тут

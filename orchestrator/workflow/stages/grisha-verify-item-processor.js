@@ -18,6 +18,7 @@ import logger from '../../utils/logger.js';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import { VisualCaptureService } from '../../services/visual-capture-service.js';
 import { VisionAnalysisService } from '../../services/vision-analysis-service.js';
+import { GrishaVerificationStrategy } from './grisha-verification-strategy.js';
 import GlobalConfig from '../../../config/atlas-config.js';
 
 /**
@@ -38,10 +39,16 @@ export class GrishaVerifyItemProcessor {
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.config - Visual verification config
      */
-    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {} }) {
+    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {}, tetyanaToolSystem }) {
         this.mcpTodoManager = mcpTodoManager;
         this.wsManager = wsManager;
         this.logger = loggerInstance || logger;
+        this.tetyanaToolSystem = tetyanaToolSystem; // For MCP verification fallback
+
+        // Initialize verification strategy selector
+        this.verificationStrategy = new GrishaVerificationStrategy({
+            logger: this.logger
+        });
 
         // Initialize visual services
         this.visualCapture = new VisualCaptureService({
@@ -99,9 +106,14 @@ export class GrishaVerifyItemProcessor {
         // Ensure services are initialized
         await this.initialize();
 
-        this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] 🔍 Starting visual verification...');
-
         const { currentItem, execution, todo } = context;
+
+        // ENHANCED 2025-10-22: Determine verification strategy
+        const strategy = this.verificationStrategy.determineStrategy(currentItem, execution);
+        
+        this.logger.system('grisha-verify-item', `[GRISHA] 🎯 Verification strategy: ${strategy.method.toUpperCase()}`);
+        this.logger.system('grisha-verify-item', `[GRISHA] 📊 Confidence: ${strategy.confidence}%`);
+        this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
 
         if (!currentItem) {
             throw new Error('currentItem is required for verification');
@@ -112,13 +124,133 @@ export class GrishaVerifyItemProcessor {
         }
 
         try {
-            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] Item: ${currentItem.id}. ${currentItem.action}`);
-            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] Success criteria: ${currentItem.success_criteria}`);
+            this.logger.system('grisha-verify-item', `[GRISHA] Item: ${currentItem.id}. ${currentItem.action}`);
+            this.logger.system('grisha-verify-item', `[GRISHA] Success criteria: ${currentItem.success_criteria}`);
 
+            // Execute verification based on strategy
+            let verification;
+            
+            if (strategy.method === 'visual') {
+                // Visual verification (primary or fallback)
+                verification = await this._executeVisualVerification(currentItem, execution, todo, strategy);
+                
+                // If visual failed and MCP fallback is available
+                if (!verification.verified && strategy.fallbackToMcp && strategy.mcpFallbackTools.length > 0) {
+                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual verification failed, trying MCP fallback...');
+                    const mcpVerification = await this._executeMcpVerification(currentItem, execution, strategy);
+                    
+                    if (mcpVerification.verified) {
+                        this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP fallback verification succeeded');
+                        verification = mcpVerification;
+                    }
+                }
+            } else if (strategy.method === 'mcp') {
+                // MCP verification (primary)
+                verification = await this._executeMcpVerification(currentItem, execution, strategy);
+                
+                // If MCP failed and visual fallback is available
+                if (!verification.verified && strategy.fallbackToVisual) {
+                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 MCP verification failed, trying visual fallback...');
+                    const visualVerification = await this._executeVisualVerification(currentItem, execution, todo, strategy);
+                    
+                    if (visualVerification.verified) {
+                        this.logger.system('grisha-verify-item', '[GRISHA] ✅ Visual fallback verification succeeded');
+                        verification = visualVerification;
+                    }
+                }
+            } else {
+                throw new Error(`Unknown verification strategy: ${strategy.method}`);
+            }
+
+            // Generate summary
+            const summary = this._generateVerificationSummary(currentItem, verification);
+
+            // Generate TTS phrase for executor
+            verification.tts_phrase = this._generateTtsPhrase(verification.verified);
+            
+            this.logger.system('grisha-verify-item', '[GRISHA] ✅ Verification complete');
+
+            // Determine next action
+            const nextAction = this._determineNextAction(verification, currentItem);
+
+            return {
+                success: true,
+                verified: verification.verified,
+                verification,
+                summary,
+                nextAction,
+                metadata: {
+                    itemId: currentItem.id,
+                    verified: verification.verified,
+                    confidence: verification.confidence,
+                    verificationMethod: verification.method || strategy.method,
+                    strategy: strategy.method
+                }
+            };
+
+        } catch (error) {
+            this.logger.error(`[GRISHA] ❌ Verification failed: ${error.message}`, {
+                category: 'grisha-verify-item',
+                component: 'grisha-verify-item',
+                stack: error.stack
+            });
+
+            return {
+                success: false,
+                verified: false,
+                error: error.message,
+                verification: {
+                    verified: false,
+                    reason: `Помилка під час перевірки: ${error.message}`,
+                    visual_evidence: null
+                },
+                summary: `⚠️ Не вдалося перевірити "${currentItem.action}": ${error.message}`,
+                nextAction: 'adjust',
+                metadata: {
+                    itemId: currentItem.id,
+                    errorType: error.name,
+                    stage: 'verification'
+                }
+            };
+        }
+    }
+
+    /**
+     * Execute visual verification
+     * 
+     * @param {Object} currentItem - Current TODO item
+     * @param {Object} execution - Execution results
+     * @param {Object} todo - Full TODO
+     * @param {Object} strategy - Verification strategy
+     * @returns {Promise<Object>} Verification result
+     * @private
+     */
+    async _executeVisualVerification(currentItem, execution, todo, strategy) {
+        this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] 🔍 Starting visual verification...');
+
+        try {
             // Step 1: Determine target app for window screenshot
-            const targetApp = this._detectTargetApp(currentItem.action, execution.results);
+            // ENHANCED 2025-10-22: Use context to persist targetApp across items in same session
+            let targetApp = this._detectTargetApp(currentItem.action, execution.results);
+            
+            // If not detected in current item, check if we have it from previous items in this TODO
+            if (!targetApp && todo && todo.id) {
+                // Check if previous items in same TODO had a target app
+                const previousItems = todo.items.filter(item => item.id < currentItem.id && item.status === 'completed');
+                for (const prevItem of previousItems.reverse()) {
+                    const prevTargetApp = this._detectTargetApp(prevItem.action, prevItem.execution_results || []);
+                    if (prevTargetApp) {
+                        targetApp = prevTargetApp;
+                        this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔄 Using targetApp from previous item ${prevItem.id}: ${targetApp}`);
+                        break;
+                    }
+                }
+            }
+            
             if (targetApp) {
                 this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🎯 Target app detected: ${targetApp}`);
+            } else {
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ⚠️  No target app detected - using full screen capture`);
             }
 
             // Step 2: Capture screenshot of current state
@@ -142,21 +274,64 @@ export class GrishaVerifyItemProcessor {
                 analysisContext
             );
 
+            // SECURITY CHECK 2025-10-22: Detect and log fallback responses
+            if (visionAnalysis._fallback) {
+                this.logger.warn(`[VISUAL-GRISHA] ⚠️  SECURITY: Vision model returned fallback response (no structured JSON)`, {
+                    category: 'grisha-verify-item',
+                    fallback_reason: visionAnalysis._fallback_reason || 'unknown',
+                    security_note: 'Fallback responses always fail verification to prevent false positives'
+                });
+            }
+            
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Vision analysis complete (confidence: ${visionAnalysis.confidence}%)`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Model used: ${this.visionAnalysis.config.visionModel || 'unknown'}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Verified: ${visionAnalysis.verified}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Reason: ${visionAnalysis.reason}`);
 
-            // Step 3: Build verification result
+            // Step 3: Build verification result with SECURITY CHECKS
+            // SECURITY FIX 2025-10-22: Reject fallback responses and require proper evidence
+            let verified = visionAnalysis.verified && visionAnalysis.confidence >= 70; // Require 70% confidence
+            let rejectionReason = null;
+            
+            // SECURITY CHECK 1: Reject fallback responses (no structured JSON from vision model)
+            if (visionAnalysis._fallback === true) {
+                verified = false;
+                rejectionReason = 'Vision model returned unstructured response - cannot verify without structured JSON evidence';
+                this.logger.warn(`[VISUAL-GRISHA] ❌ SECURITY: Rejecting fallback verification`, {
+                    category: 'grisha-verify-item',
+                    reason: rejectionReason
+                });
+            }
+            
+            // SECURITY CHECK 2: Require matches_criteria to be explicitly true
+            if (verified && visionAnalysis.visual_evidence?.matches_criteria !== true) {
+                verified = false;
+                rejectionReason = 'Visual evidence does not explicitly match success criteria (matches_criteria !== true)';
+                this.logger.warn(`[VISUAL-GRISHA] ❌ SECURITY: Visual evidence mismatch`, {
+                    category: 'grisha-verify-item',
+                    reason: rejectionReason,
+                    matches_criteria: visionAnalysis.visual_evidence?.matches_criteria
+                });
+            }
+            
+            // SECURITY CHECK 3: Require minimum confidence of 70% (already checked above, but log it)
+            if (visionAnalysis.verified && visionAnalysis.confidence < 70) {
+                this.logger.warn(`[VISUAL-GRISHA] ⚠️  Low confidence verification rejected (${visionAnalysis.confidence}% < 70%)`, {
+                    category: 'grisha-verify-item'
+                });
+            }
+            
             const verification = {
-                verified: visionAnalysis.verified && visionAnalysis.confidence >= 70, // Require 70% confidence
+                verified: verified,
                 confidence: visionAnalysis.confidence,
-                reason: visionAnalysis.reason,
+                reason: rejectionReason || visionAnalysis.reason,
                 visual_evidence: visionAnalysis.visual_evidence,
                 screenshot_path: screenshot.filepath,
                 screenshot_hash: screenshot.hash,
                 vision_model: this.visionAnalysis.config.visionModel,
-                from_visual_analysis: true
+                from_visual_analysis: true,
+                _fallback_detected: visionAnalysis._fallback || false,
+                _security_checks_passed: !rejectionReason
             };
 
             // Log verification result
@@ -164,116 +339,258 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ${status}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   Reason: ${verification.reason}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   Visual Evidence: ${verification.visual_evidence.observed}`);
-
-            // Generate summary
-            const summary = this._generateVerificationSummary(currentItem, verification);
-
-            // FIXED 2025-10-21: Send verification result to chat via WebSocket
-            // NOTE: TTS is sent from executor-v3.js to maintain proper sequence
-            if (this.wsManager) {
-                try {
-                    // Build detailed message about verification result
-                    let verificationMessage;
-                    if (verification.verified) {
-                        verificationMessage = `✅ Візуально підтверджено: "${currentItem.action}"\n${verification.visual_evidence.observed}`;
-                    } else {
-                        verificationMessage = `❌ Не підтверджено: ${verification.reason}`;
-                    }
-
-                    // Store verification phrases for executor to use
-                    if (!this._verifyPhraseIndex) {
-                        this._verifyPhraseIndex = 0;
-                    }
-                    
-                    const verifySuccessPhrases = [
-                        'Підтверджено',
-                        'Все правильно',
-                        'Виконано коректно',
-                        'Перевірено, все гаразд',
-                        'Результат вірний',
-                        'Все на місці'
-                    ];
-                    
-                    const verifyFailurePhrases = [
-                        'Не підтверджено',
-                        'Є проблема',
-                        'Щось не так',
-                        'Потрібна корекція',
-                        'Виявлено помилку',
-                        'Не відповідає очікуванням'
-                    ];
-                    
-                    let shortTTS;
-                    if (verification.verified) {
-                        shortTTS = verifySuccessPhrases[this._verifyPhraseIndex % verifySuccessPhrases.length];
-                    } else {
-                        shortTTS = verifyFailurePhrases[this._verifyPhraseIndex % verifyFailurePhrases.length];
-                    }
-                    this._verifyPhraseIndex++;
-                    
-                    // Send chat message WITHOUT TTS - TTS will be sent from executor in correct order
-                    this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                        content: verificationMessage,
-                        agent: 'grisha',
-                        ttsContent: null, // NO TTS HERE - sent from executor
-                        mode: 'normal',
-                        sessionId: context.session?.id,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    // Store TTS phrase in verification result for executor to use
-                    verification.tts_phrase = shortTTS;
-                    
-                    this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ✅ Verification result sent to chat (TTS deferred to executor)');
-                } catch (wsError) {
-                    this.logger.warn(`[VISUAL-GRISHA] Failed to send verification result to chat: ${wsError.message}`);
+            
+            // SECURITY CHECK 4: Log evidence validation details
+            if (verification.verified) {
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   ✅ Evidence validation passed:`);
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Confidence: ${verification.confidence}%`);
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Matches criteria: ${verification.visual_evidence?.matches_criteria}`);
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Observed value: "${verification.visual_evidence?.observed}"`);
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Fallback mode: ${verification._fallback_detected}`);
+            } else {
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   ❌ Evidence validation failed`);
+                if (verification._fallback_detected) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Fallback response (no structured JSON)`);
+                }
+                if (verification.visual_evidence?.matches_criteria !== true) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Visual evidence mismatch`);
+                }
+                if (verification.confidence < 70) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Low confidence (${verification.confidence}%)`);
                 }
             }
 
-            // Determine next action
-            const nextAction = this._determineNextAction(verification, currentItem);
-
-            return {
-                success: true,
-                verified: verification.verified,
-                verification,
-                summary,
-                nextAction,
-                metadata: {
-                    itemId: currentItem.id,
-                    verified: verification.verified,
-                    confidence: verification.confidence,
-                    screenshotPath: screenshot.filepath,
-                    visualEvidence: true,
-                    verificationMethod: 'visual_ai'
-                }
-            };
+            return verification;
 
         } catch (error) {
-            this.logger.error(`[VISUAL-GRISHA] ❌ Verification failed: ${error.message}`, {
+            this.logger.error(`[VISUAL-GRISHA] ❌ Visual verification failed: ${error.message}`, {
                 category: 'grisha-verify-item',
                 component: 'grisha-verify-item',
                 stack: error.stack
             });
 
             return {
-                success: false,
                 verified: false,
-                error: error.message,
-                verification: {
-                    verified: false,
-                    reason: `Помилка під час візуальної перевірки: ${error.message}`,
-                    visual_evidence: null
-                },
-                summary: `⚠️ Не вдалося перевірити "${currentItem.action}": ${error.message}`,
-                nextAction: 'adjust',
-                metadata: {
-                    itemId: currentItem.id,
-                    errorType: error.name,
-                    stage: 'visual_verification'
-                }
+                confidence: 0,
+                reason: `Помилка візуальної верифікації: ${error.message}`,
+                visual_evidence: null,
+                method: 'visual',
+                error: true
             };
         }
+    }
+
+    /**
+     * Execute MCP tool verification
+     * 
+     * @param {Object} currentItem - Current TODO item
+     * @param {Object} execution - Execution results
+     * @param {Object} strategy - Verification strategy
+     * @returns {Promise<Object>} Verification result
+     * @private
+     */
+    async _executeMcpVerification(currentItem, execution, strategy) {
+        this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔧 Starting MCP tool verification...');
+
+        try {
+            if (!this.tetyanaToolSystem) {
+                throw new Error('TetyanaToolSystem not available for MCP verification');
+            }
+
+            // Build verification tool calls based on strategy
+            const verificationCalls = this._buildMcpVerificationCalls(currentItem, strategy);
+            
+            if (verificationCalls.length === 0) {
+                this.logger.warn('[MCP-GRISHA] No verification tools available', {
+                    category: 'grisha-verify-item'
+                });
+                return {
+                    verified: false,
+                    confidence: 0,
+                    reason: 'Немає доступних MCP інструментів для верифікації',
+                    method: 'mcp',
+                    error: true
+                };
+            }
+
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] Executing ${verificationCalls.length} verification tool(s)...`);
+
+            // Execute verification tools
+            const results = await this.tetyanaToolSystem.executeTools(verificationCalls);
+
+            // Analyze results
+            const verified = this._analyzeMcpResults(results, currentItem.success_criteria);
+
+            const verification = {
+                verified: verified.success,
+                confidence: verified.confidence,
+                reason: verified.reason,
+                mcp_results: results,
+                method: 'mcp',
+                mcp_server: strategy.mcpServer,
+                from_mcp_verification: true
+            };
+
+            const status = verification.verified ? '✅ VERIFIED' : '❌ NOT VERIFIED';
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] ${status}`);
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA]   Reason: ${verification.reason}`);
+
+            return verification;
+
+        } catch (error) {
+            this.logger.error(`[MCP-GRISHA] ❌ MCP verification failed: ${error.message}`, {
+                category: 'grisha-verify-item',
+                component: 'grisha-verify-item',
+                stack: error.stack
+            });
+
+            return {
+                verified: false,
+                confidence: 0,
+                reason: `Помилка MCP верифікації: ${error.message}`,
+                method: 'mcp',
+                error: true
+            };
+        }
+    }
+
+    /**
+     * Build MCP verification tool calls based on strategy
+     * 
+     * @param {Object} item - TODO item
+     * @param {Object} strategy - Verification strategy
+     * @returns {Array} Tool calls
+     * @private
+     */
+    _buildMcpVerificationCalls(item, strategy) {
+        const calls = [];
+        const successCriteria = (item.success_criteria || '').toLowerCase();
+
+        // Filesystem verification
+        if (strategy.mcpServer === 'filesystem' || strategy.mcpFallbackTools?.some(t => t.includes('filesystem'))) {
+            // Extract file/directory path from success criteria or action
+            const pathMatch = item.action.match(/["']([^"']+)["']/) || successCriteria.match(/["']([^"']+)["']/);
+            
+            if (pathMatch) {
+                const targetPath = pathMatch[1];
+                
+                // Check if file/directory exists
+                calls.push({
+                    tool: 'filesystem__read_file',
+                    arguments: {
+                        path: targetPath
+                    }
+                });
+            }
+        }
+
+        // Shell verification
+        if (strategy.mcpServer === 'shell' || strategy.mcpFallbackTools?.some(t => t.includes('shell'))) {
+            // Execute verification command
+            // This is a placeholder - actual implementation would need specific verification commands
+            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Shell verification not yet implemented');
+        }
+
+        // Memory verification
+        if (strategy.mcpServer === 'memory' || strategy.mcpFallbackTools?.some(t => t.includes('memory'))) {
+            // Search memory for verification
+            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Memory verification not yet implemented');
+        }
+
+        return calls;
+    }
+
+    /**
+     * Analyze MCP tool results for verification
+     * 
+     * @param {Array} results - Tool execution results
+     * @param {string} successCriteria - Success criteria
+     * @returns {Object} Analysis result
+     * @private
+     */
+    _analyzeMcpResults(results, successCriteria) {
+        // Check if all tools succeeded
+        const allSuccessful = results.every(r => r.success);
+
+        if (!allSuccessful) {
+            const failedTools = results.filter(r => !r.success).map(r => r.tool);
+            return {
+                success: false,
+                confidence: 0,
+                reason: `MCP інструменти провалилися: ${failedTools.join(', ')}`
+            };
+        }
+
+        // Analyze results based on success criteria
+        // This is a simple implementation - can be enhanced with more sophisticated analysis
+        const criteriaLower = successCriteria.toLowerCase();
+
+        // Check for file existence
+        if (criteriaLower.includes('існує') || criteriaLower.includes('exists') || criteriaLower.includes('збережено')) {
+            const fileExists = results.some(r => r.success && r.data);
+            
+            if (fileExists) {
+                return {
+                    success: true,
+                    confidence: 90,
+                    reason: 'MCP підтвердив: файл/директорія існує'
+                };
+            } else {
+                return {
+                    success: false,
+                    confidence: 90,
+                    reason: 'MCP підтвердив: файл/директорія не існує'
+                };
+            }
+        }
+
+        // Default: success if tools executed
+        return {
+            success: true,
+            confidence: 70,
+            reason: 'MCP інструменти виконані успішно'
+        };
+    }
+
+    /**
+     * Generate TTS phrase based on verification result
+     * 
+     * @param {boolean} verified - Verification result
+     * @returns {string} TTS phrase
+     * @private
+     */
+    _generateTtsPhrase(verified) {
+        if (!this._verifyPhraseIndex) {
+            this._verifyPhraseIndex = 0;
+        }
+        
+        const verifySuccessPhrases = [
+            'Підтверджено',
+            'Все правильно',
+            'Виконано коректно',
+            'Перевірено, все гаразд',
+            'Результат вірний',
+            'Все на місці'
+        ];
+        
+        const verifyFailurePhrases = [
+            'Не підтверджено',
+            'Є проблема',
+            'Щось не так',
+            'Потрібна корекція',
+            'Виявлено помилку',
+            'Не відповідає очікуванням'
+        ];
+        
+        let shortTTS;
+        if (verified) {
+            shortTTS = verifySuccessPhrases[this._verifyPhraseIndex % verifySuccessPhrases.length];
+        } else {
+            shortTTS = verifyFailurePhrases[this._verifyPhraseIndex % verifyFailurePhrases.length];
+        }
+        this._verifyPhraseIndex++;
+        
+        return shortTTS;
     }
 
     /**

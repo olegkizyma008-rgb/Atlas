@@ -582,13 +582,15 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 4. If observed value DIFFERS from expected → verified: false
 5. Do NOT use "shows X, not X" format - that's nonsensical!
 
+**CRITICAL: Return ONLY pure JSON - NO markdown, NO text before/after**
+
 **Instructions:**
 1. Carefully examine the screenshot
 2. EXTRACT exact values (numbers, text, states) visible on screen
 3. COMPARE extracted values with success criteria
 4. Verify if criteria is met based on EXACT match (not approximate)
 5. Provide specific visual evidence from the screenshot
-6. Return ONLY a JSON object with NO markdown formatting
+6. Return ONLY a JSON object - NO code blocks, NO markdown, NO explanatory text
 
 **Example 1 - Success (numbers MATCH):**
 - Success Criteria: "Calculator shows result 6"
@@ -603,7 +605,7 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 **WRONG Example (DO NOT DO THIS):**
 - ❌ {"reason": "Calculator shows 6, not 6"} ← This is NONSENSE! If you see 6 and expect 6, it's verified: true!
 
-**Required JSON format:**
+**Required JSON format (return EXACTLY this structure, nothing else):**
 {
   "verified": boolean,
   "confidence": number (0-100),
@@ -615,6 +617,9 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
   },
   "suggestions": "string - if not verified, what needs to change"
 }
+
+⚠️ CRITICAL: Your response must START with { and END with } - nothing before, nothing after!
+Do NOT wrap in code blocks or any markdown. Just pure JSON.
 
 Analyze the screenshot and return ONLY the JSON object.`;
   }
@@ -705,8 +710,8 @@ Return ONLY the JSON object.`;
         return await this._callOllamaVisionAPI(base64Image, prompt);
       }
 
-      // EMERGENCY: Use OpenRouter (FAST but costs $)
-      return await this._callOpenRouterVisionAPI(base64Image, prompt);
+      // DISABLED 2025-10-22: OpenRouter fallback not working (parsing issues)
+      throw new Error('No vision API available. Port 4000 and Ollama unavailable. OpenRouter fallback disabled.');
 
     } catch (error) {
       this.logger.error(`[VISION] API call failed: ${error.message}`, {
@@ -769,7 +774,7 @@ Return ONLY the JSON object.`;
         max_tokens: visionConfig.max_tokens || 1000,
         temperature: visionConfig.temperature
       }, {
-        timeout: 0,  // No timeout - let vision model work as long as needed
+        timeout: 30000,  // FIXED 2025-10-22: 30s timeout to prevent hanging (was: 0 = infinite)
         headers
       });
 
@@ -787,12 +792,13 @@ Return ONLY the JSON object.`;
           hint: 'Check if the model supports vision API format (multimodal)'
         });
 
-        // Try fallback
+        // Try Ollama fallback only
         if (this.ollamaAvailable) {
           this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama after 422 error...');
           return await this._callOllamaVisionAPI(base64Image, prompt);
         }
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        // DISABLED: OpenRouter fallback
+        throw new Error('422 error and Ollama unavailable. OpenRouter fallback disabled.');
       }
 
       if (error.response?.status === 413) {
@@ -801,12 +807,13 @@ Return ONLY the JSON object.`;
           hint: 'Image/prompt too large, trying fallback'
         });
 
-        // Try fallback with original image (fallback API may have higher limits)
+        // Try Ollama fallback only
         if (this.ollamaAvailable) {
           this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama after 413 error...');
           return await this._callOllamaVisionAPI(base64Image, prompt);
         }
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        // DISABLED: OpenRouter fallback
+        throw new Error('413 error and Ollama unavailable. OpenRouter fallback disabled.');
       }
 
       if (error.code === 'ECONNREFUSED') {
@@ -815,27 +822,30 @@ Return ONLY the JSON object.`;
         });
         this.port4000Available = false;
 
-        // Try Ollama instead
+        // Try Ollama fallback only
         if (this.ollamaAvailable) {
           this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama...');
           return await this._callOllamaVisionAPI(base64Image, prompt);
         }
 
-        // Last resort: OpenRouter
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        // DISABLED: OpenRouter fallback
+        throw new Error('Port 4000 unavailable and Ollama unavailable. OpenRouter fallback disabled.');
       }
 
-      // Timeout error
+      // Timeout error - DISABLED OpenRouter fallback 2025-10-22
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        this.logger.warn('[PORT-4000] Timeout - port 4000 too slow, trying Ollama', {
-          category: 'vision-analysis'
+        this.logger.error('[PORT-4000] Timeout - port 4000 too slow', {
+          category: 'vision-analysis',
+          note: 'OpenRouter fallback disabled - vision parsing not working'
         });
 
         if (this.ollamaAvailable) {
+          this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama...');
           return await this._callOllamaVisionAPI(base64Image, prompt);
         }
 
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        // DISABLED: OpenRouter fallback not working (parsing issues)
+        throw new Error('Port 4000 timeout and Ollama unavailable. OpenRouter fallback disabled.');
       }
 
       throw error;
@@ -873,19 +883,21 @@ Return ONLY the JSON object.`;
 
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        this.logger.warn('[OLLAMA] Ollama not available - trying OpenRouter', {
-          category: 'vision-analysis'
+        this.logger.error('[OLLAMA] Ollama not available', {
+          category: 'vision-analysis',
+          note: 'OpenRouter fallback disabled'
         });
         this.ollamaAvailable = false;
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        throw new Error('Ollama unavailable. OpenRouter fallback disabled.');
       }
 
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        this.logger.warn('[OLLAMA] Ollama timeout 300s - using OpenRouter', {
-          category: 'vision-analysis'
+        this.logger.error('[OLLAMA] Ollama timeout 300s', {
+          category: 'vision-analysis',
+          note: 'OpenRouter fallback disabled'
         });
         this.ollamaAvailable = false;
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+        throw new Error('Ollama timeout. OpenRouter fallback disabled.');
       }
 
       throw error;
@@ -1062,41 +1074,32 @@ Return ONLY the JSON object.`;
       }
 
       // FALLBACK: Parse text response and create JSON structure
-      this.logger.warn(`[VISION] Could not extract JSON, creating fallback response from text`, {
+      // SECURITY FIX 2025-10-22: NEVER auto-verify from text fallback to prevent hallucinations
+      this.logger.warn(`[VISION] Could not extract JSON, creating SAFE fallback response (verified=false)`, {
         category: 'vision-analysis',
-        textPreview: content.substring(0, 300)
+        textPreview: content.substring(0, 300),
+        security_note: 'Text fallback always returns verified=false to prevent false positives'
       });
 
-      // Analyze text for verification keywords
-      const lowerContent = content.toLowerCase();
-      const hasPositiveKeywords = /\b(yes|verified|success|complete|correct|found|visible|present|open|running)\b/i.test(content);
-      const hasNegativeKeywords = /\b(no|not|failed|error|missing|absent|incorrect|wrong|cannot|unable)\b/i.test(content);
-
-      // Determine verification status from text
-      let verified = false;
-      let confidence = 50;
-
-      if (hasPositiveKeywords && !hasNegativeKeywords) {
-        verified = true;
-        confidence = 70;
-      } else if (hasNegativeKeywords) {
-        verified = false;
-        confidence = 70;
-      }
-
-      // Create fallback JSON structure with SAFE defaults
+      // CRITICAL SECURITY: Text fallback ALWAYS returns verified=false
+      // Positive keywords are NOT reliable evidence without structured JSON proof
+      // This prevents hallucinations from passing verification automatically
+      
+      // Create fallback JSON structure with SECURE defaults
       const fallbackResponse = {
-        verified,
-        confidence,
-        reason: content.substring(0, 500) || 'No reason provided', // Use first 500 chars as reason
+        verified: false, // SECURITY: Always false for text fallback
+        confidence: 0,   // SECURITY: Zero confidence without structured evidence
+        reason: 'Vision model returned unstructured text instead of JSON. Cannot verify without structured evidence. ' + content.substring(0, 400),
         visual_evidence: {
-          observed: content.substring(0, 300) || 'Unable to extract visual details',
-          matches_criteria: verified,
-          details: 'Parsed from text response (model did not return JSON)'
+          observed: 'Unable to extract structured visual details from text response',
+          matches_criteria: false, // SECURITY: Always false without structured proof
+          details: 'Text fallback mode - no reliable visual evidence available. Model response: ' + content.substring(0, 200)
         },
-        suggestions: verified ? '' : 'Model returned text instead of JSON - consider using different vision model',
+        suggestions: 'Vision model failed to return structured JSON. Consider: 1) Using different vision model, 2) Simplifying success criteria, 3) Retrying verification',
         _fallback: true,
-        _original_response: content.substring(0, 500) || ''
+        _fallback_reason: 'json_parse_failed',
+        _original_response: content.substring(0, 500) || '',
+        _security_note: 'Text fallback always returns verified=false to prevent false positives'
       };
 
       // CRITICAL: Ensure all required fields exist to prevent undefined errors

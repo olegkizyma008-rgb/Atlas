@@ -23,8 +23,8 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "shell", "tool": "run_command", "parameters": {"command": "ls -la"}},
-    {"server": "shell", "tool": "run_command", "parameters": {"command": "pwd"}},  ← BAD comma!
+    {"server": "shell", "tool": "shell__execute", "parameters": {"command": "ls -la"}},
+    {"server": "shell", "tool": "shell__execute", "parameters": {"command": "pwd"}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -32,8 +32,8 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "shell", "tool": "run_command", "parameters": {"command": "ls -la"}},
-    {"server": "shell", "tool": "run_command", "parameters": {"command": "pwd"}}  ← NO comma!
+    {"server": "shell", "tool": "shell__execute", "parameters": {"command": "ls -la"}},
+    {"server": "shell", "tool": "shell__execute", "parameters": {"command": "pwd"}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -207,7 +207,7 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 ✅ ПРАВИЛЬНО: "tool": "shell__execute"
 
 🔹 Якщо item простий (1-3 tools):
-{"tool_calls": [{"server": "shell", "tool": "shell__<tool_name>", "parameters": {"command": "<shell_command>"}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "shell", "tool": "shell__<tool_name>", "parameters": {"command": "<shell_command>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
 
 **ПРИКЛАД:**
 {"tool_calls": [{"server": "shell", "tool": "shell__execute", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}}], "reasoning": "Створюю папку через shell", "tts_phrase": "Створюю папку", "needs_split": false}

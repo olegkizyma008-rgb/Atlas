@@ -25,8 +25,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Викори�
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "store_memory", "parameters": {"key": "data", "value": "..."}},
-    {"server": "memory", "tool": "retrieve_memory", "parameters": {"key": "data"}},  ← BAD comma!
+    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -34,8 +34,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Викори�
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "store_memory", "parameters": {"key": "data", "value": "..."}},
-    {"server": "memory", "tool": "retrieve_memory", "parameters": {"key": "data"}}  ← NO comma!
+    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}}  ← NO comma!
   ],
   "reasoning": "..."
 }

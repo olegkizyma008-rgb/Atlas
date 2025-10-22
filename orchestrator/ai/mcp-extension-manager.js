@@ -329,7 +329,17 @@ export class MCPExtensionManager {
         const availableToolNames = new Set(this.listTools().map(t => t.name));
 
         for (const call of toolCalls) {
-            const toolName = `${call.server}__${call.tool}`;
+            // FIXED 2025-10-22: Don't add prefix if tool already has it
+            // LLM returns: {"server": "applescript", "tool": "applescript__applescript_execute"}
+            // We need to check if tool already starts with server__
+            let toolName;
+            if (call.tool.startsWith(`${call.server}__`)) {
+                // Tool already has prefix, use as-is
+                toolName = call.tool;
+            } else {
+                // Tool doesn't have prefix, add it
+                toolName = `${call.server}__${call.tool}`;
+            }
 
             // Check if tool exists
             if (!availableToolNames.has(toolName)) {
@@ -394,8 +404,15 @@ export class MCPExtensionManager {
     async dispatchToolCall(toolCall) {
         const { server, tool, parameters } = toolCall;
 
+        // FIXED 2025-10-22: Remove server prefix from tool name if present
+        // tool may come as "applescript__applescript_execute" but extension.tools has "applescript_execute"
+        let actualToolName = tool;
+        if (tool.startsWith(`${server}__`)) {
+            actualToolName = tool.substring(`${server}__`.length);
+        }
+
         logger.debug('mcp-extension-manager', 
-            `🔧 Dispatching: ${server}__${tool}`);
+            `🔧 Dispatching: ${server}__${actualToolName}`);
 
         // STEP 1: Validate server exists
         const extension = this.extensions.get(server);
@@ -407,29 +424,29 @@ export class MCPExtensionManager {
             throw new Error(`Server not ready: ${server}`);
         }
 
-        // STEP 2: Validate tool exists
-        const toolExists = extension.tools.some(t => t.name === tool);
+        // STEP 2: Validate tool exists (use actualToolName without prefix)
+        const toolExists = extension.tools.some(t => t.name === actualToolName);
         if (!toolExists) {
-            throw new Error(`Tool not found: ${server}__${tool}`);
+            throw new Error(`Tool not found: ${server}__${actualToolName}`);
         }
 
-        // STEP 3: Execute tool through MCP server
+        // STEP 3: Execute tool through MCP server (use actualToolName without prefix)
         try {
-            const result = await extension.server.call(tool, parameters);
+            const result = await extension.server.call(actualToolName, parameters);
             
             logger.debug('mcp-extension-manager', 
-                `✅ Tool executed: ${server}__${tool}`);
+                `✅ Tool executed: ${server}__${actualToolName}`);
 
             return {
                 success: true,
                 result: result,
                 server: server,
-                tool: tool
+                tool: actualToolName
             };
 
         } catch (error) {
             logger.error('mcp-extension-manager', 
-                `❌ Tool execution failed: ${server}__${tool} - ${error.message}`);
+                `❌ Tool execution failed: ${server}__${actualToolName} - ${error.message}`);
 
             return {
                 success: false,

@@ -24,8 +24,8 @@ ENVIRONMENT: You are operating on a Mac Studio M1 Max (macOS). Plan Playwright a
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "server_a", "tool": "tool_open_page", "parameters": {...}},
-    {"server": "server_a", "tool": "tool_interact", "parameters": {...}},  ← BAD comma!
+    {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
+    {"server": "playwright", "tool": "playwright__click", "parameters": {...}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -33,8 +33,8 @@ ENVIRONMENT: You are operating on a Mac Studio M1 Max (macOS). Plan Playwright a
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "server_a", "tool": "tool_open_page", "parameters": {...}},
-    {"server": "server_a", "tool": "tool_interact", "parameters": {...}}  ← NO comma!
+    {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
+    {"server": "playwright", "tool": "playwright__click", "parameters": {...}}  ← NO comma!
   ],
   "reasoning": "..."
 }

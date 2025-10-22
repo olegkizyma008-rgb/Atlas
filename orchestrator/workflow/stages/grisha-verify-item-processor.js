@@ -19,6 +19,7 @@ import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import { VisualCaptureService } from '../../services/visual-capture-service.js';
 import { VisionAnalysisService } from '../../services/vision-analysis-service.js';
 import { GrishaVerificationStrategy } from './grisha-verification-strategy.js';
+import { GrishaVerificationEligibilityProcessor } from './grisha-verification-eligibility-processor.js';
 import GlobalConfig from '../../../config/atlas-config.js';
 
 /**
@@ -38,15 +39,23 @@ export class GrishaVerifyItemProcessor {
      * @param {Object} dependencies.wsManager - WebSocket manager for chat updates
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.config - Visual verification config
+     * @param {Function} dependencies.callLLM - LLM client function for eligibility routing
      */
-    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {}, tetyanaToolSystem }) {
+    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {}, tetyanaToolSystem, callLLM }) {
         this.mcpTodoManager = mcpTodoManager;
         this.wsManager = wsManager;
         this.logger = loggerInstance || logger;
         this.tetyanaToolSystem = tetyanaToolSystem; // For MCP verification fallback
+        this.callLLM = callLLM; // For eligibility routing
 
         // Initialize verification strategy selector
         this.verificationStrategy = new GrishaVerificationStrategy({
+            logger: this.logger
+        });
+
+        // Initialize eligibility processor (NEW 2025-10-22)
+        this.eligibilityProcessor = new GrishaVerificationEligibilityProcessor({
+            callLLM: this.callLLM,
             logger: this.logger
         });
 
@@ -108,13 +117,6 @@ export class GrishaVerifyItemProcessor {
 
         const { currentItem, execution, todo } = context;
 
-        // ENHANCED 2025-10-22: Determine verification strategy
-        const strategy = this.verificationStrategy.determineStrategy(currentItem, execution);
-        
-        this.logger.system('grisha-verify-item', `[GRISHA] 🎯 Verification strategy: ${strategy.method.toUpperCase()}`);
-        this.logger.system('grisha-verify-item', `[GRISHA] 📊 Confidence: ${strategy.confidence}%`);
-        this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
-
         if (!currentItem) {
             throw new Error('currentItem is required for verification');
         }
@@ -127,17 +129,75 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[GRISHA] Item: ${currentItem.id}. ${currentItem.action}`);
             this.logger.system('grisha-verify-item', `[GRISHA] Success criteria: ${currentItem.success_criteria}`);
 
-            // Execute verification based on strategy
+            // STEP 1: Determine verification strategy (heuristic-based)
+            const strategy = this.verificationStrategy.determineStrategy(currentItem, execution);
+            
+            this.logger.system('grisha-verify-item', `[GRISHA] 🎯 Heuristic strategy: ${strategy.method.toUpperCase()}`);
+            this.logger.system('grisha-verify-item', `[GRISHA] 📊 Heuristic confidence: ${strategy.confidence}%`);
+            this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
+
+            // STEP 2: NEW 2025-10-22 - Call eligibility processor for LLM-based routing decision
+            let eligibilityDecision = null;
+            if (this.callLLM) {
+                try {
+                    const eligibilityResult = await this.eligibilityProcessor.execute({
+                        currentItem,
+                        execution,
+                        verificationStrategy: strategy
+                    });
+                    
+                    if (eligibilityResult.success) {
+                        eligibilityDecision = eligibilityResult.decision;
+                        this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM routing decision: ${eligibilityDecision.recommended_path.toUpperCase()}`);
+                        this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM confidence: ${eligibilityDecision.confidence}%`);
+                        
+                        // Override strategy if LLM has high confidence and disagrees
+                        if (eligibilityDecision.confidence >= 70) {
+                            if (eligibilityDecision.recommended_path === 'data' && strategy.method === 'visual') {
+                                this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Overriding heuristic: switching to MCP verification');
+                                strategy.method = 'mcp';
+                                strategy.reason = `LLM override: ${eligibilityDecision.reason}`;
+                            } else if (eligibilityDecision.recommended_path === 'visual' && strategy.method === 'mcp') {
+                                this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Overriding heuristic: switching to visual verification');
+                                strategy.method = 'visual';
+                                strategy.reason = `LLM override: ${eligibilityDecision.reason}`;
+                            }
+                        }
+                    }
+                } catch (eligibilityError) {
+                    this.logger.warn(`[GRISHA] ⚠️  Eligibility routing failed: ${eligibilityError.message}`, {
+                        category: 'grisha-verify-item'
+                    });
+                    // Continue with heuristic strategy
+                }
+            }
+
+            this.logger.system('grisha-verify-item', `[GRISHA] ✅ Final strategy: ${strategy.method.toUpperCase()}`);
+
+            // STEP 3: Execute verification based on final strategy
             let verification;
             
             if (strategy.method === 'visual') {
                 // Visual verification (primary or fallback)
                 verification = await this._executeVisualVerification(currentItem, execution, todo, strategy);
                 
+                // NEW 2025-10-22: Execute additional checks from eligibility decision
+                if (eligibilityDecision && eligibilityDecision.additional_checks && eligibilityDecision.additional_checks.length > 0) {
+                    this.logger.system('grisha-verify-item', `[GRISHA] 🔧 Executing ${eligibilityDecision.additional_checks.length} additional checks...`);
+                    const additionalResults = await this._executeAdditionalChecks(eligibilityDecision.additional_checks, currentItem);
+                    verification.additional_checks_results = additionalResults;
+                    
+                    // Enhance verification confidence if additional checks pass
+                    if (additionalResults.all_passed) {
+                        verification.confidence = Math.min(100, verification.confidence + 10);
+                        this.logger.system('grisha-verify-item', '[GRISHA] ✅ Additional checks passed, confidence boosted');
+                    }
+                }
+                
                 // If visual failed and MCP fallback is available
                 if (!verification.verified && strategy.fallbackToMcp && strategy.mcpFallbackTools.length > 0) {
                     this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual verification failed, trying MCP fallback...');
-                    const mcpVerification = await this._executeMcpVerification(currentItem, execution, strategy);
+                    const mcpVerification = await this._executeMcpVerification(currentItem, execution, strategy, eligibilityDecision);
                     
                     if (mcpVerification.verified) {
                         this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP fallback verification succeeded');
@@ -145,8 +205,8 @@ export class GrishaVerifyItemProcessor {
                     }
                 }
             } else if (strategy.method === 'mcp') {
-                // MCP verification (primary)
-                verification = await this._executeMcpVerification(currentItem, execution, strategy);
+                // MCP verification (primary) - use additional_checks from eligibility
+                verification = await this._executeMcpVerification(currentItem, execution, strategy, eligibilityDecision);
                 
                 // If MCP failed and visual fallback is available
                 if (!verification.verified && strategy.fallbackToVisual) {
@@ -414,10 +474,11 @@ export class GrishaVerifyItemProcessor {
      * @param {Object} currentItem - Current TODO item
      * @param {Object} execution - Execution results
      * @param {Object} strategy - Verification strategy
+     * @param {Object} eligibilityDecision - Eligibility decision with additional_checks (optional)
      * @returns {Promise<Object>} Verification result
      * @private
      */
-    async _executeMcpVerification(currentItem, execution, strategy) {
+    async _executeMcpVerification(currentItem, execution, strategy, eligibilityDecision = null) {
         this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔧 Starting MCP tool verification...');
 
         try {
@@ -425,8 +486,8 @@ export class GrishaVerifyItemProcessor {
                 throw new Error('TetyanaToolSystem not available for MCP verification');
             }
 
-            // Build verification tool calls based on strategy
-            const verificationCalls = this._buildMcpVerificationCalls(currentItem, strategy);
+            // Build verification tool calls based on strategy and eligibility decision
+            const verificationCalls = this._buildMcpVerificationCalls(currentItem, strategy, eligibilityDecision);
             
             if (verificationCalls.length === 0) {
                 this.logger.warn('[MCP-GRISHA] No verification tools available', {
@@ -488,17 +549,35 @@ export class GrishaVerifyItemProcessor {
     }
 
     /**
-     * Build MCP verification tool calls based on strategy
+     * Build MCP verification tool calls based on strategy and eligibility decision
      * 
      * @param {Object} item - TODO item
      * @param {Object} strategy - Verification strategy
+     * @param {Object} eligibilityDecision - Eligibility decision with additional_checks (optional)
      * @returns {Array} Tool calls
      * @private
      */
-    _buildMcpVerificationCalls(item, strategy) {
+    _buildMcpVerificationCalls(item, strategy, eligibilityDecision = null) {
         const calls = [];
         const successCriteria = (item.success_criteria || '').toLowerCase();
 
+        // NEW 2025-10-22: Prioritize additional_checks from eligibility decision
+        if (eligibilityDecision && eligibilityDecision.additional_checks && eligibilityDecision.additional_checks.length > 0) {
+            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Using additional_checks from eligibility decision');
+            
+            eligibilityDecision.additional_checks.forEach(check => {
+                calls.push({
+                    tool: check.tool,
+                    arguments: check.arguments || {},
+                    expected_evidence: check.expected_evidence,
+                    description: check.description
+                });
+            });
+            
+            return calls;
+        }
+
+        // Fallback: Use heuristic-based verification calls
         // Filesystem verification
         if (strategy.mcpServer === 'filesystem' || strategy.mcpFallbackTools?.some(t => t.includes('filesystem'))) {
             // Extract file/directory path from success criteria or action
@@ -733,6 +812,102 @@ export class GrishaVerifyItemProcessor {
 
         // Default - adjust for safety
         return 'adjust';
+    }
+
+    /**
+     * Execute additional checks from eligibility decision
+     * 
+     * @param {Array} additionalChecks - Array of check objects from eligibility decision
+     * @param {Object} currentItem - Current TODO item
+     * @returns {Promise<Object>} Results of additional checks
+     * @private
+     */
+    async _executeAdditionalChecks(additionalChecks, currentItem) {
+        const results = [];
+        let allPassed = true;
+
+        for (const check of additionalChecks) {
+            try {
+                this.logger.system('grisha-verify-item', `[GRISHA] 🔧 Executing check: ${check.description}`);
+                
+                // Execute the tool using TetyanaToolSystem
+                const toolResult = await this.tetyanaToolSystem.executeToolCalls([{
+                    tool: check.tool,
+                    arguments: check.arguments
+                }], {
+                    mode: 'task',
+                    userIntent: 'verification',
+                    itemAction: currentItem.action,
+                    itemId: currentItem.id
+                });
+
+                // Analyze result
+                const passed = toolResult.all_successful && this._checkExpectedEvidence(
+                    toolResult.results[0],
+                    check.expected_evidence
+                );
+
+                results.push({
+                    description: check.description,
+                    tool: check.tool,
+                    passed,
+                    result: toolResult.results[0]
+                });
+
+                if (!passed) {
+                    allPassed = false;
+                }
+
+                this.logger.system('grisha-verify-item', `[GRISHA] ${passed ? '✅' : '❌'} Check ${passed ? 'passed' : 'failed'}`);
+
+            } catch (error) {
+                this.logger.error(`[GRISHA] ❌ Additional check failed: ${error.message}`, {
+                    category: 'grisha-verify-item',
+                    check: check.description
+                });
+
+                results.push({
+                    description: check.description,
+                    tool: check.tool,
+                    passed: false,
+                    error: error.message
+                });
+
+                allPassed = false;
+            }
+        }
+
+        return {
+            all_passed: allPassed,
+            results,
+            total: additionalChecks.length,
+            passed_count: results.filter(r => r.passed).length
+        };
+    }
+
+    /**
+     * Check if tool result matches expected evidence
+     * 
+     * @param {Object} toolResult - Tool execution result
+     * @param {string} expectedEvidence - Expected evidence description
+     * @returns {boolean} Whether evidence matches
+     * @private
+     */
+    _checkExpectedEvidence(toolResult, expectedEvidence) {
+        if (!toolResult || !toolResult.success) {
+            return false;
+        }
+
+        // Simple keyword matching for now
+        const resultText = JSON.stringify(toolResult.data || toolResult.summary || '').toLowerCase();
+        const evidenceKeywords = expectedEvidence.toLowerCase().split(' ');
+
+        // Check if at least 50% of keywords are present
+        const matchCount = evidenceKeywords.filter(keyword => 
+            keyword.length > 2 && resultText.includes(keyword)
+        ).length;
+
+        return matchCount >= evidenceKeywords.length * 0.5;
     }
 
     /**

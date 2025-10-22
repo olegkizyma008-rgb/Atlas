@@ -710,8 +710,20 @@ Return ONLY the JSON object.`;
         return await this._callOllamaVisionAPI(base64Image, prompt);
       }
 
-      // DISABLED 2025-10-22: OpenRouter fallback not working (parsing issues)
-      throw new Error('No vision API available. Port 4000 and Ollama unavailable. OpenRouter fallback disabled.');
+      // FALLBACK 2: Try OpenRouter as last resort
+      this.logger.warn('[VISION] Port 4000 and Ollama unavailable, trying OpenRouter fallback...', {
+        category: 'vision-analysis'
+      });
+      
+      try {
+        return await this._callOpenRouterVisionAPI(base64Image, prompt);
+      } catch (openRouterError) {
+        this.logger.error('[VISION] OpenRouter fallback also failed', {
+          category: 'vision-analysis',
+          error: openRouterError.message
+        });
+        throw new Error(`No vision API available. All providers failed: ${openRouterError.message}`);
+      }
 
     } catch (error) {
       this.logger.error(`[VISION] API call failed: ${error.message}`, {

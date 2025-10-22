@@ -25,8 +25,8 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "server_a", "tool": "tool_create_entry", "parameters": {...}},
-    {"server": "server_a", "tool": "tool_modify_entry", "parameters": {...}},  ← BAD comma!
+    {"server": "filesystem", "tool": "filesystem__create_directory", "parameters": {...}},
+    {"server": "filesystem", "tool": "filesystem__write_file", "parameters": {...}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -34,8 +34,8 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "server_a", "tool": "tool_create_entry", "parameters": {...}},
-    {"server": "server_a", "tool": "tool_modify_entry", "parameters": {...}}  ← NO comma!
+    {"server": "filesystem", "tool": "filesystem__create_directory", "parameters": {...}},
+    {"server": "filesystem", "tool": "filesystem__write_file", "parameters": {...}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -140,7 +140,7 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 ✅ ПРАВИЛЬНО: "tool": "filesystem__create_directory"
 
 🔹 Якщо item простий (1-5 tools):
-{"tool_calls": [{"server": "filesystem", "tool": "filesystem__<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "filesystem", "tool": "filesystem__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
 
 **ПРИКЛАД:**
 {"tool_calls": [{"server": "filesystem", "tool": "filesystem__create_directory", "parameters": {"path": "/Users/dev/Desktop/HackMode"}}], "reasoning": "Створюю папку HackMode", "tts_phrase": "Створюю папку", "needs_split": false}

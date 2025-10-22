@@ -121,7 +121,6 @@ export const DANGEROUS_PATTERNS = {
 
   // Небезпечні шляхи (ЗАВЖДИ блокувати)
   criticalPaths: [
-    /^\/$/,                            // Root directory
     /^\/System/,                       // macOS System
     /^\/Library/,                      // macOS Library
     /^\/bin/,                          // System binaries
@@ -138,6 +137,7 @@ export const DANGEROUS_PATTERNS = {
     /\/etc\/sudoers$/,                 // Sudoers file
     /\.ssh\/id_rsa$/,                  // SSH private key
     /\.aws\/credentials$/              // AWS credentials
+    // NOTE: Removed /^\\/$/ to allow listing root directory for navigation
   ],
 
   // Високоризикові шляхи (попередження)

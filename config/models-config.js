@@ -196,6 +196,16 @@ export const MCP_MODEL_CONFIG = {
       max_tokens: 2500,
       description: 'Tetyana Plan Tools - чистий JSON (GPT-4o-mini)'
     },
+    verification_eligibility: {
+      get model() {
+        return env.MCP_MODEL_VERIFICATION_ELIGIBILITY || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VERIFICATION_ELIGIBILITY || '0.1');
+      },
+      max_tokens: 500,
+      description: 'Grisha Verification Eligibility - routing decision (Mistral 3B - fast classification)'
+    },
     verify_item: {
       get model() {
         return env.MCP_MODEL_VERIFY_ITEM || 'atlas-mistral-small-2503';

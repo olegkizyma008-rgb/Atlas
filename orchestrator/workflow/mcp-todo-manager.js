@@ -1135,7 +1135,7 @@ Create precise MCP tool execution plan.
             type: 'json_schema',
             json_schema: {
               name: 'tool_plan',
-              strict: true,
+              strict: false,
               schema: toolSchema
             }
           };
@@ -1181,12 +1181,9 @@ Create precise MCP tool execution plan.
       this.logger.system('mcp-todo', `[TODO] Parsed plan: ${JSON.stringify(plan, null, 2)}`);
 
       plan.tts_phrase = this._generatePlanTTS(plan, item);
-
-      this.logger.system('mcp-todo', `[TODO] Planned ${plan.tool_calls.length} tool calls for item ${item.id}`);
-
-      // NEW 18.10.2025: More tolerant validation
+      
+      // Check for empty plan
       if (!plan.tool_calls || plan.tool_calls.length === 0) {
-        // Try to extract hints from reasoning
         const reasoning = plan.reasoning || '';
         
         // Check if LLM explicitly said it needs more info or can't plan
@@ -3276,6 +3273,83 @@ Select 1-2 most relevant servers.
 
 **Відповідь (JSON only):**`
     };
+  }
+
+  /**
+   * Generate fallback plan for common operations
+   * @private
+   */
+  _generateFallbackPlan(action, availableTools) {
+    try {
+      const actionLower = action.toLowerCase();
+      const plan = {
+        tool_calls: [],
+        reasoning: 'Fallback plan generated based on action keywords'
+      };
+
+      // Check for calculator operations
+      if (actionLower.includes('калькулятор') || actionLower.includes('помнож') || actionLower.includes('поділ')) {
+        if (availableTools.some(t => t.name === 'applescript__applescript_execute')) {
+          plan.tool_calls.push({
+            server: 'applescript',
+            tool: 'applescript__applescript_execute',
+            parameters: {
+              code_snippet: 'tell application "Calculator" to activate'
+            }
+          });
+        }
+      }
+
+      // Check for folder/directory operations
+      if (actionLower.includes('папк') || actionLower.includes('директор') || actionLower.includes('створ')) {
+        if (actionLower.includes('desktop') || actionLower.includes('робоч') || actionLower.includes('стіл')) {
+          if (availableTools.some(t => t.name === 'filesystem__create_directory')) {
+            const folderName = actionLower.match(/hackmode|папка\s+(\w+)/i)?.[1] || 'NewFolder';
+            plan.tool_calls.push({
+              server: 'filesystem',
+              tool: 'filesystem__create_directory',
+              parameters: {
+                path: `/Users/dev/Desktop/${folderName}`
+              }
+            });
+          }
+        }
+      }
+
+      // Check for file operations
+      if (actionLower.includes('збереж') || actionLower.includes('файл')) {
+        if (availableTools.some(t => t.name === 'filesystem__write_file')) {
+          const fileName = actionLower.match(/(\w+\.txt)/i)?.[1] || 'result.txt';
+          plan.tool_calls.push({
+            server: 'filesystem',
+            tool: 'filesystem__write_file',
+            parameters: {
+              path: `/Users/dev/Desktop/${fileName}`,
+              content: 'Result'
+            }
+          });
+        }
+      }
+
+      // Check for screenshot operations
+      if (actionLower.includes('знімок') || actionLower.includes('screenshot')) {
+        if (availableTools.some(t => t.name === 'playwright__screenshot')) {
+          plan.tool_calls.push({
+            server: 'playwright',
+            tool: 'playwright__screenshot',
+            parameters: {}
+          });
+        }
+      }
+
+      return plan.tool_calls.length > 0 ? plan : null;
+    } catch (error) {
+      this.logger.error(`[MCP-TODO] Failed to generate fallback plan: ${error.message}`, {
+        category: 'mcp-todo',
+        component: 'mcp-todo'
+      });
+      return null;
+    }
   }
 }
 

@@ -25,8 +25,8 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "applescript", "tool": "applescript_execute", "parameters": {"script": "..."}},
-    {"server": "applescript", "tool": "applescript_execute", "parameters": {"script": "..."}},  ← BAD comma!
+    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},
+    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -34,8 +34,8 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "applescript", "tool": "applescript_execute", "parameters": {"script": "..."}},
-    {"server": "applescript", "tool": "applescript_execute", "parameters": {"script": "..."}}  ← NO comma!
+    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},
+    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -153,7 +153,7 @@ end tell
 {
   "tool_calls": [{
     "server": "applescript",
-    "tool": "applescript__execute",
+    "tool": "applescript__applescript_execute",
     "parameters": {
       "code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5\ntell application \"System Events\"\n    tell process \"Calculator\"\n        keystroke \"333\"\n        keystroke \"+\"\n        keystroke \"222\"\n        keystroke \"+\"\n        keystroke \"111\"\n        keystroke return\n    end tell\nend tell"
     }
@@ -191,10 +191,10 @@ end tell
 ✅ ПРАВИЛЬНО: "tool": "applescript__execute"
 
 🔹 ЗАВЖДИ створюй tool_calls (навіть для складних операцій):
-{"tool_calls": [{"server": "applescript", "tool": "applescript__execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
 
 **ПРИКЛАД:**
-{"tool_calls": [{"server": "applescript", "tool": "applescript__execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "Відкриваю калькулятор", "tts_phrase": "Відкриваю калькулятор", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "Відкриваю калькулятор", "tts_phrase": "Відкриваю калькулятор", "needs_split": false}
 
 🔹 needs_split ТІЛЬКИ для екстремальних випадків (>10 додатків):
 {"needs_split": true, "reasoning": "Потрібно >10 різних додатків", "suggested_splits": ["<step1>", "<step2>"], "tool_calls": [], "tts_phrase": "Розділяю"}

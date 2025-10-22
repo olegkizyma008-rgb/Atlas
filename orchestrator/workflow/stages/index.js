@@ -11,6 +11,7 @@ import { AtlasTodoPlanningProcessor } from './atlas-todo-planning-processor.js';
 import { ServerSelectionProcessor } from './server-selection-processor.js';
 import { TetyanaПlanToolsProcessor } from './tetyana-plan-tools-processor.js';
 import { TetyanaExecuteToolsProcessor } from './tetyana-execute-tools-processor.js';
+import { GrishaVerificationEligibilityProcessor } from './grisha-verification-eligibility-processor.js';
 import { GrishaVerifyItemProcessor } from './grisha-verify-item-processor.js';
 import { AtlasAdjustTodoProcessor } from './atlas-adjust-todo-processor.js';
 import { AtlasReplanTodoProcessor } from './atlas-replan-todo-processor.js';
@@ -23,6 +24,7 @@ export {
     ServerSelectionProcessor,
     TetyanaПlanToolsProcessor,
     TetyanaExecuteToolsProcessor,
+    GrishaVerificationEligibilityProcessor,
     GrishaVerifyItemProcessor,
     AtlasAdjustTodoProcessor,
     AtlasReplanTodoProcessor,

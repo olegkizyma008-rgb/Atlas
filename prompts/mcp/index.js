@@ -34,6 +34,7 @@ import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
 import grishaVerifyItem from './grisha_verify_item_optimized.js';  // OPTIMIZED 15.10.2025 (legacy MCP tools)
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
+import grishaVerificationEligibility from './grisha_verification_eligibility.js';  // NEW 22.10.2025 - Verification routing
 import atlasAdjustTodo from './atlas_adjust_todo.js';
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
 import mcpFinalSummary from './mcp_final_summary.js';
@@ -68,6 +69,9 @@ export const MCP_PROMPTS = {
     // Stage 2.3-MCP: Grisha verifies item (VISUAL VERIFICATION - NEW 17.10.2025)
     GRISHA_VERIFY_ITEM: grishaVisualVerifyItem,  // CHANGED: Now uses visual AI verification
     
+    // Stage 2.3-routing: Grisha verification eligibility (NEW 22.10.2025)
+    GRISHA_VERIFICATION_ELIGIBILITY: grishaVerificationEligibility,
+    
     // Legacy MCP tools verification (deprecated)
     GRISHA_VERIFY_ITEM_LEGACY: grishaVerifyItem,
 
@@ -101,6 +105,7 @@ export {
     tetyanaScreenshotAndAdjust,
     grishaVerifyItem,
     grishaVisualVerifyItem,  // NEW 17.10.2025
+    grishaVerificationEligibility,  // NEW 22.10.2025
     atlasAdjustTodo,
     atlasReplanTodo,  // NEW 18.10.2025
     mcpFinalSummary,

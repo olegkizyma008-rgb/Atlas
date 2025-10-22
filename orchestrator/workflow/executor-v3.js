@@ -33,11 +33,6 @@ const phraseRotation = {
  * @returns {Promise<Object>} Final summary result
  */
 async function executeMCPWorkflow(userMessage, session, res, container) {
-  // 🔥 VERSION MARKER: 2025-01-16T16:45:00Z - WITH DIAGNOSTICS
-  console.log('🔥🔥🔥 [VERSION-CHECK] executeMCPWorkflow v2025-01-16-16:45 🔥🔥🔥');
-  // DIAGNOSTIC 16.10.2025 - Verify this code is actually loaded
-  logger.system('executor', `[FUNCTION-ENTRY] executeMCPWorkflow STARTED with FIXED CODE (timestamp: ${new Date().toISOString()})`);
-
   logger.workflow('init', 'mcp', 'Starting MCP Dynamic TODO Workflow', {
     sessionId: session.id,
     userMessage: userMessage.substring(0, 100)

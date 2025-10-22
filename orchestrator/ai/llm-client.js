@@ -75,10 +75,19 @@ export class LLMClient {
    * @param {string} options.systemPrompt - System prompt (опціонально)
    * @param {Array} options.context - Історія розмови (опціонально)
    * @param {Array} options.toolResults - Результати виконання tools (опціонально)
+   * @param {number} options.temperature - Temperature для LLM (опціонально)
+   * @param {number} options.max_tokens - Max tokens для відповіді (опціонально)
    * @returns {Promise<string>} Згенерована відповідь
    */
   async generate(options) {
-    const { prompt, systemPrompt, context = [], toolResults = [] } = options;
+    const { 
+      prompt, 
+      systemPrompt, 
+      context = [], 
+      toolResults = [],
+      temperature,
+      max_tokens
+    } = options;
 
     logger.debug('llm-client', '[LLM Client] Generating response', {
       model: this.model,
@@ -118,10 +127,56 @@ export class LLMClient {
       content: prompt
     });
 
-    // API request
-    const response = await this.complete(messages);
+    // API request with optional parameters
+    const response = await this.complete(messages, {
+      temperature,
+      max_tokens
+    });
 
     return response;
+  }
+
+  /**
+   * Complete - викликає LLM API для генерації відповіді
+   * @param {Array} messages - Масив повідомлень для LLM
+   * @param {Object} options - Додаткові опції
+   * @returns {Promise<string>} Згенерована відповідь
+   * @private
+   */
+  async complete(messages, options = {}) {
+    const temperature = options.temperature || this.temperature;
+    const max_tokens = options.max_tokens || 1000;
+
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          temperature,
+          max_tokens
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid LLM API response format');
+      }
+
+      return data.choices[0].message.content;
+
+    } catch (error) {
+      logger.error('llm-client', `[LLM Client] Complete failed: ${error.message}`);
+      throw error;
+    }
   }
 
   /**

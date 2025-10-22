@@ -1,15 +1,17 @@
 /**
- * @fileoverview Visual Capture Service
- * Continuous screenshot monitoring for visual verification
+ * @fileoverview Visual Capture Service (macOS)
+ * Screenshot capture for visual verification
  * 
  * Provides:
- * - Continuous screenshot capture (configurable interval)
- * - Frame comparison for change detection
+ * - Active window capture (programs)
+ * - Desktop-only capture (no windows)
+ * - Full screen capture (all displays)
+ * - Multi-monitor support
  * - Screenshot queue management
- * - Visual evidence storage
  * 
- * @version 5.0.0
- * @date 2025-10-17
+ * @version 5.1.0
+ * @date 2025-10-22
+ * @platform macOS only
  */
 
 import { exec } from 'child_process';
@@ -33,30 +35,39 @@ export class VisualCaptureService {
     constructor({ logger, config = {} }) {
         this.logger = logger;
         this.config = {
-            captureInterval: config.captureInterval || 2000, // 2 seconds default
+            captureInterval: config.captureInterval || 2000,
             screenshotDir: config.screenshotDir || '/tmp/atlas_visual',
             maxStoredScreenshots: config.maxStoredScreenshots || 10,
-            changeDetectionThreshold: config.changeDetectionThreshold || 0.05, // 5% change
-            platform: config.platform || process.platform
+            changeDetectionThreshold: config.changeDetectionThreshold || 0.05
         };
+
+        // Platform check
+        if (process.platform !== 'darwin') {
+            throw new Error('Visual Capture Service currently supports macOS only');
+        }
 
         this.isMonitoring = false;
         this.monitoringInterval = null;
         this.screenshotQueue = [];
         this.lastScreenshotHash = null;
         this.changeDetected = false;
+        
+        // Display information (populated during initialization)
+        this.displayCount = 0;
+        this.displayInfo = null;
     }
 
     /**
      * Initialize visual capture service
+     * Detects display configuration
      */
     async initialize() {
-        this.logger.system('visual-capture', '[VISUAL] Initializing Visual Capture Service...');
+        this.logger.system('visual-capture', '[VISUAL] Initializing Visual Capture Service (macOS)...');
 
         // Create screenshot directory
         try {
             await fs.mkdir(this.config.screenshotDir, { recursive: true });
-            this.logger.system('visual-capture', `[VISUAL] Screenshot directory created: ${this.config.screenshotDir}`);
+            this.logger.system('visual-capture', `[VISUAL] Screenshot directory: ${this.config.screenshotDir}`);
         } catch (error) {
             this.logger.error(`[VISUAL] Failed to create screenshot directory: ${error.message}`, {
                 category: 'visual-capture',
@@ -65,7 +76,10 @@ export class VisualCaptureService {
             throw error;
         }
 
-        this.logger.system('visual-capture', '[VISUAL] ✅ Visual Capture Service initialized');
+        // Detect displays
+        await this._detectDisplays();
+
+        this.logger.system('visual-capture', `[VISUAL] ✅ Initialized with ${this.displayCount} display(s)`);
     }
 
     /**
@@ -121,75 +135,48 @@ export class VisualCaptureService {
     /**
      * Capture a single screenshot
      * 
-     * ENHANCED 2025-10-22: Intelligent screenshot capture
-     * - Attempts window-specific capture first if targetApp specified
-     * - Falls back to full screen if window capture fails
-     * - Supports multi-monitor setups
+     * SIMPLIFIED 2025-10-22: Three capture modes for visual verification
+     * - active_window: Captures active application window (best for program verification)
+     * - desktop_only: Captures desktop without windows (for desktop state)
+     * - full_screen: Captures entire screen (default, all monitors)
      * 
      * @param {string} context - Context identifier for the screenshot
      * @param {Object} options - Capture options
-     * @param {string} [options.targetApp] - Target app name for window screenshot (e.g. 'Calculator', 'Safari')
-     * @param {boolean} [options.fullScreen] - Force full screen capture even if targetApp specified
+     * @param {string} [options.mode] - Capture mode: 'active_window', 'desktop_only', 'full_screen' (default)
+     * @param {string} [options.targetApp] - Target app name for active_window mode
+     * @param {number} [options.displayNumber] - Display number for desktop_only mode (1, 2, 3...)
      * @returns {Promise<Object>} Screenshot info
      */
     async captureScreenshot(context = 'manual', options = {}) {
         const timestamp = Date.now();
-        const filename = `screenshot_${context}_${timestamp}.png`;
+        const mode = options.mode || 'full_screen';
+        const filename = `screenshot_${context}_${mode}_${timestamp}.png`;
         const filepath = path.join(this.config.screenshotDir, filename);
-        
-        // Declare command outside try block so it's accessible in catch
-        let command = null;
-        let captureMode = 'full_screen'; // default
-        let captureMethod = 'unknown';
 
         try {
-            // Platform-specific screenshot command
-            
-            if (this.config.platform === 'darwin') {
-                // macOS - ENHANCED: Try window-specific capture first
-                
-                // Strategy 1: Window-specific capture if targetApp specified
-                if (options.targetApp && !options.fullScreen) {
-                    this.logger.system('visual-capture', `[VISUAL] 🎯 Attempting window capture for: ${options.targetApp}`);
+            let captureSuccess = false;
+
+            switch (mode) {
+                case 'active_window':
+                    captureSuccess = await this._captureActiveWindow(filepath, options.targetApp);
+                    break;
                     
-                    const windowCapture = await this._captureWindowMacOS(options.targetApp, filepath);
+                case 'desktop_only':
+                    captureSuccess = await this._captureDesktopOnly(filepath, options.displayNumber);
+                    break;
                     
-                    if (windowCapture.success) {
-                        captureMode = 'window';
-                        captureMethod = windowCapture.method;
-                        this.logger.system('visual-capture', `[VISUAL] ✅ Window capture successful (${captureMethod})`);
-                    } else {
-                        this.logger.warn(`[VISUAL] ⚠️  Window capture failed: ${windowCapture.reason}`, {
-                            category: 'visual-capture',
-                            target_app: options.targetApp
-                        });
-                        this.logger.system('visual-capture', '[VISUAL] 🔄 Falling back to full screen capture');
-                        command = `screencapture -x "${filepath}"`;
-                        captureMode = 'full_screen';
-                        captureMethod = 'fallback';
-                    }
-                } else {
-                    // Strategy 2: Full screen capture
-                    this.logger.system('visual-capture', '[VISUAL] 📷 Capturing full screen');
-                    command = `screencapture -x "${filepath}"`;
-                    captureMode = 'full_screen';
-                    captureMethod = 'default';
-                }
-            } else if (this.config.platform === 'linux') {
-                // Linux - use scrot or import
-                command = `scrot "${filepath}" || import -window root "${filepath}"`;
-            } else {
-                throw new Error(`Unsupported platform: ${this.config.platform}`);
+                case 'full_screen':
+                default:
+                    captureSuccess = await this._captureFullScreen(filepath);
+                    break;
             }
 
-            // Execute screenshot command (only if not already captured by window method)
-            if (command) {
-                await execAsync(command);
+            if (!captureSuccess) {
+                throw new Error(`Screenshot capture failed for mode: ${mode}`);
             }
 
             // Verify screenshot was created
             const stats = await fs.stat(filepath);
-            
             if (stats.size === 0) {
                 throw new Error('Screenshot file is empty');
             }
@@ -213,8 +200,7 @@ export class VisualCaptureService {
                 hash,
                 changed,
                 size: stats.size,
-                captureMode,
-                captureMethod,
+                mode,
                 targetApp: options.targetApp || null
             };
 
@@ -224,7 +210,8 @@ export class VisualCaptureService {
             // Cleanup old screenshots
             await this._cleanupOldScreenshots();
 
-            this.logger.system('visual-capture', `[VISUAL] 📸 Screenshot captured: ${filename} (${(stats.size / 1024).toFixed(1)}KB, changed: ${changed})`);
+            this.logger.system('visual-capture', 
+                `[VISUAL] 📸 Screenshot captured [${mode}]: ${(stats.size / 1024).toFixed(1)}KB`);
 
             return screenshotInfo;
 
@@ -233,7 +220,7 @@ export class VisualCaptureService {
                 category: 'visual-capture',
                 component: 'visual-capture',
                 context,
-                command: command || 'unknown'
+                mode
             });
             throw error;
         }
@@ -374,119 +361,152 @@ export class VisualCaptureService {
     }
 
     /**
-     * Capture window screenshot on macOS using multiple strategies
-     * 
-     * ENHANCED 2025-10-22: Intelligent window capture with fallback strategies
-     * 
-     * Strategies (in order):
-     * 1. AppleScript window ID + screencapture -l (most accurate)
-     * 2. Bring app to front + screencapture -w (interactive window selection)
-     * 3. Return failure for fallback to full screen
-     * 
-     * @param {string} appName - Application name (e.g. 'Calculator', 'Safari')
-     * @param {string} filepath - Output file path
-     * @returns {Promise<Object>} Capture result
+     * Detect available displays and their configuration
      * @private
      */
-    async _captureWindowMacOS(appName, filepath) {
+    async _detectDisplays() {
         try {
-            // Strategy 1: Window bounds method (most accurate, non-interactive)
-            // FIXED 2025-10-22: No interactive cursor, captures specific window only
-            this.logger.system('visual-capture', `[VISUAL] 🎯 Strategy 1: Window bounds capture for ${appName}`);
+            const { stdout } = await execAsync('system_profiler SPDisplaysDataType | grep -c "Resolution:"');
+            this.displayCount = parseInt(stdout.trim()) || 1;
             
-            try {
-                // FIXED 2025-10-22: Use window bounds method (no interactive cursor)
-                // This activates app and captures its window by ID
-                // FIXED 2025-10-22: Use "exists window 1" instead of "count of windows" for better compatibility
-                const windowBoundsScript = `
-                    tell application "${appName}"
-                        if exists window 1 then
-                            activate
-                            delay 0.3
-                            set windowID to id of window 1
-                            do shell script "screencapture -x -l " & windowID & " \\"${filepath}\\""
-                            return "success"
-                        else
-                            return "no_windows"
-                        end if
-                    end tell
-                `;
-                
-                const { stdout: result } = await execAsync(`osascript -e '${windowBoundsScript}'`);
-                
-                if (result.trim() === 'success') {
-                    // Verify file was created
-                    const stats = await fs.stat(filepath);
-                    if (stats.size > 0) {
-                        this.logger.system('visual-capture', `[VISUAL] ✅ Window captured successfully (${(stats.size / 1024).toFixed(1)}KB)`);
-                        return {
-                            success: true,
-                            method: 'window_bounds'
-                        };
-                    }
-                }
-            } catch (scriptError) {
-                this.logger.warn(`[VISUAL] Strategy 1 failed: ${scriptError.message}`, {
-                    category: 'visual-capture',
-                    app: appName
-                });
-            }
+            this.logger.system('visual-capture', `[VISUAL] 🖥️  Detected ${this.displayCount} display(s)`);
             
-            // Strategy 2: Bring app to front and capture using full screen (app is frontmost)
-            this.logger.system('visual-capture', `[VISUAL] 🎯 Strategy 2: Activate app and capture screen`);
+            return this.displayCount;
+        } catch (error) {
+            this.logger.warn(`[VISUAL] Display detection failed: ${error.message}`, {
+                category: 'visual-capture'
+            });
+            this.displayCount = 1; // Default to 1 display
+            return 1;
+        }
+    }
+
+    /**
+     * Capture active window (frontmost application)
+     * OPTIMIZED 2025-10-22: Non-interactive method using window bounds
+     * 
+     * @param {string} filepath - Output file path
+     * @param {string} targetApp - Optional: specific app to activate first
+     * @returns {Promise<boolean>} Success status
+     * @private
+     */
+    async _captureActiveWindow(filepath, targetApp = null) {
+        try {
+            let processName = targetApp;
             
-            try {
-                // Activate the application to bring it to front
-                const activateCmd = `osascript -e 'tell application "${appName}" to activate'`;
-                await execAsync(activateCmd);
-                
-                // Wait for app to come to front
+            // If targetApp specified, activate it first
+            if (targetApp) {
+                this.logger.system('visual-capture', `[VISUAL] 🎯 Activating: ${targetApp}`);
+                await execAsync(`osascript -e 'tell application "${targetApp}" to activate'`);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // FIXED 2025-10-22: Ensure directory exists before capture
-                const dir = path.dirname(filepath);
-                await fs.mkdir(dir, { recursive: true });
-                
-                // FIXED 2025-10-22: Remove -w flag (causes interactive cursor)
-                // Capture full screen with frontmost app visible (non-interactive)
-                const captureCmd = `screencapture -x -o "${filepath}"`;
-                await execAsync(captureCmd);
-                
-                // Verify file was created
-                const stats = await fs.stat(filepath);
-                if (stats.size > 0) {
-                    this.logger.system('visual-capture', `[VISUAL] ✅ Frontmost window captured (${(stats.size / 1024).toFixed(1)}KB)`);
-                    return {
-                        success: true,
-                        method: 'activate_and_capture'
-                    };
-                }
-            } catch (activateError) {
-                this.logger.warn(`[VISUAL] Strategy 2 failed: ${activateError.message}`, {
-                    category: 'visual-capture',
-                    app: appName
-                });
+            } else {
+                // Get frontmost process name
+                const { stdout } = await execAsync(`osascript -e 'tell application "System Events" to get name of first process whose frontmost is true'`);
+                processName = stdout.trim();
+                this.logger.system('visual-capture', `[VISUAL] 🎯 Frontmost app: ${processName}`);
             }
             
-            // All strategies failed
-            return {
-                success: false,
-                reason: 'All window capture strategies failed',
-                attempted: ['applescript_window_id', 'activate_and_capture']
-            };
+            // Get window bounds using AppleScript
+            const boundsScript = `
+                tell application "System Events"
+                    tell process "${processName}"
+                        set windowPosition to position of window 1
+                        set windowSize to size of window 1
+                        return (item 1 of windowPosition) & "," & (item 2 of windowPosition) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize)
+                    end tell
+                end tell
+            `;
+            
+            const { stdout: boundsOutput } = await execAsync(`osascript -e '${boundsScript}'`);
+            // Remove all spaces and fix double commas
+            const bounds = boundsOutput.trim().replace(/\s/g, '').replace(/,+/g, ',');
+            
+            this.logger.system('visual-capture', `[VISUAL] Window bounds: ${bounds}`);
+            
+            // Capture window region (non-interactive)
+            const command = `screencapture -x -R ${bounds} "${filepath}"`;
+            await execAsync(command);
+            
+            this.logger.system('visual-capture', '[VISUAL] ✅ Active window captured');
+            return true;
             
         } catch (error) {
-            this.logger.error(`[VISUAL] Window capture error: ${error.message}`, {
+            this.logger.error(`[VISUAL] Active window capture failed: ${error.message}`, {
                 category: 'visual-capture',
-                component: 'visual-capture',
-                app: appName
+                targetApp
             });
+            return false;
+        }
+    }
+
+    /**
+     * Capture desktop only (hide all windows)
+     * OPTIMIZED 2025-10-22: Clean desktop screenshot
+     * 
+     * @param {string} filepath - Output file path
+     * @param {number} displayNumber - Optional: specific display number (1, 2, 3...)
+     * @returns {Promise<boolean>} Success status
+     * @private
+     */
+    async _captureDesktopOnly(filepath, displayNumber = null) {
+        try {
+            const displayMsg = displayNumber 
+                ? `display ${displayNumber}` 
+                : 'all displays';
             
-            return {
-                success: false,
-                reason: error.message,
-                error: true
-            };
+            this.logger.system('visual-capture', `[VISUAL] 🖼️  Hiding windows for desktop capture (${displayMsg})`);
+            
+            // Hide all application windows (show desktop)
+            await execAsync('osascript -e \'tell application "Finder" to set visible of processes whose visible is true to false\'');
+            
+            // Wait for windows to hide
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Capture screen (specific display or all)
+            const displayFlag = displayNumber ? `-D ${displayNumber}` : '';
+            const command = `screencapture -x ${displayFlag} "${filepath}"`;
+            await execAsync(command);
+            
+            this.logger.system('visual-capture', `[VISUAL] ✅ Desktop captured (${displayMsg})`);
+            return true;
+            
+        } catch (error) {
+            this.logger.error(`[VISUAL] Desktop capture failed: ${error.message}`, {
+                category: 'visual-capture',
+                displayNumber
+            });
+            return false;
+        }
+    }
+
+    /**
+     * Capture full screen (all monitors)
+     * OPTIMIZED 2025-10-22: Simple full screen capture
+     * 
+     * @param {string} filepath - Output file path
+     * @returns {Promise<boolean>} Success status
+     * @private
+     */
+    async _captureFullScreen(filepath) {
+        try {
+            const displayMsg = this.displayCount > 1 
+                ? `all ${this.displayCount} displays` 
+                : 'display';
+            
+            this.logger.system('visual-capture', `[VISUAL] 📷 Capturing full screen (${displayMsg})`);
+            
+            // Capture all screens
+            const command = `screencapture -x "${filepath}"`;
+            await execAsync(command);
+            
+            this.logger.system('visual-capture', '[VISUAL] ✅ Full screen captured');
+            return true;
+            
+        } catch (error) {
+            this.logger.error(`[VISUAL] Full screen capture failed: ${error.message}`, {
+                category: 'visual-capture'
+            });
+            return false;
         }
     }
 

@@ -248,7 +248,8 @@ export class VisionAnalysisService {
       const prompt = this._constructAnalysisPrompt(successCriteria, context);
 
       // Call vision API with retry logic
-      const analysis = await this._callVisionAPIWithRetry(base64Image, prompt);
+      // ENHANCED 2025-10-22: Pass context for model selection
+      const analysis = await this._callVisionAPIWithRetry(base64Image, prompt, 3, context);
 
       // OPTIMIZED: Cache successful results
       this._cacheResult(cacheKey, analysis);
@@ -448,14 +449,17 @@ export class VisionAnalysisService {
      * @param {string} base64Image - Base64 encoded image
      * @param {string} prompt - Analysis prompt
      * @param {number} retries - Number of retries
+     * @param {Object} context - Additional context
      * @returns {Promise<Object>} Analysis result
      * @private
      */
-  async _callVisionAPIWithRetry(base64Image, prompt, retries = 3) {
+  async _callVisionAPIWithRetry(base64Image, prompt, retries = 3, context = {}) {
     let lastError;
     for (let i = 0; i < retries; i++) {
       try {
-        return await this._callVisionAPI(base64Image, prompt);
+        // ENHANCED 2025-10-22: Pass context for model selection
+        const result = await this._callVisionAPI(base64Image, prompt, context);
+        return result;
       } catch (error) {
         lastError = error;
         if (i < retries - 1) {
@@ -592,7 +596,7 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 5. Provide specific visual evidence from the screenshot
 6. Return ONLY a JSON object - NO code blocks, NO markdown, NO explanatory text
 
-**Example 1 - Success (numbers MATCH):**
+**Example 1 - Success (numbers MATCH EXACTLY):**
 - Success Criteria: "Calculator shows result 6"
 - Screenshot shows: "6"
 - Correct response: {"verified": true, "reason": "Calculator displays 6, which matches the expected result", "visual_evidence": {"observed": "6", "matches_criteria": true}}
@@ -602,8 +606,20 @@ ${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
 - Screenshot shows: "87"
 - Correct response: {"verified": false, "reason": "Calculator displays 87, but expected result is 666", "visual_evidence": {"observed": "87", "matches_criteria": false}}
 
+**Example 3 - Failure (WRONG number on screen):**
+- Success Criteria: "Calculator shows result 18.68"
+- Screenshot shows: "5001"
+- Correct response: {"verified": false, "reason": "Calculator displays 5001, but expected result is 18.68", "visual_evidence": {"observed": "5001", "matches_criteria": false}}
+
+**CRITICAL RULES:**
+1. ⚠️ Numbers must match EXACTLY - 18.68 ≠ 5001, 6 ≠ 66, 100 ≠ 1000
+2. ⚠️ If you see ANY number different from expected - set verified: false
+3. ⚠️ Compare the ENTIRE number, not just part of it
+4. ⚠️ Port numbers (5001, 3001, etc.) are NOT calculation results
+
 **WRONG Example (DO NOT DO THIS):**
 - ❌ {"reason": "Calculator shows 6, not 6"} ← This is NONSENSE! If you see 6 and expect 6, it's verified: true!
+- ❌ {"verified": true, "reason": "Calculator displays 5001, which matches the expected result"} when expecting 18.68 ← WRONG! 5001 ≠ 18.68!
 
 **Required JSON format (return EXACTLY this structure, nothing else):**
 {
@@ -698,11 +714,12 @@ Return ONLY the JSON object.`;
      * @returns {Promise<Object>} Parsed analysis result
      * @private
      */
-  async _callVisionAPI(base64Image, prompt) {
+  async _callVisionAPI(base64Image, prompt, context = {}) {
     try {
       // PRIMARY: Try port 4000 first (FAST ~2-5 sec)
       if (this.port4000Available && this.visionProvider === 'port4000') {
-        return await this._callPort4000VisionAPI(base64Image, prompt);
+        // ENHANCED 2025-10-22: Pass context for model selection
+        return await this._callPort4000VisionAPI(base64Image, prompt, context);
       }
 
       // FALLBACK: Try Ollama (SLOW ~120+ sec but FREE)
@@ -742,17 +759,25 @@ Return ONLY the JSON object.`;
      * @returns {Promise<Object>} Parsed analysis result
      * @private
      */
-  async _callPort4000VisionAPI(base64Image, prompt) {
+  async _callPort4000VisionAPI(base64Image, prompt, context = {}) {
     try {
-      this.logger.system('vision-analysis', '[PORT-4000] 🚀 Calling Port 4000 LLM API (FAST ~2-5 sec)...');
+      // ENHANCED 2025-10-22: Select model based on modelType from context
+      const modelType = context.modelType || 'fast';  // 'fast' or 'primary'
+      const stageName = modelType === 'fast' ? 'vision_verification_fast' : 'vision_verification_strong';
+      
+      this.logger.system('vision-analysis', `[PORT-4000] 🚀 Calling Port 4000 LLM API (model: ${modelType})...`);
 
       // OPTIMIZATION 2025-10-17: Check and optimize image to prevent 413 errors
       const optimizedImage = this._optimizeImageForAPI(base64Image);
 
-      // Use centralized vision model config from global-config.js
-      const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_analysis');
+      // Use model based on attempt: fast (phi-3.5) or strong (llama-90b)
+      const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig(stageName);
       const endpoint = GlobalConfig.MCP_MODEL_CONFIG.apiEndpoint.primary;
       const apiEndpoint = visionConfig.endpoint || 'http://localhost:4000/v1/chat/completions';
+      
+      this.logger.system('vision-analysis', `[PORT-4000] 🎯 Model: ${visionConfig.model}`);
+      this.logger.system('vision-analysis', `[PORT-4000] 🌡️ Temperature: ${visionConfig.temperature}`);
+      this.logger.system('vision-analysis', `[PORT-4000] 📊 Max tokens: ${visionConfig.max_tokens}`);
 
       // Prepare headers - add Copilot-Vision-Request for GitHub Copilot models
       const headers = { 'Content-Type': 'application/json' };

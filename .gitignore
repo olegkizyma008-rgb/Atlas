@@ -254,3 +254,7 @@ unused_files/goose_mcp_servers/mcp/temp_servers/
 logs/
 logs/**/*.log
 logs/**/*.pid
+
+# Allow orchestrator workflow log for debugging and analysis
+!logs/workflow.log
+!logs/orchestrator.log

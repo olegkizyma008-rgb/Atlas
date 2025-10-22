@@ -23,7 +23,7 @@ export const VISION_CONFIG = {
     isLocal: false
   },
   fast: {
-    model: 'atlas-phi-3.5-vision-instruct',
+    model: 'atlas-llama-3.2-11b-vision-instruct',
     provider: 'atlas',
     cost: 0.0002,
     speed: '0.8-1.2s',
@@ -43,7 +43,7 @@ export const VISION_CONFIG = {
     isLocal: false
   },
   cheapest: {
-    model: 'atlas-phi-3.5-vision-instruct',
+    model: 'atlas-llama-3.2-11b-vision-instruct',
     provider: 'atlas',
     cost: 0.0001,
     speed: '1-1.5s',
@@ -256,6 +256,26 @@ export const MCP_MODEL_CONFIG = {
       max_tokens: 1000,
       description: 'Vision Analysis - аналіз скріншотів (GPT-4o vision)'
     },
+    vision_verification_fast: {
+      get model() {
+        return env.MCP_MODEL_VISION_FAST || 'atlas-llama-3.2-11b-vision-instruct';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_FAST || '0.2');
+      },
+      max_tokens: 800,
+      description: 'Grisha Visual Verification Attempt 1 - середня модель (Llama-3.2 11B Vision)'
+    },
+    vision_verification_strong: {
+      get model() {
+        return env.MCP_MODEL_VISION_STRONG || 'atlas-llama-3.2-90b-vision-instruct';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_STRONG || '0.2');
+      },
+      max_tokens: 1000,
+      description: 'Grisha Visual Verification Attempt 2 - потужна модель (Llama-3.2-90B Vision)'
+    },
     vision_fallback: {
       get model() {
         return env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision';
@@ -292,6 +312,16 @@ export const MCP_MODEL_CONFIG = {
       },
       max_tokens: 2000,
       description: 'Screenshot Adjustment - аналіз скріншотів (Phi-4 Multimodal)'
+    },
+    visual_capture_mode_selector: {
+      get model() {
+        return env.MCP_MODEL_VISUAL_CAPTURE_MODE || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISUAL_CAPTURE_MODE || '0.1');
+      },
+      max_tokens: 400,
+      description: 'Visual Capture Mode Selector - вибір режиму скріншота'
     },
     tts_optimization: {
       get model() {

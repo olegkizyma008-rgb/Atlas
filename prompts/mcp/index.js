@@ -32,6 +32,7 @@ import tetyanaPlanToolsApplescript from './tetyana_plan_tools_applescript.js';  
 import tetyanaPlanToolsShell from './tetyana_plan_tools_shell.js';  // NEW 18.10.2025 - Shell specialized
 import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.10.2025 - Memory specialized
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
+import visualCaptureModeSelector from './visual_capture_mode_selector.js';  // NEW 22.10.2025 - Screenshot mode selection
 import grishaVerifyItem from './grisha_verify_item_optimized.js';  // OPTIMIZED 15.10.2025 (legacy MCP tools)
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
 import grishaVerificationEligibility from './grisha_verification_eligibility.js';  // NEW 22.10.2025 - Verification routing
@@ -66,6 +67,7 @@ export const MCP_PROMPTS = {
 
     // Stage 2.1.5-MCP: Tetyana screenshot and adjust (NEW 16.10.2025)
     TETYANA_SCREENSHOT_AND_ADJUST: tetyanaScreenshotAndAdjust,
+    VISUAL_CAPTURE_MODE_SELECTOR: visualCaptureModeSelector,
 
     // Stage 2.3-MCP: Grisha verifies item (VISUAL VERIFICATION - NEW 17.10.2025)
     GRISHA_VERIFY_ITEM: grishaVisualVerifyItem,  // CHANGED: Now uses visual AI verification
@@ -101,10 +103,11 @@ export {
     tetyanaPlanToolsShell,
     tetyanaPlanToolsMemory,
     tetyanaScreenshotAndAdjust,
+    visualCaptureModeSelector,  // NEW 22.10.2025
     grishaVerifyItem,
     grishaVisualVerifyItem,  // NEW 17.10.2025
     grishaVerificationEligibility,  // NEW 22.10.2025
-    atlasAdjustTodo,
+    // atlasAdjustTodo - ARCHIVED 2025-10-22
     atlasReplanTodo,  // NEW 18.10.2025
     mcpFinalSummary,
     llmToolValidator  // NEW 21.10.2025

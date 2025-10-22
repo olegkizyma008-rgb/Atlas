@@ -177,30 +177,48 @@ export class GrishaVerifyItemProcessor {
             let verification;
             
             if (strategy.method === 'visual') {
-                // Visual verification (primary or fallback)
-                verification = await this._executeVisualVerification(currentItem, execution, todo, strategy);
+                // ARCHITECTURE 2025-10-22: 2-attempt visual verification with model escalation
+                // Attempt 1: Fast/cheap model (phi-3.5-vision)
+                this.logger.system('grisha-verify-item', '[GRISHA] 🎯 Visual attempt 1/2 (fast model)');
+                verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 1);
                 
-                // NEW 2025-10-22: Execute additional checks from eligibility decision
-                if (eligibilityDecision && eligibilityDecision.additional_checks && eligibilityDecision.additional_checks.length > 0) {
-                    this.logger.system('grisha-verify-item', `[GRISHA] 🔧 Executing ${eligibilityDecision.additional_checks.length} additional checks...`);
-                    const additionalResults = await this._executeAdditionalChecks(eligibilityDecision.additional_checks, currentItem);
-                    verification.additional_checks_results = additionalResults;
-                    
-                    // Enhance verification confidence if additional checks pass
-                    if (additionalResults.all_passed) {
-                        verification.confidence = Math.min(100, verification.confidence + 10);
-                        this.logger.system('grisha-verify-item', '[GRISHA] ✅ Additional checks passed, confidence boosted');
-                    }
+                // Attempt 2: If first failed, retry with stronger model (llama-3.2-90b-vision)
+                if (!verification.verified) {
+                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual attempt 1 failed, trying attempt 2/2 (90b model)');
+                    verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 2);
                 }
                 
-                // If visual failed and MCP fallback is available
-                if (!verification.verified && strategy.fallbackToMcp && strategy.mcpFallbackTools.length > 0) {
-                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual verification failed, trying MCP fallback...');
-                    const mcpVerification = await this._executeMcpVerification(currentItem, execution, strategy, eligibilityDecision);
+                // If BOTH visual attempts failed → run LLM eligibility for MCP verification
+                if (!verification.verified) {
+                    this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ Both visual attempts failed, requesting MCP verification via LLM eligibility...');
                     
-                    if (mcpVerification.verified) {
-                        this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP fallback verification succeeded');
-                        verification = mcpVerification;
+                    // Re-run eligibility with visual failure context
+                    const mcpEligibilityResult = await this.eligibilityProcessor.execute({
+                        currentItem,
+                        execution,
+                        verificationStrategy: strategy,
+                        visualFailureContext: {
+                            attempts: 2,
+                            lastReason: verification.reason,
+                            forceDataPath: true  // Force LLM to recommend data/MCP checks
+                        }
+                    });
+                    
+                    if (mcpEligibilityResult.success && mcpEligibilityResult.decision.additional_checks?.length > 0) {
+                        this.logger.system('grisha-verify-item', `[GRISHA] 🔧 LLM provided ${mcpEligibilityResult.decision.additional_checks.length} MCP checks`);
+                        
+                        // Execute MCP verification with LLM-provided checks
+                        const mcpVerification = await this._executeMcpVerification(
+                            currentItem, 
+                            execution, 
+                            strategy, 
+                            mcpEligibilityResult.decision
+                        );
+                        
+                        if (mcpVerification.verified) {
+                            this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP verification succeeded after visual failures');
+                            verification = mcpVerification;
+                        }
                     }
                 }
             } else if (strategy.method === 'mcp') {
@@ -281,11 +299,13 @@ export class GrishaVerifyItemProcessor {
      * @param {Object} execution - Execution results
      * @param {Object} todo - Full TODO
      * @param {Object} strategy - Verification strategy
+     * @param {number} attempt - Attempt number (1 = fast model, 2 = 90b model)
      * @returns {Promise<Object>} Verification result
      * @private
      */
-    async _executeVisualVerification(currentItem, execution, todo, strategy) {
-        this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] 🔍 Starting visual verification...');
+    async _executeVisualVerification(currentItem, execution, todo, strategy, attempt = 1) {
+        const modelType = attempt === 1 ? 'fast' : 'primary';  // fast = phi-3.5, primary = llama-90b
+        this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔍 Starting visual verification (attempt ${attempt}, model: ${modelType})...`);
 
         try {
             // Step 1: Determine target app for window screenshot
@@ -312,19 +332,71 @@ export class GrishaVerifyItemProcessor {
                 this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ⚠️  No target app detected - using full screen capture`);
             }
 
-            // Step 2: Capture screenshot of current state
-            const screenshot = await this.visualCapture.captureScreenshot(
-                `item_${currentItem.id}_verify`,
-                { targetApp } // Pass targetApp for window screenshot
-            );
+            // Step 2: Select capture mode via MCP prompt
+            const captureDecision = await this._selectVisualCaptureDecision('GRISHA', {
+                item: currentItem,
+                execution,
+                targetApp,
+                attempt,
+                strategy
+            });
+
+            const captureContextId = `item_${currentItem.id}_verify_attempt${attempt}`;
+            const primaryOptions = {
+                mode: captureDecision.mode,
+                targetApp: captureDecision.target_app || targetApp,
+                displayNumber: captureDecision.display_number
+            };
+
+            let screenshot;
+
+            try {
+                screenshot = await this.visualCapture.captureScreenshot(
+                    captureContextId,
+                    {
+                        mode: primaryOptions.mode,
+                        targetApp: primaryOptions.targetApp,
+                        displayNumber: primaryOptions.displayNumber
+                    }
+                );
+            } catch (captureError) {
+                this.logger.warn(`[VISUAL-GRISHA] ⚠️ Primary screenshot failed (${primaryOptions.mode}): ${captureError.message}`, {
+                    category: 'grisha-verify-item',
+                    mode: primaryOptions.mode,
+                    targetApp: primaryOptions.targetApp,
+                    displayNumber: primaryOptions.displayNumber
+                });
+
+                if (captureDecision.require_retry && captureDecision.fallback_mode) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔄 Retrying screenshot with fallback mode: ${captureDecision.fallback_mode}`);
+                    screenshot = await this.visualCapture.captureScreenshot(
+                        `${captureContextId}_fallback`,
+                        {
+                            mode: captureDecision.fallback_mode,
+                            targetApp: captureDecision.fallback_mode === 'active_window'
+                                ? (captureDecision.target_app || targetApp)
+                                : null,
+                            displayNumber: captureDecision.fallback_mode === 'desktop_only'
+                                ? (captureDecision.display_number || null)
+                                : null
+                        }
+                    );
+                } else {
+                    throw captureError;
+                }
+            }
+
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📸 Screenshot captured: ${screenshot.filename}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📂 Full path: ${screenshot.filepath}`);
-            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📷 Capture mode: ${targetApp ? 'window (' + targetApp + ')' : 'full screen'}`);
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📷 Capture mode: ${screenshot.mode}${screenshot.targetApp ? ' (' + screenshot.targetApp + ')' : ''}`);
 
             // Step 2: Analyze screenshot with AI vision
+            // ENHANCED 2025-10-22: Pass modelType for attempt-based model selection
             const analysisContext = {
                 action: currentItem.action,
-                executionResults: execution.results || []
+                executionResults: execution.results || [],
+                modelType: modelType,  // 'fast' for attempt 1, 'primary' for attempt 2
+                captureDecision
             };
 
             let visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
@@ -464,6 +536,100 @@ export class GrishaVerifyItemProcessor {
                 method: 'visual',
                 error: true
             };
+        }
+    }
+
+    async _selectVisualCaptureDecision(agentRole, { item, execution, targetApp, attempt, strategy }) {
+        const fallbackDecision = {
+            mode: targetApp ? 'active_window' : 'full_screen',
+            target_app: targetApp || null,
+            display_number: null,
+            require_retry: false,
+            fallback_mode: targetApp ? 'full_screen' : null,
+            reasoning: 'Using heuristic fallback decision',
+            confidence: 0.4
+        };
+
+        try {
+            if (!this.callLLM) {
+                return fallbackDecision;
+            }
+
+            const prompt = MCP_PROMPTS.VISUAL_CAPTURE_MODE_SELECTOR;
+            if (!prompt) {
+                return fallbackDecision;
+            }
+
+            const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('visual_capture_mode_selector');
+
+            const hintLines = [
+                targetApp ? `Target application: ${targetApp}` : null,
+                attempt > 1 ? `Retry attempt: ${attempt}` : null,
+                strategy?.reason ? `Strategy insight: ${strategy.reason}` : null,
+                strategy?.method ? `Verification method: ${strategy.method}` : null
+            ].filter(Boolean);
+
+            const visualHints = hintLines.length > 0 ? hintLines.join('\n') : 'No additional hints';
+
+            const environmentContext = {
+                execution_summary: execution?.results?.slice(-3) || [],
+                target_app: targetApp,
+                attempt,
+                heuristic_confidence: strategy?.confidence || null
+            };
+
+            const userPrompt = prompt.userPrompt
+                .replace('{{AGENT_ROLE}}', agentRole)
+                .replace('{{TASK_DESCRIPTION}}', item?.action || 'Unknown action')
+                .replace('{{VISUAL_HINTS}}', visualHints)
+                .replace('{{ENVIRONMENT_CONTEXT}}', JSON.stringify(environmentContext, null, 2))
+                .replace('{{PREVIOUS_ATTEMPTS}}', JSON.stringify(execution?.visualAttempts || []))
+                .replace('{{ADDITIONAL_NOTES}}', 'Visual verification evidence capture for Grisha');
+
+            const selectorResponse = await this.callLLM({
+                systemPrompt: prompt.systemPrompt,
+                userPrompt,
+                model: modelConfig.model,
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
+            });
+
+            const decision = this._parseVisualSelectorResponse(selectorResponse, fallbackDecision);
+            decision.reasoning && this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🧠 Capture decision: ${decision.reasoning}`);
+            return decision;
+
+        } catch (error) {
+            this.logger.warn(`[VISUAL-GRISHA] ⚠️ Capture mode selection failed: ${error.message}`, {
+                category: 'grisha-verify-item'
+            });
+            return fallbackDecision;
+        }
+    }
+
+    _parseVisualSelectorResponse(response, fallbackDecision) {
+        try {
+            const cleaned = typeof response === 'string' ? response.trim() : JSON.stringify(response);
+            const jsonStart = cleaned.indexOf('{');
+            const jsonEnd = cleaned.lastIndexOf('}');
+            if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+                throw new Error('Selector response missing JSON object');
+            }
+
+            const parsed = JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1));
+            return {
+                mode: parsed.mode || fallbackDecision.mode,
+                target_app: parsed.target_app ?? fallbackDecision.target_app,
+                display_number: parsed.display_number ?? fallbackDecision.display_number,
+                require_retry: Boolean(parsed.require_retry ?? fallbackDecision.require_retry),
+                fallback_mode: parsed.fallback_mode ?? fallbackDecision.fallback_mode,
+                reasoning: parsed.reasoning || fallbackDecision.reasoning,
+                confidence: parsed.confidence ?? fallbackDecision.confidence
+            };
+        } catch (error) {
+            this.logger.warn(`[VISUAL-GRISHA] ⚠️ Failed to parse capture selector response: ${error.message}`, {
+                category: 'grisha-verify-item'
+            });
+            return { ...fallbackDecision, reasoning: 'Fallback due to selector parse error' };
         }
     }
 
@@ -637,16 +803,17 @@ export class GrishaVerifyItemProcessor {
      */
     _buildMcpVerificationCalls(item, strategy, eligibilityDecision = null) {
         const calls = [];
-        const successCriteria = (item.success_criteria || '').toLowerCase();
 
-        // NEW 2025-10-22: Prioritize additional_checks from eligibility decision
+        // ARCHITECTURE 2025-10-22: Use ONLY additional_checks from LLM eligibility decision
+        // Every verification MUST go through GrishaVerificationEligibilityProcessor (Mistral 3B)
+        // NO hardcoded MCP logic - LLM decides what checks to perform
         if (eligibilityDecision && eligibilityDecision.additional_checks && eligibilityDecision.additional_checks.length > 0) {
-            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Using additional_checks from eligibility decision');
+            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Using additional_checks from LLM eligibility decision');
             
             eligibilityDecision.additional_checks.forEach(check => {
                 calls.push({
                     tool: check.tool,
-                    arguments: check.arguments || {},
+                    arguments: check.arguments || check.parameters || {},
                     expected_evidence: check.expected_evidence,
                     description: check.description
                 });
@@ -655,38 +822,9 @@ export class GrishaVerifyItemProcessor {
             return calls;
         }
 
-        // Fallback: Use heuristic-based verification calls
-        // Filesystem verification
-        if (strategy.mcpServer === 'filesystem' || strategy.mcpFallbackTools?.some(t => t.includes('filesystem'))) {
-            // Extract file/directory path from success criteria or action
-            const pathMatch = item.action.match(/["']([^"']+)["']/) || successCriteria.match(/["']([^"']+)["']/);
-            
-            if (pathMatch) {
-                const targetPath = pathMatch[1];
-                
-                // Check if file/directory exists
-                calls.push({
-                    tool: 'filesystem__read_file',
-                    arguments: {
-                        path: targetPath
-                    }
-                });
-            }
-        }
-
-        // Shell verification
-        if (strategy.mcpServer === 'shell' || strategy.mcpFallbackTools?.some(t => t.includes('shell'))) {
-            // Execute verification command
-            // This is a placeholder - actual implementation would need specific verification commands
-            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Shell verification not yet implemented');
-        }
-
-        // Memory verification
-        if (strategy.mcpServer === 'memory' || strategy.mcpFallbackTools?.some(t => t.includes('memory'))) {
-            // Search memory for verification
-            this.logger.system('grisha-verify-item', '[MCP-GRISHA] Memory verification not yet implemented');
-        }
-
+        // If no eligibility decision or empty additional_checks - return empty array
+        // This means MCP verification is not needed (visual-only verification)
+        this.logger.system('grisha-verify-item', '[MCP-GRISHA] No additional_checks from LLM - skipping MCP verification');
         return calls;
     }
 

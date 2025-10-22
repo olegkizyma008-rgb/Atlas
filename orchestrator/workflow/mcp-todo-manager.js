@@ -12,6 +12,7 @@ import logger from '../utils/logger.js';
 import axios from 'axios';
 import vm from 'node:vm';
 import GlobalConfig from '../../config/atlas-config.js';
+import { VisualCaptureService } from '../services/visual-capture-service.js';
 
 /**
  * @typedef {Object} TodoItem
@@ -85,6 +86,9 @@ export class MCPTodoManager {
     // Rate limiting state (ADDED 14.10.2025)
     this.lastApiCall = 0;
     this.minApiDelay = 2000; // INCREASED 14.10.2025 - 2000ms between API calls to avoid rate limits
+
+    // Visual capture service (shared for all items)
+    this.visualCapture = null;
   }
 
   /**
@@ -1286,44 +1290,60 @@ Create precise MCP tool execution plan.
     this.logger.system('mcp-todo', `[TODO] 📸 Taking screenshot and analyzing plan for item ${item.id}`);
 
     try {
-      // Step 1: Take screenshot (always)
-      let screenshotPath = null;
-      let screenshotTool = null;
-
-      // Determine best screenshot method
-      const hasPlaywright = this.mcpManager.getServer('playwright');
-      const hasShell = this.mcpManager.getServer('shell');
-
-      if (hasPlaywright) {
-        // Prefer playwright screenshot (captures active window)
-        try {
-          screenshotPath = `/tmp/atlas_task_${item.id}_before.png`;
-          await this.mcpManager.executeTool('playwright', 'playwright_screenshot', {
-            path: screenshotPath,
-            full_page: false
-          });
-          screenshotTool = 'playwright';
-          this.logger.system('mcp-todo', `[TODO] 📸 Screenshot saved via playwright: ${screenshotPath}`);
-        } catch (playwrightError) {
-          this.logger.warn(`[MCP-TODO] Playwright screenshot failed: ${playwrightError.message}`, {
-            category: 'mcp-todo',
-            component: 'mcp-todo'
-          });
-          // Fall back to shell
-          hasShell && await this._takeShellScreenshot(item.id);
-        }
-      } else if (hasShell) {
-        screenshotPath = await this._takeShellScreenshot(item.id);
-        screenshotTool = 'shell';
-      } else {
-        this.logger.warn('[MCP-TODO] No screenshot tools available (playwright/shell)', {
-          category: 'mcp-todo',
-          component: 'mcp-todo'
+      // Step 1: Ensure visual capture service is initialized
+      if (!this.visualCapture) {
+        this.visualCapture = new VisualCaptureService({
+          logger: this.logger,
+          config: {
+            screenshotDir: '/tmp/atlas_visual_todo'
+          }
         });
+        await this.visualCapture.initialize();
       }
 
-      // Step 2: Call LLM to analyze screenshot and decide on adjustment
+      // Step 2: Select optimal screenshot mode via MCP prompt
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
+      const selectorPrompt = MCP_PROMPTS.VISUAL_CAPTURE_MODE_SELECTOR;
+
+      const selectorModelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('visual_capture_mode_selector');
+
+      const selectorUserPrompt = selectorPrompt.userPrompt
+        .replace('{{AGENT_ROLE}}', 'TETYANA')
+        .replace('{{TASK_DESCRIPTION}}', item.action)
+        .replace('{{VISUAL_HINTS}}', item.success_criteria || 'No explicit criteria')
+        .replace('{{ENVIRONMENT_CONTEXT}}', JSON.stringify({ previous_plan: plan }, null, 2))
+        .replace('{{PREVIOUS_ATTEMPTS}}', '[]')
+        .replace('{{ADDITIONAL_NOTES}}', 'Screenshot before executing tool plan');
+
+      if (!this.llmClient || typeof this.llmClient.call !== 'function') {
+        throw new Error('LLM client is not available for visual capture mode selection');
+      }
+
+      const selectorResponse = await this.llmClient.call({
+        systemPrompt: selectorPrompt.systemPrompt,
+        userPrompt: selectorUserPrompt,
+        model: selectorModelConfig.model,
+        temperature: selectorModelConfig.temperature,
+        max_tokens: selectorModelConfig.max_tokens
+      });
+
+      const selectorDecision = this._parseVisualSelectorResponse(selectorResponse);
+
+      this.logger.system('mcp-todo', `[TODO] 🎯 Visual selector decision: ${JSON.stringify(selectorDecision)}`);
+
+      // Step 3: Capture screenshot using VisualCaptureService
+      const screenshotInfo = await this.visualCapture.captureScreenshot(`item_${item.id}_before`, {
+        mode: selectorDecision.mode,
+        targetApp: selectorDecision.target_app,
+        displayNumber: selectorDecision.display_number
+      });
+
+      const screenshotPath = screenshotInfo.filepath;
+      const screenshotTool = 'visual-capture';
+
+      this.logger.system('mcp-todo', `[TODO] 📸 Screenshot saved via VisualCaptureService (${selectorDecision.mode}): ${screenshotPath}`);
+
+      // Step 3: Call LLM to analyze screenshot and decide on adjustment
       const adjustPrompt = MCP_PROMPTS.TETYANA_SCREENSHOT_AND_ADJUST;
 
       const userMessage = adjustPrompt.userPrompt
@@ -1410,17 +1430,39 @@ Create precise MCP tool execution plan.
     }
   }
 
-  /**
-     * Helper: Take screenshot using shell command
-     * @private
-     */
-  async _takeShellScreenshot(itemId) {
-    const screenshotPath = `/tmp/atlas_task_${itemId}_before.png`;
-    await this.mcpManager.executeTool('shell', 'execute_command', {
-      command: `screencapture -x ${screenshotPath}`
-    });
-    this.logger.system('mcp-todo', `[TODO] 📸 Screenshot saved via shell: ${screenshotPath}`);
-    return screenshotPath;
+  _parseVisualSelectorResponse(response) {
+    try {
+      const cleaned = typeof response === 'string' ? response.trim() : JSON.stringify(response);
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error('Invalid selector JSON');
+      }
+      const parsed = JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1));
+      return {
+        mode: parsed.mode || 'full_screen',
+        target_app: parsed.target_app || null,
+        display_number: parsed.display_number || null,
+        require_retry: Boolean(parsed.require_retry),
+        fallback_mode: parsed.fallback_mode || null,
+        reasoning: parsed.reasoning || 'No reasoning provided',
+        confidence: parsed.confidence || 0.5
+      };
+    } catch (error) {
+      this.logger.warn('[MCP-TODO] Failed to parse visual selector response, defaulting to full_screen', {
+        category: 'mcp-todo',
+        error: error.message
+      });
+      return {
+        mode: 'full_screen',
+        target_app: null,
+        display_number: null,
+        require_retry: false,
+        fallback_mode: null,
+        reasoning: 'Fallback due to parse error',
+        confidence: 0.3
+      };
+    }
   }
 
   /**

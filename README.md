@@ -210,10 +210,13 @@ npm run start
 
 **GRISHA** (Верифікатор) ⭐ UPDATED v5.0.3
 - **Двоетапна верифікація**: Heuristic Strategy + LLM Eligibility Routing
-- **Visual verification**: Vision AI (Llama 3.2 90B Vision) з screenshot аналізом
+- **Visual verification (2 спроби з ескалацією моделей)**:
+  - Спроба 1: Llama-3.2-11B Vision (швидка, ~1s)
+  - Спроба 2: Llama-3.2-90B Vision (точна, ~2s)
+  - Якщо обидві невдалі → автоматичний перехід до MCP
 - **MCP verification**: Виконання через Tetyana processor (натоптана дорожка)
 - **Intelligent routing**: Mistral 3B вибирає оптимальний метод верифікації
-- **Smart fallback**: Автоматичний перехід visual → MCP при невдачі
+- **Smart fallback**: Автоматичний перехід visual (2 спроби) → MCP через LLM eligibility
 - Надає детальні звіти про успіх/невдачу з evidence-based рекомендаціями
 
 ---
@@ -292,7 +295,11 @@ User Request → Mode Selection (Stage 0)
           ├─ Generate tool_calls array
           ├─ Add tool history context
           └─ Validation with retry (3 attempts)
-                              ↓
+                             ↓
+      Visual Capture Mode Selector (Stage 2.1.5-MCP) ⭐ NEW
+      ├─ LLM вибирає режим/ціль/дисплей для скріну
+      └─ `VisualCaptureService` фіксує стан перед виконанням
+                             ↓
         Tetyana Execute Tools (Stage 2.2-MCP)
         ├─ RepetitionInspector: Check for loops
         ├─ LLMToolValidator: Safety validation 🛡️
@@ -301,14 +308,17 @@ User Request → Mode Selection (Stage 0)
         └─ Record in tool history
                               ↓
          Grisha Verify Item (Stage 2.3-MCP) ⭐ UPDATED
+         ├─ Sub-stage 2.3.0: Visual Capture Mode Selector (per attempt) ⭐ NEW
+         │   └─ LLM визначає режим скріну + fallback для `VisualCaptureService`
          ├─ Sub-stage 2.3.1: Heuristic Strategy
          │   └─ Швидкий аналіз на основі keywords
          ├─ Sub-stage 2.3.2: LLM Eligibility Routing
          │   ├─ Model: atlas-ministral-3b (temp 0.1)
          │   └─ Output: {recommended_path, additional_checks}
-         ├─ Sub-stage 2.3.3: Visual Verification (optional)
-         │   ├─ Screenshot capture (window/fullscreen)
-         │   ├─ Vision AI analysis (Llama 3.2 90B)
+         ├─ Sub-stage 2.3.3: Visual Verification (optional, 2 attempts)
+         │   ├─ Attempt 1: Llama-3.2-11B Vision (fast, ~1s)
+         │   ├─ Attempt 2: Llama-3.2-90B Vision (strong, ~2s)
+         │   ├─ If both fail → re-run LLM Eligibility for MCP
          │   └─ Security checks (70% min confidence)
          ├─ Sub-stage 2.3.4: MCP Verification (optional)
          │   ├─ Execute via TetyanaExecuteToolsProcessor
@@ -452,6 +462,24 @@ class TetyanaToolSystem {
 
 **Інтелектуальна двоетапна система верифікації** з LLM routing та автоматичним fallback.
 
+### Visual Capture Mode Selector (NEW v5.0.4)
+
+Щоб уникнути дубльованих механізмів скріншотингу та забезпечити правильний вибір режиму, Тетяна й Гриша тепер спільно використовують промпт `prompts/mcp/visual_capture_mode_selector.js`.
+
+* __Що робить промпт__
+  - аналізує контекст TODO-елемента (агент, опис дії, критерії успіху, попередні спроби);
+  - повертає чистий JSON із параметрами для `VisualCaptureService.captureScreenshot()`:
+    `mode`, `target_app`, `display_number`, `require_retry`, `fallback_mode`, `reasoning`, `confidence`.
+* __Де використовується__
+  - `MCPTodoManager.screenshotAndAdjust()` (Stage 2.1.5) викликає селектор перед скріном для корекції плану Тетяни;
+  - `GrishaVerifyItemProcessor._executeVisualVerification()` (Stage 2.3) запитує селектор для кожної спроби візуальної верифікації, з урахуванням стратегії та попередніх невдач.
+* __Чим замінив попереднє рішення__
+  - повністю прибрані окремі Playwright/Shell скріншоти з `MCPTodoManager`;
+  - fallback-логіка тепер централізована: якщо основний режим не спрацював, використовується `fallback_mode` з відповіді промпта.
+* __Конфігурація__
+  - для стадії `visual_capture_mode_selector` додано модель у `config/models-config.js` (типово `atlas-ministral-3b`, temp 0.1, max_tokens 400);
+  - сервіс `VisualCaptureService` отримує всі параметри через результати промпта, що гарантує однакову поведінку для обох агентів.
+
 ### Архітектура верифікації
 
 Гриша використовує **4-етапний процес верифікації** для максимальної точності:
@@ -560,7 +588,7 @@ if (visionAnalysis.confidence < 70) {
 
 **Vision Models:**
 - **Primary**: `atlas-llama-3.2-90b-vision-instruct` (Llama 3.2 90B Vision)
-- **Fallback**: `atlas-phi-3.5-vision-instruct` (Phi 3.5 Vision)
+- **Fallback**: `atlas-llama-3.2-11b-vision-instruct` (Llama 3.2 11B Vision)
 - **Local**: Ollama `llama3.2-vision` (безкоштовний, повільний)
 
 **Security Features:**

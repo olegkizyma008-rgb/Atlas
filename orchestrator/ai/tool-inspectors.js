@@ -158,27 +158,42 @@ export class PermissionInspector extends ToolInspector {
         super('permission');
         this.mode = mode; // 'task', 'chat', 'auto'
         
-        // Readonly tools (always safe)
+        // Readonly tools (always safe) - support both formats
         this.readonlyTools = new Set([
             'filesystem__read_file',
+            'filesystem__filesystem__read_file',
             'filesystem__list_files',
+            'filesystem__filesystem__list_directory',
             'filesystem__get_file_info',
+            'filesystem__filesystem__get_file_info',
             'playwright__get_page_content',
+            'playwright__playwright__get_page_content',
             'playwright__get_page_title',
+            'playwright__playwright__get_page_title',
             'memory__search',
+            'memory__memory__search',
             'memory__get',
-            'memory__list'
+            'memory__memory__get',
+            'memory__list',
+            'memory__memory__list'
         ]);
 
-        // Tools requiring approval in chat mode
+        // Tools requiring approval in chat mode - support both formats
         this.writeTools = new Set([
             'filesystem__write_file',
+            'filesystem__filesystem__write_file',
             'filesystem__create_directory',
+            'filesystem__filesystem__create_directory',
             'filesystem__delete_file',
+            'filesystem__filesystem__delete_file',
             'filesystem__move_file',
+            'filesystem__filesystem__move_file',
             'shell__execute',
+            'shell__shell__run_command',
             'playwright__click',
-            'playwright__fill_form'
+            'playwright__playwright__click',
+            'playwright__fill_form',
+            'playwright__playwright__fill'
         ]);
     }
 

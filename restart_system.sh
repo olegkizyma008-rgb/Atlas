@@ -631,7 +631,8 @@ cmd_status() {
     printf "${BRIGHT_GREEN}╠%s╣${NC}\n" "$separator"
     
     # Column headers - properly spaced with hacker-style colors
-    printf "${BRIGHT_GREEN}║${NC} ${BRIGHT_CYAN}%-50s${NC}${BRIGHT_GREEN}│${NC} ${BRIGHT_CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" "SYSTEM COMPONENTS" "ACCESS POINTS"
+    # Tweaked widths (48/48) to slightly shift the ACCESS POINTS divider right for better alignment
+    printf "${BRIGHT_GREEN}║${NC} ${BRIGHT_CYAN}%-48s${NC}${BRIGHT_GREEN}│${NC} ${BRIGHT_CYAN}%-48s${NC} ${BRIGHT_GREEN}║${NC}\n" "SYSTEM COMPONENTS" "ACCESS POINTS"
     printf "${BRIGHT_GREEN}╠%s╣${NC}\n" "$separator"
     
     check_service() {
@@ -661,7 +662,8 @@ cmd_status() {
         local port_part=$(printf "(%4s)" "$port")
         
         # Print with exact spacing and hacker-style colors
-        printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" \
+        # Right column widened to 48 chars to align the right vertical border
+        printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-48s${NC} ${BRIGHT_GREEN}║${NC}\n" \
             "$name_part" "$status_part" "$port_part" "$url"
     }
     
@@ -690,7 +692,8 @@ cmd_status() {
     local llm_status_part=$(printf "● %-11s" "$llm_status_text")
     local llm_port_part=$(printf "(%4s)" "4000")
     
-    printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${llm_status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-46s${NC} ${BRIGHT_GREEN}║${NC}\n" \
+    # LLM row uses the same right-column width for consistency (48)
+    printf "${BRIGHT_GREEN}║${NC} ${WHITE}%s${NC} ${llm_status_color}%s${NC} ${DIM}%s${NC} ${BRIGHT_GREEN}│${NC} ${CYAN}%-48s${NC} ${BRIGHT_GREEN}║${NC}\n" \
         "$llm_name_part" "$llm_status_part" "$llm_port_part" "http://localhost:4000"
 
     # Accessibility status

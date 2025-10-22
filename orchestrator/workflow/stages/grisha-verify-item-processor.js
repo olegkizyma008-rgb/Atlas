@@ -268,11 +268,39 @@ export class GrishaVerifyItemProcessor {
                 executionResults: execution.results || []
             };
 
-            const visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
+            let visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
                 screenshot.filepath,
                 currentItem.success_criteria,
                 analysisContext
             );
+
+            // ENHANCED 2025-10-22: Retry with alternative provider if fallback detected
+            if (visionAnalysis._fallback && visionAnalysis._fallback_reason === 'unstructured_response') {
+                this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] 🔄 Vision fallback detected, retrying with alternative provider...');
+
+                // Try with Ollama if current provider is OpenRouter, or vice versa
+                const currentProvider = this.visionAnalysis.config.visionProvider;
+                const alternativeProvider = currentProvider === 'openrouter' ? 'ollama' : 'openrouter';
+
+                // Temporarily switch provider for retry
+                const originalProvider = this.visionAnalysis.config.visionProvider;
+                this.visionAnalysis.config.visionProvider = alternativeProvider;
+
+                try {
+                    visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
+                        screenshot.filepath,
+                        currentItem.success_criteria,
+                        analysisContext
+                    );
+
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ✅ Retry successful with ${alternativeProvider}`);
+
+                } catch (retryError) {
+                    this.logger.warn('grisha-verify-item', `[VISUAL-GRISHA] ⚠️ Retry failed: ${retryError.message}`);
+                    // Restore original provider and continue with original result
+                    this.visionAnalysis.config.visionProvider = originalProvider;
+                }
+            }
 
             // SECURITY CHECK 2025-10-22: Detect and log fallback responses
             if (visionAnalysis._fallback) {
@@ -415,8 +443,13 @@ export class GrishaVerifyItemProcessor {
 
             this.logger.system('grisha-verify-item', `[MCP-GRISHA] Executing ${verificationCalls.length} verification tool(s)...`);
 
-            // Execute verification tools
-            const results = await this.tetyanaToolSystem.executeTools(verificationCalls);
+            // Execute verification tools using TetyanaToolSystem (same as Tetyana)
+            const results = await this.tetyanaToolSystem.executeToolCalls(verificationCalls, {
+                mode: 'task',
+                userIntent: 'verification',
+                itemAction: currentItem.action,
+                itemId: currentItem.id
+            });
 
             // Analyze results
             const verified = this._analyzeMcpResults(results, currentItem.success_criteria);
@@ -503,33 +536,35 @@ export class GrishaVerifyItemProcessor {
     /**
      * Analyze MCP tool results for verification
      * 
-     * @param {Array} results - Tool execution results
+     * @param {Object} results - Tool execution results from TetyanaToolSystem
      * @param {string} successCriteria - Success criteria
      * @returns {Object} Analysis result
      * @private
      */
     _analyzeMcpResults(results, successCriteria) {
-        // Check if all tools succeeded
-        const allSuccessful = results.every(r => r.success);
+        // Check if all tools succeeded (TetyanaToolSystem structure)
+        const allSuccessful = results.all_successful;
 
         if (!allSuccessful) {
-            const failedTools = results.filter(r => !r.success).map(r => r.tool);
+            const failedTools = results.results.filter(r => !r.success).map(r => r.tool);
             return {
                 success: false,
                 confidence: 0,
-                reason: `MCP інструменти провалилися: ${failedTools.join(', ')}`
+                reason: `MCP інструменти не виконались: ${failedTools.join(', ')}`
             };
         }
 
-        // Analyze results based on success criteria
-        // This is a simple implementation - can be enhanced with more sophisticated analysis
+        // Extract file/directory path from success criteria
         const criteriaLower = successCriteria.toLowerCase();
 
-        // Check for file existence
-        if (criteriaLower.includes('існує') || criteriaLower.includes('exists') || criteriaLower.includes('збережено')) {
-            const fileExists = results.some(r => r.success && r.data);
-            
-            if (fileExists) {
+        // Check for file/directory existence verification
+        if (criteriaLower.includes('існує') || criteriaLower.includes('знайдено') || criteriaLower.includes('наявний')) {
+            // Look for filesystem operations in results
+            const filesystemResults = results.results.filter(r =>
+                r.tool && r.tool.includes('filesystem') && r.success && r.data
+            );
+
+            if (filesystemResults.length > 0) {
                 return {
                     success: true,
                     confidence: 90,

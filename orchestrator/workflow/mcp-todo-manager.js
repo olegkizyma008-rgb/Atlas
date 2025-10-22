@@ -732,8 +732,7 @@ export class MCPTodoManager {
         // Chat message already sent by verifyItem()
         lastError = verification.reason;
 
-        // UPDATED 20.10.2025: Stage 3.5-MCP - Deep analysis and dynamic replan
-        // Use new atlas-replan-todo instead of old atlas-adjust-todo
+        // UPDATED 20.10.2025: Stage 3.6-MCP - Deep analysis and dynamic replan
         if (attempt >= item.max_attempts) {
           // Final attempt - trigger replan analysis
           this.logger.system('mcp-todo', `[TODO] 🔍 Item ${item.id} failed after all attempts - triggering deep analysis and replan`);
@@ -812,11 +811,9 @@ export class MCPTodoManager {
           // If replan didn't work, fail with TTS
           await this._safeTTSSpeak('Не вдалось виконати', { mode: 'normal', duration: 800 });
         } else {
-          // Stage 3: Simple adjustment (if attempts remain)
-          const adjustment = await this.adjustTodoItem(item, verification, attempt);
-
-          // Apply adjustments
-          Object.assign(item, adjustment.updated_todo_item);
+          // ARCHIVED 2025-10-22: adjustTodoItem removed, using replan for all failures
+          // Simple retry without adjustment
+          this.logger.system('mcp-todo', `[TODO] Item ${item.id} will retry without adjustment`);
 
           // ENHANCED 14.10.2025 NIGHT - Atlas speaks about adjustment strategy
           let atlasAdjustmentPhrase;
@@ -1603,9 +1600,9 @@ Create precise MCP tool execution plan.
     this.logger.system('mcp-todo', `[TODO] Adjusting item ${item.id} after attempt ${attempt}`);
 
     try {
-      // Import Atlas Adjust TODO prompt
+      // ARCHIVED 2025-10-22: ATLAS_ADJUST_TODO removed, using ATLAS_REPLAN_TODO instead
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-      const adjustPrompt = MCP_PROMPTS.ATLAS_ADJUST_TODO;
+      const adjustPrompt = MCP_PROMPTS.ATLAS_REPLAN_TODO;
 
       const userMessage = `
 Failed TODO Item: ${JSON.stringify(item, null, 2)}
@@ -1617,7 +1614,7 @@ Attempt: ${attempt}/${item.max_attempts}
 `;
 
       // Use centralized model config from global-config.js
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('adjust_todo');
+      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('replan_todo');
 
       // Wait for rate limit (ADDED 14.10.2025)
       await this._waitForRateLimit();

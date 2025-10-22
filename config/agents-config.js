@@ -46,7 +46,35 @@ export const AGENTS = {
     enableTools: true,
     model: 'github-copilot',
     maxRetries: 2,
-    timeout: 45000
+    timeout: 45000,
+    verification: {
+      methods: ['visual', 'mcp'],
+      defaultMethod: 'visual',
+      routing: {
+        model: 'atlas-ministral-3b',
+        temperature: 0.1,
+        description: 'LLM-based вибір методу верифікації (visual vs MCP)'
+      },
+      visual: {
+        enabled: true,
+        visionModel: 'atlas-llama-3.2-90b-vision-instruct',
+        fallbackModel: 'atlas-phi-3.5-vision-instruct',
+        minConfidence: 70,
+        captureDelay: 2000,
+        description: 'Візуальна верифікація через скріншоти та Vision AI'
+      },
+      mcp: {
+        enabled: true,
+        usesTetyanaProcessor: true,
+        supportedServers: ['filesystem', 'shell', 'memory'],
+        description: 'MCP верифікація через Tetyana execution processor'
+      },
+      fallback: {
+        visualToMcp: true,
+        mcpToVisual: false,
+        description: 'Автоматичний fallback при невдачі основного методу'
+      }
+    }
   },
   system: {
     role: 'system_completion',

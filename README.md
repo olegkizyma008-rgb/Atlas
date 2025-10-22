@@ -1,10 +1,10 @@
 # ATLAS v5.0 - Інтелектуальна Багатоагентна Система
 
-> **Версія:** 5.0.2 (Pure MCP Mode + JSON Schema Validation)  
+> **Версія:** 5.0.3 (Pure MCP Mode + Intelligent Verification)  
 > **Останнє оновлення:** 22 жовтня 2025  
 > **Статус:** Production Ready
 
-**ATLAS v5.0** - інтелектуальна багатоагентна система з динамічним MCP TODO workflow, JSON Schema валідацією tools, українською TTS/STT, та 3D візуалізацією. Система працює в Pure MCP режимі з Goose-inspired архітектурою.
+**ATLAS v5.0** - інтелектуальна багатоагентна система з динамічним MCP TODO workflow, JSON Schema валідацією tools, **інтелектуальною двоетапною верифікацією** (visual + MCP), українською TTS/STT, та 3D візуалізацією. Система працює в Pure MCP режимі з Goose-inspired архітектурою.
 
 ## 🎯 Основні можливості
 
@@ -13,6 +13,7 @@
 - **🛠️ 5 MCP Серверів** - filesystem, playwright, shell, applescript, memory
 - **🔒 JSON Schema Validation** - жорстке обмеження LLM на валідні tool names (Goose-style)
 - **🛡️ Tetyana Tool System** - розширена система управління tools з LLM валідацією
+- **🔍 Intelligent Verification** ⭐ NEW - двоетапна верифікація (LLM routing + visual/MCP)
 - **🔄 Smart Retry Logic** - 3 спроби з exponential backoff та intelligent fallbacks
 - **🗣️ Українська TTS** - синтез мовлення з Metal GPU acceleration
 - **🎙️ Whisper STT** - розпізнавання мовлення (Large-v3, Metal)
@@ -27,6 +28,7 @@
 - [Процес запуску](#процес-запуску)
 - [Компоненти системи](#компоненти-системи)
 - [Tetyana Tool System](#tetyana-tool-system-new-v501) ⭐ NEW
+- [Grisha Verification System](#grisha-verification-system-new-v503) ⭐ NEW
 - [MCP Workflow](#mcp-workflow)
 - [Конфігурація](#конфігурація)
 - [API та Інтеграція](#api-та-інтеграція)
@@ -129,49 +131,55 @@ npm run start
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    USER (Browser/Voice)                      │
+│                    USER (Browser/Voice)                     │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Python Frontend (Flask) :5001                   │
-│  • Static files serving                                      │
-│  • 3D GLB visualization                                      │
-│  • WebSocket proxy                                           │
+│              Python Frontend (Flask) :5001                  │
+│  • Static files serving                                     │
+│  • 3D GLB visualization                                     │
+│  • WebSocket proxy                                          │
 └──────────────────────────┬──────────────────────────────────┘
                            │ HTTP/WebSocket
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│         Node.js Orchestrator (Express) :5101                 │
+│         Node.js Orchestrator (Express) :5101                │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  DI Container (Dependency Injection)                  │  │
 │  │  • Service Registry                                   │  │
-│  │  • Lifecycle Management (onInit/onStart/onStop)      │  │
+│  │  • Lifecycle Management (onInit/onStart/onStop)       │  │
 │  └───────────────────────────────────────────────────────┘  │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  Core Services                                        │  │
-│  │  • Logger          • Config         • Telemetry      │  │
-│  │  • Error Handler   • Sessions       • Network Config │  │
+│  │  • Logger          • Config         • Telemetry       │  │
+│  │  • Error Handler   • Sessions       • Network Config  │  │
 │  └───────────────────────────────────────────────────────┘  │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  MCP Workflow Services                                │  │
 │  │  • MCPManager        • MCPTodoManager                 │  │
 │  │  • TTSSyncManager    • VisionAnalysis                 │  │
+│  │  • TetyanaToolSystem (NEW: JSON Schema + LLM Guard)   │  │
 │  └───────────────────────────────────────────────────────┘  │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  Stage Processors (9 processors)                      │  │
 │  │  • ModeSelection     • TodoPlanning                   │  │
 │  │  • ServerSelection   • PlanTools                      │  │
-│  │  • ExecuteTools      • VerifyItem                     │  │
-│  │  • AdjustTodo        • ReplanTodo                     │  │
-│  │  • FinalSummary                                       │  │
+│  │  • ExecuteTools      • VerifyItem (NEW: 4 sub-stages) │  │
+│  │  • ReplanTodo        • FinalSummary                   │  │
+│  └───────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Grisha Verification System (NEW v5.0.3)              │  │
+│  │  • Heuristic Strategy    • LLM Eligibility Routing    │  │
+│  │  • Visual Verification   • MCP Verification           │  │
+│  │  • Smart Fallback (visual → MCP)                      │  │
 │  └───────────────────────────────────────────────────────┘  │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  API Routes                                           │  │
 │  │  • /chat/stream      • /health                        │  │
 │  │  • /session/*        • /tts/*                         │  │
 │  └───────────────────────────────────────────────────────┘  │
-└──────────┬────────────┬────────────┬────────────┬──────────┘
+└──────────┬────────────┬────────────┬────────────┬──────────-┘
            │            │            │            │
            ▼            ▼            ▼            ▼
 ┌──────────────┐ ┌─────────┐ ┌─────────┐ ┌──────────────┐
@@ -182,7 +190,6 @@ npm run start
 │ • Local LLM  │ │ • GPU   │ │ • GPU   │ │ • playwright │
 │              │ │         │ │         │ │ • shell      │
 │              │ │         │ │         │ │ • applescript│
-│              │ │         │ │         │ │ • git        │
 │              │ │         │ │         │ │ • memory     │
 └──────────────┘ └─────────┘ └─────────┘ └──────────────┘
 ```
@@ -201,11 +208,13 @@ npm run start
 - Виконує tools через MCP protocol
 - Робить screenshots та adjustments
 
-**GRISHA** (Верифікатор)
-- Перевіряє виконання кожного TODO item
-- Використовує vision models для screenshot аналізу
-- Надає детальні звіти про успіх/невдачу
-- Пропонує evidence-based рекомендації
+**GRISHA** (Верифікатор) ⭐ UPDATED v5.0.3
+- **Двоетапна верифікація**: Heuristic Strategy + LLM Eligibility Routing
+- **Visual verification**: Vision AI (Llama 3.2 90B Vision) з screenshot аналізом
+- **MCP verification**: Виконання через Tetyana processor (натоптана дорожка)
+- **Intelligent routing**: Mistral 3B вибирає оптимальний метод верифікації
+- **Smart fallback**: Автоматичний перехід visual → MCP при невдачі
+- Надає детальні звіти про успіх/невдачу з evidence-based рекомендаціями
 
 ---
 
@@ -291,26 +300,37 @@ User Request → Mode Selection (Stage 0)
         ├─ Collect execution results
         └─ Record in tool history
                               ↓
-         Grisha Verify Item (Stage 2.3-MCP)
-         ├─ Take screenshot (if needed)
-         ├─ Vision analysis (copilot-gpt-4o)
-         ├─ Check success criteria
-         └─ Return verified: true/false
+         Grisha Verify Item (Stage 2.3-MCP) ⭐ UPDATED
+         ├─ Sub-stage 2.3.1: Heuristic Strategy
+         │   └─ Швидкий аналіз на основі keywords
+         ├─ Sub-stage 2.3.2: LLM Eligibility Routing
+         │   ├─ Model: atlas-ministral-3b (temp 0.1)
+         │   └─ Output: {recommended_path, additional_checks}
+         ├─ Sub-stage 2.3.3: Visual Verification (optional)
+         │   ├─ Screenshot capture (window/fullscreen)
+         │   ├─ Vision AI analysis (Llama 3.2 90B)
+         │   └─ Security checks (70% min confidence)
+         ├─ Sub-stage 2.3.4: MCP Verification (optional)
+         │   ├─ Execute via TetyanaExecuteToolsProcessor
+         │   ├─ Run additional_checks from eligibility
+         │   └─ Analyze results via _analyzeMcpResults()
+         └─ Return verified: true/false + confidence
                               ↓
                  ┌────────────┴────────────┐
                  │  Success?               │
                  └──┬─────────────────┬────┘
                 YES │                 │ NO
                     ↓                 ↓
-              Next Item      Atlas Adjust TODO (Stage 3-MCP)
-                             ├─ Strategy: retry/alternative/skip
-                             ├─ Update item parameters
-                             └─ Retry (max 3 attempts)
+              Next Item      Grisha Deep Analysis (Stage 3.5)
+                             ├─ getDetailedAnalysisForAtlas()
+                             ├─ Failure analysis + suggestions
+                             └─ Pass tetyanaData + grishaData to Atlas
                                       ↓
-                           Atlas Replan (Stage 3.5-MCP)
-                           ├─ Deep analysis of failure
+                           Atlas Replan (Stage 3.6-MCP)
+                           ├─ Analyze tetyanaData + grishaData
                            ├─ Decision: replan/skip/abort
-                           └─ Insert new items if needed
+                           ├─ Strategy: retry/alternative/decompose
+                           └─ Insert new items if replanned
                                       ↓
                          ┌──────────────┴──────────────┐
                          │  All Items Completed?       │
@@ -323,17 +343,17 @@ User Request → Mode Selection (Stage 0)
 
 ### MCP Stage Processors
 
-| Stage | Processor | Agent | Responsibility |
-|-------|-----------|-------|----------------|
-| 0 | `ModeSelectionProcessor` | System | Chat vs Task classification |
-| 1-MCP | `AtlasTodoPlanningProcessor` | Atlas | Create dynamic TODO list |
-| 2.0-MCP | `ServerSelectionProcessor` | System | Filter relevant MCP servers |
-| 2.1-MCP | `TetyanaПlanToolsProcessor` | Tetyana | Plan tool_calls |
-| 2.2-MCP | `TetyanaExecuteToolsProcessor` | Tetyana | Execute tools via MCP |
-| 2.3-MCP | `GrishaVerifyItemProcessor` | Grisha | Verify item completion |
-| 3-MCP | `AtlasAdjustTodoProcessor` | Atlas | Adjust failed items |
-| 3.5-MCP | `AtlasReplanTodoProcessor` | Atlas | Deep analysis & replan |
-| 8-MCP | `McpFinalSummaryProcessor` | Atlas | Generate final summary |
+| Stage   | Processor                      | Agent   | Responsibility                                    |
+| ------- | ------------------------------ | ------- | ------------------------------------------------- |
+| 0       | `ModeSelectionProcessor`       | System  | Chat vs Task classification                       |
+| 1-MCP   | `AtlasTodoPlanningProcessor`   | Atlas   | Create dynamic TODO list                          |
+| 2.0-MCP | `ServerSelectionProcessor`     | System  | Filter relevant MCP servers                       |
+| 2.1-MCP | `TetyanaПlanToolsProcessor`    | Tetyana | Plan tool_calls with JSON Schema validation       |
+| 2.2-MCP | `TetyanaExecuteToolsProcessor` | Tetyana | Execute tools via MCP with LLM safety validation  |
+| 2.3-MCP | `GrishaVerifyItemProcessor`    | Grisha  | Intelligent verification (4 sub-stages) ⭐ UPDATED |
+| 3.5     | Grisha Deep Analysis           | Grisha  | Detailed failure analysis for Atlas               |
+| 3.6-MCP | `AtlasReplanTodoProcessor`     | Atlas   | Deep analysis & replan with Tetyana + Grisha data |
+| 8-MCP   | `McpFinalSummaryProcessor`     | System  | Generate final summary                            |
 
 ---
 
@@ -425,6 +445,278 @@ class TetyanaToolSystem {
 - Retry logic з adaptive adjustments
 - TTS synchronization
 - WebSocket chat updates
+
+---
+
+## 🔍 Grisha Verification System (NEW v5.0.3)
+
+**Інтелектуальна двоетапна система верифікації** з LLM routing та автоматичним fallback.
+
+### Архітектура верифікації
+
+Гриша використовує **4-етапний процес верифікації** для максимальної точності:
+
+#### Етап 1: Heuristic Strategy (евристичний аналіз)
+```javascript
+// grisha-verification-strategy.js
+class GrishaVerificationStrategy {
+  determineStrategy(item, execution) {
+    // Швидкий аналіз на основі keywords
+    const visualIndicators = this._detectVisualIndicators(action, criteria);
+    const filesystemIndicators = this._detectFilesystemIndicators(action, criteria);
+    
+    if (visualIndicators.score >= 70) {
+      return { method: 'visual', confidence: 85, fallbackToMcp: true };
+    }
+    
+    if (filesystemIndicators.score >= 60) {
+      return { method: 'mcp', mcpServer: 'filesystem', confidence: 80 };
+    }
+    
+    return { method: 'visual', confidence: 30, fallbackToMcp: true };
+  }
+}
+```
+
+**Детекція індикаторів:**
+- **Visual**: калькулятор, safari, finder, вікно, екран, результат
+- **Filesystem**: файл, папка, створити, зберегти, існує
+- **Shell**: команда, скрипт, процес, виконати
+- **Memory**: запам'ятати, знання, інформація
+
+#### Етап 2: LLM Eligibility Routing (інтелектуальний вибір)
+```javascript
+// grisha-verification-eligibility-processor.js
+// Model: atlas-ministral-3b (Mistral 3B)
+// Temperature: 0.1 (низька для консистентності)
+
+const eligibilityResult = await this.callLLM({
+  systemPrompt: GRISHA_VERIFICATION_ELIGIBILITY.SYSTEM_PROMPT,
+  userPrompt: `
+    TODO Item: ${item.action}
+    Success Criteria: ${item.success_criteria}
+    Execution Summary: ${executionSummary}
+    Heuristic Signal: visual confidence ${heuristicConfidence}%
+  `,
+  model: 'atlas-ministral-3b',
+  temperature: 0.1,
+  max_tokens: 500
+});
+
+// Output:
+{
+  "visual_possible": true,
+  "confidence": 85,
+  "reason": "Файлова операція - візуальна перевірка слабка",
+  "recommended_path": "data",  // 'visual' | 'data' | 'hybrid'
+  "additional_checks": [
+    {
+      "description": "Перевірити існування файлу calc_result.txt",
+      "server": "filesystem",
+      "tool": "filesystem__read_file",
+      "parameters": { "path": "/Users/dev/Desktop/calc_result.txt" },
+      "expected_evidence": "Файл існує і містить результат 18.68"
+    }
+  ]
+}
+```
+
+**LLM приймає рішення на основі:**
+- Типу операції (UI vs файлова система)
+- Критеріїв успіху
+- Результатів виконання Тетяни
+- Евристичних сигналів
+
+#### Етап 3: Visual Verification (візуальна перевірка)
+```javascript
+// Якщо recommended_path === 'visual' або 'hybrid'
+
+// 1. Capture screenshot
+const screenshot = await this.visualCapture.captureScreenshot(
+  `item_${item.id}_verify`,
+  { targetApp: 'Calculator' }  // Window screenshot якщо є targetApp
+);
+
+// 2. Vision AI analysis
+const visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
+  screenshot.filepath,
+  item.success_criteria,
+  { action: item.action, executionResults: execution.results }
+);
+
+// 3. Security checks
+if (visionAnalysis._fallback === true) {
+  verified = false;  // Reject fallback responses
+}
+
+if (visionAnalysis.visual_evidence?.matches_criteria !== true) {
+  verified = false;  // Require explicit match
+}
+
+if (visionAnalysis.confidence < 70) {
+  verified = false;  // Minimum 70% confidence
+}
+```
+
+**Vision Models:**
+- **Primary**: `atlas-llama-3.2-90b-vision-instruct` (Llama 3.2 90B Vision)
+- **Fallback**: `atlas-phi-3.5-vision-instruct` (Phi 3.5 Vision)
+- **Local**: Ollama `llama3.2-vision` (безкоштовний, повільний)
+
+**Security Features:**
+- Fallback rejection (no unstructured responses)
+- Explicit criteria matching validation
+- Minimum confidence threshold (70%)
+- Evidence validation logging
+
+#### Етап 4: MCP Verification (data-driven перевірка)
+```javascript
+// Якщо recommended_path === 'data' або 'hybrid'
+
+// ВАЖЛИВО: Використовує TetyanaExecuteToolsProcessor (натоптана дорожка)
+const executeProcessor = this.container.resolve('tetyanaExecuteToolsProcessor');
+
+const execResult = await executeProcessor.execute({
+  currentItem: {
+    id: `verify_${item.id}`,
+    action: `Перевірити виконання: ${item.action}`,
+    success_criteria: item.success_criteria
+  },
+  plan: {
+    tool_calls: eligibilityDecision.additional_checks.map(check => ({
+      server: check.server,
+      tool: check.tool,  // filesystem__read_file
+      parameters: check.parameters,
+      reasoning: check.description,
+      expected_evidence: check.expected_evidence
+    }))
+  },
+  todo: { items: [originalItem] },
+  session: null,  // No session for verification
+  res: null       // No SSE stream
+});
+
+// Аналіз результатів
+const verified = this._analyzeMcpResults(execResult.execution, successCriteria);
+```
+
+**Переваги MCP верифікації:**
+- ✅ Використовує той самий код, що й Тетяна (Stage 2.2)
+- ✅ Автоматичне лікування при фіксах Тетяни
+- ✅ Всі security checks та validations
+- ✅ Tool history tracking
+- ✅ Repetition detection
+
+### Smart Fallback System
+
+**Visual → MCP fallback:**
+```javascript
+if (!verification.verified && strategy.fallbackToMcp) {
+  const mcpVerification = await this._executeMcpVerification(...);
+  if (mcpVerification.verified) {
+    verification = mcpVerification;  // Use MCP result
+  }
+}
+```
+
+**MCP → Visual fallback** (опціонально):
+```javascript
+if (!verification.verified && strategy.fallbackToVisual) {
+  const visualVerification = await this._executeVisualVerification(...);
+  if (visualVerification.verified) {
+    verification = visualVerification;  // Use Visual result
+  }
+}
+```
+
+### Конфігурація
+
+**Environment Variables (.env):**
+```bash
+# Grisha Verification Configuration
+MCP_MODEL_VERIFICATION_ELIGIBILITY=atlas-ministral-3b
+MCP_TEMP_VERIFICATION_ELIGIBILITY=0.1
+```
+
+**Agent Config (agents-config.js):**
+```javascript
+grisha: {
+  verification: {
+    methods: ['visual', 'mcp'],
+    defaultMethod: 'visual',
+    routing: {
+      model: 'atlas-ministral-3b',
+      temperature: 0.1
+    },
+    visual: {
+      visionModel: 'atlas-llama-3.2-90b-vision-instruct',
+      minConfidence: 70,
+      captureDelay: 2000
+    },
+    mcp: {
+      usesTetyanaProcessor: true,
+      supportedServers: ['filesystem', 'shell', 'memory']
+    },
+    fallback: {
+      visualToMcp: true,
+      mcpToVisual: false
+    }
+  }
+}
+```
+
+**Workflow Config (workflow-config.js):**
+```javascript
+GRISHA_VERIFY_ITEM: {
+  stage: 5,
+  subStages: [
+    { id: 'VERIFICATION_STRATEGY', timeout: 5000 },
+    { id: 'VERIFICATION_ELIGIBILITY', model: 'atlas-ministral-3b', timeout: 10000 },
+    { id: 'VISUAL_VERIFICATION', optional: true, timeout: 30000 },
+    { id: 'MCP_VERIFICATION', optional: true, timeout: 30000 }
+  ]
+}
+```
+
+### Приклад роботи
+
+**Сценарій 1: Файлова операція**
+```
+User: "Створи файл calc_result.txt з результатом 18.68"
+
+Heuristic Strategy:
+  → Detected: filesystem keywords (файл, створи)
+  → Recommendation: MCP (confidence: 80%)
+
+LLM Eligibility (Mistral 3B):
+  → Analysis: "Файлова операція - візуальна перевірка слабка"
+  → Decision: recommended_path = "data"
+  → Additional checks: [filesystem__read_file]
+
+MCP Verification:
+  → Execute: filesystem__read_file("/Users/dev/Desktop/calc_result.txt")
+  → Result: File exists, contains "18.68"
+  → Verified: ✅ TRUE (confidence: 90%)
+```
+
+**Сценарій 2: UI операція з fallback**
+```
+User: "Відкрий калькулятор і порахуй 5+3"
+
+Heuristic Strategy:
+  → Detected: visual keywords (калькулятор, результат)
+  → Recommendation: Visual (confidence: 90%)
+
+LLM Eligibility (Mistral 3B):
+  → Analysis: "UI операція - візуальна перевірка оптимальна"
+  → Decision: recommended_path = "visual"
+  → Additional checks: []
+
+Visual Verification:
+  → Screenshot: Calculator app window
+  → Vision AI: "Calculator is open, result shows 8"
+  → Verified: ✅ TRUE (confidence: 85%)
+```
 
 ---
 
@@ -805,10 +1097,6 @@ MCP_TEMP_PLAN_TOOLS=0.1
 MCP_MODEL_VERIFY_ITEM=atlas-mistral-small-2503
 MCP_TEMP_VERIFY_ITEM=0.15
 
-# Stage 3: Atlas Adjust TODO
-MCP_MODEL_ADJUST_TODO=atlas-mistral-medium-2505
-MCP_TEMP_ADJUST_TODO=0.2
-
 # Stage 8: Final Summary
 MCP_MODEL_FINAL_SUMMARY=atlas-ministral-3b
 MCP_TEMP_FINAL_SUMMARY=0.5
@@ -989,8 +1277,7 @@ orchestrator/
 prompts/mcp/
 ├── stage0_mode_selection.js           # Chat vs Task
 ├── atlas_todo_planning_optimized.js   # TODO planning
-├── atlas_adjust_todo.js               # Adjustments
-├── atlas_replan_todo.js               # Replanning
+├── atlas_replan_todo.js               # Replanning (Stage 3.6)
 ├── tetyana_plan_tools_*.js            # Tool planning (6 variants)
 ├── grisha_verify_item_optimized.js    # Verification
 ├── grisha_visual_verify_item.js       # Visual verification
@@ -1089,8 +1376,7 @@ Stage 2.3: Grisha Verify (check results)
 
 **Atlas (Coordinator):**
 - `atlas_todo_planning_optimized.js` - Створення динамічних TODO планів
-- `atlas_adjust_todo.js` - Корекція при невдачах
-- `atlas_replan_todo.js` - Глибокий аналіз та переплан
+- `atlas_replan_todo.js` - Глибокий аналіз та переплан (Stage 3.6)
 
 **Tetyana (Executor):**
 - `tetyana_plan_tools_*.js` - Планування tool_calls (6 варіантів)
@@ -1102,14 +1388,14 @@ Stage 2.3: Grisha Verify (check results)
 
 ### AI Models Configuration
 
-| Stage | Model | Temperature | Purpose |
-|-------|-------|-------------|----------|
-| 0 (Mode Selection) | atlas-ministral-3b | 0.05 | Fast classification |
-| 1 (TODO Planning) | copilot-gpt-4o | 0.3 | Creative planning |
-| 2.1 (Plan Tools) | copilot-gpt-4o | 0.1 | Precise tool selection |
-| 2.3 (Verify) | copilot-gpt-4o-mini | 0.15 | Fast verification |
-| 3 (Adjust) | copilot-gpt-4o-mini | 0.2 | Quick adjustments |
-| 8 (Summary) | atlas-ministral-3b | 0.5 | Creative summary |
+| Stage              | Model               | Temperature | Purpose                |
+| ------------------ | ------------------- | ----------- | ---------------------- |
+| 0 (Mode Selection) | atlas-ministral-3b  | 0.05        | Fast classification    |
+| 1 (TODO Planning)  | copilot-gpt-4o      | 0.3         | Creative planning      |
+| 2.1 (Plan Tools)   | copilot-gpt-4o      | 0.1         | Precise tool selection |
+| 2.3 (Verify)       | copilot-gpt-4o-mini | 0.15        | Fast verification      |
+| 3 (Adjust)         | copilot-gpt-4o-mini | 0.2         | Quick adjustments      |
+| 8 (Summary)        | atlas-ministral-3b  | 0.5         | Creative summary       |
 
 **Vision Models:**
 - Primary: `atlas-gpt-4o` (GPT-4o with vision, ~2s)

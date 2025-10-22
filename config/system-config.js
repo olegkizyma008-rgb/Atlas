@@ -116,7 +116,6 @@ export function generateShortStatus(agent, stageId) {
     atlas: {
       MODE_SELECTION: 'Atlas аналізує запит та визначає режим',
       ATLAS_TODO_PLANNING: 'Atlas формує TODO план виконання',
-      ATLAS_ADJUST_TODO: 'Atlas коригує TODO після перевірки',
       ATLAS_REPLAN_TODO: 'Atlas будує новий план виконання'
     },
     tetyana: {

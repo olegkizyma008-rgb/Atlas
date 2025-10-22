@@ -25,7 +25,6 @@ import {
     TetyanaПlanToolsProcessor,
     TetyanaExecuteToolsProcessor,
     GrishaVerifyItemProcessor,
-    AtlasAdjustTodoProcessor,
     AtlasReplanTodoProcessor,
     McpFinalSummaryProcessor
 } from '../workflow/stages/index.js';
@@ -407,6 +406,8 @@ export function registerMCPProcessors(container) {
     });
 
     // Grisha Verify Item Processor (Stage 2.3-MCP)
+    // UPDATED 2025-10-22: Added container for resolving TetyanaExecuteToolsProcessor
+    // UPDATED 2025-10-22: Added callLLM for eligibility routing
     container.singleton('grishaVerifyItemProcessor', (c) => {
         return new GrishaVerifyItemProcessor({
             mcpTodoManager: c.resolve('mcpTodoManager'),
@@ -414,21 +415,35 @@ export function registerMCPProcessors(container) {
             wsManager: c.resolve('wsManager'),  // FIXED 2025-10-21: Added for chat messages
             visionAnalysis: c.resolve('visionAnalysis'),
             tetyanaToolSystem: c.resolve('tetyanaToolSystem'),  // FIXED 2025-10-22: Required for MCP verification
+            container: c,  // NEW 2025-10-22: Pass DI Container for resolving Tetyana's processor
+            callLLM: async (params) => {  // NEW 2025-10-22: LLM client for eligibility routing
+                const axios = (await import('axios')).default;
+                const config = c.resolve('config');
+                const endpoint = config.MCP_MODEL_CONFIG.apiEndpoint.primary;
+                
+                try {
+                    const response = await axios.post(endpoint, {
+                        model: params.model,
+                        messages: [
+                            { role: 'system', content: params.systemPrompt },
+                            { role: 'user', content: params.userPrompt }
+                        ],
+                        temperature: params.temperature,
+                        max_tokens: params.max_tokens
+                    }, {
+                        timeout: config.MCP_MODEL_CONFIG.apiEndpoint.timeout || 60000
+                    });
+                    
+                    return response.data.choices[0].message.content;
+                } catch (error) {
+                    logger.error('service-registry', `[callLLM] Failed: ${error.message}`);
+                    throw error;
+                }
+            },
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpTodoManager', 'mcpManager', 'wsManager', 'visionAnalysis', 'tetyanaToolSystem', 'logger'],
-        metadata: { category: 'processors', priority: 40 }
-    });
-
-    // Atlas Adjust TODO Processor (Stage 3-MCP)
-    container.singleton('atlasAdjustTodoProcessor', (c) => {
-        return new AtlasAdjustTodoProcessor({
-            mcpTodoManager: c.resolve('mcpTodoManager'),
-            logger: c.resolve('logger')
-        });
-    }, {
-        dependencies: ['mcpTodoManager', 'logger'],
+        dependencies: ['mcpTodoManager', 'mcpManager', 'wsManager', 'visionAnalysis', 'tetyanaToolSystem', 'logger', 'config'],
         metadata: { category: 'processors', priority: 40 }
     });
 

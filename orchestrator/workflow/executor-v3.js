@@ -50,7 +50,6 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
     const planProcessor = container.resolve('tetyanaПlanToolsProcessor');
     const executeProcessor = container.resolve('tetyanaExecuteToolsProcessor');
     const verifyProcessor = container.resolve('grishaVerifyItemProcessor');
-    const adjustProcessor = container.resolve('atlasAdjustTodoProcessor');
     const replanProcessor = container.resolve('atlasReplanTodoProcessor');
     const summaryProcessor = container.resolve('mcpFinalSummaryProcessor');
 
@@ -886,60 +885,6 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                 
                 break; // Exit retry loop
               }
-
-              const adjustResult = await adjustProcessor.execute({
-                currentItem: item,
-                verification: verifyResult.verification,
-                todo,
-                attemptNumber: replanningAttempts,
-                session,
-                res
-              });
-
-              if (adjustResult.strategy === 'skip') {
-                item.status = 'skipped';
-                item.skip_reason = adjustResult.reason;
-
-                logger.warn(`Item ${item.id} skipped: ${adjustResult.reason}`, {
-                  sessionId: session.id
-                });
-
-                // Send TTS for failure/skip
-                if (wsManager && item.tts?.failure) {
-                  try {
-                    wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                      content: item.tts.failure,
-                      agent: 'atlas',
-                      ttsContent: item.tts.failure,
-                      mode: 'normal',
-                      sessionId: session.id,
-                      timestamp: new Date().toISOString()
-                    });
-                  } catch (error) {
-                    logger.warn(`Failed to send TTS failure message: ${error.message}`);
-                  }
-                }
-
-                // Send skip update to frontend
-                if (res.writable && !res.writableEnded) {
-                  res.write(`data: ${JSON.stringify({
-                    type: 'mcp_item_skipped',
-                    data: {
-                      itemId: item.id,
-                      reason: adjustResult.reason
-                    }
-                  })}\n\n`);
-                }
-
-                break; // Exit retry loop
-              }
-
-              // Apply adjustment and retry
-              logger.info(`Item ${item.id} adjusted with strategy: ${adjustResult.strategy}`, {
-                sessionId: session.id
-              });
-
-              attempt++;
             }
 
           } catch (replanError) {

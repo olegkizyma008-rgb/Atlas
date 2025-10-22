@@ -35,7 +35,8 @@ import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  //
 import grishaVerifyItem from './grisha_verify_item_optimized.js';  // OPTIMIZED 15.10.2025 (legacy MCP tools)
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
 import grishaVerificationEligibility from './grisha_verification_eligibility.js';  // NEW 22.10.2025 - Verification routing
-import atlasAdjustTodo from './atlas_adjust_todo.js';
+// ARCHIVED 2025-10-22: atlas_adjust_todo.js moved to archive/legacy-processors-2025-10-22/
+// import atlasAdjustTodo from './atlas_adjust_todo.js';
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
 import mcpFinalSummary from './mcp_final_summary.js';
 import llmToolValidator from './llm_tool_validator.js';  // NEW 21.10.2025 - LLM tool validation
@@ -75,10 +76,7 @@ export const MCP_PROMPTS = {
     // Legacy MCP tools verification (deprecated)
     GRISHA_VERIFY_ITEM_LEGACY: grishaVerifyItem,
 
-    // Stage 3-MCP: Atlas adjusts TODO on failure
-    ATLAS_ADJUST_TODO: atlasAdjustTodo,
-
-    // Stage 3.5-MCP: Atlas deep replan (NEW 18.10.2025) - Analyze failure and rebuild TODO
+    // Stage 3.6-MCP: Atlas deep replan (NEW 18.10.2025) - Analyze failure and rebuild TODO
     ATLAS_REPLAN_TODO: atlasReplanTodo,
 
     // Stage 8-MCP: Final summary

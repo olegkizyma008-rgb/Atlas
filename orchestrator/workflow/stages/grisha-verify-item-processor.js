@@ -41,12 +41,13 @@ export class GrishaVerifyItemProcessor {
      * @param {Object} dependencies.config - Visual verification config
      * @param {Function} dependencies.callLLM - LLM client function for eligibility routing
      */
-    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {}, tetyanaToolSystem, callLLM }) {
+    constructor({ mcpTodoManager, wsManager, logger: loggerInstance, config = {}, tetyanaToolSystem, callLLM, container }) {
         this.mcpTodoManager = mcpTodoManager;
         this.wsManager = wsManager;
         this.logger = loggerInstance || logger;
         this.tetyanaToolSystem = tetyanaToolSystem; // For MCP verification fallback
         this.callLLM = callLLM; // For eligibility routing
+        this.container = container; // DI Container for resolving processors (NEW 2025-10-22)
 
         // Initialize verification strategy selector
         this.verificationStrategy = new GrishaVerificationStrategy({
@@ -136,43 +137,41 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[GRISHA] 📊 Heuristic confidence: ${strategy.confidence}%`);
             this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
 
-            // STEP 2: NEW 2025-10-22 - Call eligibility processor for LLM-based routing decision
+            // STEP 1: LLM-based eligibility decision (PRIMARY)
             let eligibilityDecision = null;
             if (this.callLLM) {
                 try {
                     const eligibilityResult = await this.eligibilityProcessor.execute({
                         currentItem,
                         execution,
-                        verificationStrategy: strategy
+                        verificationStrategy: strategy  // Pass heuristic for context
                     });
-                    
+
                     if (eligibilityResult.success) {
                         eligibilityDecision = eligibilityResult.decision;
-                        this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM routing decision: ${eligibilityDecision.recommended_path.toUpperCase()}`);
+                        this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM decision: ${eligibilityDecision.recommended_path.toUpperCase()}`);
                         this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM confidence: ${eligibilityDecision.confidence}%`);
-                        
-                        // Override strategy if LLM has high confidence and disagrees
-                        if (eligibilityDecision.confidence >= 70) {
-                            if (eligibilityDecision.recommended_path === 'data' && strategy.method === 'visual') {
-                                this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Overriding heuristic: switching to MCP verification');
-                                strategy.method = 'mcp';
-                                strategy.reason = `LLM override: ${eligibilityDecision.reason}`;
-                            } else if (eligibilityDecision.recommended_path === 'visual' && strategy.method === 'mcp') {
-                                this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Overriding heuristic: switching to visual verification');
-                                strategy.method = 'visual';
-                                strategy.reason = `LLM override: ${eligibilityDecision.reason}`;
-                            }
+
+                        // LLM is the authority - use its recommendation
+                        if (eligibilityDecision.recommended_path === 'data' || eligibilityDecision.recommended_path === 'hybrid') {
+                            strategy.method = 'mcp';
+                            strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
+                            strategy.confidence = eligibilityDecision.confidence;
+                        } else if (eligibilityDecision.recommended_path === 'visual') {
+                            strategy.method = 'visual';
+                            strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
+                            strategy.confidence = eligibilityDecision.confidence;
                         }
                     }
                 } catch (eligibilityError) {
-                    this.logger.warn(`[GRISHA] ⚠️  Eligibility routing failed: ${eligibilityError.message}`, {
+                    this.logger.warn(`[GRISHA] ⚠️ LLM eligibility failed, using heuristic fallback: ${eligibilityError.message}`, {
                         category: 'grisha-verify-item'
                     });
                     // Continue with heuristic strategy
                 }
             }
 
-            this.logger.system('grisha-verify-item', `[GRISHA] ✅ Final strategy: ${strategy.method.toUpperCase()}`);
+            this.logger.system('grisha-verify-item', `[GRISHA] ✅ Final strategy: ${strategy.method.toUpperCase()} (confidence: ${strategy.confidence}%)`);
 
             // STEP 3: Execute verification based on final strategy
             let verification;
@@ -518,9 +517,9 @@ export class GrishaVerifyItemProcessor {
 
             this.logger.system('grisha-verify-item', `[MCP-GRISHA] Verification TODO: ${JSON.stringify(verificationTodo, null, 2)}`);
 
-            // Execute verification through MCP cycle (Stage 2.0 → 2.1 → 2.2)
-            // This uses the same workflow as Tetyana
-            const verificationResults = await this._executeVerificationThroughMcpCycle(verificationTodo, verificationChecks);
+            // REFACTORED 2025-10-22: Execute verification through Tetyana's processor (Stage 2.2)
+            // This ensures we use the same battle-tested code path as normal execution
+            const verificationResults = await this._executeVerificationThroughTetyanaProcessor(verificationTodo, verificationChecks, currentItem);
 
             // Analyze results
             const verified = this._analyzeMcpResults(verificationResults, currentItem.success_criteria);
@@ -559,19 +558,21 @@ export class GrishaVerifyItemProcessor {
     }
 
     /**
-     * Execute verification through MCP cycle (same as Tetyana)
-     * Creates a mini-workflow: server selection → tool planning → execution
+     * Execute verification through Tetyana's processor (Stage 2.2)
+     * REFACTORED 2025-10-22: Uses TetyanaExecuteToolsProcessor instead of direct TetyanaToolSystem
+     * This ensures automatic bug fixes when Tetyana's execution is improved
      * 
      * @param {Object} verificationTodo - Verification TODO item
      * @param {Array} verificationChecks - Verification checks from eligibility
+     * @param {Object} originalItem - Original TODO item being verified
      * @returns {Promise<Object>} Execution results
      * @private
      */
-    async _executeVerificationThroughMcpCycle(verificationTodo, verificationChecks) {
-        this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔄 Executing through MCP cycle...');
+    async _executeVerificationThroughTetyanaProcessor(verificationTodo, verificationChecks, originalItem) {
+        this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🔄 Executing through Tetyana processor...');
 
         try {
-            // Convert verification checks to tool plan format
+            // Convert verification checks to tool plan format (same as Tetyana expects)
             const toolPlan = {
                 tool_calls: verificationChecks.map(check => ({
                     server: check.server,
@@ -585,24 +586,38 @@ export class GrishaVerifyItemProcessor {
 
             this.logger.system('grisha-verify-item', `[MCP-GRISHA] Tool plan: ${JSON.stringify(toolPlan, null, 2)}`);
 
-            // Execute tools using TetyanaToolSystem (same as Stage 2.2)
-            if (!this.tetyanaToolSystem) {
-                throw new Error('TetyanaToolSystem not available');
+            // Get TetyanaExecuteToolsProcessor from DI Container
+            if (!this.container) {
+                throw new Error('DI Container not available - cannot resolve TetyanaExecuteToolsProcessor');
             }
 
-            const results = await this.tetyanaToolSystem.executeToolCalls(toolPlan.tool_calls, {
-                mode: 'task',
-                userIntent: 'verification',
-                itemAction: verificationTodo.action,
-                itemId: verificationTodo.id
+            const executeProcessor = this.container.resolve('tetyanaExecuteToolsProcessor');
+            if (!executeProcessor) {
+                throw new Error('TetyanaExecuteToolsProcessor not found in DI Container');
+            }
+
+            this.logger.system('grisha-verify-item', '[MCP-GRISHA] 🎯 Using TetyanaExecuteToolsProcessor (same as Stage 2.2)');
+
+            // Execute through Tetyana's processor (same flow as executor-v3.js Stage 2.2)
+            const execResult = await executeProcessor.execute({
+                currentItem: {
+                    id: verificationTodo.id,
+                    action: verificationTodo.action,
+                    success_criteria: verificationTodo.success_criteria
+                },
+                plan: toolPlan,
+                todo: { items: [originalItem] },  // Minimal TODO context
+                session: null,  // No session needed for verification
+                res: null  // No SSE stream for verification
             });
 
-            this.logger.system('grisha-verify-item', `[MCP-GRISHA] ✅ Execution complete: ${results.successful_count}/${results.total_count} successful`);
+            this.logger.system('grisha-verify-item', `[MCP-GRISHA] ✅ Tetyana processor complete: ${execResult.metadata?.successfulCalls || 0}/${execResult.metadata?.toolCount || 0} successful`);
 
-            return results;
+            // Return execution results in expected format
+            return execResult.execution;
 
         } catch (error) {
-            this.logger.error(`[MCP-GRISHA] ❌ MCP cycle execution failed: ${error.message}`, {
+            this.logger.error(`[MCP-GRISHA] ❌ Tetyana processor execution failed: ${error.message}`, {
                 category: 'grisha-verify-item',
                 component: 'grisha-verify-item',
                 stack: error.stack

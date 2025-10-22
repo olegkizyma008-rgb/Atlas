@@ -222,7 +222,7 @@ MCP_MODEL_MODE_SELECTION=atlas-ministral-3b
 MCP_MODEL_TODO_PLANNING=copilot-gpt-4o
 MCP_MODEL_PLAN_TOOLS=copilot-gpt-4o
 MCP_MODEL_VERIFY_ITEM=copilot-gpt-4o-mini
-MCP_MODEL_ADJUST_TODO=copilot-gpt-4o-mini
+MCP_MODEL_REPLAN_TODO=copilot-gpt-4o
 MCP_MODEL_FINAL_SUMMARY=atlas-ministral-3b
 ```
 
@@ -290,8 +290,7 @@ WHISPER_CPP_NGL=20  # GPU layers
 
 **Atlas (Coordinator):**
 - `atlas_todo_planning_optimized.js` - Stage 1-MCP
-- `atlas_adjust_todo.js` - Stage 3-MCP
-- `atlas_replan_todo.js` - Stage 3.5-MCP
+- `atlas_replan_todo.js` - Stage 3.6-MCP
 
 **Tetyana (Executor):**
 - `tetyana_plan_tools_optimized.js` - Stage 2.1-MCP (основний)

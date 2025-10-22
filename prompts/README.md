@@ -55,10 +55,7 @@ archive/
 - `grisha_verify_item_optimized.js` - Legacy MCP tools verification
 - `grisha_visual_verify_item.js` - **ACTIVE** Visual AI verification
 
-#### Stage 3-MCP: TODO Adjustment
-- `atlas_adjust_todo.js` - Корегування TODO при помилках
-
-#### Stage 3.5-MCP: Deep Replan
+#### Stage 3.6-MCP: Deep Replan
 - `atlas_replan_todo.js` - Глибокий аналіз та перепланування
 
 #### Stage 8-MCP: Final Summary

@@ -66,20 +66,45 @@ export const WORKFLOW_STAGES = [
     description: 'Верифікація результатів виконання пунктів TODO',
     required: true,
     maxRetries: 1,
-    timeout: 60000
+    timeout: 60000,
+    subStages: [
+      {
+        id: 'VERIFICATION_STRATEGY',
+        name: 'verification_strategy',
+        description: 'Евристичний вибір методу верифікації (visual/mcp)',
+        agent: 'grisha',
+        timeout: 5000
+      },
+      {
+        id: 'VERIFICATION_ELIGIBILITY',
+        name: 'verification_eligibility',
+        description: 'LLM-based вибір методу верифікації та формування additional_checks',
+        agent: 'grisha',
+        model: 'atlas-ministral-3b',
+        temperature: 0.1,
+        timeout: 10000
+      },
+      {
+        id: 'VISUAL_VERIFICATION',
+        name: 'visual_verification',
+        description: 'Візуальна верифікація через скріншоти та Vision AI',
+        agent: 'grisha',
+        model: 'atlas-llama-3.2-90b-vision-instruct',
+        optional: true,
+        timeout: 30000
+      },
+      {
+        id: 'MCP_VERIFICATION',
+        name: 'mcp_verification',
+        description: 'MCP верифікація через Tetyana processor',
+        agent: 'grisha',
+        optional: true,
+        timeout: 30000
+      }
+    ]
   },
   {
     stage: 6,
-    id: 'ATLAS_ADJUST_TODO',
-    name: 'atlas_adjust_todo',
-    agent: 'atlas',
-    description: 'Корекція TODO на основі діагностики та фідбеку',
-    required: false,
-    maxRetries: 1,
-    timeout: 30000
-  },
-  {
-    stage: 7,
     id: 'ATLAS_REPLAN_TODO',
     name: 'atlas_replan_todo',
     agent: 'atlas',

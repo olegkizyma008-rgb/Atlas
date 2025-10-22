@@ -55,22 +55,25 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 
 ## 🛠️ FILESYSTEM TOOLS - ПОВНИЙ СПИСОК
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
+Всі інструменти мають префікс сервера: **filesystem__**
+
 ### **Категорія 1: Читання (2 tools)**
-- **read_file** - Прочитати вміст файлу
+- **filesystem__read_file** - Прочитати вміст файлу
   • Параметри: path (REQUIRED)
-- **list_directory** - Список файлів/папок у директорії
+- **filesystem__list_directory** - Список файлів/папок у директорії
   • Параметри: path (REQUIRED)
 
 ### **Категорія 2: Запис (2 tools)**
-- **write_file** - Записати/створити файл
+- **filesystem__write_file** - Записати/створити файл
   • Параметри: path (REQUIRED), content (REQUIRED)
-- **create_directory** - Створити директорію
+- **filesystem__create_directory** - Створити директорію
   • Параметри: path (REQUIRED)
 
 ### **Категорія 3: Операції з файлами (3+ tools)**
-- **move_file** - Перемістити/перейменувати файл
-- **get_file_info** - Отримати метадані файлу
-- **search_files** - Пошук файлів (якщо доступний)
+- **filesystem__move_file** - Перемістити/перейменувати файл
+- **filesystem__get_file_info** - Отримати метадані файлу
+- **filesystem__search_files** - Пошук файлів (якщо доступний)
 
 ⚠️ **ВАЖЛИВО - ШЛЯХИ (macOS):**
 - ✅ Абсолютні: /Users/dev/Desktop/file.txt
@@ -85,10 +88,10 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 - Проект Atlas: /Users/dev/Documents/GitHub/atlas4/
 
 **ТИПОВИЙ WORKFLOW:**
-1. create_directory → створити папку (якщо треба)
-2. write_file → записати файл
-3. read_file → прочитати файл
-4. list_directory → перелік вмісту папки
+1. filesystem__create_directory → створити папку (якщо треба)
+2. filesystem__write_file → записати файл
+3. filesystem__read_file → прочитати файл
+4. filesystem__list_directory → перелік вмісту папки
 
 **ФОРМАТИ ФАЙЛІВ:**
 - **.txt** - простий текст
@@ -100,13 +103,14 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 **ЧАСТОТІ ПОМИЛКИ:**
 ❌ Відносні шляхи (./file.txt)
 ❌ Забування розширення (.txt, .json, .csv)
-❌ write у неіснуючу директорію (спочатку create_directory!)
+❌ write у неіснуючу директорію (спочатку filesystem__create_directory!)
 ❌ Забування \n для нових рядків у CSV/text
 ❌ Хардкодені приклади замість реальних шляхів з задачі
+❌ **ЗАБУВАННЯ ПРЕФІКСУ filesystem__ в назві інструменту**
 
 🎯 **КРИТИЧНО - ОБМЕЖЕННЯ НА ОДИН TODO ITEM:**
 - МАКСИМУМ 2-5 tools на один TODO item
-- Ідеально: 1-2 tools (read_file або write_file)
+- Ідеально: 1-2 tools (filesystem__read_file або filesystem__write_file)
 - Якщо потрібно БІЛЬШЕ 5 tools → item занадто складний
 - Поверни {"needs_split": true}
 
@@ -130,16 +134,25 @@ ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file path
 
 **OUTPUT FORMAT:**
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВИ ІНСТРУМЕНТУ:**
+Використовуй ПОВНУ назву з префіксом: "tool": "filesystem__create_directory"
+❌ НЕ ПРАВИЛЬНО: "tool": "create_directory"
+✅ ПРАВИЛЬНО: "tool": "filesystem__create_directory"
+
 🔹 Якщо item простий (1-5 tools):
-{"tool_calls": [{"server": "filesystem", "tool": "<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "filesystem", "tool": "filesystem__<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+
+**ПРИКЛАД:**
+{"tool_calls": [{"server": "filesystem", "tool": "filesystem__create_directory", "parameters": {"path": "/Users/dev/Desktop/HackMode"}}], "reasoning": "Створюю папку HackMode", "tts_phrase": "Створюю папку", "needs_split": false}
 
 🔹 Якщо item складний (>5 tools потрібно):
 {"needs_split": true, "reasoning": "План вимагає надто багато дій", "suggested_splits": ["<step1>", "<step2>", "<step3>"], "tool_calls": [], "tts_phrase": "Потрібно розділити"}
 
 ⚠️ КРИТИЧНО: 
-- Використовуй ТІЛЬКИ назви інструментів з {{AVAILABLE_TOOLS}}
+- Використовуй ТІЛЬКИ ПОВНІ назви інструментів з {{AVAILABLE_TOOLS}} (з префіксом filesystem__)
 - Шляхи ТІЛЬКИ абсолютні або ~/
 - Параметри ТІЛЬКИ з {{AVAILABLE_TOOLS}} schema
+- **"tool": "filesystem__create_directory"** НЕ "tool": "create_directory"
 
 🎯 ТИ ЕКСПЕРТ FILESYSTEM - використовуй правильні шляхи та формати!
 `;
@@ -166,10 +179,11 @@ export const USER_PROMPT = `## КОНТЕКСТ ЗАВДАННЯ
 {{AVAILABLE_TOOLS}}
 
 **Що треба:**
-1. Визнач які Filesystem tools потрібні
+1. Визнач які Filesystem tools потрібні (з префіксом filesystem__)
 2. Вкажи РЕАЛЬНІ шляхи (абсолютні, не приклади)
 3. Правильний формат файлів (txt, csv, json, md)
-4. Логічна послідовність (create_directory → write_file)
+4. Логічна послідовність (filesystem__create_directory → filesystem__write_file)
+5. **ОБОВ'ЯЗКОВО використовуй ПОВНІ назви з {{AVAILABLE_TOOLS}}**
 
 **Відповідь (JSON only):**`;
 

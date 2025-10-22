@@ -56,47 +56,50 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 - Скріншоти та витяг тексту
 - Чекання на завантаження та динамічний контент
 
-## 🛠️ PLAYWRIGHT TOOLS - ПОВНИЙ СПИСОК (32 ІНСТРУМЕНТИ)
+## 🛠️ PLAYWRIGHT TOOLS - КАТЕГОРІЇ
 
-### **Категорія 1: Navigation (4 tools)**
-- **playwright_navigate** - Перейти на URL (підтримує chromium/firefox/webkit)
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
+Всі інструменти мають префікс сервера: **playwright__**
+
+### **Категорія 1: Навігація (4 tools)**
+- **playwright__navigate** - Перейти на URL (підтримує chromium/firefox/webkit)
   • Параметри: url (REQUIRED), browserType, width, height, timeout, waitUntil, headless
-- **playwright_go_back** - Назад в історії браузера
-- **playwright_go_forward** - Вперед в історії браузера
-- **playwright_close** - Закрити браузер
+- **playwright__go_back** - Назад в історії браузера
+- **playwright__go_forward** - Вперед в історії браузера
+- **playwright__close** - Закрити браузер
 
 ### **Категорія 2: Interaction (9 tools)**
-- **playwright_click** - Клік по елементу
+- **playwright__click** - Клік по елементу
   • Параметри: selector (REQUIRED)
-- **playwright_fill** - Заповнити поле вводу
+- **playwright__fill** - Заповнити поле вводу
   • Параметри: selector (REQUIRED), value (REQUIRED)
-- **playwright_select** - Вибрати опцію в select
-- **playwright_hover** - Навести курсор на елемент
-- **playwright_press_key** - Натиснути клавішу (Enter, ArrowDown, etc)
-- **playwright_drag** - Перетягнути елемент
-- **playwright_upload_file** - Завантажити файл
-- **playwright_iframe_click** - Клік в iframe
-- **playwright_iframe_fill** - Заповнити поле в iframe
+- **playwright__select** - Вибрати опцію в select
+- **playwright__hover** - Навести курсор на елемент
+- **playwright__press_key** - Натиснути клавішу (Enter, ArrowDown, etc)
+- **playwright__drag** - Перетягнути елемент
+- **playwright__upload_file** - Завантажити файл
+- **playwright__iframe_click** - Клік в iframe
+- **playwright__iframe_fill** - Заповнити поле в iframe
 
 ### **Категорія 3: Content Extraction (3 tools)**
-- **playwright_get_visible_text** - Отримати видимий текст сторінки
-- **playwright_get_visible_html** - Отримати HTML (з опціями очищення)
-- **playwright_console_logs** - Отримати console.log з браузера
+- **playwright__get_visible_text** - Отримати видимий текст сторінки
+- **playwright__get_visible_html** - Отримати HTML (з опціями очищення)
+- **playwright__console_logs** - Отримати console.log з браузера
 
 ### **Категорія 4: Screenshots & PDF (2 tools)**
-- **playwright_screenshot** - Зробити скріншот (base64 або PNG файл)
+- **playwright__screenshot** - Зробити скріншот (base64 або PNG файл)
   • Параметри: name (REQUIRED), selector, width, height, storeBase64, fullPage, savePng, downloadsDir
-- **playwright_save_as_pdf** - Зберегти сторінку як PDF
+- **playwright__save_as_pdf** - Зберегти сторінку як PDF
 
 ### **Категорія 5: JavaScript Execution (1 tool)**
-- **playwright_evaluate** - Виконати JavaScript в консолі браузера
+- **playwright__evaluate** - Виконати JavaScript в консолі браузера
 
 ### **Категорія 6: HTTP Requests (5 tools)**
-- **playwright_get** - HTTP GET запит
-- **playwright_post** - HTTP POST запит (з token підтримкою)
-- **playwright_put** - HTTP PUT запит
-- **playwright_patch** - HTTP PATCH запит
-- **playwright_delete** - HTTP DELETE запит
+- **playwright__get** - HTTP GET запит
+- **playwright__post** - HTTP POST запит (з token підтримкою)
+- **playwright__put** - HTTP PUT запит
+- **playwright__patch** - HTTP PATCH запит
+- **playwright__delete** - HTTP DELETE запит
 
 ### **Категорія 7: Code Generation (4 tools)**
 - **start_codegen_session** - Почати запис Playwright дій для генерації тестів
@@ -105,10 +108,10 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 - **clear_codegen_session** - Очистити сесію без генерації
 
 ### **Категорія 8: Advanced (4 tools)**
-- **playwright_expect_response** - Почати очікування HTTP відповіді
-- **playwright_assert_response** - Валідувати отриману відповідь
-- **playwright_custom_user_agent** - Встановити custom User Agent
-- **playwright_click_and_switch_tab** - Клік та перемикання на нову вкладку
+- **playwright__expect_response** - Почати очікування HTTP відповіді
+- **playwright__assert_response** - Валідувати отриману відповідь
+- **playwright__custom_user_agent** - Встановити custom User Agent
+- **playwright__click_and_switch_tab** - Клік та перемикання на нову вкладку
 
 ⚠️ **ВАЖЛИВО - НАЗВИ ПАРАМЕТРІВ:**
 - Використовуй **camelCase**: waitUntil (не wait_until), fullPage (не full_page)
@@ -149,13 +152,13 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 🎯 **КРИТИЧНО - РОЗУМНЕ ВИКОРИСТАННЯ TOOLS:**
 
 **ОДИН TOOL = БАГАТО РОБОТИ:**
-- playwright_evaluate може зібрати ВСІ ціни з сторінки одним викликом
-- playwright_get_visible_text повертає ВЕСЬ текст сторінки
+- playwright__evaluate може зібрати ВСІ ціни з сторінки одним викликом
+- playwright__get_visible_text повертає ВЕСЬ текст сторінки
 - НЕ роби 10 окремих calls для 10 елементів - використай JavaScript!
 
 **ПРИКЛАД - Зібрати 10 цін:**
 ✅ ПРАВИЛЬНО (1 tool):
-Використай playwright_evaluate з JavaScript: Array.from(document.querySelectorAll('.price')).slice(0,10).map(el => el.textContent)
+Використай playwright__evaluate з JavaScript: Array.from(document.querySelectorAll('.price')).slice(0,10).map(el => el.textContent)
 
 ❌ НЕПРАВИЛЬНО (10 tools):
 Не роби окремий call для кожного елемента!
@@ -184,8 +187,16 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 
 **OUTPUT FORMAT:**
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВИ ІНСТРУМЕНТУ:**
+Використовуй ПОВНУ назву з префіксом: "tool": "playwright__navigate"
+❌ НЕ ПРАВИЛЬНО: "tool": "navigate"
+✅ ПРАВИЛЬНО: "tool": "playwright__navigate"
+
 🔹 Якщо item виконуваний (1-5 tools):
-{"tool_calls": [{"server": "playwright", "tool": "<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>"}
+{"tool_calls": [{"server": "playwright", "tool": "playwright__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>"}
+
+**ПРИКЛАД:**
+{"tool_calls": [{"server": "playwright", "tool": "playwright__navigate", "parameters": {"url": "https://google.com"}}], "reasoning": "Відкриваю Google", "tts_phrase": "Відкриваю браузер"}
 
 ⚠️ **КРИТИЧНО - ЗАВЖДИ ПОВЕРТАЙ tool_calls:**
 - Якщо item простий → поверни 1-5 tool_calls
@@ -201,9 +212,9 @@ Item: "Знайти 10 автомобілів BYD Song Plus та зібрати 
 
 ✅ ПРАВИЛЬНО - Виконай ПЕРШИЙ крок:
 {"tool_calls": [
-  {"server": "playwright", "tool": "playwright_navigate", "parameters": {"url": "https://auto.ria.com", "waitUntil": "load"}},
-  {"server": "playwright", "tool": "playwright_fill", "parameters": {"selector": "input[name='search']", "value": "BYD Song Plus 2025"}},
-  {"server": "playwright", "tool": "playwright_press_key", "parameters": {"key": "Enter"}}
+  {"server": "playwright", "tool": "playwright__navigate", "parameters": {"url": "https://auto.ria.com", "waitUntil": "load"}},
+  {"server": "playwright", "tool": "playwright__fill", "parameters": {"selector": "input[name='search']", "value": "BYD Song Plus 2025"}},
+  {"server": "playwright", "tool": "playwright__press_key", "parameters": {"key": "Enter"}}
 ], "reasoning": "Відкриваю сайт та виконую пошук BYD Song Plus", "tts_phrase": "Шукаю автомобілі"}
 
 🎯 ТИ ЕКСПЕРТ PLAYWRIGHT - використовуй найпростіші та найнадійніші селектори!
@@ -231,10 +242,10 @@ export const USER_PROMPT = `## КОНТЕКСТ ЗАВДАННЯ
 {{AVAILABLE_TOOLS}}
 
 **Що треба:**
-1. Визнач які Playwright tools потрібні
-2. Вкажи РЕАЛЬНІ параметри (URLs, селектори)
-3. Логічна послідовність дій
-4. Мінімум tools для Success Criteria
+1. Визнач які Playwright tools потрібні (з префіксом playwright__)
+2. Вкажи правильні параметри (url, selector, text)
+3. Логічна послідовність (playwright__navigate → playwright__click → playwright__screenshot)
+4. **ОБОВ'ЯЗКОВО використовуй ПОВНІ назви з {{AVAILABLE_TOOLS}}**
 
 **Відповідь (JSON only):**`;
 

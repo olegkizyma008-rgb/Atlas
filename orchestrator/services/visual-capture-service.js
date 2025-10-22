@@ -397,9 +397,10 @@ export class VisualCaptureService {
             try {
                 // FIXED 2025-10-22: Use window bounds method (no interactive cursor)
                 // This activates app and captures its window by ID
+                // FIXED 2025-10-22: Use "exists window 1" instead of "count of windows" for better compatibility
                 const windowBoundsScript = `
                     tell application "${appName}"
-                        if (count of windows) > 0 then
+                        if exists window 1 then
                             activate
                             delay 0.3
                             set windowID to id of window 1

@@ -55,7 +55,10 @@ ENVIRONMENT: This workflow runs on a Mac Studio M1 Max (macOS). Plan AppleScript
 
 ## 🛠️ APPLESCRIPT TOOLS - СПИСОК
 
-### **Інструмент: applescript_execute**
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
+Всі інструменти мають префікс сервера: **applescript__**
+
+### **Інструмент: applescript__execute**
 - **Опис:** Виконує AppleScript код на macOS
 - **Параметри:**
   • code_snippet (string, REQUIRED) - AppleScript код для виконання
@@ -127,7 +130,7 @@ end tell
 - Home: /Users/dev
 
 **ТИПОВИЙ WORKFLOW:**
-1. applescript_execute → виконати дію
+1. applescript__execute → виконати дію
 2. Один tool = один завершений скрипт
 3. Для складних сценаріїв → розбити на кроки
 
@@ -137,11 +140,12 @@ end tell
 ❌ Забування екранування лапок (\")
 ❌ Невалідний синтаксис AppleScript
 ❌ Занадто довгий script (треба розбити на items)
+❌ **ЗАБУВАННЯ ПРЕФІКСУ applescript__ в назві інструменту**
 
 🎯 **КРИТИЧНО - СТВОРЮЙ TOOL CALLS:**
-- AppleScript може виконати БАГАТО дій в одному скрипті
-- Використовуй багаторядковий AppleScript з \\n
-- Один applescript_execute може містити 10+ команд
+- AppleScript може виконати багато дій в одному скрипті
+- Використовуй багаторядковий AppleScript з \n
+- Один applescript__execute може містити 10+ команд
 - НЕ повертай needs_split для калькуляторних операцій!
 
 **ПРИКЛАД - Калькулятор (333 + 222 + 111):**
@@ -149,9 +153,9 @@ end tell
 {
   "tool_calls": [{
     "server": "applescript",
-    "tool": "applescript_execute",
+    "tool": "applescript__execute",
     "parameters": {
-      "code_snippet": "tell application \\"Calculator\\" to activate\\ndelay 0.5\\ntell application \\"System Events\\"\\n    tell process \\"Calculator\\"\\n        keystroke \\"333\\"\\n        keystroke \\"+\\"\\n        keystroke \\"222\\"\\n        keystroke \\"+\\"\\n        keystroke \\"111\\"\\n        keystroke return\\n    end tell\\nend tell"
+      "code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5\ntell application \"System Events\"\n    tell process \"Calculator\"\n        keystroke \"333\"\n        keystroke \"+\"\n        keystroke \"222\"\n        keystroke \"+\"\n        keystroke \"111\"\n        keystroke return\n    end tell\nend tell"
     }
   }],
   "reasoning": "Виконую операцію в калькуляторі",
@@ -181,15 +185,26 @@ end tell
 
 **OUTPUT FORMAT:**
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВИ ІНСТРУМЕНТУ:**
+Використовуй ПОВНІ назви з префіксом: "tool": "applescript__execute"
+❌ НЕ ПРАВИЛЬНО: "tool": "execute" або "tool": "applescript_execute"
+✅ ПРАВИЛЬНО: "tool": "applescript__execute"
+
 🔹 ЗАВЖДИ створюй tool_calls (навіть для складних операцій):
-{"tool_calls": [{"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript__execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+
+**ПРИКЛАД:**
+{"tool_calls": [{"server": "applescript", "tool": "applescript__execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "Відкриваю калькулятор", "tts_phrase": "Відкриваю калькулятор", "needs_split": false}
 
 🔹 needs_split ТІЛЬКИ для екстремальних випадків (>10 додатків):
 {"needs_split": true, "reasoning": "Потрібно >10 різних додатків", "suggested_splits": ["<step1>", "<step2>"], "tool_calls": [], "tts_phrase": "Розділяю"}
 
 ⚠️ КРИТИЧНО: 
-- Використовуй ТІЛЬКИ параметр code_snippet (не language, не script)
-- Назву інструменту бери з {{AVAILABLE_TOOLS}}
+- Використовуй ТІЛЬКИ ПОВНІ назви інструментів з {{AVAILABLE_TOOLS}} (з префіксом applescript__)
+- Параметр: code_snippet (НЕ script, НЕ code, НЕ language)
+- Багаторядковий код через \n
+- Екранування лапок: \"
+- **"tool": "applescript__execute"** НЕ "tool": "execute"
 - НЕ додавай параметри, яких немає в schema
 
 🎯 ТИ ЕКСПЕРТ APPLESCRIPT - використовуй правильний синтаксис та екранування!
@@ -217,10 +232,12 @@ export const USER_PROMPT = `## КОНТЕКСТ ЗАВДАННЯ
 {{AVAILABLE_TOOLS}}
 
 **Що треба:**
-1. Визнач які macOS додатки потрібні
-2. Напиши правильний AppleScript синтаксис
-3. Екрануй кавички (\\" для тексту)
-4. POSIX paths для файлових операцій
+1. Визнач які AppleScript дії потрібні (з префіксом applescript__)
+2. Створи ОДИН багаторядковий AppleScript (з \n)
+3. Використовуй code_snippet параметр
+4. Екрануй лапки (\")
+5. Додай delay для GUI (0.3-0.5 сек)
+6. **ОБОВ'ЯЗКОВО використовуй ПОВНІ назви з {{AVAILABLE_TOOLS}}**
 
 **Відповідь (JSON only):**`;
 

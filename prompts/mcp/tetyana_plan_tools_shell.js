@@ -53,7 +53,10 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 
 ## 🛠️ SHELL TOOLS - СПИСОК
 
-### **Інструмент: shell_execute**
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
+Всі інструменти мають префікс сервера: **shell__**
+
+### **Інструмент: shell__execute**
 - **Опис:** Виконує shell команду в bash/zsh на macOS
 - **Параметри:**
   • command (string, REQUIRED) - shell команда для виконання
@@ -121,7 +124,7 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 - python3 -c "import module_name" 2>&1 || pip3 install package-name
 
 **ТИПОВИЙ WORKFLOW:**
-1. shell_execute → виконати команду
+1. shell__execute → виконати команду
 2. Використати pipes (|) для складних операцій в одній команді
 3. Absolute paths для надійності
 4. Quotes для paths з пробілами
@@ -165,6 +168,7 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 ❌ Забування quotes для paths з пробілами
 ❌ Неправильний pipe syntax
 ❌ Спроба використати cd (використовуй absolute paths або workdir параметр)
+❌ **ЗАБУВАННЯ ПРЕФІКСУ shell__ в назві інструменту**
 
 **РОЗУМНЕ ПЛАНУВАННЯ:**
 - Використовуй доступні tools для вирішення завдання
@@ -197,17 +201,26 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 
 **OUTPUT FORMAT:**
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВИ ІНСТРУМЕНТУ:**
+Використовуй ПОВНУ назву з префіксом: "tool": "shell__execute"
+❌ НЕ ПРАВИЛЬНО: "tool": "execute"
+✅ ПРАВИЛЬНО: "tool": "shell__execute"
+
 🔹 Якщо item простий (1-3 tools):
-{"tool_calls": [{"server": "shell", "tool": "<tool_name>", "parameters": {"command": "<shell_command>"}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "shell", "tool": "shell__<tool_name>", "parameters": {"command": "<shell_command>"}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+
+**ПРИКЛАД:**
+{"tool_calls": [{"server": "shell", "tool": "shell__execute", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}}], "reasoning": "Створюю папку через shell", "tts_phrase": "Створюю папку", "needs_split": false}
 
 🔹 Якщо item складний (>4 tools потрібно):
 {"needs_split": true, "reasoning": "План вимагає надто багато дій", "suggested_splits": ["<step1>", "<step2>", "<step3>"], "tool_calls": [], "tts_phrase": "Потрібно розділити"}
 
 ⚠️ КРИТИЧНО: 
-- Використовуй ТІЛЬКИ назви інструментів з {{AVAILABLE_TOOLS}}
+- Використовуй ТІЛЬКИ ПОВНІ назви інструментів з {{AVAILABLE_TOOLS}} (з префіксом shell__)
 - Один tool = одна команда (pipes всередині команди OK)
 - Absolute paths або workdir параметр
 - Quotes для paths з пробілами
+- **"tool": "shell__execute"** НЕ "tool": "execute"
 
 🎯 ТИ ЕКСПЕРТ SHELL - використовуй правильні команди та pipes!
 `;
@@ -234,11 +247,12 @@ export const USER_PROMPT = `## КОНТЕКСТ ЗАВДАННЯ
 {{AVAILABLE_TOOLS}}
 
 **Що треба:**
-1. Визнач які shell команди потрібні
+1. Визнач які shell команди потрібні (з префіксом shell__)
 2. Використовуй ABSOLUTE paths
 3. Правильний pipe syntax якщо потрібно
 4. Quotes для paths з пробілами
 5. Безпечні команди (no rm -rf, no sudo)
+6. **ОБОВ'ЯЗКОВО використовуй ПОВНІ назви з {{AVAILABLE_TOOLS}}**
 
 **Відповідь (JSON only):**`;
 

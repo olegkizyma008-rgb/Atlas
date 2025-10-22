@@ -55,22 +55,22 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Викори�
 
 ## 🛠️ MEMORY TOOLS - СПИСОК
 
-### **Категорія 1: Створення (2 tools)**
-- **create_entities** - Створити нові entities (об'єкти знань)
+### **Категорія 1: Entities (3 tools)**
+- **memory__create_entities** - Створити нові entities (об'єкти знань)
   • Параметри: entities (array, REQUIRED) - масив entities з name, entityType, observations
-- **create_relations** - Створити зв'язки між entities
+- **memory__create_relations** - Створити зв'язки між entities
   • Параметри: relations (array, REQUIRED) - масив relations з from, to, relationType
 
 ### **Категорія 2: Пошук (2 tools)**
-- **search_nodes** - Пошук у knowledge graph
+- **memory__search_nodes** - Пошук у knowledge graph
   • Параметри: query (string, REQUIRED) - пошуковий запит
-- **read_graph** - Отримати весь knowledge graph
+- **memory__read_graph** - Отримати весь knowledge graph
   • Параметри: (може не мати параметрів)
 
 ### **Категорія 3: Оновлення (1+ tools)**
-- **add_observations** - Додати нові observations до існуючої entity
-- **delete_entity** - Видалити entity (якщо доступний)
-- **update_entity** - Оновити entity (якщо доступний)
+- **memory__add_observations** - Додати нові observations до існуючої entity
+- **memory__delete_entity** - Видалити entity (якщо доступний)
+- **memory__update_entity** - Оновити entity (якщо доступний)
 
 ⚠️ **ВАЖЛИВО - МОДЕЛЬ ДАНИХ:**
 - **Entity** = об'єкт знань (User, Tool, Project, Preference)
@@ -84,10 +84,10 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Викори�
 - RelationTypes: prefers, uses, created, requires
 
 **ТИПОВИЙ WORKFLOW:**
-1. create_entities → створити entities з observations
-2. create_relations → зв'язати entities
-3. search_nodes → знайти збережену інформацію
-4. read_graph → отримати весь контекст
+1. memory__create_entities → створити entities з observations
+2. memory__create_relations → зв'язати entities
+3. memory__search_nodes → знайти збережену інформацію
+4. memory__read_graph → отримати весь контекст
 
 **ДЕТАЛЬНІ ПАРАМЕТРИ:**
 Дивись {{AVAILABLE_TOOLS}} для точної схеми кожного інструменту
@@ -123,7 +123,7 @@ Relation types:
 **SEARCH STRATEGIES:**
 - Точний пошук за назвою
 - Пошук за категорією (entityType)
-- read_graph() для отримання всього контексту
+- memory__read_graph() для отримання всього контексту
 
 **ЧАСТОТІ ПОМИЛКИ:**
 ❌ Створення entities без observations (треба конкретні факти!)
@@ -135,7 +135,7 @@ Relation types:
 
 🎯 **КРИТИЧНО - ОБМЕЖЕННЯ НА ОДИН TODO ITEM:**
 - МАКСИМУМ 3-5 memory operations на один TODO item
-- Ідеально: 1-2 operations (create entities або search)
+- Ідеально: 1-2 operations (memory__create_entities або memory__search_nodes)
 - Якщо потрібно >5 operations → розділити
 - Поверни {"needs_split": true}
 
@@ -176,15 +176,25 @@ Relation types:
 
 **OUTPUT FORMAT:**
 
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВИ ІНСТРУМЕНТУ:**
+Використовуй ПОВНІ назви з префіксом: "tool": "memory__create_entities"
+❌ НЕ ПРАВИЛЬНО: "tool": "create_entities"
+✅ ПРАВИЛЬНО: "tool": "memory__create_entities"
+
 🔹 Якщо item простий (1-5 tools):
-{"tool_calls": [{"server": "memory", "tool": "<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+{"tool_calls": [{"server": "memory", "tool": "memory__<tool_name>", "parameters": {<params_from_schema>}, "reasoning": "<action>"}], "reasoning": "<overall_plan>", "tts_phrase": "<user_friendly_phrase>", "needs_split": false}
+
+**ПРИКЛАД:**
+{"tool_calls": [{"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [{"name": "Project Atlas", "entityType": "project", "observations": ["AI assistant system"]}]}}], "reasoning": "Створюю сутність в пам'яті", "tts_phrase": "Зберігаю в пам'ять", "needs_split": false}
 
 🔹 Якщо item складний (>5 tools потрібно):
 {"needs_split": true, "reasoning": "План вимагає надто багато дій", "suggested_splits": ["<step1>", "<step2>", "<step3>"], "tool_calls": [], "tts_phrase": "Потрібно розділити"}
 
 ⚠️ КРИТИЧНО: 
-- Використовуй ТІЛЬКИ назви інструментів з {{AVAILABLE_TOOLS}}
-- Observations мають бути конкретними фактами
+- Використовуй ТІЛЬКИ назви інструментів з {{AVAILABLE_TOOLS}} (з префіксом memory__)
+- Параметри ТІЛЬКИ з {{AVAILABLE_TOOLS}} schema
+- entities/relations як масиви об'єктів
+- **"tool": "memory__create_entities"** НЕ "tool": "create_entities"и конкретними фактами
 - Relations створюй для зв'язку між entities
 
 🎯 ТИ ЕКСПЕРТ MEMORY - створюй структуровані знання!
@@ -212,10 +222,10 @@ export const USER_PROMPT = `## КОНТЕКСТ ЗАВДАННЯ
 {{AVAILABLE_TOOLS}}
 
 **Що треба:**
-1. Визнач що саме зберігати (entities, observations, relations)
-2. Структуруй інформацію (не загальні фрази, а конкретні факти)
-3. Створи зв'язки між entities
-4. Або знайди існуючу інформацію (search_nodes)
+1. Визнач які Memory tools потрібні (з префіксом memory__)
+2. Правильна структура entities/relations
+3. Логічна послідовність (memory__create_entities → memory__add_observations → memory__read_graph)
+4. **ОБОВ'ЯЗКОВО використовуй ПОВНІ назви з {{AVAILABLE_TOOLS}}**
 
 **Відповідь (JSON only):**`;
 

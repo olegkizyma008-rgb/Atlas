@@ -178,7 +178,7 @@ export const MCP_MODEL_CONFIG = {
     },
     todo_planning: {
       get model() {
-        return env.MCP_MODEL_TODO_PLANNING || 'x-ai-mistral-codestral-latest';
+        return env.MCP_MODEL_TODO_PLANNING || 'ext-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_TODO_PLANNING || '0.3');
@@ -188,7 +188,7 @@ export const MCP_MODEL_CONFIG = {
     },
     plan_tools: {
       get model() {
-        return env.MCP_MODEL_PLAN_TOOLS || 'x-ai-mistral-codestral-latest';
+        return env.MCP_MODEL_PLAN_TOOLS || 'ext-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');

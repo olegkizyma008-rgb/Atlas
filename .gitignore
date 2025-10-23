@@ -33,7 +33,7 @@ venv3.*/
 node_modules/
 frontend_new/orchestrator/node_modules/
 fallback_llm/node_modules/
-*.log
+!logs/orchestrator.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -249,4 +249,3 @@ logs/
 # Environment file - ignore (contains secrets)
 .env
 
-!logs/orchestrator.log

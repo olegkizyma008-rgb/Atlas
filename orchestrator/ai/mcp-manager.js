@@ -1002,7 +1002,7 @@ export class MCPManager {
       const mcpServer = this.servers.get(server);
       if (!mcpServer || !Array.isArray(mcpServer.tools)) {
         errors.push(`[Call ${i}] Server '${server}' has no tools loaded`);
-        if (!autoCorrect) continue;
+        continue;  // FIXED: Завжди пропускаємо, незалежно від autoCorrect
       }
 
       const availableTools = mcpServer.tools.map(t => t.name);

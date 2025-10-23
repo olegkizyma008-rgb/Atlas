@@ -22,7 +22,7 @@ import {
     ModeSelectionProcessor,
     AtlasTodoPlanningProcessor,
     ServerSelectionProcessor,
-    TetyanaПlanToolsProcessor,
+    TetyanaPlanToolsProcessor,
     TetyanaExecuteToolsProcessor,
     GrishaVerifyItemProcessor,
     AtlasReplanTodoProcessor,
@@ -382,8 +382,8 @@ export function registerMCPProcessors(container) {
 
     // Tetyana Plan Tools Processor (Stage 2.1-MCP)
     // UPDATED 2025-10-20: Added TetyanaToolSystem dependency
-    container.singleton('tetyanaПlanToolsProcessor', (c) => {
-        return new TetyanaПlanToolsProcessor({
+    container.singleton('tetyanaPlanToolsProcessor', (c) => {
+        return new TetyanaPlanToolsProcessor({
             mcpTodoManager: c.resolve('mcpTodoManager'),
             mcpManager: c.resolve('mcpManager'),
             tetyanaToolSystem: c.resolve('tetyanaToolSystem'),

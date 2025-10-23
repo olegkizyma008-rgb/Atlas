@@ -22,7 +22,7 @@ import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
  * - playwright (browser operations, scraping)
  * - computercontroller (system operations, screenshots)
  */
-export class TetyanaПlanToolsProcessor {
+export class TetyanaPlanToolsProcessor {
     /**
      * @param {Object} dependencies
      * @param {Object} dependencies.mcpTodoManager - MCPTodoManager instance
@@ -133,6 +133,7 @@ export class TetyanaПlanToolsProcessor {
             const planOptions = { 
                 toolsSummary: toolsData.toolsSummary,
                 promptOverride,  // Pass specialized prompt name
+                selectedServers: selected_servers,  // FIXED 2025-10-23: Pass selected servers for tool filtering
                 historyContext: toolsData.historyContext,  // NEW: Tool usage history
                 historyStats: toolsData.historyStats  // NEW: Statistics
             };
@@ -152,7 +153,7 @@ export class TetyanaПlanToolsProcessor {
             let validation;
             
             if (this.tetyanaToolSystem) {
-                validation = this.tetyanaToolSystem.validateToolCalls(plan.tool_calls);
+                validation = await this.tetyanaToolSystem.validateToolCalls(plan.tool_calls);
                 this.logger.debug('tetyana-plan-tools', '[STAGE-2.1-MCP] Validation via TetyanaToolSystem');
             } else {
                 // Fallback to legacy validation
@@ -162,10 +163,15 @@ export class TetyanaПlanToolsProcessor {
 
             if (!validation.valid) {
                 this.logger.warn(`[STAGE-2.1-MCP] ⚠️ Plan validation FAILED:`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
-                this.logger.warn(`[STAGE-2.1-MCP]   Errors: ${validation.errors.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                
+                // FIXED 2025-10-23: Safe access to validation.errors (may not be array)
+                const errors = Array.isArray(validation.errors) ? validation.errors : [validation.errors || 'Unknown error'];
+                this.logger.warn(`[STAGE-2.1-MCP]   Errors: ${errors.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
 
-                if (validation.suggestions.length > 0) {
-                    this.logger.warn(`[STAGE-2.1-MCP]   Suggestions: ${validation.suggestions.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                // FIXED 2025-10-23: Safe access to validation.suggestions
+                const suggestions = Array.isArray(validation.suggestions) ? validation.suggestions : [];
+                if (suggestions.length > 0) {
+                    this.logger.warn(`[STAGE-2.1-MCP]   Suggestions: ${suggestions.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
                 }
 
                 // FIXED 2025-10-21: Do NOT trigger Atlas replan at planning stage
@@ -176,9 +182,9 @@ export class TetyanaПlanToolsProcessor {
                 return {
                     success: false,
                     error: 'Invalid tools in plan',
-                    validationErrors: validation.errors,
-                    suggestions: validation.suggestions,
-                    summary: `⚠️ План містить невалідні інструменти. ${validation.suggestions[0] || 'Спроба перепланування...'}`,
+                    validationErrors: errors,
+                    suggestions: suggestions,
+                    summary: `⚠️ План містить невалідні інструменти. ${suggestions[0] || 'Спроба перепланування...'}`,
                     metadata: {
                         itemId: currentItem.id,
                         stage: 'tool-planning',
@@ -397,4 +403,4 @@ export class TetyanaПlanToolsProcessor {
     }
 }
 
-export default TetyanaПlanToolsProcessor;
+export default TetyanaPlanToolsProcessor;

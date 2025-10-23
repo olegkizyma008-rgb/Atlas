@@ -112,13 +112,13 @@ export const AI_MODEL_CONFIG = {
     },
     analysis: {
       get model() {
-        return env.AI_MODEL_ANALYSIS || 'atlas-gpt-4o-mini';
+        return env.AI_MODEL_ANALYSIS || 'ext-mistral-codestral-2405';
       },
       get temperature() {
         return parseFloat(env.AI_TEMP_ANALYSIS || '0.2');
       },
       max_tokens: 1000,
-      description: 'Аналіз та контекст - точність'
+      description: 'Аналіз та контекст - точність (Codestral 2405 - TEMP due to rate limit)'
     },
     tts_optimization: {
       get model() {
@@ -188,13 +188,13 @@ export const MCP_MODEL_CONFIG = {
     },
     plan_tools: {
       get model() {
-        return env.MCP_MODEL_PLAN_TOOLS || 'atlas-mistral-medium-2505';
+        return env.MCP_MODEL_PLAN_TOOLS || 'ext-mistral-codestral-latest';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');
       },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (Mistral Medium)'
+      description: 'Tetyana Plan Tools - чистий JSON (Codestral Latest - TEMP due to rate limit)'
     },
     verification_eligibility: {
       get model() {
@@ -421,7 +421,7 @@ export const AI_BACKEND_CONFIG = {
         provider: 'atlas',
         apiEndpoint: 'http://localhost:4000/v1/chat/completions',
         get model() {
-          return env.MCP_LLM_MODEL || 'atlas-gpt-4o-mini';  // GPT-4o-mini for LLM Tool Validator
+          return env.MCP_LLM_MODEL || 'ext-mistral-codestral-2405';  // Codestral 2405 for LLM Tool Validator (TEMP due to rate limit)
         },
         get temperature() {
           return parseFloat(env.MCP_LLM_TEMPERATURE || '0.1');  // Low temperature for consistent validation

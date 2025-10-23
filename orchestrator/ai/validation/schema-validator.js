@@ -74,12 +74,23 @@ export class SchemaValidator {
         continue;
       }
 
-      // Extract tool name (remove server prefix if present)
-      const toolName = call.tool.includes('__') 
-        ? call.tool.split('__')[1] 
-        : call.tool;
-
-      const toolDef = server.tools.find(t => t.name === toolName);
+      // FIXED 2025-10-23: Try to find tool with both formats
+      // MCP tools may have full name (server__tool) or short name (tool)
+      let toolDef = server.tools.find(t => t.name === call.tool);
+      
+      // If not found, try without server prefix
+      if (!toolDef && call.tool.includes('__')) {
+        const toolNameWithoutPrefix = call.tool.split('__')[1];
+        toolDef = server.tools.find(t => t.name === toolNameWithoutPrefix);
+      }
+      
+      // If still not found, try with server prefix
+      if (!toolDef && !call.tool.includes('__')) {
+        const toolNameWithPrefix = `${call.server}__${call.tool}`;
+        toolDef = server.tools.find(t => t.name === toolNameWithPrefix);
+      }
+      
+      const toolName = toolDef ? toolDef.name : call.tool;
       if (!toolDef) {
         warnings.push({
           type: 'tool_not_found',

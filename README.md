@@ -320,10 +320,11 @@ User Request → Mode Selection (Stage 0)
          │   ├─ Attempt 2: Llama-3.2-90B Vision (strong, ~2s)
          │   ├─ If both fail → re-run LLM Eligibility for MCP
          │   └─ Security checks (70% min confidence)
-         ├─ Sub-stage 2.3.4: MCP Verification (optional)
-         │   ├─ Execute via TetyanaExecuteToolsProcessor
-         │   ├─ Run additional_checks from eligibility
-         │   └─ Analyze results via _analyzeMcpResults()
+         ├─ Sub-stage 2.3.4: MCP Verification (REFACTORED 2025-10-23)
+         │   ├─ Stage 2.0: Server Selection (з hints від eligibility)
+         │   ├─ Stage 2.1: Tetyana Plan Tools (LLM + JSON Schema)
+         │   ├─ Stage 2.2: Tetyana Execute Tools (ValidationPipeline)
+         │   └─ Grisha Analysis: _analyzeMcpResults() + детальне логування
          └─ Return verified: true/false + confidence
                               ↓
                  ┌────────────┴────────────┐
@@ -460,7 +461,59 @@ class TetyanaToolSystem {
 
 ## 🔍 Grisha Verification System (NEW v5.0.3)
 
-**Інтелектуальна двоетапна система верифікації** з LLM routing та автоматичним fallback.
+**Інтелектуальна двоетапна система верифікації** з LLM routing та повною уніфікацією через MCP workflow (Stage 2.0→2.1→2.2).
+
+### Масштабованість з 10+ MCP Servers
+
+**REFACTORED 2025-10-23**: Grisha тепер використовує повний MCP workflow для верифікації, що забезпечує масштабованість:
+
+**Потік даних через систему:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Eligibility LLM (Mistral 3B)                                │
+│ Визначає ЩО треба перевірити                               │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓ (hints: server, tool, parameters)
+┌─────────────────────────────────────────────────────────────┐
+│ Grisha створює verification item                            │
+│ { action, success_criteria, mcp_servers: [hint] }          │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Stage 2.0: Server Selection                                 │
+│ Обирає правильний server з 5/10+ серверів                  │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓ (selected_servers, selected_prompts)
+┌─────────────────────────────────────────────────────────────┐
+│ Stage 2.1: Tetyana Plan Tools                               │
+│ Спеціалізований промпт + JSON Schema                       │
+│ TETYANA_PLAN_TOOLS_FILESYSTEM                              │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓ (plan.tool_calls з правильними іменами)
+┌─────────────────────────────────────────────────────────────┐
+│ Stage 2.2: Tetyana Execute Tools                            │
+│ ValidationPipeline → MCPManager → Виконання                │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓ (execution.results, execution.all_successful)
+┌─────────────────────────────────────────────────────────────┐
+│ Grisha Analysis (_analyzeMcpResults)                        │
+│ Аналізує результати проти success_criteria                 │
+│ Детальне логування кожного tool result                     │
+└────────────────────┬────────────────────────────────────────┘
+                     ↓ (verified: boolean, confidence: number, reason: string)
+┌─────────────────────────────────────────────────────────────┐
+│ Вердикт → Executor                                          │
+│ ✅ VERIFIED → Next Item                                     │
+│ ❌ NOT VERIFIED → Replan або Adjust                         │
+└─────────────────────────────────────────────────────────────┘
+
+**Переваги нової архітектури:**
+- ✅ Масштабується до будь-якої кількості MCP servers
+- ✅ Спеціалізовані промпти для кожного server (TETYANA_PLAN_TOOLS_FILESYSTEM, etc.)
+- ✅ JSON Schema гарантує правильний формат tool names
+- ✅ Уніфікація: verification використовує той самий workflow що й основне виконання
+- ✅ 1 Тетяна для планування (основна + verification)
+- ✅ 2 Тетяни для виконання (основна + verification)
 
 ### Visual Capture Mode Selector (NEW v5.0.4)
 
@@ -540,13 +593,17 @@ const eligibilityResult = await this.callLLM({
   "additional_checks": [
     {
       "description": "Перевірити існування файлу calc_result.txt",
-      "server": "filesystem",
-      "tool": "filesystem__read_file",
+      "server": "filesystem",  // Hint для Stage 2.0
+      "tool": "filesystem__read_file",  // Hint (Stage 2.1 може змінити)
       "parameters": { "path": "/Users/dev/Desktop/calc_result.txt" },
       "expected_evidence": "Файл існує і містить результат 18.68"
     }
   ]
 }
+
+// NOTE: additional_checks - це HINTS, не фінальний план.
+// Stage 2.0 (Server Selection) валідує server
+// Stage 2.1 (Tetyana Plan) обирає фінальні tools через LLM + JSON Schema
 ```
 
 **LLM приймає рішення на основі:**
@@ -597,35 +654,73 @@ if (visionAnalysis.confidence < 70) {
 - Minimum confidence threshold (70%)
 - Evidence validation logging
 
-#### Етап 4: MCP Verification (data-driven перевірка)
+#### Етап 3: MCP Verification через повний workflow (REFACTORED 2025-10-23)
 ```javascript
 // Якщо recommended_path === 'data' або 'hybrid'
 
-// ВАЖЛИВО: Використовує TetyanaExecuteToolsProcessor (натоптана дорожка)
-const executeProcessor = this.container.resolve('tetyanaExecuteToolsProcessor');
+// 1. Створити verification item з hints від Eligibility LLM
+const verificationItem = {
+  id: `verify_${currentItem.id}_${Date.now()}`,
+  action: `Перевірити виконання: ${currentItem.action}`,
+  success_criteria: currentItem.success_criteria,
+  mcp_servers: eligibilityDecision?.additional_checks?.map(c => c.server) || []  // Hint
+};
 
-const execResult = await executeProcessor.execute({
-  currentItem: {
-    id: `verify_${item.id}`,
-    action: `Перевірити виконання: ${item.action}`,
-    success_criteria: item.success_criteria
-  },
-  plan: {
-    tool_calls: eligibilityDecision.additional_checks.map(check => ({
-      server: check.server,
-      tool: check.tool,  // filesystem__read_file
-      parameters: check.parameters,
-      reasoning: check.description,
-      expected_evidence: check.expected_evidence
-    }))
-  },
-  todo: { items: [originalItem] },
-  session: null,  // No session for verification
-  res: null       // No SSE stream
+// 2. STAGE 2.0: Server Selection
+const serverSelectionProcessor = this.container.resolve('serverSelectionProcessor');
+const selectionResult = await serverSelectionProcessor.execute({
+  currentItem: verificationItem,
+  todo: { items: [currentItem] }
+});
+// → Обирає правильний server з 5/10+ серверів
+// → Повертає: selected_servers, selected_prompts
+
+// 3. STAGE 2.1: Tetyana Plan Tools
+const tetyanaPlanProcessor = this.container.resolve('tetyanaPlanToolsProcessor');
+const planResult = await tetyanaPlanProcessor.execute({
+  currentItem: verificationItem,
+  selectedServers: selectionResult.selected_servers,
+  selectedPrompts: selectionResult.selected_prompts
+});
+// → Використовує спеціалізований промпт (TETYANA_PLAN_TOOLS_FILESYSTEM)
+// → JSON Schema гарантує правильний формат: filesystem__get_file_info
+// → Повертає: plan.tool_calls
+
+// 4. STAGE 2.2: Tetyana Execute Tools
+const tetyanaExecuteProcessor = this.container.resolve('tetyanaExecuteToolsProcessor');
+const execResult = await tetyanaExecuteProcessor.execute({
+  currentItem: verificationItem,
+  plan: planResult.plan,
+  todo: { items: [currentItem] },
+  session: null,
+  res: null
+});
+// → ValidationPipeline: repetition check + LLM safety validation
+// → Виконання через MCPManager
+// → Повертає: execution.results, execution.all_successful
+
+// 5. GRISHA ANALYSIS: Аналіз результатів і вердикт
+const verificationResults = execResult.execution;
+
+// Детальне логування для аналізу
+this.logger.system('grisha-verify-item', '[MCP-GRISHA] 📊 Verification execution results:');
+this.logger.system('grisha-verify-item', `  All successful: ${verificationResults.all_successful}`);
+this.logger.system('grisha-verify-item', `  Tool count: ${verificationResults.results?.length}`);
+
+verificationResults.results.forEach((result, idx) => {
+  const status = result.success ? '✅' : '❌';
+  this.logger.system('grisha-verify-item', `  ${status} Tool ${idx + 1}: ${result.metadata?.tool}`);
+  if (result.data) {
+    this.logger.system('grisha-verify-item', `     Data: ${JSON.stringify(result.data).substring(0, 200)}`);
+  }
 });
 
-// Аналіз результатів
-const verified = this._analyzeMcpResults(execResult.execution, successCriteria);
+// Аналіз результатів проти success_criteria
+const verified = this._analyzeMcpResults(
+  verificationResults,
+  currentItem.success_criteria
+);
+// → Повертає: { success: boolean, confidence: number, reason: string }
 ```
 
 **Переваги MCP верифікації:**

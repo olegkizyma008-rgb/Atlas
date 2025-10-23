@@ -22,7 +22,7 @@ export const LLM_VALIDATOR_CONFIG = {
 
   // Модель для валідації
   get model() {
-    return env.MCP_LLM_MODEL || 'atlas-gpt-4o-mini';
+    return env.MCP_LLM_MODEL || 'ext-mistral-codestral-2405';
   },
 
   // Температура для валідації (0.0-1.0)

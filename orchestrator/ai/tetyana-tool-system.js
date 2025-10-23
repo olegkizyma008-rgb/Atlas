@@ -355,6 +355,145 @@ export class TetyanaToolSystem {
     }
 
     /**
+     * Execute multiple tool calls (batch execution)
+     * 
+     * @param {Array} toolCalls - Array of tool calls to execute
+     * @param {Object} context - Execution context
+     * @returns {Promise<Object>} Execution results with inspection metadata
+     */
+    async executeToolCalls(toolCalls, context = {}) {
+        this._ensureInitialized();
+
+        const startTime = Date.now();
+        context.mode = this.mode;
+
+        // STEP 1: Run repetition inspection
+        const inspectionResults = await this.newInspectionManager.inspectTools(toolCalls, context);
+        const processedResults = this.newInspectionManager.processResults(inspectionResults);
+
+        // Handle denied tools from repetition inspector
+        if (processedResults.denied.length > 0) {
+            logger.warn('tetyana-tool-system', 
+                `⛔ ${processedResults.denied.length} tool(s) denied by repetition inspector`);
+            
+            const deniedResults = processedResults.denied.map(d => ({
+                success: false,
+                error: d.results[0].reason,
+                inspector: d.results[0].inspector,
+                metadata: d.results[0].metadata
+            }));
+
+            return {
+                results: deniedResults,
+                all_successful: false,
+                successful_calls: 0,
+                failed_calls: deniedResults.length,
+                inspection: {
+                    repetition: { denied: processedResults.denied.length },
+                    llmValidation: { skipped: true }
+                }
+            };
+        }
+
+        // STEP 2: Run LLM validation (ALWAYS ACTIVE if available)
+        if (this.llmValidator) {
+            logger.system('tetyana-tool-system', '🛡️ Running LLM validation...');
+            
+            try {
+                const validationResults = await this.llmValidator.validateToolCalls(toolCalls, {
+                    userIntent: context.userIntent || context.currentItem?.action || 'Unknown',
+                    itemAction: context.currentItem?.action
+                });
+
+                const validationCheck = this.llmValidator.checkValidation(validationResults);
+
+                // BLOCK high-risk tools
+                if (validationCheck.shouldBlock) {
+                    logger.error('tetyana-tool-system', 
+                        `🚫 LLM Validator BLOCKED execution: ${validationCheck.summary}`);
+                    
+                    const blockedResults = validationCheck.highRisk.map(v => ({
+                        success: false,
+                        error: `BLOCKED by LLM Validator: ${v.reasoning}`,
+                        validator: 'llm',
+                        risk: v.risk,
+                        suggestion: v.suggestion
+                    }));
+
+                    return {
+                        results: blockedResults,
+                        all_successful: false,
+                        successful_calls: 0,
+                        failed_calls: blockedResults.length,
+                        inspection: {
+                            repetition: { allowed: processedResults.allowed.length },
+                            llmValidation: {
+                                blocked: validationCheck.highRisk.length,
+                                summary: validationCheck.summary,
+                                details: validationCheck.highRisk
+                            }
+                        }
+                    };
+                }
+
+                // WARN about medium-risk tools but continue
+                if (validationCheck.shouldWarn) {
+                    logger.warn('tetyana-tool-system', 
+                        `⚠️ LLM Validator warnings: ${validationCheck.summary}`);
+                }
+
+                logger.system('tetyana-tool-system', 
+                    `✅ LLM validation passed: ${validationCheck.summary}`);
+
+            } catch (error) {
+                logger.error('tetyana-tool-system', 
+                    `LLM validation error: ${error.message} - continuing with execution`);
+            }
+        }
+
+        // STEP 3: Execute through dispatcher (includes legacy inspection)
+        const result = await this.dispatcher.dispatchToolCalls(toolCalls, context);
+
+        // Add inspection metadata to result
+        result.inspection = {
+            repetition: {
+                denied: processedResults.denied.length,
+                requireApproval: processedResults.requireApproval.length,
+                allowed: processedResults.allowed.length
+            },
+            llmValidation: {
+                executed: this.llmValidator !== null,
+                summary: '✅ Passed validation'
+            }
+        };
+
+        // NEW: Record each tool call in history
+        if (result.results && Array.isArray(result.results)) {
+            for (let i = 0; i < result.results.length; i++) {
+                const toolCall = toolCalls[i];
+                const toolResult = result.results[i];
+                
+                if (toolCall) {
+                    const duration = toolResult.duration || (Date.now() - startTime) / toolCalls.length;
+                    
+                    // Record execution in history
+                    this.historyManager.recordExecution(toolCall, {
+                        success: toolResult.success || false,
+                        error: toolResult.error,
+                        duration,
+                        sessionId: context.sessionId || context.currentItem?.id || 'unknown'
+                    });
+                }
+            }
+        }
+
+        logger.system('tetyana-tool-system', 
+            `✅ Execution completed: ${result.successful_calls}/${toolCalls.length} successful`);
+
+        return result;
+    }
+
+    /**
      * Execute single tool call
      * 
      * @param {Object} toolCall - Tool call to execute

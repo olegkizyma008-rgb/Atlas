@@ -69,44 +69,7 @@ export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY wit
 - Output приходить як text
 - Детальні параметри дивись у {{AVAILABLE_TOOLS}}
 
-**ПОПУЛЯРНІ КАТЕГОРІЇ КОМАНД:**
-
-### **Категорія 1: Файлові операції**
-- ls -la /path - список файлів з деталями
-- cat file.txt - читання вмісту файлу
-- echo "text" > file.txt - запис у файл (перезапис)
-- echo "text" >> file.txt - додати до файлу
-- grep "pattern" file.txt - пошук по вмісту
-- find /path -name "*.ext" - пошук файлів по імені
-- mkdir -p /path/to/dir - створити директорію
-
-### **Категорія 2: Системні операції**
-- ps aux | grep process - знайти процеси
-- kill PID або kill -9 PID - зупинити процес
-- df -h - вільне місце на диску
-- du -sh /path - розмір директорії
-- whoami - поточний користувач
-- date - поточна дата/час
-
-### **Категорія 3: Text Processing (pipe chains)**
-- cat file | grep pattern - фільтр по pattern
-- awk '{print $1}' file - витягти колонку
-- sed 's/old/new/g' file - заміна тексту
-- sort file.txt - сортування рядків
-- uniq file.txt - унікальні рядки
-- wc -l file.txt - підрахунок рядків
-- head -n 10 file - перші 10 рядків
-- tail -n 10 file - останні 10 рядків
-
-### **Категорія 4: Мережа та API**
-- curl URL - HTTP GET запит
-- curl -X POST URL -d "data" - HTTP POST
-- curl -H "Header: value" URL - з headers
-- ping -c 4 host - перевірка мережі
-- nc -zv host port - перевірка порту
-
-### **Категорія 5: Python скрипти**
-⚡ **Python one-liners через shell:**
+**ТИПОВІ ВИКОРИСТАННЯ SHELL:**
 
 **Базовий синтаксис:**
 - python3 -c "import module; code1; code2; code3"

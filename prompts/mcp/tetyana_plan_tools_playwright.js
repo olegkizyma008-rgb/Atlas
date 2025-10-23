@@ -61,57 +61,9 @@ If you add trailing comma, JSON.parse() will FAIL immediately.
 ⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
 Всі інструменти мають префікс сервера: **playwright__**
 
-### **Категорія 1: Навігація (4 tools)**
-- **playwright__navigate** - Перейти на URL (підтримує chromium/firefox/webkit)
-  • Параметри: url (REQUIRED), browserType, width, height, timeout, waitUntil, headless
-- **playwright__go_back** - Назад в історії браузера
-- **playwright__go_forward** - Вперед в історії браузера
-- **playwright__close** - Закрити браузер
-
-### **Категорія 2: Interaction (9 tools)**
-- **playwright__click** - Клік по елементу
-  • Параметри: selector (REQUIRED)
-- **playwright__fill** - Заповнити поле вводу
-  • Параметри: selector (REQUIRED), value (REQUIRED)
-- **playwright__select** - Вибрати опцію в select
-- **playwright__hover** - Навести курсор на елемент
-- **playwright__press_key** - Натиснути клавішу (Enter, ArrowDown, etc)
-- **playwright__drag** - Перетягнути елемент
-- **playwright__upload_file** - Завантажити файл
-- **playwright__iframe_click** - Клік в iframe
-- **playwright__iframe_fill** - Заповнити поле в iframe
-
-### **Категорія 3: Content Extraction (3 tools)**
-- **playwright__get_visible_text** - Отримати видимий текст сторінки
-- **playwright__get_visible_html** - Отримати HTML (з опціями очищення)
-- **playwright__console_logs** - Отримати console.log з браузера
-
-### **Категорія 4: Screenshots & PDF (2 tools)**
-- **playwright__screenshot** - Зробити скріншот (base64 або PNG файл)
-  • Параметри: name (REQUIRED), selector, width, height, storeBase64, fullPage, savePng, downloadsDir
-- **playwright__save_as_pdf** - Зберегти сторінку як PDF
-
-### **Категорія 5: JavaScript Execution (1 tool)**
-- **playwright__evaluate** - Виконати JavaScript в консолі браузера
-
-### **Категорія 6: HTTP Requests (5 tools)**
-- **playwright__get** - HTTP GET запит
-- **playwright__post** - HTTP POST запит (з token підтримкою)
-- **playwright__put** - HTTP PUT запит
-- **playwright__patch** - HTTP PATCH запит
-- **playwright__delete** - HTTP DELETE запит
-
-### **Категорія 7: Code Generation (4 tools)**
-- **start_codegen_session** - Почати запис Playwright дій для генерації тестів
-- **end_codegen_session** - Завершити сесію та згенерувати тест
-- **get_codegen_session** - Отримати інформацію про сесію
-- **clear_codegen_session** - Очистити сесію без генерації
-
-### **Категорія 8: Advanced (4 tools)**
-- **playwright__expect_response** - Почати очікування HTTP відповіді
-- **playwright__assert_response** - Валідувати отриману відповідь
-- **playwright__custom_user_agent** - Встановити custom User Agent
-- **playwright__click_and_switch_tab** - Клік та перемикання на нову вкладку
+**АКТУАЛЬНИЙ СПИСОК TOOLS:**
+Нижче наведено tools які РЕАЛЬНО доступні з MCP сервера playwright.
+Використовуй ТІЛЬКИ ці tools з їх точними назвами та параметрами.
 
 ⚠️ **ВАЖЛИВО - НАЗВИ ПАРАМЕТРІВ:**
 - Використовуй **camelCase**: waitUntil (не wait_until), fullPage (не full_page)

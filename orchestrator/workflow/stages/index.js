@@ -9,7 +9,7 @@
 import { ModeSelectionProcessor } from './mode-selection-processor.js';
 import { AtlasTodoPlanningProcessor } from './atlas-todo-planning-processor.js';
 import { ServerSelectionProcessor } from './server-selection-processor.js';
-import { TetyanaПlanToolsProcessor } from './tetyana-plan-tools-processor.js';
+import { TetyanaPlanToolsProcessor } from './tetyana-plan-tools-processor.js';
 import { TetyanaExecuteToolsProcessor } from './tetyana-execute-tools-processor.js';
 import { GrishaVerificationEligibilityProcessor } from './grisha-verification-eligibility-processor.js';
 import { GrishaVerifyItemProcessor } from './grisha-verify-item-processor.js';
@@ -21,7 +21,7 @@ export {
     ModeSelectionProcessor,
     AtlasTodoPlanningProcessor,
     ServerSelectionProcessor,
-    TetyanaПlanToolsProcessor,
+    TetyanaPlanToolsProcessor,
     TetyanaExecuteToolsProcessor,
     GrishaVerificationEligibilityProcessor,
     GrishaVerifyItemProcessor,
@@ -45,7 +45,7 @@ export const MCP_PROCESSORS = {
     SERVER_SELECTION: ServerSelectionProcessor,
     
     // Stage 2.1-MCP - Tetyana Plan Tools
-    TETYANA_PLAN_TOOLS: TetyanaПlanToolsProcessor,
+    TETYANA_PLAN_TOOLS: TetyanaPlanToolsProcessor,
     
     // Stage 2.2-MCP - Tetyana Execute Tools
     TETYANA_EXECUTE_TOOLS: TetyanaExecuteToolsProcessor,

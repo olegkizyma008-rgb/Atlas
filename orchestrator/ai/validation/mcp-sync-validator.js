@@ -75,13 +75,23 @@ export class MCPSyncValidator {
         continue;
       }
 
-      // Extract tool name (remove server prefix if present)
-      const toolName = call.tool.includes('__')
-        ? call.tool.split('__')[1]
-        : call.tool;
-
-      // Check if tool exists in actual tools list
-      const toolExists = serverTools.some(t => t.name === toolName);
+      // FIXED 2025-10-23: Check tool existence with flexible name matching
+      // MCP tools may have full name (server__tool) or short name (tool)
+      let toolExists = serverTools.some(t => t.name === call.tool);
+      
+      // If not found, try without server prefix
+      if (!toolExists && call.tool.includes('__')) {
+        const toolNameWithoutPrefix = call.tool.split('__')[1];
+        toolExists = serverTools.some(t => t.name === toolNameWithoutPrefix);
+      }
+      
+      // If still not found, try with server prefix
+      if (!toolExists && !call.tool.includes('__')) {
+        const toolNameWithPrefix = `${call.server}__${call.tool}`;
+        toolExists = serverTools.some(t => t.name === toolNameWithPrefix);
+      }
+      
+      const toolName = call.tool;
 
       if (!toolExists) {
         // Auto-correction через fuzzy matching з РЕАЛЬНИМИ інструментами

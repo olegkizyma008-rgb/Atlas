@@ -1139,7 +1139,10 @@ Create precise MCP tool execution plan.
               schema: toolSchema
             }
           };
-          this.logger.system('mcp-todo', `[TODO] 🔒 Using JSON Schema with ${toolSchema.properties.tool_calls.items.properties.tool.enum.length} valid tool names`);
+          
+          // FIXED 2025-10-23: Safe access to nested properties
+          const toolCount = toolSchema?.properties?.tool_calls?.items?.properties?.tool?.enum?.length || 0;
+          this.logger.system('mcp-todo', `[TODO] 🔒 Using JSON Schema with ${toolCount} valid tool names`);
         }
 
         // Add retry logic for transient failures
@@ -2801,11 +2804,49 @@ Context: ${JSON.stringify(context, null, 2)}
       return null;
     }
 
-    // Extract valid tool names (with server prefix)
-    const validToolNames = availableTools.map(t => t.name);
+    // FIXED 2025-10-23: Validate availableTools structure before mapping
+    if (!Array.isArray(availableTools)) {
+      this.logger.error('[MCP-TODO] availableTools is not an array', {
+        category: 'mcp-todo',
+        component: 'mcp-todo',
+        type: typeof availableTools
+      });
+      return null;
+    }
+
+    // DEBUG 2025-10-23: Log first tool to see structure
+    if (availableTools.length > 0) {
+      const firstTool = availableTools[0];
+      this.logger.system('mcp-todo', `[TODO] 🔍 First tool structure: ${JSON.stringify(firstTool).substring(0, 200)}`);
+      this.logger.system('mcp-todo', `[TODO] 🔍 First tool has 'name': ${!!firstTool?.name}, has 'server': ${!!firstTool?.server}`);
+    }
+
+    // FIXED 2025-10-23: Extract tool names WITH server prefix (server__tool format)
+    // This matches the validation expectation and prompt examples
+    const validToolNames = availableTools
+      .filter(t => t && typeof t === 'object' && t.name && t.server)
+      .map(t => `${t.server}__${t.name}`);
     
     // Extract valid server names
-    const validServerNames = [...new Set(availableTools.map(t => t.server))];
+    const validServerNames = [...new Set(availableTools
+      .filter(t => t && typeof t === 'object' && t.server)
+      .map(t => t.server))];
+
+    // DEBUG 2025-10-23: Log extraction results
+    this.logger.system('mcp-todo', `[TODO] 🔍 Extracted ${validToolNames.length} tool names from ${availableTools.length} tools`);
+    this.logger.system('mcp-todo', `[TODO] 🔍 Extracted ${validServerNames.length} server names`);
+    if (validToolNames.length > 0) {
+      this.logger.system('mcp-todo', `[TODO] 🔍 Sample tool names: ${validToolNames.slice(0, 3).join(', ')}`);
+    }
+
+    if (validToolNames.length === 0 || validServerNames.length === 0) {
+      this.logger.error('[MCP-TODO] No valid tools found in availableTools', {
+        category: 'mcp-todo',
+        component: 'mcp-todo',
+        totalItems: availableTools.length
+      });
+      return null;
+    }
 
     this.logger.system('mcp-todo', `[TODO] 🔒 Building JSON Schema with ${validToolNames.length} valid tools from ${validServerNames.length} servers`);
 

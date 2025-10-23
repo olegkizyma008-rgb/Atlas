@@ -53,24 +53,14 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Викори�
 - Управління observations та facts
 - Cross-session context retrieval
 
-## 🛠️ MEMORY TOOLS - СПИСОК
+## 🛠️ ДОСТУПНІ MEMORY TOOLS
 
-### **Категорія 1: Entities (3 tools)**
-- **memory__create_entities** - Створити нові entities (об'єкти знань)
-  • Параметри: entities (array, REQUIRED) - масив entities з name, entityType, observations
-- **memory__create_relations** - Створити зв'язки між entities
-  • Параметри: relations (array, REQUIRED) - масив relations з from, to, relationType
+⚠️ **КРИТИЧНО - ФОРМАТ НАЗВ ІНСТРУМЕНТІВ:**
+Всі інструменти мають префікс сервера: **memory__**
 
-### **Категорія 2: Пошук (2 tools)**
-- **memory__search_nodes** - Пошук у knowledge graph
-  • Параметри: query (string, REQUIRED) - пошуковий запит
-- **memory__read_graph** - Отримати весь knowledge graph
-  • Параметри: (може не мати параметрів)
-
-### **Категорія 3: Оновлення (1+ tools)**
-- **memory__add_observations** - Додати нові observations до існуючої entity
-- **memory__delete_entity** - Видалити entity (якщо доступний)
-- **memory__update_entity** - Оновити entity (якщо доступний)
+**АКТУАЛЬНИЙ СПИСОК TOOLS:**
+Нижче наведено tools які РЕАЛЬНО доступні з MCP сервера memory.
+Використовуй ТІЛЬКИ ці tools з їх точними назвами та параметрами.
 
 ⚠️ **ВАЖЛИВО - МОДЕЛЬ ДАНИХ:**
 - **Entity** = об'єкт знань (User, Tool, Project, Preference)

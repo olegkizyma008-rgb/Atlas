@@ -47,7 +47,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
     const todoProcessor = container.resolve('atlasTodoPlanningProcessor');
-    const planProcessor = container.resolve('tetyanaПlanToolsProcessor');
+    const planProcessor = container.resolve('tetyanaPlanToolsProcessor');
     const executeProcessor = container.resolve('tetyanaExecuteToolsProcessor');
     const verifyProcessor = container.resolve('grishaVerifyItemProcessor');
     const replanProcessor = container.resolve('atlasReplanTodoProcessor');

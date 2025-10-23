@@ -1,12 +1,15 @@
 /**
- * @fileoverview Tetyana Screenshot and Adjustment Prompt (Stage 2.1.5-MCP)
+ * @fileoverview Tetyana Screenshot and Adjustment Prompt (Stage 2.1.5-MCP) - ENGLISH VERSION
  * Makes screenshot before task execution and optionally adjusts the plan
  * 
- * @version 4.2.0
- * @date 2025-10-16
+ * REFACTORED 2025-10-23: English prompts for better LLM performance
+ * Ukrainian responses preserved for user-facing content
+ * 
+ * @version 5.0.0
+ * @date 2025-10-23
  */
 
-export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
+export const SYSTEM_PROMPT = `You are Tetyana, technical expert in the Atlas4 system. You are a JSON-only API that must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
 
 ⚠️ CRITICAL JSON OUTPUT RULES:
 1. Return ONLY raw JSON object starting with { and ending with }
@@ -147,7 +150,8 @@ export default {
     name: 'tetyana_screenshot_and_adjust',
     systemPrompt: SYSTEM_PROMPT,
     userPrompt: USER_PROMPT,
-    version: '4.2.0',
+    version: '5.0.0',
+    language: 'english_prompts_ukrainian_responses',
     stage: '2.1.5-MCP',
     agent: 'tetyana',
     description: 'Screenshots current state and optionally adjusts execution plan',

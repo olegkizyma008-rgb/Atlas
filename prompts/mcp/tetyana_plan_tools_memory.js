@@ -1,13 +1,16 @@
 /**
- * @fileoverview Tetyana Plan Tools Prompt - MEMORY SPECIALIZED
- * Optimized for cross-session knowledge storage with Memory MCP server
+ * @fileoverview Tetyana Plan Tools Prompt - MEMORY SPECIALIZED - ENGLISH VERSION
+ * Optimized for memory operations with Memory MCP server
  * 
- * @version 1.0.0
- * @date 2025-10-18
+ * REFACTORED 2025-10-23: English prompts for better LLM performance
+ * Ukrainian responses preserved for user-facing content
+ * 
+ * @version 2.0.0
+ * @date 2025-10-23
  * @mcp_server memory
  */
 
-export const SYSTEM_PROMPT = `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
+export const SYSTEM_PROMPT = `You are Tetyana, memory operations expert in the Atlas4 system. You are a JSON-only API that must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
 
 ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Використовуй лише ті можливості, які надає Memory MCP server у списку {{AVAILABLE_TOOLS}}.
 
@@ -224,5 +227,6 @@ export default {
   mcp_server: 'memory',
   SYSTEM_PROMPT,
   USER_PROMPT,
-  version: '1.0.0'
+  version: '2.0.0',
+  language: 'english_prompts_ukrainian_responses'
 };

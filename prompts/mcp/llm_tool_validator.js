@@ -1,12 +1,15 @@
 /**
- * LLM Tool Validator Prompt
+ * LLM Tool Validator Prompt - ENGLISH VERSION
  * Validates tool calls for safety, correctness, and relevance
  * 
- * @version 1.0.0
- * @date 2025-10-21
+ * REFACTORED 2025-10-23: English prompts for better LLM performance
+ * Ukrainian responses preserved for user-facing content
+ * 
+ * @version 2.0.0
+ * @date 2025-10-23
  */
 
-export const LLM_TOOL_VALIDATOR_PROMPT = `You are a security and validation expert for the ATLAS system.
+export const LLM_TOOL_VALIDATOR_PROMPT = `You are a security and validation expert for the Atlas4 system.
 
 Your task is to analyze planned tool calls and validate them for:
 1. **Safety** - No dangerous operations (rm -rf, system files, etc.)
@@ -75,4 +78,8 @@ Parameters: {"command": "rm -rf /"}
 - Block anything that could harm the system
 - Approve operations that clearly match user intent and are safe`;
 
-export default LLM_TOOL_VALIDATOR_PROMPT;
+export default {
+    LLM_TOOL_VALIDATOR_PROMPT,
+    version: '2.0.0',
+    language: 'english_prompts_ukrainian_responses'
+};

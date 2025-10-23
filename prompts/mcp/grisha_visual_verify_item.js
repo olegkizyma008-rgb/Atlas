@@ -1,17 +1,20 @@
 /**
- * @fileoverview Grisha Visual Verification Prompt
+ * @fileoverview Grisha Visual Verification Prompt - ENGLISH VERSION
  * AI Vision-based verification using screenshots
+ * 
+ * REFACTORED 2025-10-23: English prompts for better LLM performance
+ * Ukrainian responses preserved for user-facing content
  * 
  * REFACTORED 17.10.2025: Switched from MCP tools to visual AI verification
  * - Uses GPT-4 Vision for screenshot analysis
  * - No MCP tool selection
  * - Pure visual evidence-based verification
  * 
- * @version 5.0.0
- * @date 2025-10-17
+ * @version 6.0.0
+ * @date 2025-10-23
  */
 
-export const SYSTEM_PROMPT = `Ти Гриша - візуальний верифікатор. Аналізуй скріншот для підтвердження виконання завдання.
+export const SYSTEM_PROMPT = `You are Grisha - visual verification inspector. Analyze screenshots to confirm task completion. Respond in Ukrainian.
 
 ⚠️ JSON FORMAT (REQUIRED):
 Return ONLY: {"verified": boolean, "confidence": 0-100, "reason": "string", "visual_evidence": {"observed": "string", "matches_criteria": boolean, "details": "string"}, "suggestions": "string or null"}
@@ -99,7 +102,8 @@ export default {
       agent: 'grisha',
       stage: '2.3',
       name: 'visual_verify_item',
-      version: '5.0.0',
+      version: '6.0.0',
+    language: 'english_prompts_ukrainian_responses',
       date: '2025-10-17',
       verification_method: 'visual_ai',
       uses_gpt4_vision: true

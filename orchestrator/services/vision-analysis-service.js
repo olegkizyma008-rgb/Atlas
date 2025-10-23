@@ -18,10 +18,12 @@
  * @date 2025-10-17
  */
 
+import logger from '../utils/logger.js';
 import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import visionAnalysisPrompts from '../../prompts/mcp/vision_analysis.js';
 import CircuitBreaker from '../utils/circuit-breaker.js';
 import GlobalConfig from '../../config/atlas-config.js';
 
@@ -30,7 +32,7 @@ import GlobalConfig from '../../config/atlas-config.js';
  * Uses AI vision models to analyze screenshots
  *
  * PRIORITY (OPTIMIZED 2025-10-17):
- * 1. Port 4000 LLM API - Fast inference (~2-5 sec) ✅ PRIMARY
+ * 1. Port 4000 LLM API - Fast inference (~2-5 sec) 
  * 2. Ollama local llama3.2-vision (FREE but slow 120+ sec) - FALLBACK ONLY
  * 3. OpenRouter Llama-11b ($0.0002/img) - Emergency fallback
  *
@@ -562,9 +564,7 @@ export class VisionAnalysisService {
      * @private
      */
   _constructAnalysisPrompt(successCriteria, context) {
-    // FIXED 17.10.2025 - Truncate executionResults to prevent context overflow
-    // Problem: JSON.stringify(executionResults) can be 200KB+ (screenshots, HTML, etc.)
-    // Solution: Only include summary (tool names + success status)
+    // Truncate executionResults to prevent context overflow
     let executionSummary = '';
     if (context.executionResults && Array.isArray(context.executionResults)) {
       executionSummary = context.executionResults.map(r =>
@@ -572,137 +572,79 @@ export class VisionAnalysisService {
       ).join('\n');
     }
 
-    return `You are a visual verification expert analyzing a screenshot to verify task completion.
+    // Use external prompt template
+    let userPrompt = visionAnalysisPrompts.analysisPrompt
+      .replace('{{SUCCESS_CRITERIA}}', successCriteria)
+      .replace('{{TASK_ACTION}}', context.action || '')
+      .replace('{{EXECUTION_SUMMARY}}', executionSummary || '');
+      
+    // Clean up empty template sections
+    if (!context.action) {
+      userPrompt = userPrompt.replace(/{{#if TASK_ACTION}}[\s\S]*?{{\/if}}/g, '');
+    } else {
+      userPrompt = userPrompt.replace('{{#if TASK_ACTION}}', '').replace('{{/if}}', '');
+    }
+    
+    if (!executionSummary) {
+      userPrompt = userPrompt.replace(/{{#if EXECUTION_SUMMARY}}[\s\S]*?{{\/if}}/g, '');
+    } else {
+      userPrompt = userPrompt.replace('{{#if EXECUTION_SUMMARY}}', '').replace('{{/if}}', '');
+    }
 
-**Success Criteria:** ${successCriteria}
-
-${context.action ? `**Task Action:** ${context.action}` : ''}
-${executionSummary ? `**Execution Summary:**\n${executionSummary}` : ''}
-
-🚨 CRITICAL VERIFICATION RULES:
-1. READ THE EXACT VALUES from the screenshot - do NOT assume or guess
-2. EXTRACT the actual value you see, then COMPARE to what's expected
-3. If observed value MATCHES expected → verified: true
-4. If observed value DIFFERS from expected → verified: false
-5. Do NOT use "shows X, not X" format - that's nonsensical!
-
-**CRITICAL: Return ONLY pure JSON - NO markdown, NO text before/after**
-
-**Instructions:**
-1. Carefully examine the screenshot
-2. EXTRACT exact values (numbers, text, states) visible on screen
-3. COMPARE extracted values with success criteria
-4. Verify if criteria is met based on EXACT match (not approximate)
-5. Provide specific visual evidence from the screenshot
-6. Return ONLY a JSON object - NO code blocks, NO markdown, NO explanatory text
-
-**Example 1 - Success (numbers MATCH EXACTLY):**
-- Success Criteria: "Calculator shows result 6"
-- Screenshot shows: "6"
-- Correct response: {"verified": true, "reason": "Calculator displays 6, which matches the expected result", "visual_evidence": {"observed": "6", "matches_criteria": true}}
-
-**Example 2 - Failure (numbers DIFFER):**
-- Success Criteria: "Calculator shows result 666"
-- Screenshot shows: "87"
-- Correct response: {"verified": false, "reason": "Calculator displays 87, but expected result is 666", "visual_evidence": {"observed": "87", "matches_criteria": false}}
-
-**Example 3 - Failure (WRONG number on screen):**
-- Success Criteria: "Calculator shows result 18.68"
-- Screenshot shows: "5001"
-- Correct response: {"verified": false, "reason": "Calculator displays 5001, but expected result is 18.68", "visual_evidence": {"observed": "5001", "matches_criteria": false}}
-
-**CRITICAL RULES:**
-1. ⚠️ Numbers must match EXACTLY - 18.68 ≠ 5001, 6 ≠ 66, 100 ≠ 1000
-2. ⚠️ If you see ANY number different from expected - set verified: false
-3. ⚠️ Compare the ENTIRE number, not just part of it
-4. ⚠️ Port numbers (5001, 3001, etc.) are NOT calculation results
-
-**WRONG Example (DO NOT DO THIS):**
-- ❌ {"reason": "Calculator shows 6, not 6"} ← This is NONSENSE! If you see 6 and expect 6, it's verified: true!
-- ❌ {"verified": true, "reason": "Calculator displays 5001, which matches the expected result"} when expecting 18.68 ← WRONG! 5001 ≠ 18.68!
-
-**Required JSON format (return EXACTLY this structure, nothing else):**
-{
-  "verified": boolean,
-  "confidence": number (0-100),
-  "reason": "string - explanation with EXACT values you see",
-  "visual_evidence": {
-    "observed": "string - EXACT text/numbers you see in screenshot",
-    "matches_criteria": boolean,
-    "details": "string - specific visual details with exact values"
-  },
-  "suggestions": "string - if not verified, what needs to change"
-}
-
-⚠️ CRITICAL: Your response must START with { and END with } - nothing before, nothing after!
-Do NOT wrap in code blocks or any markdown. Just pure JSON.
-
-Analyze the screenshot and return ONLY the JSON object.`;
+    return userPrompt;
   }
 
   /**
      * Construct comparison prompt for change detection
      *
      * @param {string} expectedChange - What change to look for
+     * @param {Object} context - Additional context
      * @returns {string} Prompt
      * @private
      */
-  _constructComparisonPrompt(expectedChange) {
-    return `You are comparing two screenshots to detect changes.
+  _constructComparisonPrompt(expectedChange, context = {}) {
+    let userPrompt = visionAnalysisPrompts.comparisonPrompt
+      .replace('{{EXPECTED_CHANGE}}', expectedChange)
+      .replace('{{CONTEXT}}', context.description || '');
+      
+    // Clean up empty template sections
+    if (!context.description) {
+      userPrompt = userPrompt.replace(/{{#if CONTEXT}}[\s\S]*?{{\/if}}/g, '');
+    } else {
+      userPrompt = userPrompt.replace('{{#if CONTEXT}}', '').replace('{{/if}}', '');
+    }
 
-**Expected Change:** ${expectedChange}
-
-**Instructions:**
-1. Examine both screenshots carefully
-2. Identify any differences between them
-3. Determine if the expected change occurred
-4. Provide specific visual evidence
-
-**Required JSON format:**
-{
-  "changeDetected": boolean,
-  "matchesExpectedChange": boolean,
-  "confidence": number (0-100),
-  "differences": ["array of specific differences observed"],
-  "visual_evidence": "string - describe the change visually",
-  "explanation": "string - whether this matches the expected change"
-}
-
-Return ONLY the JSON object.`;
+    return userPrompt;
   }
 
   /**
      * Construct stuck detection prompt
      *
      * @param {string} expectedActivity - What should be happening
+     * @param {Object} context - Additional context
      * @returns {string} Prompt
      * @private
      */
-  _constructStuckDetectionPrompt(expectedActivity) {
-    return `You are analyzing a series of screenshots to detect if a system is stuck.
+  _constructStuckDetectionPrompt(expectedActivity, context = {}) {
+    let userPrompt = visionAnalysisPrompts.stuckDetectionPrompt
+      .replace('{{EXPECTED_ACTIVITY}}', expectedActivity)
+      .replace('{{TASK_CONTEXT}}', context.taskContext || '')
+      .replace('{{TIME_ELAPSED}}', context.timeElapsed || '');
+      
+    // Clean up empty template sections
+    if (!context.taskContext) {
+      userPrompt = userPrompt.replace(/{{#if TASK_CONTEXT}}[\s\S]*?{{\/if}}/g, '');
+    } else {
+      userPrompt = userPrompt.replace('{{#if TASK_CONTEXT}}', '').replace('{{/if}}', '');
+    }
+    
+    if (!context.timeElapsed) {
+      userPrompt = userPrompt.replace(/{{#if TIME_ELAPSED}}[\s\S]*?{{\/if}}/g, '');
+    } else {
+      userPrompt = userPrompt.replace('{{#if TIME_ELAPSED}}', '').replace('{{/if}}', '');
+    }
 
-**Expected Activity:** ${expectedActivity}
-
-**Instructions:**
-1. Compare all screenshots chronologically
-2. Look for signs of progress or stuck state
-3. Identify if the expected activity is occurring
-4. Detect repetitive states, frozen UI, or lack of progress
-
-**Required JSON format:**
-{
-  "stuck": boolean,
-  "confidence": number (0-100),
-  "reason": "string - why stuck or progressing",
-  "visual_evidence": {
-    "progress_indicators": ["array of progress signs if any"],
-    "stuck_indicators": ["array of stuck signs if any"],
-    "last_change_detected": "string - description of last visual change"
-  },
-  "recommendation": "string - what action to take if stuck"
-}
-
-Return ONLY the JSON object.`;
+    return userPrompt;
   }
 
   /**
@@ -716,31 +658,22 @@ Return ONLY the JSON object.`;
      */
   async _callVisionAPI(base64Image, prompt, context = {}) {
     try {
+      // Get system prompt from external prompts
+      const systemPrompt = visionAnalysisPrompts.SYSTEM_PROMPT;
+      
       // PRIMARY: Try port 4000 first (FAST ~2-5 sec)
       if (this.port4000Available && this.visionProvider === 'port4000') {
         // ENHANCED 2025-10-22: Pass context for model selection
-        return await this._callPort4000VisionAPI(base64Image, prompt, context);
+        return await this._callPort4000VisionAPI(base64Image, prompt, context, systemPrompt);
       }
 
       // FALLBACK: Try Ollama (SLOW ~120+ sec but FREE)
       if (this.visionProvider === 'ollama' && this.ollamaAvailable) {
-        return await this._callOllamaVisionAPI(base64Image, prompt);
+        return await this._callOllamaVisionAPI(base64Image, prompt, systemPrompt);
       }
 
-      // FALLBACK 2: Try OpenRouter as last resort
-      this.logger.warn('[VISION] Port 4000 and Ollama unavailable, trying OpenRouter fallback...', {
-        category: 'vision-analysis'
-      });
-      
-      try {
-        return await this._callOpenRouterVisionAPI(base64Image, prompt);
-      } catch (openRouterError) {
-        this.logger.error('[VISION] OpenRouter fallback also failed', {
-          category: 'vision-analysis',
-          error: openRouterError.message
-        });
-        throw new Error(`No vision API available. All providers failed: ${openRouterError.message}`);
-      }
+      // LAST RESORT: OpenRouter (paid but reliable)
+      return await this._callOpenRouterVisionAPI(base64Image, prompt, systemPrompt);
 
     } catch (error) {
       this.logger.error(`[VISION] API call failed: ${error.message}`, {
@@ -759,7 +692,7 @@ Return ONLY the JSON object.`;
      * @returns {Promise<Object>} Parsed analysis result
      * @private
      */
-  async _callPort4000VisionAPI(base64Image, prompt, context = {}) {
+  async _callPort4000VisionAPI(base64Image, prompt, context = {}, systemPrompt = null) {
     try {
       // ENHANCED 2025-10-22: Select model based on modelType from context
       const modelType = context.modelType || 'fast';  // 'fast' or 'primary'
@@ -898,14 +831,17 @@ Return ONLY the JSON object.`;
      * @returns {Promise<Object>} Parsed analysis result
      * @private
      */
-  async _callOllamaVisionAPI(base64Image, prompt) {
+  async _callOllamaVisionAPI(base64Image, prompt, systemPrompt = null) {
     try {
       this.logger.system('vision-analysis', '[OLLAMA] ⚠️  Calling Ollama (slow 120+ sec, FREE fallback)...');
 
       const ollamaConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback');
-      const response = await axios.post(ollamaConfig.endpoint, {
-        model: ollamaConfig.model,
-        prompt: prompt,
+      // Combine system prompt with user prompt for Ollama
+      const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
+      
+      const response = await axios.post('http://localhost:11434/api/generate', {
+        model: 'llama3.2-vision',
+        prompt: fullPrompt,
         images: [base64Image],
         stream: false
       }, {
@@ -948,31 +884,38 @@ Return ONLY the JSON object.`;
      * @returns {Promise<Object>} Parsed analysis result
      * @private
      */
-  async _callOpenRouterVisionAPI(base64Image, prompt) {
+  async _callOpenRouterVisionAPI(base64Image, prompt, systemPrompt = null) {
     try {
       this.logger.system('vision-analysis', '[OPENROUTER] Calling OpenRouter vision API...');
 
       const apiEndpoint = 'http://localhost:4000/v1/chat/completions';
-      const response = await axios.post(apiEndpoint, {
-        model: this.visionModel,
-        messages: [
+      const messages = [];
+      
+      // Add system prompt if provided
+      if (systemPrompt) {
+        messages.push({
+          role: 'system',
+          content: systemPrompt
+        });
+      }
+      
+      // Add user message with image
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
           {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/png;base64,${base64Image}`,
-                  detail: 'auto'
-                }
-              }
-            ]
+            type: 'image_url',
+            image_url: {
+              url: `data:image/jpeg;base64,${base64Image}`
+            }
           }
-        ],
+        ]
+      });
+      
+      const response = await axios.post(apiEndpoint, {
+        model: 'openai/gpt-4-vision-preview',
+        messages,  
         max_tokens: 1000,
         temperature: 0.2  // OpenRouter fallback - hardcoded for now
       }, {

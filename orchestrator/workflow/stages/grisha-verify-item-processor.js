@@ -188,37 +188,40 @@ export class GrishaVerifyItemProcessor {
                     verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 2);
                 }
                 
-                // If BOTH visual attempts failed → run LLM eligibility for MCP verification
+                // If BOTH visual attempts failed → automatically fallback to MCP verification
                 if (!verification.verified) {
-                    this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ Both visual attempts failed, requesting MCP verification via LLM eligibility...');
+                    this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ Both visual attempts failed, falling back to MCP verification...');
                     
-                    // Re-run eligibility with visual failure context
-                    const mcpEligibilityResult = await this.eligibilityProcessor.execute({
-                        currentItem,
-                        execution,
-                        verificationStrategy: strategy,
-                        visualFailureContext: {
-                            attempts: 2,
-                            lastReason: verification.reason,
-                            forceDataPath: true  // Force LLM to recommend data/MCP checks
-                        }
-                    });
+                    // Create simple MCP strategy for fallback
+                    const mcpStrategy = {
+                        method: 'mcp',
+                        confidence: 80,
+                        reason: 'Visual verification failed after 2 attempts, using data verification'
+                    };
                     
-                    if (mcpEligibilityResult.success && mcpEligibilityResult.decision.additional_checks?.length > 0) {
-                        this.logger.system('grisha-verify-item', `[GRISHA] 🔧 LLM provided ${mcpEligibilityResult.decision.additional_checks.length} MCP checks`);
-                        
-                        // Execute MCP verification with LLM-provided checks
+                    // Try MCP verification without additional LLM call
+                    try {
                         const mcpVerification = await this._executeMcpVerification(
                             currentItem, 
                             execution, 
-                            strategy, 
-                            mcpEligibilityResult.decision
+                            mcpStrategy, 
+                            null  // No eligibility decision needed for fallback
                         );
                         
                         if (mcpVerification.verified) {
                             this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP verification succeeded after visual failures');
                             verification = mcpVerification;
+                        } else {
+                            this.logger.system('grisha-verify-item', '[GRISHA] ❌ MCP verification also failed');
+                            // Keep the visual verification result with low confidence
+                            verification.confidence = Math.min(verification.confidence, 30);
+                            verification.reason = `${verification.reason}. MCP верифікація також не вдалася`;
                         }
+                    } catch (mcpError) {
+                        this.logger.warn(`[GRISHA] MCP fallback failed: ${mcpError.message}`, {
+                            category: 'grisha-verify-item'
+                        });
+                        // Keep visual verification result
                     }
                 }
             } else if (strategy.method === 'mcp') {

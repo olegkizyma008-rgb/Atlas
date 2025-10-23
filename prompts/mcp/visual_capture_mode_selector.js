@@ -35,17 +35,20 @@ OPTIONAL PARAMETERS:
 - confidence (float 0.0-1.0): Your confidence in this decision.
 
 DECISION GUIDELINES:
-1. If the request mentions a concrete application or UI element → favour \\"active_window\\".
-   - Provide target_app when known.
-   - If the window may not exist yet, set require_retry=true and fallback_mode=\\"full_screen\\".
-2. If the request is about desktop state, files, icons, or wallpaper → use \\"desktop_only\\".
-   - Specify display_number when the task mentions a particular monitor/location (left/right/third display, etc.).
-3. For broad context, debugging layouts, or when instructions are vague → use \\"full_screen\\".
-4. When prior attempts failed, adjust the mode or provide require_retry=true with a sensible fallback.
-5. Always respect agent preferences:
-   - Tetyana prioritises clarity for plan adjustments and may need targeted UI capture.
-   - Grisha verifies outcomes; favour comprehensive context if verification is ambiguous.
-6. If information is insufficient, fall back to \\"full_screen\\" with low confidence.
+1. PRIORITY: If target_app is provided → ALWAYS use \"active_window\" first.
+   - This ensures capturing ONLY the relevant application without interference.
+   - Set require_retry=true with fallback_mode=\"full_screen\" if window might not exist.
+2. Applications with specific UI (Calculator, Notes, Safari, etc.) → \"active_window\".
+   - Prevents capturing overlapping windows or unrelated content.
+   - Critical for mathematical verification - avoid mixing numbers from different sources.
+3. Desktop operations (wallpaper, icons, file arrangement) → \"desktop_only\".
+   - Specify display_number when task mentions specific monitor.
+4. System-wide verification or unknown context → \"full_screen\".
+   - Use only when application-specific capture is impossible.
+5. For verification tasks (Grisha):
+   - Mathematical/calculator tasks → MUST use \"active_window\" to avoid number confusion.
+   - File operations → can use \"full_screen\" or \"desktop_only\".
+6. When target_app is detected, confidence should be ≥0.8 for \"active_window\".
 
 OUTPUT SCHEMA (strict):
 {

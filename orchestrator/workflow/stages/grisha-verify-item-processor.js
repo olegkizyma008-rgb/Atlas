@@ -659,8 +659,8 @@ export class GrishaVerifyItemProcessor {
 
             // Create verification item from eligibility hints (if available)
             // FIXED 2025-10-23: Use verification_action from eligibilityDecision (LLM transforms action)
-            // Fallback to generic prefix if not provided
-            const verificationAction = eligibilityDecision?.verification_action || `Перевірити: ${currentItem.action}`;
+            // CRITICAL FIX 2025-10-23: Smart fallback transforms action verbs (create→verify existence)
+            const verificationAction = eligibilityDecision?.verification_action || this._transformActionToVerification(currentItem.action);
             
             const verificationItem = {
                 id: `verify_${currentItem.id}_${Date.now()}`,
@@ -870,6 +870,78 @@ export class GrishaVerifyItemProcessor {
             confidence: 70,
             reason: 'MCP інструменти виконані успішно'
         };
+    }
+
+    /**
+     * Transform action from creation verbs to verification verbs
+     * CRITICAL FIX 2025-10-23: Fallback when LLM doesn't provide verification_action
+     * 
+     * Examples:
+     * - "Створити папку X" → "Перевірити існування папки X"
+     * - "Зберегти файл Y" → "Перевірити існування файлу Y"
+     * - "Завантажити фото Z" → "Перевірити наявність фото Z"
+     * 
+     * @param {string} action - Original action
+     * @returns {string} Transformed action with verification verb
+     * @private
+     */
+    _transformActionToVerification(action) {
+        if (!action || typeof action !== 'string') {
+            return 'Перевірити виконання дії';
+        }
+
+        const actionLower = action.toLowerCase();
+
+        // Transformation rules (creation → verification)
+        const transformations = [
+            // File/folder operations
+            { patterns: ['створити папку', 'зробити папку', 'create folder', 'create directory'], replacement: 'Перевірити існування папки' },
+            { patterns: ['створити файл', 'зробити файл', 'create file'], replacement: 'Перевірити існування файлу' },
+            { patterns: ['зберегти файл', 'записати файл', 'save file', 'write file'], replacement: 'Перевірити існування файлу' },
+            { patterns: ['зберегти результат', 'записати результат'], replacement: 'Перевірити збережений результат' },
+            
+            // Download operations
+            { patterns: ['завантажити фото', 'download photo', 'download image'], replacement: 'Перевірити наявність фото' },
+            { patterns: ['завантажити файл', 'download file'], replacement: 'Перевірити наявність файлу' },
+            { patterns: ['завантажити з інтернету', 'download from'], replacement: 'Перевірити завантажений файл' },
+            
+            // Application operations
+            { patterns: ['відкрити програму', 'відкрити додаток', 'launch app', 'open app'], replacement: 'Перевірити що відкрито програму' },
+            { patterns: ['запустити програму', 'start program'], replacement: 'Перевірити що запущено програму' },
+            
+            // Calculation operations
+            { patterns: ['виконати обчислення', 'порахувати', 'calculate', 'compute'], replacement: 'Перевірити результат обчислення' },
+            { patterns: ['помножити', 'multiply'], replacement: 'Перевірити результат множення' },
+            { patterns: ['додати', 'add'], replacement: 'Перевірити результат додавання' },
+            { patterns: ['відняти', 'subtract'], replacement: 'Перевірити результат віднімання' },
+            
+            // System operations
+            { patterns: ['встановити шпалери', 'set wallpaper', 'change wallpaper'], replacement: 'Перевірити встановлення шпалер' },
+            { patterns: ['встановити', 'install'], replacement: 'Перевірити встановлення' },
+            { patterns: ['налаштувати', 'configure'], replacement: 'Перевірити налаштування' }
+        ];
+
+        // Find matching transformation
+        for (const transform of transformations) {
+            for (const pattern of transform.patterns) {
+                if (actionLower.includes(pattern)) {
+                    // Extract object/target after pattern
+                    const patternIndex = actionLower.indexOf(pattern);
+                    const afterPattern = action.substring(patternIndex + pattern.length).trim();
+                    
+                    // Return transformed action
+                    if (afterPattern) {
+                        return `${transform.replacement} ${afterPattern}`;
+                    } else {
+                        return transform.replacement;
+                    }
+                }
+            }
+        }
+
+        // No pattern matched - use generic "Перевірити виконання:"
+        // This is better than "Перевірити: Створити..." which confuses downstream processors
+        return `Перевірити виконання: ${action}`;
     }
 
     /**

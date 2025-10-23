@@ -120,5 +120,8 @@ export default {
   name: 'stage2_0_server_selection',
   description: 'Selects the most relevant 1-2 MCP servers from filesystem, playwright, shell, applescript, memory',
   version: '6.0.0',
-  language: 'english_prompts'
+  language: 'english_only',
+  response_format: 'json',
+  internal_use: true,
+  user_facing: false
 };

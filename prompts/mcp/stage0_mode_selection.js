@@ -105,7 +105,10 @@ export default {
         agent: 'system',
         description: 'Determine whether to respond via chat or run MCP task workflow',
         version: '6.0.0',
-        language: 'english_prompts',
+        language: 'english_only',
+        response_format: 'json',
+        internal_use: true,
+        user_facing: false,
         requiresContext: false,
         outputFormat: 'json'
     }

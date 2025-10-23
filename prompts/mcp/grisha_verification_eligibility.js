@@ -127,6 +127,9 @@ export default {
     version: '2.0.0',
     date: '2025-10-23',
     model_hint: 'atlas-ministral-3b',
-    language: 'english_prompts_ukrainian_responses'
+    language: 'english_only',
+    response_format: 'json',
+    internal_use: true,
+    user_facing: false
   }
 };

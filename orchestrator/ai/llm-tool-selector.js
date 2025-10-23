@@ -107,7 +107,7 @@ export class LLMToolValidator {
         try {
             // Use LLMClient.generate() method
             const responseContent = await this.llmClient.generate({
-                systemPrompt: MCP_PROMPTS.LLM_TOOL_VALIDATOR,
+                systemPrompt: MCP_PROMPTS.LLM_TOOL_VALIDATOR.LLM_TOOL_VALIDATOR_PROMPT,
                 prompt: userPrompt,
                 temperature: this.config.temperature,
                 max_tokens: this.config.maxTokens

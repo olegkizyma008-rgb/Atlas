@@ -79,7 +79,9 @@ export default {
         agent: 'atlas',
         description: 'Chat mode: Atlas responds directly without task execution',
         version: '5.0.0',
+        language: 'english_prompts_ukrainian_responses',
         requiresContext: true,
-        outputFormat: 'text'
+        outputFormat: 'text',
+        user_facing: true
     }
 };

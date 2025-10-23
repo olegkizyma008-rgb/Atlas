@@ -232,5 +232,8 @@ export default {
   SYSTEM_PROMPT,
   USER_PROMPT,
   version: '2.0.0',
-  language: 'english_prompts_ukrainian_responses'
+  language: 'english_only',
+  response_format: 'json',
+  internal_use: true,
+  user_facing: false
 };

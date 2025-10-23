@@ -225,18 +225,68 @@ export class SchemaValidator {
         continue;
       }
 
-      // Type validation
+      // Type validation with auto-correction
       const expectedType = propDef.type;
       const actualType = this._getType(paramValue);
 
       if (expectedType && expectedType !== actualType) {
-        errors.push({
-          type: 'invalid_parameter_type',
-          parameter: paramName,
-          expectedType,
-          actualType,
-          message: `Parameter '${paramName}' should be ${expectedType}, got ${actualType}`
-        });
+        // ENHANCED 2025-10-23: Auto-correct common type mismatches
+        let correctedValue = null;
+        let canCorrect = false;
+        
+        // Empty string → empty array
+        if (expectedType === 'array' && actualType === 'string' && paramValue === '') {
+          correctedValue = [];
+          canCorrect = true;
+        }
+        // Empty string → null (for optional parameters)
+        else if (actualType === 'string' && paramValue === '' && !required.includes(paramName)) {
+          correctedValue = null;
+          canCorrect = true;
+        }
+        // String number → number
+        else if (expectedType === 'number' && actualType === 'string' && !isNaN(paramValue)) {
+          correctedValue = Number(paramValue);
+          canCorrect = true;
+        }
+        // String boolean → boolean
+        else if (expectedType === 'boolean' && actualType === 'string') {
+          if (paramValue.toLowerCase() === 'true') {
+            correctedValue = true;
+            canCorrect = true;
+          } else if (paramValue.toLowerCase() === 'false') {
+            correctedValue = false;
+            canCorrect = true;
+          }
+        }
+        // Single value → array
+        else if (expectedType === 'array' && actualType !== 'array' && actualType !== 'null') {
+          correctedValue = [paramValue];
+          canCorrect = true;
+        }
+        
+        if (canCorrect) {
+          correctedParams[paramName] = correctedValue;
+          hasCorrections = true;
+          
+          corrections.push({
+            type: 'type_corrected',
+            parameter: paramName,
+            from: actualType,
+            to: expectedType,
+            oldValue: paramValue,
+            newValue: correctedValue
+          });
+        } else {
+          errors.push({
+            type: 'invalid_parameter_type',
+            parameter: paramName,
+            expectedType,
+            actualType,
+            value: paramValue,
+            message: `Parameter '${paramName}' should be ${expectedType}, got ${actualType}`
+          });
+        }
       }
 
       // Enum validation
@@ -285,11 +335,13 @@ export class SchemaValidator {
 
   /**
    * Get JavaScript type of value
+   * ENHANCED 2025-10-23: Better type detection
    * @private
    */
   _getType(value) {
-    if (value === null) return 'null';
+    if (value === null || value === undefined) return 'null';
     if (Array.isArray(value)) return 'array';
+    if (typeof value === 'object') return 'object';
     return typeof value;
   }
 

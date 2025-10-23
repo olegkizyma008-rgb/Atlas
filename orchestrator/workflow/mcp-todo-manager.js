@@ -92,6 +92,35 @@ export class MCPTodoManager {
   }
 
   /**
+   * Normalize tool name by ensuring it has exactly one `server__tool` prefix
+   * @private
+   */
+  _normalizeToolName(server, tool) {
+    if (!server || !tool) {
+      return tool;
+    }
+
+    const prefix = `${server}__`;
+
+    if (tool.startsWith(prefix)) {
+      const withoutPrefix = tool.slice(prefix.length);
+      if (withoutPrefix.startsWith(prefix)) {
+        return prefix + withoutPrefix.slice(prefix.length);
+      }
+      return tool;
+    }
+
+    if (tool.includes('__')) {
+      const [, rest] = tool.split(/__/);
+      if (rest) {
+        return prefix + rest;
+      }
+    }
+
+    return prefix + tool;
+  }
+
+  /**
      * Auto-correct common parameter mistakes made by LLMs
      * ENHANCED 2025-10-20 - Dynamic rule generation from inputSchema
      *
@@ -2294,15 +2323,18 @@ Context: ${JSON.stringify(context, null, 2)}
       }
       // FIXED 2025-10-22 - Auto-fix null server by extracting from tool name
       const toolCalls = (parsed.tool_calls || []).map(call => {
-        // If server is null/undefined, extract from tool name (format: server__tool)
-        if (!call.server && call.tool && call.tool.includes('__')) {
-          const parts = call.tool.split('__');
-          if (parts.length >= 2) {
-            call.server = parts[0];
-            this.logger.system('mcp-todo', `[TODO] Auto-fixed null server: ${call.server} (from tool: ${call.tool})`);
-          }
+        const server = call.server || call.mcp_server || call.server_name;
+        const rawTool = call.tool || call.tool_name;
+
+        if (!server || !rawTool) {
+          throw new Error('Tool call missing server or tool');
         }
-        return call;
+
+        return {
+          server,
+          tool: this._normalizeToolName(server, rawTool),
+          parameters: call.parameters || {}
+        };
       });
       
       return {

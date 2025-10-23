@@ -1317,7 +1317,7 @@ export class GrishaVerifyItemProcessor {
 
     /**
      * Determine likely cause of failure
-     * NEW 2025-10-18
+     * ENHANCED 2025-10-23: Better root cause detection with fallback analysis
      * 
      * @param {Object} verification - Verification result
      * @param {Object} execution - Execution results
@@ -1327,6 +1327,22 @@ export class GrishaVerifyItemProcessor {
     _determineLikelyCause(verification, execution) {
         // Check if tools executed successfully
         if (execution && !execution.all_successful) {
+            // Analyze which tools failed
+            const failedTools = execution.results?.filter(r => !r.success) || [];
+            if (failedTools.length > 0) {
+                const firstFailure = failedTools[0];
+                const errorMsg = (firstFailure.error || '').toLowerCase();
+                
+                if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+                    return 'missing_prerequisite';
+                }
+                if (errorMsg.includes('permission') || errorMsg.includes('access denied')) {
+                    return 'permission_issue';
+                }
+                if (errorMsg.includes('invalid') || errorMsg.includes('parameter')) {
+                    return 'wrong_parameters';
+                }
+            }
             return 'tool_execution_failed';
         }
 
@@ -1353,13 +1369,46 @@ export class GrishaVerifyItemProcessor {
         if (reason.includes('не відповідає') || reason.includes('mismatch')) {
             return 'unrealistic_criteria';
         }
+        
+        if (reason.includes('не існує') || reason.includes('does not exist')) {
+            return 'missing_prerequisite';
+        }
+        
+        if (reason.includes('fallback') || reason.includes('unstructured')) {
+            return 'vision_model_failure';
+        }
 
-        return 'unknown';
+        // ENHANCED: Analyze visual evidence for more clues
+        const visualEvidence = verification.verification?.visual_evidence;
+        if (visualEvidence) {
+            const observed = (visualEvidence.observed || '').toLowerCase();
+            const details = (visualEvidence.details || '').toLowerCase();
+            
+            if (observed.includes('empty') || observed.includes('порожньо') || observed.includes('nothing')) {
+                return 'missing_prerequisite';
+            }
+            
+            if (details.includes('error') || details.includes('помилка')) {
+                return 'execution_error_visible';
+            }
+            
+            if (details.includes('different') || details.includes('інший')) {
+                return 'wrong_approach';
+            }
+        }
+
+        // ENHANCED: If verification failed but tools succeeded, likely wrong approach
+        if (execution && execution.all_successful && !verification.verified) {
+            return 'tools_succeeded_but_wrong_result';
+        }
+
+        // Last resort: analyze item action for hints
+        return 'verification_criteria_not_met';
     }
 
     /**
      * Recommend strategy based on failure analysis
-     * NEW 2025-10-18
+     * ENHANCED 2025-10-23: More specific strategies for new root causes
      * 
      * @param {Object} verification - Verification result
      * @param {Object} execution - Execution results
@@ -1388,6 +1437,24 @@ export class GrishaVerifyItemProcessor {
 
             case 'unclear_state':
                 return 'split_into_smaller_items';
+                
+            case 'missing_prerequisite':
+                return 'add_prerequisite_step';
+                
+            case 'permission_issue':
+                return 'fix_permissions';
+                
+            case 'vision_model_failure':
+                return 'retry_with_mcp_verification';
+                
+            case 'execution_error_visible':
+                return 'fix_execution_error';
+                
+            case 'tools_succeeded_but_wrong_result':
+                return 'change_approach_or_tools';
+                
+            case 'verification_criteria_not_met':
+                return 'adjust_criteria_or_approach';
 
             default:
                 return 'modify_or_split';

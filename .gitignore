@@ -215,13 +215,6 @@ ukrainian-tts/**/venv*
 ukrainian-tts/**/model*
 ukrainian-tts/vocoder/ukwiktionary-pages-articles.xml*
 
-# Goose platform binaries and packaged tools
-goose/bin/
-goose/ui/desktop/src/platform/
-goose/ui/desktop/src/platform/**
-
-goose/documentation/static/
-goose/documentation/blog/
 
 eggs/
 
@@ -255,3 +248,5 @@ logs/
 
 # Environment file - ignore (contains secrets)
 .env
+
+!logs/orchestrator.log

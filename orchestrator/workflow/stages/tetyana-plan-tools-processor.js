@@ -164,14 +164,30 @@ export class TetyanaPlanToolsProcessor {
             if (!validation.valid) {
                 this.logger.warn(`[STAGE-2.1-MCP] ⚠️ Plan validation FAILED:`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
                 
-                // FIXED 2025-10-23: Safe access to validation.errors (may not be array)
+                // FIXED 2025-10-23: Properly format error objects for logging
                 const errors = Array.isArray(validation.errors) ? validation.errors : [validation.errors || 'Unknown error'];
-                this.logger.warn(`[STAGE-2.1-MCP]   Errors: ${errors.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                const errorMessages = errors.map(e => {
+                    if (typeof e === 'string') return e;
+                    if (typeof e === 'object' && e !== null) {
+                        return e.message || e.error || e.type || JSON.stringify(e);
+                    }
+                    return String(e);
+                });
+                
+                // Log each error on separate line for clarity
+                this.logger.warn(`[STAGE-2.1-MCP]   Errors (${errorMessages.length}):`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                errorMessages.forEach((msg, idx) => {
+                    this.logger.warn(`[STAGE-2.1-MCP]     ${idx + 1}. ${msg}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                });
 
                 // FIXED 2025-10-23: Safe access to validation.suggestions
                 const suggestions = Array.isArray(validation.suggestions) ? validation.suggestions : [];
                 if (suggestions.length > 0) {
-                    this.logger.warn(`[STAGE-2.1-MCP]   Suggestions: ${suggestions.join(', ')}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                    this.logger.warn(`[STAGE-2.1-MCP]   Suggestions (${suggestions.length}):`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                    suggestions.forEach((sug, idx) => {
+                        const sugMsg = typeof sug === 'string' ? sug : (sug.message || JSON.stringify(sug));
+                        this.logger.warn(`[STAGE-2.1-MCP]     ${idx + 1}. ${sugMsg}`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
+                    });
                 }
 
                 // FIXED 2025-10-21: Do NOT trigger Atlas replan at planning stage

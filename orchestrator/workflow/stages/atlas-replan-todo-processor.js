@@ -336,6 +336,7 @@ Respond with JSON in this format:
 
     /**
      * Parse replan response from LLM
+     * ENHANCED 2025-10-23: Better error handling and validation
      * 
      * @param {string} response - LLM response
      * @returns {Object} Parsed replan
@@ -353,9 +354,15 @@ Respond with JSON in this format:
 
             const parsed = JSON.parse(cleaned);
 
+            // ENHANCED: Validate strategy is one of allowed values
+            const allowedStrategies = ['replan_and_continue', 'skip_and_continue', 'abort'];
+            const strategy = allowedStrategies.includes(parsed.strategy) 
+                ? parsed.strategy 
+                : 'skip_and_continue';
+
             return {
                 replanned: parsed.replanned || false,
-                strategy: parsed.strategy || 'skip_and_continue',
+                strategy: strategy,
                 reasoning: parsed.reasoning || 'No reasoning provided',
                 new_items: parsed.new_items || [],
                 modified_items: parsed.modified_items || [],
@@ -370,11 +377,18 @@ Respond with JSON in this format:
                 response: response.substring(0, 500)
             });
 
+            // ENHANCED: On parse error, don't skip - try to replan with fallback
+            this.logger.warn(`[STAGE-3.5-MCP] Parse error - attempting fallback replan`, {
+                category: 'atlas-replan-todo'
+            });
+
             return {
                 replanned: false,
-                strategy: 'skip_and_continue',
-                reasoning: 'Parse error',
-                error: error.message
+                strategy: 'replan_and_continue',
+                reasoning: `Parse error: ${error.message}. Attempting fallback approach.`,
+                error: error.message,
+                new_items: [],
+                fallback: true
             };
         }
     }

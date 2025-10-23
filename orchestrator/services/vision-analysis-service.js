@@ -1073,7 +1073,8 @@ Return ONLY the JSON object.`;
       .trim();
 
     try {
-      return JSON.parse(cleaned);
+      const parsed = JSON.parse(cleaned);
+      return this._normalizeVisionPayload(parsed);
     } catch (error) {
       // FALLBACK: Try to extract JSON from text response
       this.logger.warn(`[VISION] Initial JSON parse failed, trying to extract JSON from text...`, {
@@ -1087,7 +1088,7 @@ Return ONLY the JSON object.`;
         try {
           const extracted = JSON.parse(jsonMatch[0]);
           this.logger.system('vision-analysis', '[VISION] ✅ Successfully extracted JSON from text response');
-          return extracted;
+          return this._normalizeVisionPayload(extracted);
         } catch (extractError) {
           // Try to fix JavaScript object notation (unquoted keys)
           try {
@@ -1103,7 +1104,7 @@ Return ONLY the JSON object.`;
             
             const parsed = JSON.parse(fixedJson);
             this.logger.system('vision-analysis', '[VISION] ✅ Successfully converted JavaScript object notation to JSON');
-            return parsed;
+            return this._normalizeVisionPayload(parsed);
           } catch (jsFixError) {
             // Continue to text parsing fallback
           }
@@ -1150,8 +1151,52 @@ Return ONLY the JSON object.`;
         fallbackResponse.visual_evidence.details = 'No details available';
       }
 
-      return fallbackResponse;
+      return this._normalizeVisionPayload(fallbackResponse);
     }
+  }
+
+  /**
+     * Normalize parsed vision payload to guarantee required fields
+     * @param {Object} payload - Parsed payload from vision model
+     * @returns {Object} Normalized payload
+     * @private
+     */
+  _normalizeVisionPayload(payload = {}) {
+    const normalized = { ...payload };
+
+    normalized.verified = typeof normalized.verified === 'boolean'
+      ? normalized.verified
+      : Boolean(normalized.result === 'verified');
+
+    let confidence = Number(normalized.confidence);
+    if (!Number.isFinite(confidence)) {
+      confidence = normalized.verified ? 85 : 0;
+    }
+    confidence = Math.max(0, Math.min(100, confidence));
+    normalized.confidence = confidence;
+
+    normalized.reason = typeof normalized.reason === 'string'
+      ? normalized.reason
+      : (normalized.message || 'Vision model did not provide a reason');
+
+    const evidence = normalized.visual_evidence ?? {};
+    normalized.visual_evidence = {
+      observed: typeof evidence.observed === 'string' && evidence.observed.trim().length > 0
+        ? evidence.observed
+        : (evidence.text || 'No visual details provided'),
+      matches_criteria: Boolean(evidence.matches_criteria),
+      details: typeof evidence.details === 'string' && evidence.details.trim().length > 0
+        ? evidence.details
+        : 'No additional details provided'
+    };
+
+    if (normalized.verified && !normalized.visual_evidence.matches_criteria) {
+      normalized.visual_evidence.matches_criteria = true;
+    }
+
+    normalized._fallback = Boolean(normalized._fallback);
+
+    return normalized;
   }
 
   /**

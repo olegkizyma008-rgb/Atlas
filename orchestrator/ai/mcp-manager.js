@@ -335,10 +335,11 @@ class MCPServer {
 /**
  * Менеджер для управління множиною MCP серверів
  * OPTIMIZED 2025-10-17: Added tool caching and dynamic loading
+ * UPDATED 2025-10-23: Using MCP_REGISTRY for centralized configuration
  */
 export class MCPManager {
   /**
-   * @param {Object} serversConfig - Конфігурація серверів з AI_BACKEND_CONFIG
+   * @param {Object} serversConfig - Конфігурація серверів (з MCP_REGISTRY)
    */
   constructor(serversConfig) {
     this.config = serversConfig;

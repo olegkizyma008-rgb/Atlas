@@ -1,66 +1,175 @@
 # MCP Dynamic TODO Workflow Prompts
 
-**Version:** 4.0.1  
-**Date:** 2025-10-15  
-**Status:** OPTIMIZED ✅
+**Version:** 5.0.0  
+**Date:** 2025-10-23  
+**Status:** ENGLISH TRANSLATION COMPLETE ✅
+
+## 🌐 ENGLISH TRANSLATION (2025-10-23)
+
+**Major Update:** All MCP prompts have been translated to English for better LLM performance while preserving Ukrainian responses for user-facing content.
+
+### Translation Strategy:
+- **System instructions:** English (clearer for LLM comprehension)
+- **User-facing output:** Ukrainian (reasoning, tts_phrase, success_criteria, etc.)
+- **Metadata:** `language: 'english_prompts_ukrainian_responses'`
+
+### Benefits:
+- ✅ Better LLM understanding of complex technical instructions
+- ✅ Reduced ambiguity in prompt requirements
+- ✅ Maintained Ukrainian user experience
+- ✅ Consistent formatting across all 17 prompt files
+- ✅ Improved JSON schema compliance
+
+---
 
 ## Active Prompts (Used by System)
+
+### Stage 0-MCP: Mode Selection
+**File:** `stage0_mode_selection.js`  
+**Agent:** System  
+**Purpose:** Determine chat vs task mode  
+**Version:** 6.0.0  
+**Language:** English prompts, Ukrainian reasoning
+
+### Stage 0-MCP: Atlas Chat
+**File:** `atlas_chat.js`  
+**Agent:** Atlas  
+**Purpose:** Direct conversational responses without task execution  
+**Version:** 6.0.0  
+**Language:** English prompts, Ukrainian responses
 
 ### Stage 1-MCP: Atlas Creates TODO
 **File:** `atlas_todo_planning_optimized.js`  
 **Agent:** Atlas  
 **Purpose:** Analyze user request and create structured TODO list  
 **Modes:** Standard (1-3 items) | Extended (4-10 items)  
-**Optimization:** Uses `{{AVAILABLE_TOOLS}}` placeholder (278 → 120 LOC)
+**Version:** 5.0.0  
+**Optimization:** Uses `{{AVAILABLE_TOOLS}}` placeholder (278 → 120 LOC)  
+**Language:** English prompts, Ukrainian responses
 
-### Stage 2.1-MCP: Tetyana Plans Tools
-**File:** `tetyana_plan_tools_optimized.js`  
+### Stage 2.0-MCP: Server Selection
+**File:** `stage2_0_server_selection.js`  
 **Agent:** Tetyana  
-**Purpose:** Select optimal MCP tools for TODO item execution  
-**Output:** JSON tool execution plan  
-**Optimization:** Dynamic tools list (313 → 150 LOC)  
-**Critical:** Contains AppleScript tool name fix (applescript_execute)
+**Purpose:** Select 1-2 most relevant MCP servers from 5 available  
+**Version:** 6.0.0  
+**Language:** English prompts
 
-### Stage 2.3-MCP: Grisha Verifies Item
-**File:** `grisha_verify_item_optimized.js`  
+### Stage 2.1-MCP: Tetyana Plans Tools (Specialized)
+**Files:**  
+- `tetyana_plan_tools_playwright.js` - Web automation  
+- `tetyana_plan_tools_filesystem.js` - File operations  
+- `tetyana_plan_tools_applescript.js` - macOS GUI automation  
+- `tetyana_plan_tools_shell.js` - Command-line operations  
+- `tetyana_plan_tools_memory.js` - Knowledge storage  
+**Agent:** Tetyana  
+**Purpose:** Create specialized tool execution plans per MCP server  
+**Version:** 2.0.0  
+**Language:** English prompts, Ukrainian responses  
+**Critical:** All use double underscore format (server__tool)
+
+### Stage 2.1.5-MCP: Tetyana Screenshot and Adjust
+**File:** `tetyana_screenshot_and_adjust.js`  
+**Agent:** Tetyana  
+**Purpose:** Capture screenshot and optionally adjust plan  
+**Version:** 5.0.0  
+**Language:** English prompts, Ukrainian responses
+
+### Stage 2.3-routing: Grisha Verification Eligibility
+**File:** `grisha_verification_eligibility.js`  
 **Agent:** Grisha  
-**Purpose:** Verify TODO item completion against success criteria  
-**Output:** Verification result with evidence  
-**Optimization:** Uses `{{AVAILABLE_TOOLS}}` placeholder (339 → 150 LOC)
+**Purpose:** Determine verification method (visual vs data-driven)  
+**Version:** 2.0.0  
+**Language:** English prompts, Ukrainian responses
 
-### Stage 3-MCP: Atlas Adjusts TODO
-**File:** `atlas_adjust_todo.js`  
+### Stage 2.3-MCP: Grisha Visual Verification
+**File:** `grisha_visual_verify_item.js`  
+**Agent:** Grisha  
+**Purpose:** AI vision-based verification using screenshots  
+**Version:** 6.0.0  
+**Language:** English prompts, Ukrainian responses  
+**Method:** GPT-4 Vision analysis
+
+### Stage 3.5-MCP: Atlas Replan TODO
+**File:** `atlas_replan_todo.js`  
 **Agent:** Atlas  
-**Purpose:** Adjust TODO item on failure (retry/alternative/skip)  
-**Output:** Updated TODO item with new strategy
+**Purpose:** Deep failure analysis and dynamic TODO replanning  
+**Version:** 2.0.0  
+**Language:** English prompts, Ukrainian responses  
+**Input:** Tetyana execution data + Grisha verification feedback
 
 ### Stage 8-MCP: Final Summary
 **File:** `mcp_final_summary.js`  
-**Agent:** System  
-**Purpose:** Generate final execution summary  
+**Agent:** Atlas  
+**Purpose:** Generate comprehensive execution summary  
+**Version:** 5.0.0  
+**Language:** English prompts, Ukrainian summary  
 **Output:** Human-readable summary with metrics
+
+### Validation: LLM Tool Validator
+**File:** `llm_tool_validator.js`  
+**Agent:** System  
+**Purpose:** Validate tool calls for safety and correctness  
+**Version:** 2.0.0  
+**Language:** English prompts
+
+### Utilities: Visual Capture Mode Selector
+**File:** `visual_capture_mode_selector.js`  
+**Agent:** Shared  
+**Purpose:** Select optimal screenshot mode for VisualCaptureService  
+**Version:** 2.0.0  
+**Language:** English prompts
 
 ## File Structure
 
 ```
 prompts/mcp/
-├── index.js                              # Exports all prompts
-├── atlas_todo_planning_optimized.js      # ✅ ACTIVE
-├── tetyana_plan_tools_optimized.js       # ✅ ACTIVE (AppleScript fix)
-├── grisha_verify_item_optimized.js       # ✅ ACTIVE
-├── atlas_adjust_todo.js                  # ✅ ACTIVE
-├── mcp_final_summary.js                  # ✅ ACTIVE
-├── backup/                               # Non-optimized versions (NOT USED)
-│   ├── README.md
-│   ├── atlas_todo_planning.js
-│   ├── tetyana_plan_tools.js
-│   └── grisha_verify_item.js
-└── README.md                             # This file
+├── index.js                                  # Exports all prompts
+├── README.md                                 # This file
+│
+├── Stage 0: Mode Selection & Chat
+│   ├── stage0_mode_selection.js              # ✅ v6.0.0 (English)
+│   └── atlas_chat.js                         # ✅ v6.0.0 (English/Ukrainian)
+│
+├── Stage 1: TODO Planning
+│   └── atlas_todo_planning_optimized.js      # ✅ v5.0.0 (English/Ukrainian)
+│
+├── Stage 2.0: Server Selection
+│   └── stage2_0_server_selection.js          # ✅ v6.0.0 (English)
+│
+├── Stage 2.1: Tool Planning (Specialized)
+│   ├── tetyana_plan_tools_playwright.js      # ✅ v2.0.0 (English/Ukrainian)
+│   ├── tetyana_plan_tools_filesystem.js      # ✅ v2.0.0 (English/Ukrainian)
+│   ├── tetyana_plan_tools_applescript.js     # ✅ v2.0.0 (English/Ukrainian)
+│   ├── tetyana_plan_tools_shell.js           # ✅ v2.0.0 (English/Ukrainian)
+│   └── tetyana_plan_tools_memory.js          # ✅ v2.0.0 (English/Ukrainian)
+│
+├── Stage 2.1.5: Screenshot & Adjust
+│   └── tetyana_screenshot_and_adjust.js      # ✅ v5.0.0 (English/Ukrainian)
+│
+├── Stage 2.3: Verification
+│   ├── grisha_verification_eligibility.js    # ✅ v2.0.0 (English/Ukrainian)
+│   └── grisha_visual_verify_item.js          # ✅ v6.0.0 (English/Ukrainian)
+│
+├── Stage 3.5: Replanning
+│   └── atlas_replan_todo.js                  # ✅ v2.0.0 (English/Ukrainian)
+│
+├── Stage 8: Summary
+│   └── mcp_final_summary.js                  # ✅ v5.0.0 (English/Ukrainian)
+│
+└── Utilities
+    ├── llm_tool_validator.js                 # ✅ v2.0.0 (English)
+    └── visual_capture_mode_selector.js       # ✅ v2.0.0 (English)
 ```
 
-## Optimization Benefits
+## Optimization History
 
-### Token Reduction
+### Version 5.0.0 (2025-10-23): English Translation
+- **All 17 prompts:** Translated to English instructions
+- **User-facing strings:** Preserved in Ukrainian
+- **Consistency:** Unified formatting and structure
+- **Benefits:** Better LLM comprehension, reduced parsing errors
+
+### Version 4.0.1 (2025-10-15): Token Reduction
 - **atlas_todo_planning:** ~57% reduction (278 → 120 LOC)
 - **tetyana_plan_tools:** ~52% reduction (313 → 150 LOC)
 - **grisha_verify_item:** ~56% reduction (339 → 150 LOC)
@@ -77,18 +186,26 @@ Instead of hardcoding 92 tools (~3000 tokens), optimized prompts use:
 - 🔄 Auto-updates when MCP servers change
 - 🎯 More focused prompts (less noise)
 
-## Recent Fixes
+## Recent Updates
 
-### AppleScript Tool Name Fix (2025-10-15)
-**Problem:** LLM generated `{"server": "applescript", "tool": "execute"}`  
-**Solution:** Added critical instructions to `tetyana_plan_tools_optimized.js`  
-**Result:** Now generates `{"server": "applescript", "tool": "applescript_execute"}`
+### English Translation (2025-10-23)
+**Problem:** Mixed Ukrainian/English in prompts caused LLM confusion  
+**Solution:** Translated all system instructions to English  
+**Result:** Clearer LLM comprehension, maintained Ukrainian UX
 
-**Files updated:**
-- ✅ `tetyana_plan_tools_optimized.js` - Added examples and critical section
-- ✅ `atlas_todo_planning_optimized.js` - Clarified rule #9
+**Files updated (17 total):**
+- ✅ All stage prompts (0, 1, 2.0, 2.1, 2.1.5, 2.3, 3.5, 8)
+- ✅ All 5 specialized Tetyana prompts
+- ✅ All Grisha verification prompts
+- ✅ Atlas chat and planning prompts
+- ✅ Utility prompts (validator, visual capture)
 
-**See:** `MCP_APPLESCRIPT_FIX_COMPLETE.md` for details
+### Tool Name Format Fix (2025-10-22)
+**Problem:** LLM generated inconsistent tool names  
+**Solution:** Unified all examples to use `server__tool` format  
+**Result:** 100% compliance with double underscore convention
+
+**See memories for detailed fix history**
 
 ## Usage
 

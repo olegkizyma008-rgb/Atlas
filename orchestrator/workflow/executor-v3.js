@@ -7,6 +7,7 @@ import GlobalConfig from '../../config/atlas-config.js';
 // Centralised modules
 import logger from '../utils/logger.js';
 import telemetry from '../utils/telemetry.js';
+import { HierarchicalIdManager } from './utils/hierarchical-id-manager.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -373,8 +374,25 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
     // TODO plan is now sent correctly via agent_message with agent='atlas' in mcp-todo-manager.js line ~243
 
     // Execute TODO items one by one
-    for (let i = 0; i < todo.items.length; i++) {
+    // FIXED 2025-10-23: Changed to while loop to support restart after replanning
+    let i = 0;
+    while (i < todo.items.length) {
       const item = todo.items[i];
+      
+      // Skip items that were already processed (completed, failed, replanned, skipped)
+      if (item.status === 'completed' || item.status === 'failed' || item.status === 'skipped') {
+        logger.system('executor', `[SKIP] Item ${item.id} already processed (status: ${item.status})`);
+        i++;
+        continue;
+      }
+      
+      // FIXED 2025-10-23: Skip items marked as 'replanned' - new items will replace them
+      if (item.status === 'replanned') {
+        logger.system('executor', `[SKIP] Item ${item.id} was replanned, new items will be processed`);
+        i++;
+        continue;
+      }
+      
       logger.info(`Processing TODO item ${i + 1}/${todo.items.length}: ${item.action}`, {
         sessionId: session.id,
         itemId: item.id
@@ -383,22 +401,45 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       // REMOVED 21.10.2025: Duplicate message - Tetyana already announces via TTS
       // System progress messages removed to avoid duplication with agent messages
 
+      // FIXED 2025-10-23: Enhanced dependency check for hierarchical IDs
       const dependencies = Array.isArray(item.dependencies) ? item.dependencies : [];
       if (dependencies.length > 0) {
+        // Check explicit dependencies
         const unresolvedDependencies = dependencies
-          .map(depId => todo.items.find(todoItem => todoItem.id === depId))
+          .map(depId => todo.items.find(todoItem => String(todoItem.id) === String(depId)))
           .filter(depItem => depItem && depItem.status !== 'completed');
+        
+        // ENHANCED 2025-10-23: Also check if any parent is replanned or blocked
+        // If parent is replanned, children must complete first
+        const parentBlocked = dependencies.some(depId => {
+          const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
+          if (!depItem) return false;
+          
+          // If dependency is replanned, check if its children are complete
+          if (depItem.status === 'replanned') {
+            const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
+            const incompleteChildren = children.filter(child => child.status !== 'completed');
+            return incompleteChildren.length > 0; // Block if children incomplete
+          }
+          
+          return false;
+        });
 
-        if (unresolvedDependencies.length > 0) {
+        if (unresolvedDependencies.length > 0 || parentBlocked) {
           const unresolvedSummary = unresolvedDependencies
             .map(depItem => `#${depItem.id} (${depItem.status || 'unknown'})`)
             .join(', ');
+          
+          const blockReason = parentBlocked 
+            ? 'Parent replanned - waiting for replacement items'
+            : `Dependencies not completed: ${unresolvedSummary}`;
 
-          logger.warn(`Item ${item.id} blocked: dependencies not completed -> ${unresolvedSummary}`, {
+          logger.warn(`Item ${item.id} blocked: ${blockReason}`, {
             sessionId: session.id,
             itemId: item.id,
             dependencies: dependencies,
-            unresolvedSummary
+            unresolvedSummary,
+            parentBlocked
           });
 
           item.status = 'blocked';
@@ -459,6 +500,12 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             itemId: item.id
           });
           await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        }
+        
+        // FIXED 2025-10-23: Log attempt details for debugging sequential execution
+        logger.system('executor', `[EXEC] Item ${item.id} attempt ${attempt}/${maxAttempts}: "${item.action}"`);
+        if (dependencies.length > 0) {
+          logger.system('executor', `[EXEC]   Dependencies: ${dependencies.join(', ')}`);
         }
 
         try {
@@ -765,13 +812,20 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                 sessionId: session.id
               });
 
-              // FIXED 2025-10-20: Assign IDs to new items before inserting
-              let nextId = Math.max(...todo.items.map(it => it.id)) + 1;
-              replanResult.new_items.forEach(newItem => {
-                newItem.id = nextId++;
+              // FIXED 2025-10-23: Generate hierarchical IDs (2 → 2.1, 2.2, 2.3)
+              const parentId = String(item.id);
+              logger.system('executor', `[REPLAN] Generating child IDs for parent ${parentId}`);
+              
+              replanResult.new_items.forEach((newItem, idx) => {
+                // Generate next child ID (2.1, 2.2, etc. or 2.2.1, 2.2.2 for nested)
+                const childId = HierarchicalIdManager.generateChildId(parentId, todo.items.concat(replanResult.new_items.slice(0, idx)));
+                newItem.id = childId;
                 newItem.status = 'pending';
                 newItem.attempt = 0;
                 newItem.max_attempts = newItem.max_attempts || item.max_attempts || 2;
+                newItem.parent_id = parentId; // Track parent for debugging
+                
+                logger.system('executor', `[REPLAN]   Generated child ID: ${childId}`);
               });
 
               // Insert new items into TODO list after current item
@@ -781,6 +835,13 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
 
                 logger.info(`TODO list updated: ${todo.items.length} total items`, {
                   sessionId: session.id
+                });
+                
+                // FIXED 2025-10-23: Log new items with hierarchical structure
+                logger.system('executor', `[REPLAN] Inserted ${replanResult.new_items.length} new items after position ${currentIndex}:`);
+                replanResult.new_items.forEach((newItem, idx) => {
+                  const formatted = HierarchicalIdManager.formatForDisplay(newItem.id, true);
+                  logger.system('executor', `[REPLAN] ${formatted} ${newItem.action}`);
                 });
               }
 
@@ -800,7 +861,8 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                 })}\n\n`);
               }
 
-              // Exit retry loop - continue with new items
+              // FIXED 2025-10-23: Exit retry loop and CONTINUE with next item in main loop
+              // The new items were inserted after current item, so i++ will process them
               break;
             } else if (replanResult.strategy === 'skip_and_continue') {
               // Atlas decided to skip this item
@@ -838,10 +900,15 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
                 })}\n\n`);
               }
 
+              // FIXED 2025-10-23: Move to next item in main loop
               break; // Exit retry loop
             } else {
               // No replan - retry with simple adjustment
               replanningAttempts++;
+              
+              // FIXED 2025-10-23: Log replanning attempt
+              logger.system('executor', `[REPLAN-RETRY] Item ${item.id} replanning attempt ${replanningAttempts}/${maxReplanningAttempts}`);
+              
               
               logger.workflow('stage', 'atlas', `Stage 3-MCP: Simple adjustment for item ${item.id} (attempt ${replanningAttempts}/${maxReplanningAttempts})`, {
                 sessionId: session.id
@@ -964,6 +1031,9 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
           })}\n\n`);
         }
       }
+      
+      // FIXED 2025-10-23: Move to next item in main loop
+      i++;
     }
 
     // Stage 8-MCP: Final Summary

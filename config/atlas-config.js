@@ -55,6 +55,13 @@ import {
   getModelByType
 } from './models-config.js';
 
+import {
+  MCP_REGISTRY,
+  getMCPServer,
+  getMCPServerNames,
+  isMCPServerEnabled
+} from './mcp-registry.js';
+
 function isServiceEnabled(serviceName) {
   const service = NETWORK_CONFIG.services?.[serviceName];
   return Boolean(service && service.host && service.port);
@@ -108,6 +115,7 @@ const AtlasConfig = {
   VISION_CONFIG,
   AI_BACKEND_CONFIG,
   MCP_SERVERS,
+  MCP_REGISTRY,
   AGENTS,
   WORKFLOW_STAGES,
   WORKFLOW_CONDITIONS,

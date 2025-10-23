@@ -461,7 +461,14 @@ export const AI_BACKEND_CONFIG = {
   }
 };
 
-export const MCP_SERVERS = AI_BACKEND_CONFIG.providers.mcp.servers;
+// DEPRECATED: Use MCP_REGISTRY from mcp-registry.js instead
+// This export is kept for backward compatibility only
+import { MCP_REGISTRY } from './mcp-registry.js';
+
+export const MCP_SERVERS = MCP_REGISTRY.getAllServers();
+
+// Update AI_BACKEND_CONFIG to use registry
+AI_BACKEND_CONFIG.providers.mcp.servers = MCP_REGISTRY.getAllServers();
 
 export function getModelForStage(stageName) {
   const modelType = AI_MODEL_CONFIG.stageModels[stageName] || AI_MODEL_CONFIG.defaultModel;

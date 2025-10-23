@@ -6,9 +6,11 @@
  * - MCPExtensionManager: Tool discovery and management
  * - ToolInspectionManager: Security and validation
  * - ToolDispatcher: Execution and routing
+ * - ValidationPipeline: Multi-level validation with early rejection (NEW 2025-10-23)
  * 
- * @version 5.0.0
- * @date 2025-10-20
+ * @version 6.0.0
+ * @date 2025-10-23
+ * @updated Added ValidationPipeline integration
  */
 
 import { MCPExtensionManager } from './mcp-extension-manager.js';
@@ -18,6 +20,11 @@ import { ToolHistoryManager } from './tool-history-manager.js';
 import { ToolInspectionManager } from './tool-inspection-manager.js';
 import { RepetitionInspector } from './inspectors/repetition-inspector.js';
 import { LLMToolValidator } from './llm-tool-selector.js';  // Renamed from LLMToolSelector
+import { ValidationPipeline } from './validation/validation-pipeline.js';
+import { FormatValidator } from './validation/format-validator.js';
+import { HistoryValidator } from './validation/history-validator.js';
+import { SchemaValidator } from './validation/schema-validator.js';
+import { MCPSyncValidator } from './validation/mcp-sync-validator.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -34,6 +41,7 @@ export class TetyanaToolSystem {
         this.dispatcher = null;
         this.historyManager = null;  // NEW: Tool history tracking
         this.llmValidator = null;  // NEW: LLM-based validation (ALWAYS ACTIVE)
+        this.validationPipeline = null;  // NEW 2025-10-23: Multi-level validation pipeline
         this.initialized = false;
         this.mode = 'task'; // 'task' or 'chat'
     }
@@ -67,8 +75,12 @@ export class TetyanaToolSystem {
             logger.system('tetyana-tool-system', '🔍 Enhanced Inspection Manager initialized');
 
             // STEP 4: Initialize Tool History Manager
-            this.historyManager = new ToolHistoryManager({ maxSize: 100 });
-            logger.system('tetyana-tool-system', '📊 Tool History Manager initialized');
+            this.historyManager = new ToolHistoryManager({
+                maxSize: 1000,
+                antiRepetitionWindow: 100,
+                maxFailuresBeforeBlock: 3
+            });
+            logger.system('tetyana-tool-system', '📊 Tool History Manager initialized (v2.0 with labels)');
 
             // STEP 4.5: Initialize LLM Tool Validator (ALWAYS ACTIVE if LLM client available)
             if (this.llmClient) {
@@ -77,6 +89,21 @@ export class TetyanaToolSystem {
             } else {
                 logger.warn('tetyana-tool-system', '⚠️ LLM client not provided, LLM validation disabled');
             }
+
+            // STEP 4.6: Initialize Validation Pipeline (NEW 2025-10-23)
+            this.validationPipeline = new ValidationPipeline({
+                mcpManager: this.mcpManager,
+                historyManager: this.historyManager,
+                llmValidator: this.llmValidator
+            });
+
+            // Register validators
+            this.validationPipeline.registerValidator('format', new FormatValidator());
+            this.validationPipeline.registerValidator('history', new HistoryValidator(this.historyManager));
+            this.validationPipeline.registerValidator('schema', new SchemaValidator(this.mcpManager));
+            this.validationPipeline.registerValidator('mcpSync', new MCPSyncValidator(this.mcpManager));
+            
+            logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized (4 validators registered)');
 
             // STEP 5: Initialize Dispatcher
             this.dispatcher = new ToolDispatcher(
@@ -148,36 +175,60 @@ export class TetyanaToolSystem {
 
     /**
      * Validate tool calls before execution
+     * UPDATED 2025-10-23: Using ValidationPipeline for multi-level validation
      * 
      * @param {Array} toolCalls - Tool calls to validate
-     * @returns {Object} Validation result
+     * @param {Object} context - Validation context
+     * @returns {Promise<Object>} Validation result
      */
-    validateToolCalls(toolCalls) {
+    async validateToolCalls(toolCalls, context = {}) {
         this._ensureInitialized();
 
-        return this.extensionManager.validateToolCalls(toolCalls);
+        // Run through ValidationPipeline
+        const pipelineResult = await this.validationPipeline.validate(toolCalls, context);
+
+        if (!pipelineResult.valid) {
+            return {
+                valid: false,
+                errors: pipelineResult.errors,
+                warnings: pipelineResult.warnings,
+                rejectedAt: pipelineResult.rejectedAt,
+                suggestions: this._extractSuggestions(pipelineResult.errors)
+            };
+        }
+
+        // Return success with corrections if any
+        return {
+            valid: true,
+            toolCalls: pipelineResult.correctedCalls || toolCalls,
+            corrections: pipelineResult.corrections,
+            warnings: pipelineResult.warnings,
+            metadata: pipelineResult.metadata
+        };
     }
 
     /**
-     * Execute tool calls with full inspection pipeline
-     * Main execution method
-     * 
-     * @param {Array} toolCalls - Tool calls to execute
-     * @param {Object} context - Execution context
-     * @returns {Promise<Object>} Execution results
+     * Extract suggestions from validation errors
+     * @private
      */
-    async executeToolCalls(toolCalls, context = {}) {
-        this._ensureInitialized();
+    _extractSuggestions(errors) {
+        return errors
+            .map(e => e.suggestion)
+            .filter(Boolean);
+    }
 
-        logger.system('tetyana-tool-system', 
-            `⚙️ Executing ${toolCalls.length} tool calls...`);
-
-        // Add mode to context
-        context.mode = this.mode;
-
-        const startTime = Date.now();
-
-        // STEP 1: Run repetition inspection
+    /**
+     * LEGACY: Validate tool calls (old method for backward compatibility)
+     * @deprecated Use validateToolCalls() instead
+     */
+    async _legacyValidateToolCalls(toolCalls, context = {}) {
+        // Basic format validation
+        if (!Array.isArray(toolCalls) || toolCalls.length === 0) {
+            return {
+                valid: false,
+                errors: ['tool_calls must be a non-empty array']
+            };
+        } // STEP 1: Run repetition inspection
         const inspectionResults = await this.newInspectionManager.inspectTools(toolCalls, context);
         const processedResults = this.newInspectionManager.processResults(inspectionResults);
 
@@ -286,14 +337,13 @@ export class TetyanaToolSystem {
                 if (toolCall) {
                     const duration = toolResult.duration || (Date.now() - startTime) / toolCalls.length;
                     
-                    this.historyManager.recordToolCall(
-                        toolCall.server,
-                        toolCall.tool,
-                        toolCall.parameters,
-                        toolResult.success || false,
+                    // UPDATED 2025-10-23: Use recordExecution with proper metadata
+                    this.historyManager.recordExecution(toolCall, {
+                        success: toolResult.success || false,
+                        error: toolResult.error,
                         duration,
-                        { context: context.itemId || 'unknown' }
-                    );
+                        sessionId: context.sessionId || context.itemId || 'unknown'
+                    });
                 }
             }
         }
@@ -456,6 +506,24 @@ export class TetyanaToolSystem {
     getHistoryStatistics() {
         this._ensureInitialized();
         return this.historyManager.getStatistics();
+    }
+
+    /**
+     * Get validation pipeline metrics
+     * NEW 2025-10-23: Validation performance metrics
+     */
+    getValidationMetrics() {
+        this._ensureInitialized();
+        return this.validationPipeline.getMetrics();
+    }
+
+    /**
+     * Get validation pipeline status
+     * NEW 2025-10-23: Pipeline configuration and status
+     */
+    getValidationStatus() {
+        this._ensureInitialized();
+        return this.validationPipeline.getStatus();
     }
 
     /**

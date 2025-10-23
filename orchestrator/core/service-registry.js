@@ -233,9 +233,12 @@ export function registerMCPWorkflowServices(container) {
 
     // MCPManager - керування MCP servers
     // FIXED 14.10.2025 - Create instance synchronously, initialize in lifecycle
+    // UPDATED 2025-10-23 - Using MCP_REGISTRY for centralized configuration
     container.singleton('mcpManager', (c) => {
         const config = c.resolve('config');
-        const serversConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.servers || {};
+        // Use MCP_REGISTRY instead of AI_BACKEND_CONFIG
+        const serversConfig = config.MCP_REGISTRY?.getEnabledServers() || 
+                             config.AI_BACKEND_CONFIG?.providers?.mcp?.servers || {};
 
         // Create MCPManager instance (doesn't start servers yet)
         // Actual initialization (spawning servers) happens in onInit hook

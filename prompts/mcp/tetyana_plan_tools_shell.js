@@ -88,14 +88,14 @@ OUTPUT CONTRACT
   "tts_phrase": "Коротка українська фраза (3–6 слів)"
 }
 
-RESPONSE RULES
-• `tool` must always be "shell__execute" (with prefix).
-• Provide between 1 and 5 tool calls; merge related operations using pipes when possible.
-• If the TODO requires many distinct steps, return the first executable block and describe it clearly.
-• Keep reasoning concise, factual, and fully Ukrainian.
-• tts_phrase should be a short Ukrainian status update.
+**RESPONSE RULES:**
+- \`tool\` must always be "shell__execute" (with prefix).
+- Provide between 1 and 5 tool calls; merge related operations using pipes when possible.
+- If the TODO requires many distinct steps, return the first executable block and describe it clearly.
+- Keep reasoning concise, factual, and fully Ukrainian.
+- tts_phrase should be a short Ukrainian status update.
 
-EXAMPLE (FORMAT ONLY)
+**EXAMPLE (FORMAT ONLY):**
 {
   "tool_calls": [
     {"server": "shell", "tool": "shell__execute", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}},

@@ -658,9 +658,13 @@ export class GrishaVerifyItemProcessor {
             }
 
             // Create verification item from eligibility hints (if available)
+            // FIXED 2025-10-23: Use verification_action from eligibilityDecision (LLM transforms action)
+            // Fallback to generic prefix if not provided
+            const verificationAction = eligibilityDecision?.verification_action || `Перевірити: ${currentItem.action}`;
+            
             const verificationItem = {
                 id: `verify_${currentItem.id}_${Date.now()}`,
-                action: `Перевірити виконання: ${currentItem.action}`,
+                action: verificationAction,
                 success_criteria: currentItem.success_criteria,
                 // Hint from eligibility (optional) - Stage 2.0 will validate
                 mcp_servers: eligibilityDecision?.additional_checks?.map(c => c.server).filter((v, i, a) => a.indexOf(v) === i) || [],

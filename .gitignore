@@ -250,11 +250,8 @@ third_party/whisper.cpp.upstream/
 unused_files/goose/mcp/temp_servers/
 unused_files/goose_mcp_servers/mcp/temp_servers/
 
-# Logs directory - ignore all log files
+# Logs directory - ignore completely
 logs/
-logs/**/*.log
-logs/**/*.pid
 
-# Allow orchestrator workflow log for debugging and analysis
-!logs/workflow.log
-!logs/orchestrator.log
+# Environment file - ignore (contains secrets)
+.env

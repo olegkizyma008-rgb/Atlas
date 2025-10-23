@@ -33,9 +33,9 @@ import tetyanaPlanToolsShell from './tetyana_plan_tools_shell.js';  // NEW 18.10
 import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.10.2025 - Memory specialized
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
 import visualCaptureModeSelector from './visual_capture_mode_selector.js';  // NEW 22.10.2025 - Screenshot mode selection
-import grishaVerifyItem from './grisha_verify_item_optimized.js';  // OPTIMIZED 15.10.2025 (legacy MCP tools)
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
 import grishaVerificationEligibility from './grisha_verification_eligibility.js';  // NEW 22.10.2025 - Verification routing
+// ARCHIVED 2025-10-23: grisha_verify_item_optimized.js moved to archive/legacy-prompts-2025-10-23/ (replaced by MCP workflow)
 // ARCHIVED 2025-10-22: atlas_adjust_todo.js moved to archive/legacy-processors-2025-10-22/
 // import atlasAdjustTodo from './atlas_adjust_todo.js';
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
@@ -70,13 +70,10 @@ export const MCP_PROMPTS = {
     VISUAL_CAPTURE_MODE_SELECTOR: visualCaptureModeSelector,
 
     // Stage 2.3-MCP: Grisha verifies item (VISUAL VERIFICATION - NEW 17.10.2025)
-    GRISHA_VERIFY_ITEM: grishaVisualVerifyItem,  // CHANGED: Now uses visual AI verification
+    GRISHA_VERIFY_ITEM: grishaVisualVerifyItem,  // Visual AI verification
     
     // Stage 2.3-routing: Grisha verification eligibility (NEW 22.10.2025)
     GRISHA_VERIFICATION_ELIGIBILITY: grishaVerificationEligibility,
-    
-    // Legacy MCP tools verification (deprecated)
-    GRISHA_VERIFY_ITEM_LEGACY: grishaVerifyItem,
 
     // Stage 3.6-MCP: Atlas deep replan (NEW 18.10.2025) - Analyze failure and rebuild TODO
     ATLAS_REPLAN_TODO: atlasReplanTodo,
@@ -104,7 +101,6 @@ export {
     tetyanaPlanToolsMemory,
     tetyanaScreenshotAndAdjust,
     visualCaptureModeSelector,  // NEW 22.10.2025
-    grishaVerifyItem,
     grishaVisualVerifyItem,  // NEW 17.10.2025
     grishaVerificationEligibility,  // NEW 22.10.2025
     // atlasAdjustTodo - ARCHIVED 2025-10-22

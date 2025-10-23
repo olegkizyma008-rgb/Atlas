@@ -1092,6 +1092,8 @@ Create precise MCP tool execution plan.
 
       // NEW 18.10.2025 - Use passed modelConfig from retry loop
       let apiResponse;
+      // FIXED 2025-10-23: Move maxRetries outside try block for catch block access
+      const maxRetries = 3;
       try {
         // LOG MODEL SELECTION
         this.logger.system('mcp-todo', `[TODO] Planning tools with model: ${modelConfig.model} (temp: ${modelConfig.temperature}, max_tokens: ${modelConfig.max_tokens})`);
@@ -1147,7 +1149,6 @@ Create precise MCP tool execution plan.
 
         // Add retry logic for transient failures
         let retryCount = 0;
-        const maxRetries = 3;
         
         while (retryCount < maxRetries) {
           try {

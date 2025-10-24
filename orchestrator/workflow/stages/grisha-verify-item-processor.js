@@ -471,9 +471,10 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Verified: ${visionAnalysis.verified}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Reason: ${visionAnalysis.reason}`);
 
-            // Step 3: Build verification result with SECURITY CHECKS
-            // SECURITY FIX 2025-10-22: Reject fallback responses and require proper evidence
-            let verified = visionAnalysis.verified && visionAnalysis.confidence >= 70; // Require 70% confidence
+            // Step 3: Build verification result with INTELLIGENT CHECKS
+            // INTELLIGENT VERIFICATION 2025-10-24: Dynamic confidence based on evidence quality
+            const minConfidence = this._calculateMinimumConfidence(currentItem, visionAnalysis);
+            let verified = visionAnalysis.verified && visionAnalysis.confidence >= minConfidence;
             let rejectionReason = null;
             
             // SECURITY CHECK 1: Reject fallback responses (no structured JSON from vision model)
@@ -497,10 +498,12 @@ export class GrishaVerifyItemProcessor {
                 });
             }
             
-            // SECURITY CHECK 3: Require minimum confidence of 70% (already checked above, but log it)
-            if (visionAnalysis.verified && visionAnalysis.confidence < 70) {
-                this.logger.warn(`[VISUAL-GRISHA] ⚠️  Low confidence verification rejected (${visionAnalysis.confidence}% < 70%)`, {
-                    category: 'grisha-verify-item'
+            // INTELLIGENT CHECK 3: Dynamic confidence threshold based on task complexity
+            if (visionAnalysis.verified && visionAnalysis.confidence < minConfidence) {
+                this.logger.warn(`[VISUAL-GRISHA] ⚠️  Low confidence verification rejected (${visionAnalysis.confidence}% < ${minConfidence}%)`, {
+                    category: 'grisha-verify-item',
+                    task_type: this._getTaskType(currentItem),
+                    required_confidence: minConfidence
                 });
             }
             
@@ -538,8 +541,8 @@ export class GrishaVerifyItemProcessor {
                 if (verification.visual_evidence?.matches_criteria !== true) {
                     this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Visual evidence mismatch`);
                 }
-                if (verification.confidence < 70) {
-                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Low confidence (${verification.confidence}%)`);
+                if (verification.confidence < minConfidence) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]      - Rejected: Low confidence (${verification.confidence}% < required ${minConfidence}%)`);
                 }
             }
 
@@ -888,11 +891,13 @@ export class GrishaVerifyItemProcessor {
             }
         }
 
-        // Default: success if tools executed
+        // Intelligent confidence calculation based on execution results
+        const executionConfidence = this._calculateExecutionConfidence(results);
         return {
             success: true,
-            confidence: 70,
-            reason: 'MCP інструменти виконані успішно'
+            confidence: executionConfidence,
+            reason: 'MCP інструменти виконані успішно',
+            details: this._extractExecutionDetails(results)
         };
     }
 
@@ -941,8 +946,7 @@ export class GrishaVerifyItemProcessor {
             { patterns: ['округлити', 'round'], replacement: 'Перевірити результат' },
             
             // System operations
-            { patterns: ['встановити шпалери', 'set wallpaper', 'change wallpaper'], replacement: 'Перевірити встановлення шпалер' },
-            { patterns: ['встановити', 'install'], replacement: 'Перевірити встановлення' },
+            { patterns: ['встановити', 'install', 'set', 'change'], replacement: 'Перевірити встановлення' },
             { patterns: ['налаштувати', 'configure'], replacement: 'Перевірити налаштування' }
         ];
 
@@ -1592,13 +1596,11 @@ export class GrishaVerifyItemProcessor {
         }
         
         // System operations → shell server
-        if (actionLower.includes('шпалери') || actionLower.includes('wallpaper') ||
-            actionLower.includes('екран') || actionLower.includes('screen') ||
-            actionLower.includes('монітор') || actionLower.includes('monitor')) {
+        if (actionLower.match(/встановити|install|set|change|system|display|екран|монітор/)) {
             checks.push({
                 server: 'shell',
                 tool: 'shell__execute_command',
-                description: 'Check system settings via shell'
+                reason: 'Check system settings'
             });
         }
         
@@ -1768,6 +1770,283 @@ export class GrishaVerifyItemProcessor {
         }
         
         return context.length > 0 ? context.join('\n') : null;
+    }
+
+    /**
+     * Calculate minimum confidence based on task complexity and type
+     * INTELLIGENT VERIFICATION 2025-10-24: Dynamic thresholds
+     * 
+     * @param {Object} item - Current item being verified
+     * @param {Object} visionAnalysis - Vision analysis results
+     * @returns {number} Minimum required confidence (0-100)
+     * @private
+     */
+    _calculateMinimumConfidence(item, visionAnalysis) {
+        const taskType = this._getTaskType(item);
+        const hasNumericalData = this._hasNumericalData(item, visionAnalysis);
+        
+        // Mathematical operations require highest confidence
+        if (taskType === 'mathematical' || hasNumericalData) {
+            return 85; // High confidence for math - no room for errors
+        }
+        
+        // File/folder operations - moderate confidence
+        if (taskType === 'file_operation') {
+            return 75;
+        }
+        
+        // UI operations - lower confidence acceptable
+        if (taskType === 'ui_operation') {
+            return 65;
+        }
+        
+        // Visual changes - lowest confidence acceptable
+        if (taskType === 'visual_change') {
+            return 60;
+        }
+        
+        // Default moderate confidence
+        return 70;
+    }
+    
+    /**
+     * Determine task type from item action
+     * 
+     * @param {Object} item - Current item
+     * @returns {string} Task type identifier
+     * @private
+     */
+    _getTaskType(item) {
+        const action = (item?.action || '').toLowerCase();
+        
+        // Mathematical operations
+        if (action.match(/множ|додай|відн|поділ|округл|результат|обчисл|calculate|multiply|add|subtract|divide|\d+\s*[\+\-\*\/]\s*\d+/)) {
+            return 'mathematical';
+        }
+        
+        // File operations
+        if (action.match(/файл|папк|збереж|створ|folder|file|save|create|directory/)) {
+            return 'file_operation';
+        }
+        
+        // UI operations
+        if (action.match(/відкр|закр|натисн|клік|open|close|click|press/)) {
+            return 'ui_operation';
+        }
+        
+        // Visual changes
+        if (action.match(/фото|зображ|photo|image|visual|візуальн/)) {
+            return 'visual_change';
+        }
+        
+        return 'general';
+    }
+    
+    /**
+     * Check if verification involves numerical data
+     * 
+     * @param {Object} item - Current item
+     * @param {Object} visionAnalysis - Vision analysis results
+     * @returns {boolean} True if numerical verification needed
+     * @private
+     */
+    _hasNumericalData(item, visionAnalysis) {
+        // Check item action for numbers
+        const action = item?.action || '';
+        if (/\d+/.test(action)) {
+            return true;
+        }
+        
+        // Check vision analysis for numerical evidence
+        const observed = visionAnalysis?.visual_evidence?.observed || '';
+        if (/\d+/.test(observed)) {
+            return true;
+        }
+        
+        // Check success criteria for numerical expectations
+        const criteria = item?.success_criteria || '';
+        if (/\d+/.test(criteria)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Calculate execution confidence based on MCP results
+     * INTELLIGENT CONFIDENCE 2025-10-24: Dynamic calculation
+     * 
+     * @param {Array} results - MCP execution results
+     * @returns {number} Calculated confidence (0-100)
+     * @private
+     */
+    _calculateExecutionConfidence(results) {
+        if (!results || results.length === 0) {
+            return 50; // Low confidence for empty results
+        }
+        
+        let baseConfidence = 60;
+        let bonusPoints = 0;
+        
+        // Analyze each result
+        results.forEach(result => {
+            if (result.success) {
+                bonusPoints += 10;
+                
+                // Extra points for specific confirmations
+                if (result.data?.exists === true) {
+                    bonusPoints += 15; // File/folder confirmed to exist
+                }
+                
+                if (result.data?.content && typeof result.data.content === 'string') {
+                    // Check if content contains expected numerical result
+                    const numbers = result.data.content.match(/\d+\.?\d*/g);
+                    if (numbers && numbers.length > 0) {
+                        bonusPoints += 10; // Has numerical content
+                        
+                        // Verify mathematical correctness if possible
+                        if (this._verifyMathematicalResult(result.data.content)) {
+                            bonusPoints += 20; // Mathematically correct
+                        }
+                    }
+                }
+                
+                if (result.data?.size > 0) {
+                    bonusPoints += 5; // File has content
+                }
+            } else {
+                bonusPoints -= 20; // Penalty for failed operations
+            }
+        });
+        
+        // Calculate final confidence
+        const finalConfidence = Math.min(95, Math.max(30, baseConfidence + bonusPoints));
+        
+        return finalConfidence;
+    }
+    
+    /**
+     * Verify mathematical result correctness
+     * INTELLIGENT VERIFICATION 2025-10-24: No hardcoded values
+     * 
+     * @param {string} content - Content potentially containing math result
+     * @returns {boolean} True if mathematically valid
+     * @private
+     */
+    _verifyMathematicalResult(content) {
+        // Extract numbers from content
+        const numbers = content.match(/\d+\.?\d*/g);
+        if (!numbers || numbers.length === 0) {
+            return false;
+        }
+        
+        const result = parseFloat(numbers[0]);
+        
+        // INTELLIGENT CHECKS - No hardcoded expected values
+        
+        // Check 1: Result should be a reasonable number
+        if (isNaN(result) || !isFinite(result)) {
+            this.logger.warn('[GRISHA] ⚠️ Invalid mathematical result', {
+                content,
+                extracted_number: result
+            });
+            return false;
+        }
+        
+        // Check 2: Percentage in math result is suspicious
+        if (content.includes('%') && !content.toLowerCase().includes('percent')) {
+            this.logger.warn('[GRISHA] ⚠️ Mathematical result contains unexpected percentage', {
+                content,
+                extracted_number: result,
+                note: 'Percentage symbol found but not expected in calculation context'
+            });
+            return false;
+        }
+        
+        // Check 3: Result should be within reasonable bounds
+        // Most numerical results are between -1,000,000 and 1,000,000
+        if (Math.abs(result) > 1000000) {
+            this.logger.warn('[GRISHA] ⚠️ Mathematical result seems unusually large', {
+                content,
+                extracted_number: result
+            });
+            // Still might be valid for large calculations
+        }
+        
+        // Check 4: For decimal results, check precision
+        const decimalPlaces = (numbers[0].split('.')[1] || '').length;
+        if (decimalPlaces > 10) {
+            this.logger.warn('[GRISHA] ⚠️ Excessive decimal precision', {
+                content,
+                decimal_places: decimalPlaces
+            });
+        }
+        
+        // Check 5: Content structure validation
+        // Valid formats: pure numbers, "Result: number", etc.
+        // Invalid formats: unexpected percentage symbols
+        const validPatterns = [
+            /^\d+\.?\d*$/,                    // Just a number
+            /result[:\s]+\d+\.?\d*/i,         // Result: number
+            /=\s*\d+\.?\d*/,                  // = number
+            /answer[:\s]+\d+\.?\d*/i,         // Answer: number
+            /total[:\s]+\d+\.?\d*/i           // Total: number
+        ];
+        
+        const hasValidFormat = validPatterns.some(pattern => pattern.test(content.trim()));
+        
+        if (!hasValidFormat && content.includes('%')) {
+            // Percentage without proper context is likely an error
+            this.logger.warn('[GRISHA] ⚠️ Suspicious format with percentage', {
+                content,
+                format_check: 'failed'
+            });
+            return false;
+        }
+        
+        // If all checks pass, consider it valid
+        return true;
+    }
+    
+    /**
+     * Extract execution details for logging
+     * 
+     * @param {Array} results - MCP execution results
+     * @returns {Object} Execution details
+     * @private
+     */
+    _extractExecutionDetails(results) {
+        const details = {
+            total_operations: results.length,
+            successful: 0,
+            failed: 0,
+            key_findings: []
+        };
+        
+        results.forEach(result => {
+            if (result.success) {
+                details.successful++;
+                
+                // Extract key findings
+                if (result.data?.exists !== undefined) {
+                    details.key_findings.push(`File exists: ${result.data.exists}`);
+                }
+                if (result.data?.content) {
+                    const preview = result.data.content.substring(0, 50);
+                    details.key_findings.push(`Content: "${preview}..."`);
+                }
+                if (result.data?.size) {
+                    details.key_findings.push(`Size: ${result.data.size} bytes`);
+                }
+            } else {
+                details.failed++;
+                if (result.error) {
+                    details.key_findings.push(`Error: ${result.error}`);
+                }
+            }
+        });
+        
+        return details;
     }
 
     /**

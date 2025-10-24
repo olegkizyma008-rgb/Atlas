@@ -1104,7 +1104,7 @@ export class VisionAnalysisService {
       const fallbackResponse = {
         verified: false, // SECURITY: Always false for text fallback
         confidence: 0,   // SECURITY: Zero confidence without structured evidence
-        reason: 'Vision model returned unstructured text instead of JSON. Cannot verify without structured evidence. ' + content.substring(0, 400),
+        reason: 'Vision model returned unstructured text instead of JSON. Cannot verify without structured evidence.',
         visual_evidence: {
           observed: 'Unable to extract structured visual details from text response',
           matches_criteria: false, // SECURITY: Always false without structured proof
@@ -1145,9 +1145,19 @@ export class VisionAnalysisService {
       ? normalized.verified
       : Boolean(normalized.result === 'verified');
 
+    // INTELLIGENT CONFIDENCE 2025-10-24: Dynamic confidence calculation
     let confidence = Number(normalized.confidence);
     if (!Number.isFinite(confidence)) {
-      confidence = normalized.verified ? 85 : 0;
+      // Calculate confidence based on evidence quality
+      if (normalized._fallback) {
+        confidence = 0; // No confidence for fallback responses
+      } else if (normalized.visual_evidence?.matches_criteria) {
+        confidence = 85; // High confidence with matching evidence
+      } else if (normalized.verified) {
+        confidence = 70; // Medium confidence if verified but no explicit match
+      } else {
+        confidence = 30; // Low confidence for unverified
+      }
     }
     confidence = Math.max(0, Math.min(100, confidence));
     normalized.confidence = confidence;

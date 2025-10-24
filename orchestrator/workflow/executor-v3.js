@@ -404,6 +404,12 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       // FIXED 2025-10-23: Enhanced dependency check for hierarchical IDs
       const dependencies = Array.isArray(item.dependencies) ? item.dependencies : [];
       if (dependencies.length > 0) {
+        // FIXED 2025-10-24: Track blocked item check count to prevent infinite loop
+        if (!item.blocked_check_count) {
+          item.blocked_check_count = 0;
+        }
+        item.blocked_check_count++;
+        
         // Check explicit dependencies
         const unresolvedDependencies = dependencies
           .map(depId => todo.items.find(todoItem => String(todoItem.id) === String(depId)))
@@ -426,6 +432,68 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
         });
 
         if (unresolvedDependencies.length > 0 || parentBlocked) {
+          // FIXED 2025-10-24: After 5 blocked checks, try to resolve dependency issue
+          if (item.blocked_check_count >= 5) {
+            logger.warn(`Item ${item.id} blocked ${item.blocked_check_count} times - attempting resolution`, {
+              sessionId: session.id,
+              itemId: item.id
+            });
+            
+            // Try to update dependencies to children of replanned parents
+            let dependenciesUpdated = false;
+            const newDependencies = [];
+            
+            for (const depId of dependencies) {
+              const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
+              
+              if (depItem && depItem.status === 'replanned') {
+                // Replace dependency with children
+                const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
+                if (children.length > 0) {
+                  newDependencies.push(...children.map(c => c.id));
+                  dependenciesUpdated = true;
+                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: replacing dep ${depId} with children ${children.map(c => c.id).join(', ')}`);
+                }
+              } else {
+                newDependencies.push(depId);
+              }
+            }
+            
+            if (dependenciesUpdated) {
+              item.dependencies = newDependencies;
+              item.blocked_check_count = 0; // Reset counter
+              logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: updated dependencies to ${newDependencies.join(', ')}`);
+              // Continue to re-check with new dependencies
+              continue;
+            }
+            
+            // If can't resolve after 10 checks, skip item
+            if (item.blocked_check_count >= 10) {
+              logger.error(`Item ${item.id} blocked ${item.blocked_check_count} times - SKIPPING to prevent infinite loop`, {
+                sessionId: session.id,
+                itemId: item.id
+              });
+              
+              item.status = 'skipped';
+              item.skip_reason = 'Blocked too many times - infinite loop protection';
+              
+              if (wsManager) {
+                try {
+                  wsManager.broadcastToSubscribers('chat', 'chat_message', {
+                    message: `⚠️ Пункт ${item.id} пропущено через нерозв'язані залежності`,
+                    messageType: 'error',
+                    sessionId: session.id,
+                    timestamp: new Date().toISOString()
+                  });
+                } catch (error) {
+                  logger.warn(`Failed to send skip WebSocket message: ${error.message}`);
+                }
+              }
+              
+              continue;
+            }
+          }
+          
           const unresolvedSummary = unresolvedDependencies
             .map(depItem => `#${depItem.id} (${depItem.status || 'unknown'})`)
             .join(', ');
@@ -434,7 +502,7 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
             ? 'Parent replanned - waiting for replacement items'
             : `Dependencies not completed: ${unresolvedSummary}`;
 
-          logger.warn(`Item ${item.id} blocked: ${blockReason}`, {
+          logger.warn(`Item ${item.id} blocked: ${blockReason} (check ${item.blocked_check_count}/10)`, {
             sessionId: session.id,
             itemId: item.id,
             dependencies: dependencies,

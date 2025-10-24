@@ -199,13 +199,20 @@ export class GrishaVerifyItemProcessor {
                         reason: 'Visual verification failed after 2 attempts, using data verification'
                     };
                     
-                    // Try MCP verification without additional LLM call
+                    // Create minimal eligibility decision with server hints to avoid invalid tool names
+                    // FIXED 2025-10-24: Provide explicit server hints for common verification tasks
+                    const fallbackEligibility = {
+                        verification_action: this._transformActionToVerification(currentItem.action),
+                        additional_checks: this._generateFallbackChecks(currentItem)
+                    };
+                    
+                    // Try MCP verification with fallback eligibility hints
                     try {
                         const mcpVerification = await this._executeMcpVerification(
                             currentItem, 
                             execution, 
                             mcpStrategy, 
-                            null  // No eligibility decision needed for fallback
+                            fallbackEligibility  // Provide hints to guide server selection
                         );
                         
                         if (mcpVerification.verified) {
@@ -1516,6 +1523,73 @@ export class GrishaVerifyItemProcessor {
 
         // No target app detected - use full screen
         return null;
+    }
+
+    /**
+     * Generate fallback MCP checks based on action keywords
+     * Provides server hints to avoid invalid tool name generation
+     * @private
+     */
+    _generateFallbackChecks(currentItem) {
+        const actionLower = (currentItem.action || '').toLowerCase();
+        const checks = [];
+        
+        // File/folder operations → filesystem server
+        if (actionLower.includes('файл') || actionLower.includes('file') || 
+            actionLower.includes('папк') || actionLower.includes('folder') ||
+            actionLower.includes('директор') || actionLower.includes('directory') ||
+            actionLower.includes('зберегти') || actionLower.includes('save')) {
+            checks.push({
+                server: 'filesystem',
+                tool: 'filesystem__read_file',
+                description: 'Check file existence and content'
+            });
+        }
+        
+        // Calculator/math operations → applescript server
+        if (actionLower.includes('калькулятор') || actionLower.includes('calculator') ||
+            actionLower.includes('помнож') || actionLower.includes('multiply') ||
+            actionLower.includes('додай') || actionLower.includes('add') ||
+            actionLower.includes('відніми') || actionLower.includes('subtract')) {
+            checks.push({
+                server: 'applescript',
+                tool: 'applescript__applescript_execute',
+                description: 'Check calculator result via AppleScript'
+            });
+        }
+        
+        // Download/web operations → playwright server
+        if (actionLower.includes('завантаж') || actionLower.includes('download') ||
+            actionLower.includes('інтернет') || actionLower.includes('internet') ||
+            actionLower.includes('браузер') || actionLower.includes('browser')) {
+            checks.push({
+                server: 'playwright',
+                tool: 'playwright__playwright_navigate',
+                description: 'Check web/download operation'
+            });
+        }
+        
+        // System operations → shell server
+        if (actionLower.includes('шпалери') || actionLower.includes('wallpaper') ||
+            actionLower.includes('екран') || actionLower.includes('screen') ||
+            actionLower.includes('монітор') || actionLower.includes('monitor')) {
+            checks.push({
+                server: 'shell',
+                tool: 'shell__run_shell_command',
+                description: 'Check system settings via shell'
+            });
+        }
+        
+        // Default fallback: filesystem (most common verification)
+        if (checks.length === 0) {
+            checks.push({
+                server: 'filesystem',
+                tool: 'filesystem__list_directory',
+                description: 'Generic verification check'
+            });
+        }
+        
+        return checks;
     }
 
     /**

@@ -188,7 +188,7 @@ export class PermissionInspector extends ToolInspector {
             'filesystem__filesystem__delete_file',
             'filesystem__move_file',
             'filesystem__filesystem__move_file',
-            'shell__execute',
+            'shell__execute_command',
             'shell__shell__run_command',
             'playwright__click',
             'playwright__playwright__click',

@@ -60,6 +60,9 @@ export class GrishaVerificationStrategy {
         // Check for visual indicators (UI/app interactions)
         const visualIndicators = this._detectVisualIndicators(action, successCriteria, execution);
         
+        // Check for AppleScript indicators (macOS app automation)
+        const applescriptIndicators = this._detectAppleScriptIndicators(action, successCriteria, execution);
+        
         // Check for filesystem indicators
         const filesystemIndicators = this._detectFilesystemIndicators(action, successCriteria, execution);
         
@@ -77,7 +80,19 @@ export class GrishaVerificationStrategy {
                 confidence: visualIndicators.score,
                 reason: visualIndicators.reason,
                 fallbackToMcp: true, // If visual fails, try MCP
-                mcpFallbackTools: this._suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators)
+                mcpFallbackTools: this._suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators, applescriptIndicators)
+            };
+        }
+        
+        // AppleScript operations - use MCP verification (macOS app automation)
+        if (applescriptIndicators.score >= 60) {
+            return {
+                method: 'mcp',
+                mcpServer: 'applescript',
+                tools: applescriptIndicators.suggestedTools,
+                confidence: applescriptIndicators.score,
+                reason: applescriptIndicators.reason,
+                fallbackToVisual: true // Can fallback to visual for UI operations
             };
         }
         
@@ -124,7 +139,7 @@ export class GrishaVerificationStrategy {
             confidence: Math.max(visualIndicators.score, 30), // Minimum 30% confidence
             reason: 'Default strategy: visual verification with MCP fallback',
             fallbackToMcp: true,
-            mcpFallbackTools: this._suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators)
+            mcpFallbackTools: this._suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators, applescriptIndicators)
         };
     }
 
@@ -274,6 +289,64 @@ export class GrishaVerificationStrategy {
     }
 
     /**
+     * Detect AppleScript verification indicators
+     * 
+     * @param {string} action - Action text
+     * @param {string} successCriteria - Success criteria
+     * @param {Object} execution - Execution results
+     * @returns {Object} Detection result
+     * @private
+     */
+    _detectAppleScriptIndicators(action, successCriteria, execution) {
+        let score = 0;
+        const suggestedTools = [];
+        const reasons = [];
+        
+        // AppleScript keywords - macOS app automation
+        const applescriptKeywords = [
+            { keywords: ['відкрити програму', 'відкрити аплікацію', 'open app', 'launch app'], score: 85, tool: 'applescript__applescript_execute' },
+            { keywords: ['закрити програму', 'закрити аплікацію', 'close app', 'quit app'], score: 85, tool: 'applescript__applescript_execute' },
+            { keywords: ['активне вікно', 'active window', 'front window'], score: 80, tool: 'applescript__applescript_execute' },
+            { keywords: ['натиснути кнопку', 'click button', 'press button'], score: 75, tool: 'applescript__applescript_execute' },
+            { keywords: ['меню', 'menu', 'menu item', 'пункт меню'], score: 80, tool: 'applescript__applescript_execute' },
+            { keywords: ['applescript', 'tell application'], score: 90, tool: 'applescript__applescript_execute' },
+            { keywords: ['системні події', 'system events', 'keystroke'], score: 85, tool: 'applescript__applescript_execute' }
+        ];
+        
+        for (const mapping of applescriptKeywords) {
+            for (const keyword of mapping.keywords) {
+                if (action.includes(keyword) || successCriteria.includes(keyword)) {
+                    score = Math.max(score, mapping.score);
+                    if (!suggestedTools.includes(mapping.tool)) {
+                        suggestedTools.push(mapping.tool);
+                    }
+                    reasons.push(`AppleScript keyword: ${keyword}`);
+                    break;
+                }
+            }
+        }
+        
+        // Check execution tools
+        if (execution && execution.results) {
+            for (const result of execution.results) {
+                const toolName = (result.tool || '').toLowerCase();
+                
+                if (toolName.includes('applescript')) {
+                    score = Math.max(score, 90);
+                    suggestedTools.push('applescript__applescript_execute');
+                    reasons.push(`AppleScript tool used: ${result.tool}`);
+                }
+            }
+        }
+        
+        return {
+            score,
+            suggestedTools: [...new Set(suggestedTools)],
+            reason: reasons.length > 0 ? reasons.join('; ') : 'No AppleScript indicators detected'
+        };
+    }
+
+    /**
      * Detect shell verification indicators
      * 
      * @param {string} action - Action text
@@ -287,11 +360,15 @@ export class GrishaVerificationStrategy {
         const suggestedTools = [];
         const reasons = [];
         
-        // Shell keywords
+        // Shell keywords - SPECIFIC to actual shell/terminal operations
+        // NOTE: Avoid general words like 'команда'/'execute' that appear in UI contexts
         const shellKeywords = [
-            { keywords: ['команда', 'command', 'виконати', 'execute'], score: 75, tool: 'shell__execute' },
-            { keywords: ['скрипт', 'script', 'bash', 'sh'], score: 80, tool: 'shell__execute' },
-            { keywords: ['процес', 'process', 'запущений', 'running'], score: 70, tool: 'shell__execute' }
+            { keywords: ['bash', 'sh', 'zsh', 'terminal'], score: 85, tool: 'shell__execute_command' },
+            { keywords: ['shell script', 'shell команда', 'термінал'], score: 85, tool: 'shell__execute_command' },
+            { keywords: ['системна команда', 'system command'], score: 80, tool: 'shell__execute_command' },
+            { keywords: ['grep', 'awk', 'sed', 'pipe', '|'], score: 90, tool: 'shell__execute_command' },
+            { keywords: ['процес', 'process', 'ps', 'kill'], score: 75, tool: 'shell__execute_command' },
+            { keywords: ['env', 'PATH', 'export', 'chmod'], score: 85, tool: 'shell__execute_command' }
         ];
         
         for (const mapping of shellKeywords) {
@@ -314,7 +391,7 @@ export class GrishaVerificationStrategy {
                 
                 if (toolName.includes('shell')) {
                     score = Math.max(score, 85);
-                    suggestedTools.push('shell__execute');
+                    suggestedTools.push('shell__execute_command');
                     reasons.push(`Shell tool used: ${result.tool}`);
                 }
             }
@@ -386,11 +463,17 @@ export class GrishaVerificationStrategy {
      * @param {Object} filesystemIndicators - Filesystem detection result
      * @param {Object} shellIndicators - Shell detection result
      * @param {Object} memoryIndicators - Memory detection result
+     * @param {Object} applescriptIndicators - AppleScript detection result
      * @returns {Array} Suggested MCP tools for fallback
      * @private
      */
-    _suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators) {
+    _suggestMcpFallbackTools(filesystemIndicators, shellIndicators, memoryIndicators, applescriptIndicators) {
         const tools = [];
+        
+        // AppleScript has higher priority for macOS UI operations
+        if (applescriptIndicators && applescriptIndicators.score > 30) {
+            tools.push(...applescriptIndicators.suggestedTools);
+        }
         
         if (filesystemIndicators.score > 30) {
             tools.push(...filesystemIndicators.suggestedTools);

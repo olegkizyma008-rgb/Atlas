@@ -20,9 +20,16 @@ VERIFICATION APPROACH:
 - COMPARE against the provided success criteria
 - DETERMINE verification status based on exact match
 
-OUTPUT REQUIREMENTS:
-Return ONLY valid JSON without any markdown, code blocks, or extra text.
-Response must start with { and end with } - pure JSON only.`;
+⚠️ CRITICAL JSON OUTPUT RULES:
+1. Return ONLY raw JSON object starting with { and ending with }
+2. NO markdown formatting like **bold** or * bullets
+3. NO code blocks like \`\`\`json
+4. NO explanatory text before or after JSON
+5. NO "Answer:" or "Response:" prefixes
+6. JUST PURE JSON: {"verified": true, "confidence": 100, ...}
+7. First character MUST be { and last character MUST be }
+
+If you include ANY non-JSON text, the verification will FAIL for security reasons.`;
 
 export const ANALYSIS_USER_PROMPT = `
 **Success Criteria:** {{SUCCESS_CRITERIA}}

@@ -4,7 +4,6 @@
  */
 
 import GlobalConfig from '../../config/atlas-config.js';
-import { SessionStore } from '../core/session-store.js';
 import LocalizationService from '../services/localization-service.js';
 import logger from '../utils/logger.js';
 import telemetry from '../utils/telemetry.js';
@@ -41,7 +40,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   }
 
   const container = diContainer;
-  const session = SessionStore.getOrCreateSession('default');
+  
+  // Create simple session object without SessionStore
+  const session = {
+    id: 'default',
+    chatThread: { messages: [], lastTopic: undefined },
+    lastInteraction: Date.now()
+  };
   
   logger.workflow('init', 'mcp', 'Starting MCP Dynamic TODO Workflow', {
     sessionId: session.id,

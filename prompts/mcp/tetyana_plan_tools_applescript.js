@@ -192,7 +192,7 @@ Use FULL names with prefix: "tool": "applescript__execute"
 ✅ CORRECT: "tool": "applescript__execute"
 
 🔹 ALWAYS create tool_calls (even for complex operations):
-{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan_in_ukrainian>", "tts_phrase": "<user_friendly_phrase_in_ukrainian>", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
 
 **EXAMPLE:**
 {"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "відкриваю калькулятор", "tts_phrase": "відкриваю калькулятор", "needs_split": false}
@@ -207,7 +207,7 @@ Use FULL names with prefix: "tool": "applescript__execute"
 - Quote escaping: \"
 - **"tool": "applescript__execute"** NOT "tool": "execute"
 - DON'T add parameters that don't exist in schema
-- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in Ukrainian
+- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in {{USER_LANGUAGE}}
 
 🎯 YOU ARE APPLESCRIPT EXPERT - use correct syntax and escaping!
 `;
@@ -240,7 +240,7 @@ Create execution plan using **AppleScript tools ONLY**.
 4. Escape quotes (\")
 5. Add delay for GUI (0.3-0.5 sec)
 6. **MANDATORY: use FULL names from {{AVAILABLE_TOOLS}}**
-7. **All user-facing strings in Ukrainian (reasoning, tts_phrase, suggested_splits)**
+7. **All user-facing strings in {{USER_LANGUAGE}} (reasoning, tts_phrase, suggested_splits)**
 
 **Response (JSON only):**`;
 

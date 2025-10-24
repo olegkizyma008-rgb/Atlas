@@ -130,7 +130,7 @@ Use FULL name with prefix: "tool": "filesystem__create_directory"
 ✅ CORRECT: "tool": "filesystem__create_directory"
 
 🔹 If item is simple (1-5 tools):
-{"tool_calls": [{"server": "filesystem", "tool": "filesystem__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_ukrainian>", "tts_phrase": "<user_friendly_phrase_in_ukrainian>", "needs_split": false}
+{"tool_calls": [{"server": "filesystem", "tool": "filesystem__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
 
 **EXAMPLE:**
 {"tool_calls": [{"server": "filesystem", "tool": "filesystem__create_directory", "parameters": {"path": "/Users/dev/Desktop/HackMode"}}], "reasoning": "Створюю папку HackMode", "tts_phrase": "створюю папку", "needs_split": false}
@@ -143,7 +143,7 @@ Use FULL name with prefix: "tool": "filesystem__create_directory"
 - Paths ONLY absolute or ~/
 - Parameters ONLY from {{AVAILABLE_TOOLS}} schema
 - **"tool": "filesystem__create_directory"** NOT "tool": "create_directory"
-- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in Ukrainian
+- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in {{USER_LANGUAGE}}
 
 🎯 YOU ARE FILESYSTEM EXPERT - use correct paths and formats!
 `;
@@ -175,7 +175,7 @@ Create execution plan using **Filesystem tools ONLY**.
 3. Correct file formats (txt, csv, json, md)
 4. Logical sequence (filesystem__create_directory → filesystem__write_file)
 5. **MANDATORY: use FULL names from {{AVAILABLE_TOOLS}}**
-6. **All user-facing strings in Ukrainian (reasoning, tts_phrase, suggested_splits)**
+6. **All user-facing strings in {{USER_LANGUAGE}} (reasoning, tts_phrase, suggested_splits)**
 
 **Response (JSON only):**`;
 

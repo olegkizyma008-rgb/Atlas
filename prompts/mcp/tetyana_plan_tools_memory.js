@@ -176,7 +176,7 @@ Use FULL names with prefix: "tool": "memory__create_entities"
 ✅ CORRECT: "tool": "memory__create_entities"
 
 🔹 If item is simple (1-5 tools):
-{"tool_calls": [{"server": "memory", "tool": "memory__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_ukrainian>", "tts_phrase": "<user_friendly_phrase_in_ukrainian>", "needs_split": false}
+{"tool_calls": [{"server": "memory", "tool": "memory__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
 
 **EXAMPLE:**
 {"tool_calls": [{"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [{"name": "Project Atlas", "entityType": "project", "observations": ["AI assistant system"]}]}}], "reasoning": "Створюю сутність в пам'яті", "tts_phrase": "Зберігаю в пам'ять", "needs_split": false}
@@ -191,7 +191,7 @@ Use FULL names with prefix: "tool": "memory__create_entities"
 - **"tool": "memory__create_entities"** NOT "tool": "create_entities"
 - Observations must be specific facts
 - Create relations to link entities
-- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in Ukrainian
+- All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in {{USER_LANGUAGE}}
 
 🎯 YOU ARE MEMORY EXPERT - create structured knowledge!
 `;
@@ -222,7 +222,7 @@ Create execution plan using **Memory tools ONLY**.
 2. Correct entities/relations structure
 3. Logical sequence (memory__create_entities → memory__add_observations → memory__read_graph)
 4. **MANDATORY: use FULL names from {{AVAILABLE_TOOLS}}**
-5. **All user-facing strings in Ukrainian (reasoning, tts_phrase, suggested_splits)**
+5. **All user-facing strings in {{USER_LANGUAGE}} (reasoning, tts_phrase, suggested_splits)**
 
 **Response (JSON only):**`;
 

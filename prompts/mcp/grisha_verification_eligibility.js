@@ -62,7 +62,7 @@ Analysis steps:
 - "parameters" must be valid JSON object (no undefined, double quotes for keys/strings).
 - If no additional checks needed, return empty array.
 - "analysis_focus" helps next stage understand what to look for in data.
-- All user-facing strings (reason, description, expected_evidence, analysis_focus, notes) should be in Ukrainian.
+- All user-facing strings (reason, description, expected_evidence, analysis_focus, notes) should be in {{USER_LANGUAGE}}.
 
 📋 Examples of additional_checks for file operations:
 
@@ -112,7 +112,7 @@ export const USER_PROMPT = `
 - Visual confidence (heuristic): {{heuristic_visual_confidence}}%
 - MCP indicators: {{heuristic_mcp_reason}}
 
-Analyze the data and return only JSON according to the format. Remember to provide user-facing strings in Ukrainian.
+Analyze the data and return only JSON according to the format. Remember to provide user-facing strings in {{USER_LANGUAGE}}.
 `;
 
 export default {

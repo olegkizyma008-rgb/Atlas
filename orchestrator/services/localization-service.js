@@ -276,6 +276,31 @@ class LocalizationService {
     getSystemLanguage() {
         return this.config.getSystemLanguage();
     }
+    
+    /**
+     * Replace {{USER_LANGUAGE}} placeholder in prompts
+     * 
+     * @param {string} promptText - Prompt text with placeholders
+     * @returns {string} Prompt with USER_LANGUAGE replaced
+     */
+    replaceLanguagePlaceholder(promptText) {
+        if (!promptText) return promptText;
+        
+        const userLang = this.getUserLanguage();
+        const languageNames = {
+            'uk': 'Ukrainian',
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'pl': 'Polish',
+            'ru': 'Russian'
+        };
+        
+        const languageName = languageNames[userLang] || userLang;
+        
+        return promptText.replace(/\{\{USER_LANGUAGE\}\}/g, languageName);
+    }
 }
 
 export default LocalizationService;

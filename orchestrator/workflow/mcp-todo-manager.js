@@ -900,18 +900,23 @@ export class MCPTodoManager {
   /**
      * Plan which MCP tools to use for item (Stage 2.1 - Tetyana)
      *
-     * @param {TodoItem} item - Item to plan
+     * @param {TodoItem} currentItem - Item to plan
      * @param {TodoList} todo - Parent TODO list
      * @returns {Promise<Object>} Tool plan
      */
-  async planTools(item, todo, options = {}) {
-    // FIXED 2025-10-20: Ensure item.id is preserved
-    if (!item.id && item.hasOwnProperty('id')) {
-      this.logger.warn(`[MCP-TODO] Item.id is undefined but property exists`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(item) });
-    } else if (!item.id) {
-      this.logger.error(`[MCP-TODO] Item missing id property entirely`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(item) });
+  async planTools(currentItem, todo, options = {}) {
+    const { toolsSummary, promptOverride, selectedServers, historyContext, historyStats } = options;
+    
+    // Apply localization to prompts
+    const localizationService = this.localizationService;
+
+    if (!currentItem.id && currentItem.hasOwnProperty('id')) {
+      this.logger.warn(`[MCP-TODO] Item.id is undefined but property exists`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(currentItem) });
+    } else if (!currentItem.id) {
+      this.logger.error(`[MCP-TODO] Item missing id property entirely`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(currentItem) });
     }
     
+    this.logger.system('mcp-todo', `[TODO] Planning tools for item ${currentItem.id}`);
     this.logger.system('mcp-todo', `[TODO] Planning tools for item ${item.id}`);
 
     // NEW 18.10.2025: Retry with fallback models
@@ -1119,6 +1124,12 @@ export class MCPTodoManager {
       if (systemPrompt.includes('{{AVAILABLE_TOOLS}}')) {
         systemPrompt = systemPrompt.replace('{{AVAILABLE_TOOLS}}', toolsSummary);
         this.logger.system('mcp-todo', `[TODO] Substituted {{AVAILABLE_TOOLS}} in prompt`);
+      }
+      
+      // NEW 2025-10-24: Replace {{USER_LANGUAGE}} placeholder with actual user language
+      if (systemPrompt.includes('{{USER_LANGUAGE}}')) {
+        systemPrompt = localizationService.replaceLanguagePlaceholder(systemPrompt);
+        this.logger.system('mcp-todo', `[TODO] Substituted {{USER_LANGUAGE}} in prompt`);
       }
 
       const userMessage = `

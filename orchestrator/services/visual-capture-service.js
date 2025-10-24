@@ -394,11 +394,25 @@ export class VisualCaptureService {
         try {
             let processName = targetApp;
             
-            // If targetApp specified, activate it first
+            // INTELLIGENT APP DETECTION: Try multiple approaches
             if (targetApp) {
-                this.logger.system('visual-capture', `[VISUAL] 🎯 Activating: ${targetApp}`);
-                await execAsync(`osascript -e 'tell application "${targetApp}" to activate'`);
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Normalize app name for cross-language compatibility
+                const normalizedApp = this._normalizeAppName(targetApp);
+                
+                // Try to find and activate the app
+                const activated = await this._intelligentAppActivation(normalizedApp);
+                
+                if (activated) {
+                    processName = activated;
+                    this.logger.system('visual-capture', `[VISUAL] 🎯 Activated: ${processName}`);
+                } else {
+                    // Fallback to frontmost app
+                    const { stdout } = await execAsync(`osascript -e 'tell application "System Events" to get name of first process whose frontmost is true'`);
+                    processName = stdout.trim();
+                    this.logger.warn(`[VISUAL] Could not activate ${targetApp}, using frontmost: ${processName}`, {
+                        category: 'visual-capture'
+                    });
+                }
             } else {
                 // Get frontmost process name
                 const { stdout } = await execAsync(`osascript -e 'tell application "System Events" to get name of first process whose frontmost is true'`);

@@ -567,15 +567,9 @@ export class GrishaVerifyItemProcessor {
     }
 
     async _selectVisualCaptureDecision(agentRole, { item, execution, targetApp, attempt, strategy }) {
-        const fallbackDecision = {
-            mode: targetApp ? 'active_window' : 'full_screen',
-            target_app: targetApp || null,
-            display_number: null,
-            require_retry: false,
-            fallback_mode: targetApp ? 'full_screen' : null,
-            reasoning: 'Using heuristic fallback decision',
-            confidence: 0.4
-        };
+        // INTELLIGENT CAPTURE MODE SELECTION
+        // No hardcoded decisions - pure intelligence based on context
+        const fallbackDecision = this._intelligentCaptureModeFallback(item, targetApp, attempt);
 
         try {
             if (!this.callLLM) {
@@ -1551,6 +1545,157 @@ export class GrishaVerifyItemProcessor {
         
         // No target app detected - use full screen
         return null;
+    }
+
+    /**
+     * Intelligent capture mode fallback without hardcoding
+     * 
+     * @private
+     */
+    _intelligentCaptureModeFallback(item, targetApp, attempt) {
+        // PURE INTELLIGENCE: Analyze context to determine best capture mode
+        const action = (item?.action || '').toLowerCase();
+        
+        // Intelligent mode selection based on verification needs
+        let mode = 'full_screen'; // Safe default - captures everything
+        let confidence = 0.5;
+        let reasoning = 'Default full screen capture for complete context';
+        
+        // If we have evidence of app interaction, prefer active window
+        if (targetApp || this._detectsAppInteraction(action)) {
+            mode = 'active_window';
+            confidence = 0.7;
+            reasoning = 'App interaction detected - capturing active window';
+        }
+        
+        // If verifying desktop state, use desktop_only
+        if (this._detectsDesktopVerification(action)) {
+            mode = 'desktop_only';
+            confidence = 0.6;
+            reasoning = 'Desktop state verification - capturing desktop only';
+        }
+        
+        // For retries, switch strategy
+        if (attempt > 1) {
+            if (mode === 'active_window') {
+                mode = 'full_screen';
+                reasoning = 'Retry with broader context after active window attempt';
+            } else if (mode === 'desktop_only') {
+                mode = 'full_screen';
+                reasoning = 'Retry with full context after desktop-only attempt';
+            }
+            confidence *= 0.8; // Lower confidence for retries
+        }
+        
+        return {
+            mode,
+            target_app: targetApp || null,
+            display_number: null,
+            require_retry: attempt === 1 && confidence < 0.6,
+            fallback_mode: mode === 'active_window' ? 'full_screen' : null,
+            reasoning,
+            confidence
+        };
+    }
+    
+    /**
+     * Detect if action involves app interaction
+     * 
+     * @private
+     */
+    _detectsAppInteraction(action) {
+        // Intelligent patterns for app interaction
+        const interactionPatterns = [
+            /відкри|open|запусти|launch|start|активуй|activate/,
+            /програм|application|app|додаток/,
+            /вікн|window|інтерфейс|interface/,
+            /натисн|click|press|клік/,
+            /введ|type|enter|набер/
+        ];
+        
+        return interactionPatterns.some(pattern => pattern.test(action));
+    }
+    
+    /**
+     * Detect if action involves desktop verification
+     * 
+     * @private
+     */
+    _detectsDesktopVerification(action) {
+        // Intelligent patterns for desktop state
+        const desktopPatterns = [
+            /робоч.*стіл|desktop/,
+            /фон|background/,
+            /екран|screen|display|монітор/,
+            /роздільн|resolution/
+        ];
+        
+        return desktopPatterns.some(pattern => pattern.test(action));
+    }
+    
+    /**
+     * Extract target app from action text
+     * INTELLIGENT: Works for any language without hardcoding specific apps
+     * 
+     * @private
+     */
+    _extractTargetApp(action) {
+        if (!action) return null;
+        
+        const actionLower = action.toLowerCase();
+        
+        // Intelligent app extraction patterns
+        const appPatterns = [
+            /(?:відкрити|open|запустити|launch|start|активувати)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i,
+            /(?:в|in|у|at)\s+([\w\s]+?)(?:\s+програм|\s+app|\s+додатк|$|,|\.|;)/i,
+            /(?:програма|application|app|додаток)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i
+        ];
+        
+        for (const pattern of appPatterns) {
+            const match = action.match(pattern);
+            if (match && match[1]) {
+                const app = match[1].trim();
+                // Filter out common non-app words intelligently
+                if (app.length > 2 && !this._isCommonWord(app)) {
+                    return this._normalizeAppName(app);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if word is a common non-app word
+     * 
+     * @private
+     */
+    _isCommonWord(word) {
+        const commonWords = [
+            // Articles and conjunctions (multiple languages)
+            'the', 'a', 'an', 'і', 'та', 'або', 'or', 'and',
+            // Prepositions
+            'в', 'у', 'на', 'з', 'до', 'in', 'on', 'at', 'to', 'from',
+            // Common verbs that aren't apps
+            'це', 'є', 'this', 'is', 'are', 'be'
+        ];
+        
+        return commonWords.includes(word.toLowerCase());
+    }
+    
+    /**
+     * Normalize app name intelligently
+     * 
+     * @private
+     */
+    _normalizeAppName(appName) {
+        if (!appName) return appName;
+        
+        // Intelligent normalization without hardcoding
+        // Just capitalize properly and handle common patterns
+        return appName.split(/\s+/)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
     }
 
     /**

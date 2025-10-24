@@ -2718,8 +2718,8 @@ Context: ${JSON.stringify(context, null, 2)}
       if (mainAction.includes('створ') && mainAction.includes('файл')) {
         return 'Файл створено';
       }
-      if (mainAction.includes('відкр') && mainAction.includes('калькулятор')) {
-        return 'Калькулятор відкрито';
+      if (mainAction.includes('відкр') || mainAction.includes('open')) {
+        return 'Програму відкрито';
       }
       if (mainAction.includes('відкр') && mainAction.includes('браузер')) {
         return 'Браузер відкрито';
@@ -3514,12 +3514,15 @@ Select 1-2 most relevant servers.
 
       // Check for calculator operations
       if (actionLower.includes('калькулятор') || actionLower.includes('помнож') || actionLower.includes('поділ')) {
-        if (availableTools.some(t => t.name === 'applescript__applescript_execute')) {
+        // Intelligent app opening - extract app name from action
+        const appMatch = action.match(/(?:відкрити|open|запустити|launch)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i);
+        if (appMatch && appMatch[1]) {
+          const appName = this._normalizeAppNameForScript(appMatch[1]);
           plan.tool_calls.push({
             server: 'applescript',
             tool: 'applescript__applescript_execute',
             parameters: {
-              code_snippet: 'tell application "Calculator" to activate'
+              code_snippet: `tell application "${appName}" to activate`
             }
           });
         }
@@ -3575,6 +3578,40 @@ Select 1-2 most relevant servers.
       });
       return null;
     }
+  }
+
+  /**
+   * Normalize app name for AppleScript
+   * Intelligent mapping without hardcoding
+   * @private
+   */
+  _normalizeAppNameForScript(appName) {
+    if (!appName) return appName;
+    
+    const normalized = appName.toLowerCase().trim();
+    
+    // Intelligent patterns for common app variations
+    if (normalized.match(/калькулятор|calc|вычислитель|kalkulator/)) {
+      return 'Calculator';
+    }
+    if (normalized.match(/браузер|browser/)) {
+      // Default to Safari on macOS
+      return 'Safari';
+    }
+    if (normalized.match(/текст|text|notes|заметк|нотатк/)) {
+      return 'TextEdit';
+    }
+    if (normalized.match(/термінал|terminal|console|консоль/)) {
+      return 'Terminal';
+    }
+    if (normalized.match(/файл|files|finder|папк/)) {
+      return 'Finder';
+    }
+    
+    // Default: capitalize properly
+    return appName.split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 }
 

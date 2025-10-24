@@ -1,188 +1,156 @@
-# ⚙️ ATLAS Configuration Overview
+# ⚙️ ATLAS Configuration System
 
-Конфігурації Atlas4 тепер організовані за модульним принципом. Замість великого моноліту та системи синхронізації, код напряму імпортує потрібні частини з `config/atlas-config.js`.
+This directory contains all configuration files for the ATLAS v5.0 system.
 
-`config/global-config.js` залишено тільки як легасі-шар (реекспорт) для існуючих імпортів. Новий код повинен використовувати `atlas-config.js`.
+## 📁 Structure
 
----
+### Core Configurations
+- `atlas-config.js` - Main ATLAS configuration aggregator
+- `global-config.js` - Legacy re-export for backward compatibility
+- `system-config.js` - System-level settings and environment
 
-## 📁 Структура каталогу `config/`
+### 🧠 Dynamic Configuration (NEW 2025-10-24)
+- `dynamic-config.js` - Intelligent adaptive configuration system
+  - Dynamic timeouts based on system load
+  - Adaptive model selection based on context
+  - Context-aware defaults
+  - Learning from error patterns
+  - Feature flags management
 
-```
-config/
-├── atlas-config.js      # Головний агрегатор (default + named exports)
-├── system-config.js     # System info, user preferences, env flags, helpers
-├── agents-config.js     # Конфігурація агентів та утиліти
-├── workflow-config.js   # MCP етапи та сумісні хелпери
-├── api-config.js        # Network/API/TTS/Voice конфіги
-├── models-config.js     # AI/MCP/vision/backends налаштування
-├── global-config.js     # Легасі-реекспорт atlas-config.js
-└── README.md            # Цей документ
-```
+### Component Configurations
+- `agents-config.js` - Agent configurations (Atlas, Tetyana, Grisha)
+- `api-config.js` - API endpoints and network settings
+- `models-config.js` - AI model configurations and providers
+- `web-config.js` - Web interface settings
+- `workflow-config.js` - MCP workflow stages and pipeline
 
-Усі CLI/backup/sync-скрипти переміщені до архіву (`archive/legacy-config-2025-10-20/`).
+### Security & Validation
+- `security-config.js` - Security policies and path restrictions
+- `validation-config.js` - Validation rules and JSON schemas
 
----
+### MCP Integration
+- `mcp-registry.js` - MCP server registry and management
 
-## 🚀 Використання в коді
+## 🚀 Usage Examples
 
-> **Рекомендація:** імпортуйте напряму з `atlas-config.js`.
-
+### Import Dynamic Configuration
 ```javascript
-// Default об'єкт (повний набір конфігурацій)
+import configManager from '../config/dynamic-config.js';
+
+// Get dynamic timeout based on system load
+const timeout = configManager.get('timeout');
+
+// Get adaptive model for specific purpose
+const model = configManager.dynamicDefaults.getModel('planning');
+
+// Update system metrics for adaptation
+configManager.updateMetrics({
+  systemLoad: 0.7,
+  errorRate: 0.1,
+  avgResponseTime: 2500
+});
+
+// Check feature flags
+if (configManager.isFeatureEnabled('intelligent_error_handling')) {
+  // Use intelligent error handling
+}
+
+// Override specific values
+configManager.set('retry_attempts', 5);
+```
+
+### Import Static Configurations
+```javascript
+// Import main configuration
 import AtlasConfig from '../config/atlas-config.js';
 
-// Або окремі частини та утиліти
+// Import specific utilities
 import {
   AGENTS,
   getAgentConfig,
   WORKFLOW_STAGES,
   getModelForStage,
   NETWORK_CONFIG,
-  getApiUrl,
-  generateShortStatus,
-  ENV_CONFIG
+  getApiUrl
 } from '../config/atlas-config.js';
 
+// Use configurations
 const orchestratorUrl = getApiUrl('orchestrator', '/api/chat');
 const atlasVoice = getAgentConfig('atlas').voice;
+const model = getModelForStage('planning');
 ```
 
-Якщо потрібно зберегти сумісність зі старими імпортами:
+## 🔧 Environment Variables
 
+Key environment variables:
+- `NODE_ENV` - Environment mode (development/production)
+- `LLM_API_ENDPOINT` - Primary LLM endpoint
+- `LLM_API_FALLBACK_ENDPOINT` - Fallback LLM endpoint
+- `ENABLE_TTS` - Enable text-to-speech
+- `ENABLE_VOICE` - Enable voice recognition
+- `MCP_MODEL_VERIFICATION_ELIGIBILITY` - Model for Grisha verification
+
+## 📊 Dynamic Configuration Features
+
+### Adaptive Timeouts
 ```javascript
-import GlobalConfig from '../config/global-config.js';
-
-// global-config.js просто реекспортує AtlasConfig
+// Automatically adjusts based on:
+// - System load (CPU/Memory)
+// - Error rate
+// - Average response time
+const timeout = configManager.dynamicDefaults.getTimeout('llm');
 ```
 
----
-
-## 📦 Модулі та вміст
-
-* __`system-config.js`__ — `SYSTEM_INFO`, `USER_CONFIG`, `CHAT_CONFIG`, `SECURITY_CONFIG`, `ENV_CONFIG`, `buildEnvConfig()`, `generateShortStatus()`.
-* __`agents-config.js`__ — `AGENTS`, `getAgentConfig()`, `getAgentsByRole()`, `validateAgentConfig()`. **NEW 22.10.2025:** Додано `verification` конфігурацію для Гріші (visual/mcp методи, routing, fallback).
-* __`workflow-config.js`__ — MCP-only етапи (`WORKFLOW_STAGES`), `getWorkflowStage()`, `getStageById()`, `getNextStage()`, `getStagesForAgent()`. **NEW 22.10.2025:** Додано `subStages` для `GRISHA_VERIFY_ITEM` (strategy, eligibility, visual, mcp).
-* __`api-config.js`__ — `NETWORK_CONFIG`, `API_ENDPOINTS`, `TTS_CONFIG`, `VOICE_CONFIG`, `getApiUrl()`, `getServiceConfig()`, `checkServiceHealth()`, `generateClientConfig()`.
-* __`models-config.js`__ — `VISION_CONFIG`, `AI_MODEL_CONFIG`, `MCP_MODEL_CONFIG`, `AI_BACKEND_CONFIG`, `MCP_SERVERS`, `getModelForStage()`, `getModelByType()`. **NEW 22.10.2025:** Додано `verification_eligibility` stage для LLM-based routing (Mistral 3B).
-* __`atlas-config.js`__ — агрегує все вище, додає `isServiceEnabled()`, `getWebSocketUrl()`, `validateConfig()`.
-
----
-
-## 🔍 Валідація та середовище
-
-`atlas-config.js` містить `validateConfig()`. У продакшн-середовищі (за `ENV_CONFIG.isProduction`) можна викликати її на старті, щоб перевірити:
-
-* наявність ключових сервісів (`orchestrator`, `frontend`, `tts`)
-* агенти `atlas`, `tetyana`, `grisha`
-* принаймні один MCP етап
-
-Основні змінні оточення:
-
-* __`NODE_ENV`__ — визначає `ENV_CONFIG`
-* __`LLM_API_ENDPOINT`__, `LLM_API_FALLBACK_ENDPOINT`__ — модельні ендпоїнти
-* __`ENABLE_TTS`__, `ENABLE_VOICE`__, `ENABLE_LOGGING`__ — feature flags
-* __`MCP_MODEL_VERIFICATION_ELIGIBILITY`__, `MCP_TEMP_VERIFICATION_ELIGIBILITY`__ — **NEW 22.10.2025:** Модель та температура для Grisha verification routing (default: atlas-ministral-3b, 0.1)
-
----
-
-## 🧭 Міграція старого коду
-
-1. Замість `../config/global-config.js` імпортуйте з `../config/atlas-config.js`.
-2. Переконайтеся, що з коду вилучені згадки про `config-manager`, `atlas-config sync`, `shared-config.js` тощо.
-3. Якщо фронтенд чи інші сервіси потребують «заморожених» JSON-конфігів, зберіть їх напряму, імпортуючи модулі, а не за допомогою генераторів.
-
----
-
-## 🤝 Внесок
-
-* Усі конфігурації оновлюються у відповідних модулях (`system-config.js`, `agents-config.js`, ...).
-* Жодних CLI команд / автогенерації більше немає.
-* Після змін перевірте запуск orchestrator (`restart_system.sh`) та релевантні тести.
-
----
-
-## 🆕 Нова система верифікації (22.10.2025)
-
-### Архітектура Grisha Verification
-
-Гриша тепер використовує **двоетапну систему верифікації** з інтелектуальним вибором методу:
-
-#### 1. **Heuristic Strategy (евристичний аналіз)**
-- Швидкий аналіз на основі ключових слів та типу операції
-- Визначає базову стратегію: `visual` або `mcp`
-- Файл: `grisha-verification-strategy.js`
-
-#### 2. **LLM Eligibility Routing (LLM-based вибір)**
-- **Модель:** `atlas-ministral-3b` (Mistral 3B - швидка класифікація)
-- **Temperature:** `0.1` (низька для консистентності)
-- **Промпт:** `grisha_verification_eligibility.js`
-- **Результат:** `{ recommended_path: 'visual'|'data'|'hybrid', additional_checks: [...] }`
-- Файл: `grisha-verification-eligibility-processor.js`
-
-#### 3. **Методи верифікації**
-
-**Visual Verification:**
-- Скріншоти через `VisualCaptureService`
-- Vision AI аналіз (Llama 3.2 90B Vision або Phi 3.5 Vision)
-- Мінімальна впевненість: 70%
-- Security checks: fallback rejection, matches_criteria validation
-
-**MCP Verification:**
-- **ВАЖЛИВО:** Використовує `TetyanaExecuteToolsProcessor` (натоптана дорожка)
-- Виконує `additional_checks` з eligibility decision
-- Результати аналізуються через `_analyzeMcpResults()`
-- Автоматичне лікування при фіксах Тетяни
-
-#### 4. **Fallback система**
-- Visual → MCP (якщо візуальна верифікація провалилась)
-- MCP → Visual (опціонально, за потреби)
-
-### Конфігурація
-
-**agents-config.js:**
+### Intelligent Model Selection
 ```javascript
-grisha: {
-  verification: {
-    methods: ['visual', 'mcp'],
-    routing: { model: 'atlas-ministral-3b', temperature: 0.1 },
-    visual: { visionModel: 'atlas-llama-3.2-90b-vision-instruct' },
-    mcp: { usesTetyanaProcessor: true },
-    fallback: { visualToMcp: true }
-  }
+// Selects optimal model based on:
+// - Task complexity
+// - Error history
+// - System resources
+const model = configManager.dynamicDefaults.getModel('verification');
+```
+
+### Learning System
+The configuration system learns from:
+- Error patterns and resolutions
+- Successful configurations
+- System performance metrics
+
+## 🔍 Validation
+
+Run validation on startup:
+```javascript
+import { validateConfig } from '../config/atlas-config.js';
+
+const validation = validateConfig();
+if (!validation.valid) {
+  console.error('Configuration errors:', validation.errors);
 }
 ```
 
-**workflow-config.js:**
-```javascript
-GRISHA_VERIFY_ITEM: {
-  subStages: [
-    'VERIFICATION_STRATEGY',      // Евристичний вибір
-    'VERIFICATION_ELIGIBILITY',   // LLM routing (Mistral 3B)
-    'VISUAL_VERIFICATION',        // Vision AI
-    'MCP_VERIFICATION'            // Через Tetyana processor
-  ]
-}
-```
+## 🆕 Recent Updates (2025-10-24)
 
-**models-config.js:**
-```javascript
-verification_eligibility: {
-  model: 'atlas-ministral-3b',
-  temperature: 0.1,
-  max_tokens: 500
-}
-```
+### Intelligent Systems Added
+1. **Dynamic Configuration Manager** - Adaptive system configuration
+2. **Intelligent Error Handler** - Pattern recognition and auto-resolution
+3. **Smart Dependency Resolver** - Graph-based dependency management
+4. **Intelligent Vision Parser** - NLP-based text extraction from vision models
 
-### Змінні .env
+### Removed
+- Hardcoded timeouts and values
+- Static error handling
+- Manual configuration syncing
+- CLI configuration tools (moved to archive)
 
-```bash
-# Grisha Verification Configuration
-MCP_MODEL_VERIFICATION_ELIGIBILITY=atlas-ministral-3b
-MCP_TEMP_VERIFICATION_ELIGIBILITY=0.1
-```
+## 📝 Migration Guide
+
+For existing code:
+1. Replace `../config/global-config.js` with `../config/atlas-config.js`
+2. Use `dynamic-config.js` for adaptive configurations
+3. Remove references to deprecated sync scripts
+4. Update imports to use new intelligent systems
 
 ---
 
-**Останнє оновлення:** 2025-10-22  
-**Мова:** Українська
+**Last Updated:** 2025-10-24  
+**Version:** 5.0

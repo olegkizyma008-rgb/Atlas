@@ -112,10 +112,15 @@ export class ToolDispatcher {
             context
         );
 
+        // Safely access inspection results with defaults
+        const approved = inspectionResult?.approved?.length || 0;
+        const needsApproval = inspectionResult?.needsApproval?.length || 0;
+        const denied = inspectionResult?.denied?.length || 0;
+
         logger.system('tool-dispatcher', 
-            `📋 Inspection: ${inspectionResult.approved.length} approved, ` +
-            `${inspectionResult.needsApproval.length} need approval, ` +
-            `${inspectionResult.denied.length} denied`);
+            `📋 Inspection: ${approved} approved, ` +
+            `${needsApproval} need approval, ` +
+            `${denied} denied`);
 
         // STEP 2: Handle denied tools
         const deniedResults = inspectionResult.denied.map(call => ({

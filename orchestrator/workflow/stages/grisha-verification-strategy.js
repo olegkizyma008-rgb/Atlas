@@ -181,23 +181,25 @@ export class GrishaVerificationStrategy {
         let targetApp = null;
         const reasons = [];
         
-        // App-specific keywords (strong visual indicators)
-        const appKeywords = [
-            { keywords: ['калькулятор', 'calculator'], app: 'Calculator', score: 90 },
-            { keywords: ['safari відкр', 'safari browser', 'браузер'], app: 'Safari', score: 85 },
-            { keywords: ['chrome відкр', 'chrome browser'], app: 'Google Chrome', score: 85 },
-            { keywords: ['finder відкр', 'finder window'], app: 'Finder', score: 80 },
-            { keywords: ['notes відкр', 'нотатки'], app: 'Notes', score: 80 }
+        // UNIVERSAL: Detect app mentions in action/criteria
+        // Pattern: "відкрити X", "запустити Y", "X відкрито", etc.
+        const appPatterns = [
+            /(?:відкрити|запустити|launch|open|activate)\s+["']?([a-zа-яії\s]+?)["']?(?:\s|$|,|\.)/i,
+            /(?:програм[аи]|додаток|app|application)\s+["']?([a-zа-яії\s]+?)["']?(?:\s|$|,|\.)/i,
+            /["']([a-zа-яії\s]+?)["']?\s+(?:відкрито|запущено|активовано|running|active)/i
         ];
         
-        for (const mapping of appKeywords) {
-            for (const keyword of mapping.keywords) {
-                if (action.includes(keyword) || successCriteria.includes(keyword)) {
-                    score = Math.max(score, mapping.score);
-                    targetApp = mapping.app;
-                    reasons.push(`App detected: ${mapping.app}`);
-                    break;
-                }
+        for (const pattern of appPatterns) {
+            const match = action.match(pattern) || successCriteria.match(pattern);
+            if (match && match[1]) {
+                const detectedApp = match[1].trim();
+                // Capitalize first letter of each word
+                targetApp = detectedApp.split(' ').map(w => 
+                    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                ).join(' ');
+                score = Math.max(score, 85);
+                reasons.push(`App mentioned in text: ${targetApp}`);
+                break;
             }
         }
         
@@ -220,21 +222,37 @@ export class GrishaVerificationStrategy {
             }
         }
         
-        // Check execution tools for visual indicators
+        // UNIVERSAL: Check execution tools for visual indicators
         if (execution && execution.results) {
             for (const result of execution.results) {
                 const toolName = (result.tool || '').toLowerCase();
+                const toolData = JSON.stringify(result.data || {}).toLowerCase();
                 
-                // AppleScript indicates UI interaction
+                // AppleScript indicates UI interaction - ALWAYS visual verification
                 if (toolName.includes('applescript')) {
-                    score = Math.max(score, 75);
+                    score = Math.max(score, 85);
                     reasons.push('AppleScript tool used (UI interaction)');
+                    
+                    // UNIVERSAL: Extract app name from AppleScript execution data
+                    // Pattern: "tell application \"AppName\"" or "activate AppName"
+                    const appMatch = toolData.match(/tell application ["']([^"']+)["']/i) ||
+                                   toolData.match(/activate\s+["']?([a-z\s]+)["']?/i);
+                    
+                    if (appMatch && appMatch[1]) {
+                        const detectedApp = appMatch[1].trim();
+                        // Capitalize first letter of each word
+                        targetApp = detectedApp.split(' ').map(w => 
+                            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                        ).join(' ');
+                        score = 95; // Very high confidence when app detected
+                        reasons.push(`App detected from execution: ${targetApp}`);
+                    }
                 }
                 
-                // Playwright indicates web UI
+                // Playwright indicates web UI interaction
                 if (toolName.includes('playwright') || toolName.includes('browser')) {
                     score = Math.max(score, 80);
-                    targetApp = targetApp || 'Safari';
+                    // UNIVERSAL: Don't hardcode browser, let system detect from context
                     reasons.push('Playwright tool used (web UI)');
                 }
             }

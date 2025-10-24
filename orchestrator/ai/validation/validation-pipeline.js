@@ -102,7 +102,7 @@ export class ValidationPipeline {
       const validator = this.validators.get(stageName);
 
       if (!validator) {
-        logger.warn('validation-pipeline', `⚠️ No validator registered for stage: ${stageName}`);
+        logger.debug('validation-pipeline', `Skipping stage ${stageName} - no validator registered`);
         continue;
       }
 

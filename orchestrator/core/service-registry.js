@@ -422,25 +422,39 @@ export function registerMCPProcessors(container) {
             callLLM: async (params) => {  // NEW 2025-10-22: LLM client for eligibility routing
                 const axios = (await import('axios')).default;
                 const config = c.resolve('config');
-                const endpoint = config.MCP_MODEL_CONFIG.apiEndpoint.primary;
+                const endpoint = config.MCP_MODEL_CONFIG?.apiEndpoint?.primary;
+                
+                // Validate endpoint configuration
+                if (!endpoint) {
+                    logger.warn('service-registry', '[callLLM] No primary endpoint configured, using fallback');
+                    return null; // Return null to trigger fallback behavior
+                }
                 
                 try {
                     const response = await axios.post(endpoint, {
-                        model: params.model,
+                        model: params.model || 'atlas-mistral-nemo',
                         messages: [
-                            { role: 'system', content: params.systemPrompt },
-                            { role: 'user', content: params.userPrompt }
+                            { role: 'system', content: params.systemPrompt || '' },
+                            { role: 'user', content: params.userPrompt || '' }
                         ],
-                        temperature: params.temperature,
-                        max_tokens: params.max_tokens
+                        temperature: params.temperature || 0.3,
+                        max_tokens: params.max_tokens || 1500
                     }, {
-                        timeout: config.MCP_MODEL_CONFIG.apiEndpoint.timeout || 60000
+                        timeout: config.MCP_MODEL_CONFIG?.apiEndpoint?.timeout || 60000,
+                        validateStatus: (status) => status < 500 // Don't throw on 4xx errors
                     });
                     
-                    return response.data.choices[0].message.content;
+                    // Check for valid response
+                    if (response.data?.choices?.[0]?.message?.content) {
+                        return response.data.choices[0].message.content;
+                    }
+                    
+                    logger.warn('service-registry', '[callLLM] Invalid response structure from LLM');
+                    return null;
                 } catch (error) {
-                    logger.error('service-registry', `[callLLM] Failed: ${error.message}`);
-                    throw error;
+                    // Log error but don't throw - return null for graceful degradation
+                    logger.warn('service-registry', `[callLLM] Request failed: ${error.message}, using fallback`);
+                    return null; // Allow processor to handle fallback
                 }
             },
             logger: c.resolve('logger')

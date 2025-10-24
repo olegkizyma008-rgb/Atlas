@@ -137,7 +137,7 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[GRISHA] 📊 Heuristic confidence: ${strategy.confidence}%`);
             this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
 
-            // STEP 1: LLM-based eligibility decision (PRIMARY)
+            // STEP 2: LLM-based eligibility decision (ADVISORY, not always authority)
             let eligibilityDecision = null;
             if (this.callLLM) {
                 try {
@@ -152,15 +152,29 @@ export class GrishaVerifyItemProcessor {
                         this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM decision: ${eligibilityDecision.recommended_path.toUpperCase()}`);
                         this.logger.system('grisha-verify-item', `[GRISHA] 🤖 LLM confidence: ${eligibilityDecision.confidence}%`);
 
-                        // LLM is the authority - use its recommendation
-                        if (eligibilityDecision.recommended_path === 'data' || eligibilityDecision.recommended_path === 'hybrid') {
-                            strategy.method = 'mcp';
-                            strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
-                            strategy.confidence = eligibilityDecision.confidence;
-                        } else if (eligibilityDecision.recommended_path === 'visual') {
-                            strategy.method = 'visual';
-                            strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
-                            strategy.confidence = eligibilityDecision.confidence;
+                        // UNIVERSAL ALGORITHM 2025-10-24: Smart decision priority
+                        // Heuristic has priority when it has HIGH confidence (≥80%) from execution analysis
+                        // LLM only overrides when heuristic is uncertain (<80% confidence)
+                        const heuristicIsStrong = strategy.confidence >= 80;
+                        const llmIsStronger = eligibilityDecision.confidence > strategy.confidence + 20;
+                        
+                        if (heuristicIsStrong && !llmIsStronger) {
+                            this.logger.system('grisha-verify-item', `[GRISHA] 💪 Keeping heuristic decision (high confidence: ${strategy.confidence}% vs LLM: ${eligibilityDecision.confidence}%)`);
+                            // Keep heuristic strategy, but store LLM decision for fallback
+                            strategy.llmSuggestion = eligibilityDecision.recommended_path;
+                        } else {
+                            // LLM overrides when heuristic is weak OR LLM is much more confident
+                            this.logger.system('grisha-verify-item', `[GRISHA] 🤖 Using LLM decision (heuristic: ${strategy.confidence}%, LLM: ${eligibilityDecision.confidence}%)`);
+                            
+                            if (eligibilityDecision.recommended_path === 'data' || eligibilityDecision.recommended_path === 'hybrid') {
+                                strategy.method = 'mcp';
+                                strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
+                                strategy.confidence = eligibilityDecision.confidence;
+                            } else if (eligibilityDecision.recommended_path === 'visual') {
+                                strategy.method = 'visual';
+                                strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
+                                strategy.confidence = eligibilityDecision.confidence;
+                            }
                         }
                     }
                 } catch (eligibilityError) {
@@ -919,11 +933,12 @@ export class GrishaVerifyItemProcessor {
             { patterns: ['відкрити програму', 'відкрити додаток', 'launch app', 'open app'], replacement: 'Перевірити що відкрито програму' },
             { patterns: ['запустити програму', 'start program'], replacement: 'Перевірити що запущено програму' },
             
-            // Calculation operations
-            { patterns: ['виконати обчислення', 'порахувати', 'calculate', 'compute'], replacement: 'Перевірити результат обчислення' },
-            { patterns: ['помножити', 'multiply'], replacement: 'Перевірити результат множення' },
-            { patterns: ['додати', 'add'], replacement: 'Перевірити результат додавання' },
-            { patterns: ['відняти', 'subtract'], replacement: 'Перевірити результат віднімання' },
+            // Calculation operations - UNIVERSAL: just verify result without mentioning operation details
+            { patterns: ['виконати обчислення', 'порахувати', 'calculate', 'compute'], replacement: 'Перевірити результат' },
+            { patterns: ['помножити', 'multiply'], replacement: 'Перевірити результат' },
+            { patterns: ['додати', 'add'], replacement: 'Перевірити результат' },
+            { patterns: ['відняти', 'subtract'], replacement: 'Перевірити результат' },
+            { patterns: ['округлити', 'round'], replacement: 'Перевірити результат' },
             
             // System operations
             { patterns: ['встановити шпалери', 'set wallpaper', 'change wallpaper'], replacement: 'Перевірити встановлення шпалер' },
@@ -949,9 +964,11 @@ export class GrishaVerifyItemProcessor {
             }
         }
 
-        // No pattern matched - use generic "Перевірити виконання:"
-        // This is better than "Перевірити: Створити..." which confuses downstream processors
-        return `Перевірити виконання: ${action}`;
+        // No pattern matched - use simplest possible verification action
+        // UNIVERSAL ALGORITHM 2025-10-24: Maximum simplicity to avoid LLM needs_split
+        // Any mention of specific operations → LLM may think it needs to execute them
+        // Solution: Just "Verify result" - LLM checks current state, not executes action
+        return 'Перевірити результат';
     }
 
     /**
@@ -1473,54 +1490,61 @@ export class GrishaVerifyItemProcessor {
 
     /**
      * Detect target application for window screenshot
+     * UNIVERSAL: Extract app from execution data or action text
      * 
      * @param {string} action - TODO item action
      * @param {Array} executionResults - Tool execution results
      * @returns {string|null} Target app name or null
      * @private
      */
-    _detectTargetApp(action, executionResults = []) {
+    _detectTargetApp(action, executionResults) {
         const actionLower = (action || '').toLowerCase();
-
-        // Check action text for app keywords
-        // FIXED 20.10.2025: More specific keywords to avoid false positives
-        const appMappings = [
-            { keywords: ['калькулятор', 'calculator'], app: 'Calculator' },
-            { keywords: ['safari відкр', 'safari browser'], app: 'Safari' },
-            { keywords: ['chrome відкр', 'chrome browser'], app: 'Google Chrome' },
-            { keywords: ['firefox відкр', 'firefox browser'], app: 'Firefox' },
-            { keywords: ['finder відкр', 'finder window'], app: 'Finder' },
-            { keywords: ['notes відкр', 'нотатки відкр'], app: 'Notes' },
-            { keywords: ['calendar відкр', 'календар відкр'], app: 'Calendar' },
-            { keywords: ['messages відкр', 'повідомлення відкр'], app: 'Messages' }
-            // REMOVED: mail/пошта - too generic (conflicts with "оголошень", "пошук")
-        ];
-
-        for (const mapping of appMappings) {
-            for (const keyword of mapping.keywords) {
-                if (actionLower.includes(keyword)) {
-                    return mapping.app;
-                }
-            }
-        }
-
-        // Check execution results for AppleScript with app name
-        if (Array.isArray(executionResults)) {
+        let targetApp = null;
+        
+        // UNIVERSAL: Extract from AppleScript execution
+        if (executionResults && executionResults.length > 0) {
             for (const result of executionResults) {
-                if (!result.success || !result.data) continue;
-
-                const dataStr = JSON.stringify(result.data).toLowerCase();
-                
-                for (const mapping of appMappings) {
-                    for (const keyword of mapping.keywords) {
-                        if (dataStr.includes(keyword)) {
-                            return mapping.app;
-                        }
+                const toolName = (result.tool || '').toLowerCase();
+                if (toolName.includes('applescript')) {
+                    const dataStr = JSON.stringify(result.data || {}).toLowerCase();
+                    // Pattern: "tell application \"AppName\""
+                    const appMatch = dataStr.match(/tell\s+application\s+["']([^"']+)["']/i);
+                    if (appMatch && appMatch[1]) {
+                        targetApp = appMatch[1].trim();
+                        // Capitalize properly
+                        targetApp = targetApp.split(/\s+/).map(w => 
+                            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                        ).join(' ');
+                        this.logger.system('grisha-verify-item', 
+                            `[VISUAL-GRISHA] 🎯 App extracted from AppleScript: ${targetApp}`
+                        );
+                        return targetApp;
                     }
                 }
             }
         }
-
+        
+        // UNIVERSAL: Extract app name from action text using patterns
+        const appPatterns = [
+            /(?:відкрити|запустити|launch|open|activate)\s+["']?([a-zа-яії\s\-\.]+?)["']?(?:\s|$|,|\.)/i,
+            /(?:програм[аи]|додаток|app|application)\s+["']?([a-zа-яії\s\-\.]+?)["']?(?:\s|$|,|\.)/i,
+            /["']?([a-zа-яії\s\-\.]+?)["']?\s+(?:відкрито|запущено|активовано|running|active|launched)/i
+        ];
+        
+        for (const pattern of appPatterns) {
+            const match = action.match(pattern);
+            if (match && match[1]) {
+                targetApp = match[1].trim().split(/\s+/).map(w => 
+                    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                ).join(' ');
+                
+                this.logger.system('grisha-verify-item', 
+                    `[VISUAL-GRISHA] 🎯 App extracted from text: ${targetApp}`
+                );
+                return targetApp;
+            }
+        }
+        
         // No target app detected - use full screen
         return null;
     }
@@ -1546,15 +1570,13 @@ export class GrishaVerifyItemProcessor {
             });
         }
         
-        // Calculator/math operations → applescript server
-        if (actionLower.includes('калькулятор') || actionLower.includes('calculator') ||
-            actionLower.includes('помнож') || actionLower.includes('multiply') ||
-            actionLower.includes('додай') || actionLower.includes('add') ||
-            actionLower.includes('відніми') || actionLower.includes('subtract')) {
+        // UNIVERSAL: Math operations → detect from context, not hardcode
+        if (actionLower.match(/[\d\+\-\*\/\=]/) || 
+            actionLower.match(/помнож|множ|додай|відн|поділ|обчисл|результат|multiply|add|subtract|divide|calculate|result/i)) {
             checks.push({
                 server: 'applescript',
                 tool: 'applescript__applescript_execute',
-                description: 'Check calculator result via AppleScript'
+                description: 'Check application state via AppleScript'
             });
         }
         
@@ -1575,7 +1597,7 @@ export class GrishaVerifyItemProcessor {
             actionLower.includes('монітор') || actionLower.includes('monitor')) {
             checks.push({
                 server: 'shell',
-                tool: 'shell__run_shell_command',
+                tool: 'shell__execute_command',
                 description: 'Check system settings via shell'
             });
         }
@@ -1590,6 +1612,162 @@ export class GrishaVerifyItemProcessor {
         }
         
         return checks;
+    }
+
+    /**
+     * Build enriched context for vision analysis
+     * UNIVERSAL: Builds context from ALL previous items, not just specific apps
+     * 
+     * @param {Object} currentItem - Current TODO item
+     * @param {Object} execution - Execution results
+     * @param {Object} todo - Full TODO object
+     * @param {Object} baseContext - Base context to enrich
+     * @returns {Object} Enriched context
+     * @private
+     */
+    _buildEnrichedContext(currentItem, execution, todo, baseContext = {}) {
+        const enrichedContext = { ...baseContext };
+        
+        // UNIVERSAL: Build context from ALL previous items
+        if (todo && todo.items) {
+            const previousItems = todo.items.filter(item => {
+                // Include all items before current (by ID or hierarchy)
+                const isBefore = this._isItemBefore(item, currentItem, todo.items);
+                return isBefore && item.status === 'completed';
+            });
+            
+            if (previousItems.length > 0) {
+                // Build execution history from ALL previous items
+                const historyLines = [];
+                const contextActions = [];
+                
+                previousItems.forEach(item => {
+                    // Add action to context
+                    contextActions.push(`Step ${item.id}: ${item.action}`);
+                    
+                    // Add execution results if available
+                    if (item.execution_results && Array.isArray(item.execution_results)) {
+                        const tools = item.execution_results.map(r => r.tool || 'unknown').join(', ');
+                        historyLines.push(`${item.action} (tools: ${tools})`);
+                    } else {
+                        historyLines.push(item.action);
+                    }
+                });
+                
+                // Add universal context for ANY workflow
+                enrichedContext.previous_actions = contextActions.join('\n');
+                enrichedContext.execution_history = historyLines.join('\n');
+                
+                // Extract specific context based on patterns
+                enrichedContext.workflow_context = this._extractWorkflowContext(previousItems, currentItem);
+                
+                this.logger.system('grisha-verify-item', 
+                    `[VISUAL-GRISHA] 📊 Context from ${previousItems.length} previous items`
+                );
+            }
+        }
+        
+        return enrichedContext;
+    }
+    
+    /**
+     * Check if item is before another in execution order
+     * Handles hierarchical IDs (1, 1.1, 1.1.1, etc.)
+     * 
+     * @private
+     */
+    _isItemBefore(item1, item2, allItems) {
+        // Simple numeric comparison for non-hierarchical IDs
+        if (typeof item1.id === 'number' && typeof item2.id === 'number') {
+            return item1.id < item2.id;
+        }
+        
+        // String ID comparison (handles hierarchical)
+        const id1 = String(item1.id);
+        const id2 = String(item2.id);
+        
+        // Check if item1 is parent of item2
+        if (id2.startsWith(id1 + '.')) {
+            return true;
+        }
+        
+        // Check if they share parent and item1 comes before
+        const parts1 = id1.split('.');
+        const parts2 = id2.split('.');
+        
+        for (let i = 0; i < Math.min(parts1.length, parts2.length); i++) {
+            const num1 = parseInt(parts1[i]);
+            const num2 = parseInt(parts2[i]);
+            if (num1 < num2) return true;
+            if (num1 > num2) return false;
+        }
+        
+        return parts1.length < parts2.length;
+    }
+    
+    /**
+     * Extract workflow-specific context from previous items
+     * UNIVERSAL: Works for any type of workflow
+     * 
+     * @private
+     */
+    _extractWorkflowContext(previousItems, currentItem) {
+        const context = [];
+        const actionLower = (currentItem.action || '').toLowerCase();
+        
+        // Math operations context
+        if (actionLower.match(/[\d\+\-\*\/\=]|результат|result|обчисл|calculate/)) {
+            const mathItems = previousItems.filter(item => {
+                const act = (item.action || '').toLowerCase();
+                return act.match(/[\d\+\-\*\/\=]|помнож|додай|відн|поділ/);
+            });
+            
+            if (mathItems.length > 0) {
+                const operations = mathItems.map(item => {
+                    const nums = item.action.match(/\d+/g);
+                    if (nums && nums.length >= 2) {
+                        if (item.action.match(/помнож|multiply|\*/i)) return `${nums[0]}*${nums[1]}`;
+                        if (item.action.match(/додай|add|\+/i)) return `+${nums[0]}`;
+                        if (item.action.match(/відн|subtract|\-/i)) return `-${nums[0]}`;
+                        if (item.action.match(/поділ|divide|\//i)) return `/${nums[0]}`;
+                    }
+                    return item.action;
+                });
+                context.push(`Math operations: ${operations.join(', ')}`);
+            }
+        }
+        
+        // File operations context
+        if (actionLower.match(/файл|папк|folder|file|збереж|save/)) {
+            const fileItems = previousItems.filter(item => {
+                const act = (item.action || '').toLowerCase();
+                return act.match(/файл|папк|folder|file|створ|збереж|create|save/);
+            });
+            
+            if (fileItems.length > 0) {
+                const paths = fileItems.map(item => {
+                    const pathMatch = item.action.match(/["']([^"']+)["']/);
+                    return pathMatch ? pathMatch[1] : item.action;
+                });
+                context.push(`File operations: ${paths.join(', ')}`);
+            }
+        }
+        
+        // App operations context
+        const appMatch = actionLower.match(/(?:в|у|in)\s+([\w\s]+?)(?:\s|$|,|\.)/i);
+        if (appMatch) {
+            const appName = appMatch[1];
+            const appItems = previousItems.filter(item => {
+                const act = (item.action || '').toLowerCase();
+                return act.includes(appName.toLowerCase());
+            });
+            
+            if (appItems.length > 0) {
+                context.push(`${appName} operations: ${appItems.map(i => i.action).join('; ')}`);
+            }
+        }
+        
+        return context.length > 0 ? context.join('\n') : null;
     }
 
     /**

@@ -62,8 +62,11 @@ export class GrishaVerificationEligibilityProcessor {
             // Build heuristic signals from strategy
             const heuristicSignals = this._buildHeuristicSignals(verificationStrategy);
 
+            // UNIVERSAL ALGORITHM 2025-10-24: Extract used servers from execution
+            const usedServers = this._extractUsedServersFromExecution(execution);
+
             // Prepare prompt with execution summary
-            const executionSummary = this._buildExecutionSummary(execution);
+            const executionSummary = this._buildExecutionSummary(execution, usedServers);
             
             const prompt = MCP_PROMPTS.GRISHA_VERIFICATION_ELIGIBILITY;
             const userPrompt = prompt.USER_PROMPT
@@ -147,6 +150,36 @@ export class GrishaVerificationEligibilityProcessor {
     }
 
     /**
+     * Extract used MCP servers from execution results
+     * UNIVERSAL ALGORITHM 2025-10-24: Analyzes tool names to determine servers
+     * 
+     * @param {Object} execution - Execution results
+     * @returns {Array<string>} List of used server names
+     * @private
+     */
+    _extractUsedServersFromExecution(execution) {
+        const serversUsed = new Set();
+        
+        if (execution && execution.results && Array.isArray(execution.results)) {
+            for (const result of execution.results) {
+                const toolName = (result.tool || '').toLowerCase();
+                
+                // Extract server from tool name format: server__tool or server__server__tool
+                // Universal pattern matching for any server
+                if (toolName.includes('__')) {
+                    const parts = toolName.split('__');
+                    if (parts.length >= 2) {
+                        const server = parts[0];
+                        serversUsed.add(server);
+                    }
+                }
+            }
+        }
+        
+        return Array.from(serversUsed);
+    }
+
+    /**
      * Build heuristic signals from verification strategy
      * 
      * @param {Object} strategy - Verification strategy from GrishaVerificationStrategy
@@ -180,25 +213,36 @@ export class GrishaVerificationEligibilityProcessor {
 
     /**
      * Build execution summary from results
+     * ENHANCED 2025-10-24: Includes server information for better routing
      * 
      * @param {Object} execution - Execution results
+     * @param {Array<string>} usedServers - List of used servers
      * @returns {string} Summary text
      * @private
      */
-    _buildExecutionSummary(execution) {
-        if (!execution || !execution.results || execution.results.length === 0) {
-            return 'Немає виконаних інструментів';
+    _buildExecutionSummary(execution, usedServers = []) {
+        if (!execution || !execution.results) {
+            return 'No execution results available';
         }
 
         const lines = [];
-        lines.push(`Виконано інструментів: ${execution.results.length}`);
+        lines.push(`Total tools executed: ${execution.results.length}`);
+        lines.push(`All successful: ${execution.all_successful ? 'Yes' : 'No'}`);
         
-        execution.results.forEach((result, idx) => {
+        // UNIVERSAL: Show which servers were used
+        if (usedServers.length > 0) {
+            lines.push(`MCP Servers used: ${usedServers.join(', ')}`);
+            lines.push('Note: For verification, PREFER the same servers that were used in execution.');
+        }
+        
+        lines.push('\nTools used:');
+
+        for (const result of execution.results) {
             const status = result.success ? '✅' : '❌';
             const toolName = result.tool || 'unknown';
-            const summary = result.summary || result.error || 'No details';
-            lines.push(`${idx + 1}. ${status} ${toolName}: ${summary}`);
-        });
+            const errorInfo = result.error ? ` (${String(result.error).substring(0, 50)})` : '';
+            lines.push(`  ${status} ${toolName}${errorInfo}`);
+        }
 
         return lines.join('\n');
     }

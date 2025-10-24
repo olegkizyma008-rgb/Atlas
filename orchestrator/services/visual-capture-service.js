@@ -456,8 +456,8 @@ export class VisualCaptureService {
             
             this.logger.system('visual-capture', `[VISUAL] 🖼️  Hiding windows for desktop capture (${displayMsg})`);
             
-            // Hide all application windows (show desktop)
-            await execAsync('osascript -e \'tell application "Finder" to set visible of processes whose visible is true to false\'');
+            // Hide all application windows (show desktop) - universal approach
+            await execAsync('osascript -e \'tell application "System Events" to set visible of every process whose visible is true and background only is false to false\'');
             
             // Wait for windows to hide
             await new Promise(resolve => setTimeout(resolve, 500));

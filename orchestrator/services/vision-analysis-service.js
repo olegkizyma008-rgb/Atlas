@@ -246,8 +246,18 @@ export class VisionAnalysisService {
       const optimizedImage = await this._optimizeImage(imageBuffer);
       const base64Image = optimizedImage.toString('base64');
 
-      // Construct vision analysis prompt
-      const prompt = this._constructAnalysisPrompt(successCriteria, context);
+      // ENHANCED 2025-10-24: Add execution history to context
+      // This is critical for multi-step operations and sequential workflows
+      const enrichedContext = {
+        ...context,
+        executionResults: context.executionResults || [],
+        action: context.action || '',
+        execution_history: context.execution_history || '',
+        previous_actions: context.previous_actions || ''
+      };
+
+      // Construct vision analysis prompt with enriched context
+      const prompt = this._constructAnalysisPrompt(successCriteria, enrichedContext);
 
       // Call vision API with retry logic
       // ENHANCED 2025-10-22: Pass context for model selection
@@ -578,6 +588,16 @@ export class VisionAnalysisService {
       .replace('{{TASK_ACTION}}', context.action || '')
       .replace('{{EXECUTION_SUMMARY}}', executionSummary || '');
       
+    // ENHANCED 2025-10-24: Add execution history for multi-step operations
+    if (context.execution_history) {
+      userPrompt += `\n\n**Execution History (Previous Steps):**\n${context.execution_history}`;
+    }
+    
+    // ENHANCED 2025-10-24: Add previous actions context for sequential workflows
+    if (context.previous_actions) {
+      userPrompt += `\n\n**Previous Actions Context:**\n${context.previous_actions}\n\nIMPORTANT: Verify the result of the CURRENT operation in the context of these previous steps. Consider how previous actions affect what you should see now.`;
+    }
+      
     // Clean up empty template sections
     if (!context.action) {
       userPrompt = userPrompt.replace(/{{#if TASK_ACTION}}[\s\S]*?{{\/if}}/g, '');
@@ -642,6 +662,20 @@ export class VisionAnalysisService {
       userPrompt = userPrompt.replace(/{{#if TIME_ELAPSED}}[\s\S]*?{{\/if}}/g, '');
     } else {
       userPrompt = userPrompt.replace('{{#if TIME_ELAPSED}}', '').replace('{{/if}}', '');
+    }
+    
+    // UNIVERSAL: Add context from previous items
+    if (context.previous_actions) {
+      userPrompt += `\n\n**Previous Actions:**\n${context.previous_actions}`;
+      userPrompt += `\n\nIMPORTANT: Verify the CURRENT operation considering these previous steps.`;
+    }
+    
+    if (context.execution_history) {
+      userPrompt += `\n\n**Execution History:**\n${context.execution_history}`;
+    }
+    
+    if (context.workflow_context) {
+      userPrompt += `\n\n**Workflow Context:**\n${context.workflow_context}`;
     }
 
     return userPrompt;

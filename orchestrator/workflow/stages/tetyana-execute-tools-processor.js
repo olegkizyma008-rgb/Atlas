@@ -112,10 +112,14 @@ export class TetyanaExecuteToolsProcessor {
             
             // Log inspection results if available (from TetyanaToolSystem)
             if (executionResult.inspection) {
+                const approved = executionResult.inspection.approved?.length || 0;
+                const needsApproval = executionResult.inspection.needsApproval?.length || 0;
+                const denied = executionResult.inspection.denied?.length || 0;
+                
                 this.logger.system('tetyana-execute-tools', 
-                    `[STAGE-2.2-MCP]   Inspection: ${executionResult.inspection.approved} approved, ` +
-                    `${executionResult.inspection.needsApproval} need approval, ` +
-                    `${executionResult.inspection.denied} denied`);
+                    `[STAGE-2.2-MCP]   Inspection: ${approved} approved, ` +
+                    `${needsApproval} need approval, ` +
+                    `${denied} denied`);
             }
 
             // Log individual results

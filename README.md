@@ -1,10 +1,10 @@
 # ATLAS v5.0 - Інтелектуальна Багатоагентна Система
 
-> **Версія:** 5.0.3 (Pure MCP Mode + Intelligent Verification)  
-> **Останнє оновлення:** 22 жовтня 2025  
+> **Версія:** 5.0.4 (Pure MCP Mode + Intelligent Systems)  
+> **Останнє оновлення:** 24 жовтня 2025  
 > **Статус:** Production Ready
 
-**ATLAS v5.0** - інтелектуальна багатоагентна система з динамічним MCP TODO workflow, JSON Schema валідацією tools, **інтелектуальною двоетапною верифікацією** (visual + MCP), українською TTS/STT, та 3D візуалізацією. Система працює в Pure MCP режимі з Goose-inspired архітектурою.
+**ATLAS v5.0** - інтелектуальна багатоагентна система з динамічним MCP TODO workflow, JSON Schema валідацією tools, **інтелектуальною двоетапною верифікацією** (visual + MCP), **адаптивною конфігурацією з навчанням**, українською TTS/STT, та 3D візуалізацією. Система працює в Pure MCP режимі з Goose-inspired архітектурою та використовує AI-driven підхід до вирішення проблем.
 
 ## 🎯 Основні можливості
 
@@ -13,7 +13,11 @@
 - **🛠️ 5 MCP Серверів** - filesystem, playwright, shell, applescript, memory
 - **🔒 JSON Schema Validation** - жорстке обмеження LLM на валідні tool names (Goose-style)
 - **🛡️ Tetyana Tool System** - розширена система управління tools з LLM валідацією
-- **🔍 Intelligent Verification** ⭐ NEW - двоетапна верифікація (LLM routing + visual/MCP)
+- **🔍 Intelligent Verification** - двоетапна верифікація (LLM routing + visual/MCP)
+- **🧠 Intelligent Error Handler** ⭐ NEW - автоматичне виправлення помилок з навчанням
+- **👁️ Intelligent Vision Parser** ⭐ NEW - NLP парсинг неструктурованих Vision відповідей
+- **🧩 Smart Dependency Resolver** ⭐ NEW - графовий аналіз залежностей
+- **⚙️ Dynamic Configuration** ⭐ NEW - адаптивна конфігурація без хардкодів
 - **🔄 Smart Retry Logic** - 3 спроби з exponential backoff та intelligent fallbacks
 - **🗣️ Українська TTS** - синтез мовлення з Metal GPU acceleration
 - **🎙️ Whisper STT** - розпізнавання мовлення (Large-v3, Metal)
@@ -1373,29 +1377,47 @@ RECOVERY_BRIDGE_PORT=5102
 atlas4/
 ├── restart_system.sh          # 🎛️ Головний скрипт управління
 ├── README.md                  # 📖 Документація проекту
-├── install.sh                 # 📦 Скрипт установки
+├── setup-macos.sh             # 📦 Скрипт установки для macOS
 ├── web/                       # 🌐 Flask веб-інтерфейс
-│   └── static/js/             # 📦 Модульний JavaScript
-│       ├── core/              # 🔧 Основні модулі (logger, config, api-client)
-│       ├── modules/           # 📱 Функціональні модулі (chat, tts)
-│       ├── app-refactored.js  # 🚀 Головний додаток
-│       └── _unused/           # 🗃️ Застарілі файли
-├── orchestrator/              # 🎭 Node.js управління агентами (модульна архітектура)
-│   ├── agents/                # 🤖 Клієнти агентів
-│   ├── ai/                    # 🧠 AI модулі
-│   ├── utils/                 # 🛠️ Утиліти
-│   └── workflow/              # 🔄 Workflow логіка
+│   ├── static/js/             # 📦 Модульний JavaScript
+│   │   ├── core/              # 🔧 Основні модулі (logger, config, api-client)
+│   │   ├── modules/           # 📱 Функціональні модулі (chat, tts, voice)
+│   │   ├── components/        # 🎨 UI компоненти
+│   │   └── app-refactored.js  # 🚀 Головний додаток
+│   ├── templates/             # 📄 HTML шаблони
+│   └── atlas_server.py        # 🐍 Flask сервер
+├── orchestrator/              # 🎭 Node.js управління агентами
+│   ├── core/                  # 🏗️ Ядро системи (DI, lifecycle)
+│   ├── ai/                    # 🧠 AI модулі та інтелектуальні системи
+│   │   ├── intelligent-error-handler.js      # 🔧 NEW: Інтелектуальна обробка помилок
+│   │   ├── intelligent-vision-parser.js      # 👁️ NEW: NLP парсинг Vision відповідей
+│   │   ├── validation/        # ✅ Валідація tools
+│   │   └── inspectors/        # 🔍 Tool інспектори
+│   ├── workflow/              # 🔄 Workflow логіка
+│   │   ├── stages/            # 📊 9 етапів MCP workflow
+│   │   ├── smart-dependency-resolver.js      # 🧩 NEW: Графовий аналіз залежностей
+│   │   └── executor-v3.js     # 🚀 Головний виконавець
+│   ├── services/              # 🛠️ Сервіси (Vision, TTS sync)
+│   ├── api/routes/            # 🌐 API маршрути
+│   └── utils/                 # 🔧 Утиліти
 ├── config/                    # ⚙️ Централізована система конфігурації
-│   ├── global-config.js       # 🔧 Головний конфіг (єдине джерело)
+│   ├── atlas-config.js        # 🔧 Головний конфігураційний агрегатор
+│   ├── dynamic-config.js      # 🧠 NEW: Адаптивна конфігурація з навчанням
 │   ├── agents-config.js       # 🤖 Конфігурація агентів
-│   ├── workflow-config.js     # 🔄 Конфігурація workflow
-│   └── api-config.js          # 🌐 API endpoints
-├── prompts/                   # 🧠 Промпти агентів
-├── ukrainian-tts/             # 🔊 TTS система
+│   ├── workflow-config.js     # 🔄 MCP workflow етапи
+│   ├── models-config.js       # 🤖 AI моделі та провайдери
+│   ├── security-config.js     # 🔒 Безпека та валідація
+│   └── validation-config.js   # ✅ Правила валідації
+├── prompts/mcp/               # 🧠 MCP промпти (17 файлів)
+├── ukrainian-tts/             # 🔊 TTS система з Metal GPU
+├── services/whisper/          # 🎙️ Whisper STT сервіс
 ├── docs/                      # 📚 Документація системи
+│   ├── fixes/                 # 🔧 Документація виправлень
+│   ├── refactoring/           # 🏗️ Документація рефакторингу
+│   └── API_REFERENCE.md       # 📖 API документація
 ├── scripts/                   # 🛠️ Допоміжні скрипти
 ├── logs/                      # 📝 Логування системи
-└── unused_files/              # 🗃️ Архів старих файлів
+└── archive/                   # 🗃️ Архів застарілого коду
 ```
 
 ### Детальний опис директорій
@@ -1409,20 +1431,35 @@ orchestrator/
 │   ├── di-container.js         # Dependency Injection
 │   └── service-registry.js     # Реєстрація сервісів
 ├── ai/
+│   ├── intelligent-error-handler.js    # 🆕 Інтелектуальна обробка помилок з навчанням
+│   ├── intelligent-vision-parser.js    # 🆕 NLP парсинг неструктурованих Vision відповідей
 │   ├── mcp-manager.js          # MCP серверів manager
 │   ├── llm-client.js           # LLM API client
-│   ├── llm-tool-selector.js    # LLM Tool Validator
-│   └── tool-history-manager.js # Tool history tracking
+│   ├── tool-dispatcher.js      # Tool dispatch та inspection
+│   ├── validation/             # ValidationPipeline (5 етапів)
+│   └── inspectors/             # Tool інспектори (format, history, schema)
 ├── workflow/
+│   ├── executor-v3.js          # Головний виконавець workflow
 │   ├── mcp-todo-manager.js     # Dynamic TODO workflow
-│   └── processors/             # 9 stage processors
+│   ├── smart-dependency-resolver.js    # 🆕 Графовий аналіз залежностей
+│   ├── stages/                 # 9 stage processors
+│   │   ├── mode-selection-processor.js
+│   │   ├── atlas-plan-todo-processor.js
+│   │   ├── server-selection-processor.js
+│   │   ├── tetyana-plan-tools-processor.js
+│   │   ├── tetyana-execute-tools-processor.js
+│   │   ├── grisha-verify-item-processor.js
+│   │   ├── atlas-replan-todo-processor.js
+│   │   └── mcp-final-summary-processor.js
+│   └── utils/                  # Workflow утиліти
 ├── api/routes/
 │   ├── chat.routes.js          # Chat endpoints
 │   └── web-integration.js      # Web integration
 ├── services/
-│   ├── vision-analysis-service.js  # Vision models
+│   ├── vision-analysis-service.js  # Vision models (3-tier fallback)
+│   ├── visual-capture-service.js   # Screenshot capture
 │   └── tts-sync-manager.js    # TTS synchronization
-└── utils/                      # Logger, telemetry, etc.
+└── utils/                      # Logger, telemetry, axios-config
 ```
 
 **`prompts/`** - Промпти агентів (17 файлів)
@@ -1439,12 +1476,18 @@ prompts/mcp/
 
 **`config/`** - Централізована конфігурація
 - `atlas-config.js` - Головний конфігураційний агрегатор (експортує всі налаштування)
+- `dynamic-config.js` - 🆕 Інтелектуальна адаптивна конфігурація з навчанням
+  - Динамічні timeouts на основі навантаження системи
+  - Адаптивний вибір моделей за контекстом
+  - Feature flags management
+  - Навчання на патернах помилок
 - `system-config.js` - Системні налаштування та змінні середовища
 - `agents-config.js` - 3 агенти з ролями та голосами
 - `workflow-config.js` - MCP stages з transitions (0, 1-MCP, 2.0-2.3-MCP, 3-MCP, 3.5-MCP, 8-MCP)
 - `api-config.js` - API endpoints та мережеві налаштування
 - `models-config.js` - Конфігурація AI моделей та vision
 - `security-config.js` - Налаштування безпеки та валідації
+- `validation-config.js` - Правила валідації та JSON schemas
 
 **`web/`** - Flask Frontend
 - `atlas_server.py` - Мінімальний Flask сервер

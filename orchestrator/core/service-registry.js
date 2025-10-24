@@ -18,6 +18,7 @@ import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
 import { VisionAnalysisService } from '../services/vision-analysis-service.js';
 import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
 import AccessibilityChecker from '../utils/accessibility-checker.js';
+import LocalizationService from '../services/localization-service.js';
 import {
     ModeSelectionProcessor,
     AtlasTodoPlanningProcessor,
@@ -69,6 +70,21 @@ export function registerCoreServices(container) {
         lifecycle: {
             onInit: async function () {
                 logger.system('startup', '[DI] Telemetry initialized');
+            }
+        }
+    });
+
+    // 5. Localization Service - NEW
+    container.singleton('localizationService', (c) => new LocalizationService({ 
+        logger: c.resolve('logger') 
+    }), {
+        dependencies: ['logger'],
+        metadata: { category: 'core', priority: 75 },
+        lifecycle: {
+            onInit: async function () {
+                await this.initialize();
+                logger.system('startup', '[DI] Localization service initialized');
+                logger.system('startup', `[DI] User language: ${this.getUserLanguage()}`);
             }
         }
     });

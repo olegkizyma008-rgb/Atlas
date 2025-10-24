@@ -8,10 +8,10 @@
  * UPDATED 14.10.2025 - Added MCP_MODEL_CONFIG support for per-stage models
  */
 
-import logger from '../utils/logger.js';
-import axios from 'axios';
-import vm from 'node:vm';
+import HierarchicalIdManager from './hierarchical-id-manager.js';
+import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
+import LocalizationService from '../services/localization-service.js';
 import { VisualCaptureService } from '../services/visual-capture-service.js';
 
 /**
@@ -70,22 +70,17 @@ export class MCPTodoManager {
      * @param {Object} dependencies.wsManager - WebSocket Manager for chat updates
      * @param {Object} dependencies.atlasReplanTodoProcessor - Atlas Replan TODO Processor (optional)
      * @param {Object} dependencies.logger - Logger instance
+     * @param {Object} dependencies.localizationService - Localization Service instance
      */
-  constructor({ mcpManager, llmClient, ttsSyncManager, wsManager, atlasReplanTodoProcessor, logger: loggerInstance }) {
-    this.mcpManager = mcpManager;
-    this.llmClient = llmClient;
-    this.tts = ttsSyncManager;
-    this.wsManager = wsManager;  // ADDED 14.10.2025 - For chat updates
-    this.atlasReplanTodoProcessor = atlasReplanTodoProcessor;  // ADDED 20.10.2025 - For deep replan analysis
-    this.logger = loggerInstance || logger;
-
-    this.activeTodos = new Map(); // todoId -> TodoList
-    this.completedTodos = new Map(); // todoId -> results
-    this.currentSessionId = null;  // ADDED 14.10.2025 - Track current session
-
-    // Rate limiting state (ADDED 14.10.2025)
+  constructor({ logger, wsManager = null, localizationService = null }) {
+    this.logger = logger;
+    this.wsManager = wsManager;
+    this.localizationService = localizationService || new LocalizationService({ logger });
+    this.currentTodo = null;
+    this.currentSessionId = null;
+    this.hierarchicalIdManager = new HierarchicalIdManager();
     this.lastApiCall = 0;
-    this.minApiDelay = 2000; // INCREASED 14.10.2025 - 2000ms between API calls to avoid rate limits
+    this.minApiDelay = 100; // Minimum delay between API calls in ms
 
     // Visual capture service (shared for all items)
     this.visualCapture = null;
@@ -188,11 +183,12 @@ export class MCPTodoManager {
   }
 
   /**
-     * Send message to chat via WebSocket
+     * Send message to chat via WebSocket with localization
      * ADDED 14.10.2025 - Enable chat updates during workflow
      * FIXED 16.10.2025 - Use agent_message for Tetyana/Grisha/Atlas, chat_message for system
+     * UPDATED 2025-10-24 - Added localization support
      *
-     * @param {string} message - Message to send
+     * @param {string} message - Message to send (in English)
      * @param {string} type - Message type or agent name (tetyana, grisha, atlas, agent, info, success, error, progress)
      * @param {string} [ttsContent] - Optional short text for TTS (if not provided, uses message)
      * @private
@@ -230,26 +226,41 @@ export class MCPTodoManager {
 
         this.logger.system('mcp-todo', `[TODO] Broadcasting agent message: chat/agent_message (agent: ${agentName})`);
         
+        // Translate message for user display
+        const translatedMessage = this.localizationService.translateToUser(message);
+        const translatedTts = ttsContent ? this.localizationService.translateToUser(ttsContent) : null;
+        
         // FIXED 2025-10-21: Add ttsContent for short TTS phrases
         const messageData = {
-          content: message,
+          content: translatedMessage,
           agent: agentName,
           sessionId: this.currentSessionId,
           timestamp: new Date().toISOString()
         };
         
         // Add ttsContent only if provided (for short TTS instead of full message)
-        if (ttsContent) {
-          messageData.ttsContent = ttsContent;
+        if (translatedTts) {
+          messageData.ttsContent = translatedTts;
         }
         
         this.wsManager.broadcastToSubscribers('chat', 'agent_message', messageData);
       } else {
+        // Check if should show system message based on configuration
+        const messageLevel = type === 'error' ? 1 : type === 'warning' ? 2 : 3;
+        if (!this.localizationService.shouldShowMessage(messageLevel)) {
+          return; // Skip system message based on configuration
+        }
+        
         // Send as chat_message (will show as [SYSTEM])
-        this.logger.system('mcp-todo', `[TODO] Broadcasting system message: chat/chat_message`);
+        this.logger.system('mcp-todo', '[TODO] Broadcasting system message: chat/chat_message');
+        
+        // Translate system message for user
+        const translatedMessage = this.localizationService.translateSystemMessage(message, messageLevel);
+        if (!translatedMessage) return; // Skip if translation returns null
+        
         this.wsManager.broadcastToSubscribers('chat', 'chat_message', {
-          message,
-          messageType: type,
+          content: translatedMessage,
+          type: type,
           sessionId: this.currentSessionId,
           timestamp: new Date().toISOString()
         });

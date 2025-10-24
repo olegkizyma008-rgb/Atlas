@@ -4,7 +4,8 @@
  */
 
 import GlobalConfig from '../../config/atlas-config.js';
-// Centralised modules
+import { SessionStore } from '../core/session-store.js';
+import LocalizationService from '../services/localization-service.js';
 import logger from '../utils/logger.js';
 import telemetry from '../utils/telemetry.js';
 import { HierarchicalIdManager } from './utils/hierarchical-id-manager.js';
@@ -33,14 +34,19 @@ const phraseRotation = {
  * @param {Object} container - DI Container for resolving processors
  * @returns {Promise<Object>} Final summary result
  */
-async function executeMCPWorkflow(userMessage, session, res, container) {
+export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncManager, diContainer, localizationService }) {
+  // Initialize localization service if not provided
+  if (!localizationService) {
+    localizationService = new LocalizationService({ logger });
+  }
+
+  const container = diContainer;
+  const session = SessionStore.getOrCreateSession('default');
+  
   logger.workflow('init', 'mcp', 'Starting MCP Dynamic TODO Workflow', {
     sessionId: session.id,
     userMessage: userMessage.substring(0, 100)
   });
-
-  // Get WebSocket Manager for chat updates (ADDED 14.10.2025)
-  const wsManager = container.resolve('wsManager');
 
   const workflowStart = Date.now();
 
@@ -87,12 +93,20 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
     // Send mode selection message to chat via WebSocket
     if (wsManager) {
       try {
+        // System message in English
+        const systemMessage = `Mode: ${mode === 'chat' ? '💬 Chat' : '🔧 Task'} (confidence: ${Math.round(confidence * 100)}%)`;
+        const systemTts = `Mode ${mode === 'chat' ? 'chat' : 'task'}`;
+        
+        // Translate for user display
+        const userMessage = localizationService.translateToUser(systemMessage);
+        const userTts = localizationService.translateToUser(systemTts);
+        
         wsManager.broadcastToSubscribers('chat', 'agent_message', {
-          content: `Режим: ${mode === 'chat' ? '💬 Розмова' : '🔧 Завдання'} (впевненість: ${Math.round(confidence * 100)}%)`,
+          content: userMessage,
           agent: 'system',
           sessionId: session.id,
           timestamp: new Date().toISOString(),
-          ttsContent: `Режим ${mode === 'chat' ? 'розмова' : 'завдання'}`,
+          ttsContent: userTts,
           mode: mode
         });
       } catch (error) {
@@ -111,11 +125,11 @@ async function executeMCPWorkflow(userMessage, session, res, container) {
       });
 
       // DIAGNOSTIC - Add detailed logging to find where code execution stops
-      logger.system('executor', `[CHAT-DEBUG] About to enter chat try block`);
+      logger.system('executor', '[CHAT-DEBUG] About to enter chat try block');
 
       // FIXED 16.10.2025 - Load chat prompt from prompts directory (not hardcoded)
       try {
-        logger.system('executor', `[CHAT-DEBUG] Step 1: Loading chat prompt from prompts/mcp/atlas_chat.js`);
+        logger.system('executor', '[CHAT-DEBUG] Step 1: Loading chat prompt from prompts/mcp/atlas_chat.js');
         const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
         const chatPrompt = MCP_PROMPTS.ATLAS_CHAT;
 

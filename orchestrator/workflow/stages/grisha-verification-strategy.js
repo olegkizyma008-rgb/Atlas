@@ -84,6 +84,30 @@ export class GrishaVerificationStrategy {
             };
         }
         
+        // HIGH PRIORITY: Shell operations with explicit terminal/bash keywords
+        // CRITICAL: Must check BEFORE AppleScript to avoid "відкрити terminal" → AppleScript conflict
+        if (shellIndicators.score >= 80) {
+            const hasExplicitShell = action.includes('bash') || 
+                                    action.includes('terminal') || 
+                                    action.includes('термінал') ||
+                                    action.includes('shell') ||
+                                    action.includes('grep') ||
+                                    action.includes('awk') ||
+                                    action.includes('sed') ||
+                                    action.includes('pipe');
+            
+            if (hasExplicitShell) {
+                return {
+                    method: 'mcp',
+                    mcpServer: 'shell',
+                    tools: shellIndicators.suggestedTools,
+                    confidence: shellIndicators.score,
+                    reason: 'Explicit shell/terminal operation detected',
+                    fallbackToVisual: false
+                };
+            }
+        }
+        
         // AppleScript operations - use MCP verification (macOS app automation)
         if (applescriptIndicators.score >= 60) {
             return {

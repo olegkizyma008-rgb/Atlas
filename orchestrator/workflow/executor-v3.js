@@ -1357,12 +1357,18 @@ export async function executeStepByStepWorkflow(userMessage, session, res, _opti
 
     // Execute MCP Dynamic TODO Workflow
     const mcpTodoManager = container.resolve('mcpTodoManager');
-    const todo = await mcpTodoManager.executeTodo(userMessage, session.id);
+    
+    // Step 1: Create TODO from user message
+    const todo = await mcpTodoManager.createTodo(userMessage, { sessionId: session.id });
+    
+    // Step 2: Execute the TODO
+    const results = await mcpTodoManager.executeTodo(todo);
     
     return {
       success: true,
       mode: 'task',
-      todo: todo
+      todo: todo,
+      results: results
     };
 
   } catch (error) {

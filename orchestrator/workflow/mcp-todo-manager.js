@@ -8,6 +8,7 @@
  * UPDATED 14.10.2025 - Added MCP_MODEL_CONFIG support for per-stage models
  */
 
+import axios from 'axios';
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';

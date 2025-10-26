@@ -6465,3 +6465,6 @@
 2025-10-26 17:46:01 [WARN] executor {"metadata":{}}
 2025-10-26 17:46:01 [INFO] [WORKFLOW] Stage complete - atlas: Chat response completed {"metadata":{"category":"workflow","stage":"complete","agent":"atlas","sessionId":"default"}}
 2025-10-26 17:46:01 [INFO] [HTTP] POST /chat/stream 200 (3182ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":3182,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
+2025-10-26 17:46:23 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-26T15-46-23-396Z.json (2 записів) {"metadata":{}}
+2025-10-26 17:46:49 [INFO] WebSocket connection closed {"metadata":{"clientId":"ws_1761493412622_j0zu9mx0g","duration":"197s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-10-26 17:46:49 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1761493609774_blkxkl5js","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}

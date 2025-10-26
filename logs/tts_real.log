@@ -521,3 +521,5 @@ downloaded.
 2025-10-26 17:46:12,949 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:46:12] "OPTIONS /tts HTTP/1.1" 200 -
 2025-10-26 17:46:12,951 [ukrainian-tts-server] INFO: TTS request: text='Доброго дня, Олеже Миколайовичу! Я — Атлас, ваше т...', voice=mykyta, fx=none, length=138 chars
 2025-10-26 17:46:20,110 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:46:20] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:46:49,779 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:46:49] "OPTIONS /health HTTP/1.1" 200 -
+2025-10-26 17:46:49,781 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:46:49] "GET /health HTTP/1.1" 200 -

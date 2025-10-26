@@ -441,11 +441,10 @@
 2025-10-26 17:46:01 [[33MWARN[39M] executor {"metadata":{}}
 2025-10-26 17:46:01 [[32MINFO[39M] [WORKFLOW] Stage complete - atlas: Chat response completed {"metadata":{"category":"workflow","stage":"complete","agent":"atlas","sessionId":"default"}}
 2025-10-26 17:46:01 [[32MINFO[39M] [HTTP] POST /chat/stream 200 (3182ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":3182,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
-ctly {"metadata":{"category":"workflow","stage":"stage","agent":"atlas","sessionId":"default"}}
-2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] About to enter chat try block {"metadata":{"category":"system","component":"executor"}}
-2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 1: Loading chat prompt from prompts/mcp/atlas_chat.js {"metadata":{"category":"system","component":"executor"}}
-2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 2: Chat prompt loaded successfully {"metadata":{"category":"system","component":"executor"}}
-2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 3: Importing axios {"metadata":{"category":"system","component":"executor"}}
+2025-10-26 17:46:23 [[32MINFO[39M] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-26T15-46-23-396Z.json (2 записів) {"metadata":{}}
+2025-10-26 17:46:49 [[32MINFO[39M] WebSocket connection closed {"metadata":{"clientId":"ws_1761493412622_j0zu9mx0g","duration":"197s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-10-26 17:46:49 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1761493609774_blkxkl5js","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+O] [SYSTEM] executor: [CHAT-DEBUG] Step 3: Importing axios {"metadata":{"category":"system","component":"executor"}}
 2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 4: Getting model config {"metadata":{"category":"system","component":"executor"}}
 2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 5: Model config retrieved: {"model":"atlas-mistral-medium-2505","temperature":0.7,"max_tokens":500,"description":"Природні розмови - креативність (Mistral Medium)"} {"metadata":{"category":"system","component":"executor"}}
 2025-10-26 17:45:59 [INFO] [SYSTEM] executor: [CHAT-DEBUG] Step 6: ChatThread exists with 0 messages {"metadata":{"category":"system","component":"executor"}}
@@ -491,3 +490,6 @@ ctly {"metadata":{"category":"workflow","stage":"stage","agent":"atlas","session
 2025-10-26 17:46:01 [WARN] executor {"metadata":{}}
 2025-10-26 17:46:01 [INFO] [WORKFLOW] Stage complete - atlas: Chat response completed {"metadata":{"category":"workflow","stage":"complete","agent":"atlas","sessionId":"default"}}
 2025-10-26 17:46:01 [INFO] [HTTP] POST /chat/stream 200 (3182ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":3182,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
+2025-10-26 17:46:23 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-26T15-46-23-396Z.json (2 записів) {"metadata":{}}
+2025-10-26 17:46:49 [INFO] WebSocket connection closed {"metadata":{"clientId":"ws_1761493412622_j0zu9mx0g","duration":"197s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-10-26 17:46:49 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1761493609774_blkxkl5js","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}

@@ -332,6 +332,16 @@ export const MCP_MODEL_CONFIG = {
       },
       max_tokens: 200,
       description: 'TTS Optimization - оптимізація тексту для озвучки'
+    },
+    chat_memory_eligibility: {
+      get model() {
+        return env.MCP_MODEL_CHAT_MEMORY_ELIGIBILITY || 'atlas-ai21-jamba-1.5-mini';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_CHAT_MEMORY_ELIGIBILITY || '0.1');
+      },
+      max_tokens: 150,
+      description: 'Chat Memory Eligibility - швидка класифікація потреби в довготривалій пам\'яті (AI21 Jamba 1.5 Mini - ultra fast)'
     }
   },
   getStageConfig(stageName) {

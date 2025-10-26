@@ -61,11 +61,10 @@ target/
 .pydevproject
 .settings/
 
-# Logs
+# Logs (allow logs directory and its contents for debugging)
 !logs/
-logs/*.log
+!logs/**
 combined.log
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -141,9 +140,7 @@ yarn-error.log*
 .venv
 env/
 venv/
-*.log
 *.pid
-logs/
 ENV/
 env.bak/
 venv.bak/
@@ -224,8 +221,7 @@ models/whisper/*.bin
 model.pth
 model_mps.pth
 
-# Large log files
-logs/*.log
+# Large log files (combined.log only)
 combined.log
 
 # media
@@ -243,9 +239,8 @@ third_party/whisper.cpp.upstream/
 unused_files/goose/mcp/temp_servers/
 unused_files/goose_mcp_servers/mcp/temp_servers/
 
-# Logs directory - ignore completely except orchestrator.log
-logs/*
-!logs/orchestrator.log
+# Logs directory - allow all logs for debugging
+!logs/*
 
 # Environment file - ignore (contains secrets)
 .env

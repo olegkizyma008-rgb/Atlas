@@ -663,14 +663,16 @@ export class ChatManager {
     this.emit('agent-response-complete', { agent, message });
 
     // Захист від дублювання TTS за messageId
-    const ttsKey = `tts_${messageId || 'unknown'}_${agent}`;
+    const ttsKey = `tts_${messageId || Date.now()}_${agent}`; // Use timestamp if no messageId
+    
+    // DEBUG: Log messageId для діагностики дублювання
+    console.log('[CHAT] 🔑 TTS Key:', { messageId, agent, ttsKey, alreadyProcessed: this._processedTTS?.has(ttsKey) });
+    
     if (this._processedTTS?.has(ttsKey)) {
+      console.warn('[CHAT] ⚠️ TTS already processed for message:', ttsKey);
       this.logger.debug(`TTS already processed for message: ${ttsKey}`);
       return message;
     }
-    
-    // DEBUG: Log messageId для діагностики дублювання
-    console.log('[CHAT] 🔑 TTS Key:', { messageId, agent, ttsKey });
 
     // Ініціалізуємо Set для відстеження оброблених TTS
     if (!this._processedTTS) {

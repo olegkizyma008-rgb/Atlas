@@ -33,7 +33,7 @@ const phraseRotation = {
  * @param {Object} container - DI Container for resolving processors
  * @returns {Promise<Object>} Final summary result
  */
-export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncManager, diContainer, localizationService }) {
+export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncManager, diContainer, localizationService, res }) {
   // Initialize localization service if not provided
   if (!localizationService) {
     localizationService = new LocalizationService({ logger });
@@ -181,6 +181,32 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.system('executor', `[CHAT-CONTEXT] Sending ${recentMessages.length} messages to LLM`);
         logger.system('executor', `[CHAT-CONTEXT] Context for LLM: ${JSON.stringify(recentMessages.map(m => ({ role: m.role, preview: m.content.substring(0, 40) })), null, 2)}`);
 
+        // NEW 26.10.2025: INTELLIGENT MEMORY INTEGRATION
+        logger.system('executor', '[CHAT-MEMORY] 🧠 Checking if long-term memory is needed...');
+        
+        let memoryContext = null;
+        try {
+          // Resolve Chat Memory Coordinator from DI Container
+          const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
+          
+          // Process message with memory integration
+          const memoryResult = await chatMemoryCoordinator.processMessage({
+            userMessage,
+            session,
+            recentMessages
+          });
+          
+          if (memoryResult.memoryUsed && memoryResult.memoryContext) {
+            memoryContext = memoryResult.memoryContext;
+            logger.system('executor', `[CHAT-MEMORY] ✅ Memory retrieved: ${memoryContext.count} entities (${memoryResult.processingTime}ms)`);
+          } else {
+            logger.system('executor', `[CHAT-MEMORY] ⏭️ Memory skipped: ${memoryResult.reasoning}`);
+          }
+        } catch (memoryError) {
+          logger.warn('executor', `[CHAT-MEMORY] ⚠️ Memory integration failed: ${memoryError.message}`);
+          // Continue without memory
+        }
+
         // DIAGNOSTIC: Check GlobalConfig structure
         logger.system('executor', `[DIAGNOSTIC] GlobalConfig exists: ${!!GlobalConfig}`);
         logger.system('executor', `[DIAGNOSTIC] AI_MODEL_CONFIG exists: ${!!GlobalConfig.AI_MODEL_CONFIG}`);
@@ -206,7 +232,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.system('executor', `Calling chat API at ${apiUrl} with model ${modelConfig.model}`);
 
         // FIXED 16.10.2025 - Use system prompt from prompts directory (not hardcoded)
-        const systemPrompt = chatPrompt.SYSTEM_PROMPT;
+        let systemPrompt = chatPrompt.SYSTEM_PROMPT;
+        
+        // NEW 26.10.2025: Inject memory context if available
+        if (memoryContext && memoryContext.hasMemory) {
+          systemPrompt = systemPrompt + '\n\n' + memoryContext.contextText;
+          logger.system('executor', '[CHAT-MEMORY] 📝 Memory context injected into system prompt');
+        }
 
         logger.system('executor', `[SYSTEM-PROMPT] Using prompt from prompts/mcp/atlas_chat.js`);
 
@@ -291,6 +323,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: atlasResponse,
+            ttsContent: atlasResponse, // CRITICAL: Add ttsContent for TTS playback
             agent: 'atlas',
             sessionId: session.id,
             timestamp: new Date().toISOString()
@@ -311,6 +344,18 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
           // DIAGNOSTIC 16.10.2025
           logger.system('executor', `[CHAT-CONTEXT] Assistant response added. Total messages now: ${session.chatThread.messages.length}`);
+        }
+        
+        // NEW 26.10.2025: Store important information to memory
+        try {
+          const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
+          await chatMemoryCoordinator.storeMemory({
+            userMessage,
+            assistantResponse: atlasResponse,
+            session
+          });
+        } catch (storageError) {
+          logger.warn('executor', `[CHAT-MEMORY] ⚠️ Memory storage failed: ${storageError.message}`);
         }
 
         logger.workflow('complete', 'atlas', 'Chat response completed', { sessionId: session.id });

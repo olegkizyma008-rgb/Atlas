@@ -54,7 +54,7 @@ export class ConversationModeManager {
 
     // EventManager (використовуємо переданий або fallback на глобальний)
     this.eventManager = config.eventManager || eventManager;
-    
+
     // Chat Manager reference (для перевірки streaming state)
     this.chatManager = config.chatManager || null;
 
@@ -78,7 +78,7 @@ export class ConversationModeManager {
 
     // 🆕 UI Controller - будe створений в initialize()
     this.ui = null;
-    
+
     // Pending message (якщо chat streaming)
     this.pendingMessage = null;
 
@@ -196,7 +196,7 @@ export class ConversationModeManager {
       this.handleTranscriptionComplete(event.payload);
     });
 
-    // Початок TTS
+    // Початок TTS - КРИТИЧНО: зупиняємо Whisper щоб не розпізнавав власний голос!
     this.eventManager.on('TTS_STARTED', (event) => {
       this.handleTTSStarted(event);
     });
@@ -710,9 +710,49 @@ export class ConversationModeManager {
   }
 
   /**
+   * Обробка початку TTS (Атлас починає говорити)
+   * FIXED (26.10.2025 - 17:30): Зупинка Whisper під час TTS щоб не розпізнавав власний голос
+   */
+  handleTTSStarted(_event) {
+    this.logger.info('🔊 TTS started - pausing ALL recording to avoid self-recognition', {
+      mode: this.state.getCurrentMode(),
+      isInConversation: this.state.isInConversation()
+    });
+
+    // КРИТИЧНО 1: Зупиняємо keyword detection під час TTS
+    // Інакше Whisper розпізнає власний голос Atlas + фонові шуми
+    if (this.state.isInConversation()) {
+      this.logger.debug('🛑 Stopping keyword detection during TTS playback');
+      try {
+        this.eventManager.emit(ConversationEvents.STOP_KEYWORD_DETECTION, {
+          reason: 'tts_playback',
+          temporary: true, // Позначаємо що це тимчасова зупинка
+          timestamp: Date.now()
+        });
+      } catch (error) {
+        this.logger.error('Failed to stop keyword detection during TTS', null, error);
+      }
+    }
+
+    // КРИТИЧНО 2: Зупиняємо АКТИВНИЙ ЗАПИС якщо він йде
+    // Це запобігає розпізнаванню власного голосу Atlas через мікрофон
+    this.logger.debug('🛑 Stopping any active recording during TTS');
+    try {
+      // Емітуємо подію для MicrophoneButtonService щоб зупинив запис
+      this.eventManager.emit('STOP_RECORDING_FOR_TTS', {
+        reason: 'tts_playback_started',
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      this.logger.error('Failed to stop recording during TTS', null, error);
+    }
+  }
+
+  /**
      * Обробка завершення TTS (Атлас закінчив говорити)
      * ОНОВЛЕНО (11.10.2025 - 20:30): Підтримка activation responses + continuous loop
      * FIXED (12.10.2025 - 17:15): Правильна обробка payload structure
+     * FIXED (26.10.2025 - 17:30): Відновлення Whisper після TTS
      */
   handleTTSCompleted(event) {
     // EventManager може передавати або {type, payload} або прямий payload
@@ -763,7 +803,7 @@ export class ConversationModeManager {
 
     // Видалення індікатора через UI controller
     this.ui?.showIdleMode();
-    
+
     // FIXED (12.10.2025 - 17:00): Відправка pending message якщо є
     // FIXED (12.10.2025 - 15:30): НЕ чекаємо TTS після pending - запускаємо continuous listening
     if (this.pendingMessage) {
@@ -771,12 +811,12 @@ export class ConversationModeManager {
       this.logger.info(`⚠️ Pending message is DUPLICATE - Atlas TTS already played, starting continuous listening`);
       const { text, metadata } = this.pendingMessage;
       this.pendingMessage = null; // Очищуємо pending
-      
+
       // Відправляємо pending (може бути проігноровано якщо вже відправлено)
       setTimeout(() => {
         this.sendToChat(text, metadata);
       }, 100);
-      
+
       // КРИТИЧНО: Запускаємо continuous listening БЕЗ очікування нового TTS
       // Бо pending message - це ДУБЛІКАТ, Atlas вже відповів!
       setTimeout(() => {
@@ -784,17 +824,19 @@ export class ConversationModeManager {
           this.startContinuousListening();
         }
       }, 500); // 500ms пауза для природності
-      
+
       return;
     }
 
     // АВТОМАТИЧНИЙ ЦИКЛ (ТІЛЬКИ ДЛЯ CHAT MODE): Запуск continuous listening БЕЗ keyword "Атлас"
+    // FIXED (26.10.2025 - 17:30): Whisper вже зупинений через handleTTSStarted, тепер запускаємо знову
     this.startContinuousListening();
   }
 
   /**
      * Початок continuous listening після відповіді Atlas
      * БЕЗ keyword detection - прямий запис користувача
+     * FIXED (26.10.2025 - 17:30): Whisper вже зупинений, запускаємо тільки ЗАПИС (не keyword detection)
      */
   startContinuousListening() {
     this.state.setWaitingForUserResponse(true);
@@ -803,6 +845,10 @@ export class ConversationModeManager {
     this.ui?.updateButtonIcon('🟠'); // Помаранчевий - continuous listening
 
     this.logger.info('🔄 Starting continuous listening (no keyword needed)');
+
+    // КРИТИЧНО: НЕ запускаємо keyword detection тут!
+    // Просто чекаємо 500ms і запускаємо ЗАПИС через MicrophoneButtonService
+    // Whisper keyword detection залишається ЗУПИНЕНИМ (був зупинений в handleTTSStarted)
 
     // Невелика пауза для природності (500ms)
     setTimeout(() => {
@@ -869,7 +915,7 @@ export class ConversationModeManager {
       mode: this.state.getCurrentMode(),
       ...metadata
     });
-    
+
     // FIXED (12.10.2025 - 14:45): Очищуємо pending якщо повідомлення успішно емітилось
     // Навіть якщо було в черзі - зараз вже відправили
     if (this.pendingMessage && this.pendingMessage.text === text) {

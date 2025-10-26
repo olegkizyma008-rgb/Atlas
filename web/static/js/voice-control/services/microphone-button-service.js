@@ -657,6 +657,17 @@ export class MicrophoneButtonService extends BaseService {
       this.logger.info('🔍 Starting keyword detection for conversation mode', event.payload);
       // Keyword detection service має підхопити цю подію
     });
+
+    // FIXED (26.10.2025 - 17:35): Зупинка запису під час TTS щоб не розпізнавати власний голос
+    this.eventManager.on('STOP_RECORDING_FOR_TTS', async (event) => {
+      this.logger.info('🛑 Stopping recording for TTS playback', event.payload);
+
+      // Якщо є активний запис - зупиняємо його
+      if (this.currentSession && (this.currentState === 'recording' || this.currentState === 'listening')) {
+        this.logger.debug('🛑 Active recording detected during TTS start - stopping immediately');
+        await this.stopRecording('tts_playback');
+      }
+    });
   }
 
   /**

@@ -1,0 +1,115 @@
+2025-10-26 16:30:06 [ERROR] [CHAT-MEMORY] ❌ Memory processing failed: this.memoryEligibilityProcessor.execute is not a function {"metadata":{}}
+2025-10-26 16:30:52 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:52 [ERROR] Stack trace: ReferenceError: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:924:70)
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:52)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:53 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:53 [ERROR] Stack trace: ReferenceError: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:924:70)
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:52)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:55 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:55 [ERROR] Stack trace: ReferenceError: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:924:70)
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:52)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:30:57 [ERROR] MCP workflow failed: Cannot read properties of undefined (reading 'push') {"metadata":{"sessionId":"default","error":"Cannot read properties of undefined (reading 'push')","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:30:57 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Cannot read properties of undefined (reading 'push')","sessionId":"session_1761489003086_leccw6ke5","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:40:02 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:02 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:07 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:07 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:13 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:13 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:40:19 [ERROR] MCP workflow failed: Cannot read properties of undefined (reading 'push') {"metadata":{"sessionId":"default","error":"Cannot read properties of undefined (reading 'push')","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:40:19 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Cannot read properties of undefined (reading 'push')","sessionId":"session_1761489561992_fav2dlqbf","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:45:24 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:25 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:30 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:30 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:36 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:36 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:697:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-26 16:45:36 [ERROR] Item 2 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-26 16:45:40 [ERROR] MCP workflow failed: Cannot read properties of undefined (reading 'push') {"metadata":{"sessionId":"default","error":"Cannot read properties of undefined (reading 'push')","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:45:40 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Cannot read properties of undefined (reading 'push')","sessionId":"session_1761489850281_omy8ltjv5","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1233:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13"}}
+2025-10-26 16:49:36 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 401 {"metadata":{}}
+2025-10-26 16:49:36 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 401
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-26 16:49:36 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-26 16:49:36 [ERROR] [STAGE-0-MCP] API Response Error: status=401, data={"error":{"message":"401 Incorrect API key provided: gho_swah****************************8jbP. You can find your API key at https://platform.openai.com/account/api-keys.","type":"invalid_request_error","param":null,"code":"invalid_api_key"}} {"metadata":{}}
+2025-10-26 16:49:49 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 401 {"metadata":{}}
+2025-10-26 16:49:49 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 401
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-26 16:49:49 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-26 16:49:49 [ERROR] [STAGE-0-MCP] API Response Error: status=401, data={"error":{"message":"401 Incorrect API key provided: gho_swah****************************8jbP. You can find your API key at https://platform.openai.com/account/api-keys.","type":"invalid_request_error","param":null,"code":"invalid_api_key"}} {"metadata":{}}
+2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}

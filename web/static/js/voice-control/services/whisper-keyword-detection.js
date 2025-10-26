@@ -438,6 +438,8 @@ export class WhisperKeywordDetection extends BaseService {
             return;
         }
 
+        const textLower = text.toLowerCase();
+
         // ФІЛЬТР 2: Перевірка на повторювану фразу (loop detection)
         this.recentTranscripts.push(textLower);
         if (this.recentTranscripts.length > this.maxRecentTranscripts) {

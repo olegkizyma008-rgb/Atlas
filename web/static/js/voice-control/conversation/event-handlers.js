@@ -275,15 +275,10 @@ export class ConversationEventHandlers {
       // Оновлюємо state
       if (this.stateManager) {
         this.stateManager.setTranscriptionPending(false);
-        this.stateManager.addToHistory({
-          type: 'user',
-          text,
-          confidence,
-          timestamp: Date.now()
-        });
       }
 
       // Викликаємо callback з нормалізованими даними
+      // NOTE: Фільтрація відбувається в onConversationTranscription()
       this.callbacks.onTranscription({
         text,
         confidence,

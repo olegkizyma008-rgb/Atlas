@@ -697,17 +697,18 @@ export class ConversationModeManager {
     this.state.setWaitingForUserResponse(false);
     this.ui?.showIdleMode(); // Скидання всіх класів
 
-    // Додавання в історію розмови через state manager
+    // ✅ Відправка в чат (ТІЛЬКИ якщо пройшли ВСІ фільтри)
+    this.sendToChat(text, { conversationMode: true, confidence });
+
+    // Додавання в історію розмови через state manager ПІСЛЯ успішної відправки
     // FIXED (11.10.2025 - 22:05): використовуємо state.addToHistory() замість прямого this.conversationHistory.push()
+    // FIXED (26.10.2025 - 18:20): Переміщено ПІСЛЯ sendToChat щоб не додавати відфільтровані фрази
     this.state.addToHistory({
       type: 'user', // StateManager використовує 'type' замість 'role'
       text,
       timestamp: Date.now(),
       confidence
     });
-
-    // ✅ Відправка в чат (ТІЛЬКИ якщо пройшли ВСІ фільтри)
-    this.sendToChat(text, { conversationMode: true, confidence });
 
     // Показуємо що Atlas обробляє запит
     this.ui?.showStatus('Atlas думає...');

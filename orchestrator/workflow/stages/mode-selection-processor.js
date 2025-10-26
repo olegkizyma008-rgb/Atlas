@@ -169,6 +169,9 @@ export class ModeSelectionProcessor {
             // Intelligent mode mapping for non-standard values
             const modeMapping = {
                 'greeting': 'chat',
+                'gratitude': 'chat',
+                'thanks': 'chat',
+                'appreciation': 'chat',
                 'conversation': 'chat',
                 'question': 'chat',
                 'inquiry': 'chat',

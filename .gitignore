@@ -241,6 +241,9 @@ unused_files/goose_mcp_servers/mcp/temp_servers/
 
 # Logs directory - allow all logs for debugging
 !logs/*
+# Metrics and archive - ignore (generated runtime data)
+logs/metrics/
+logs/archive/
 
 # Environment file - ignore (contains secrets)
 .env

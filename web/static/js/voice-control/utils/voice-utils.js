@@ -65,12 +65,17 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
     'каже',
     'narrator',
     'background music',
-    'music playing'
+    'music playing',
+    // FIXED (26.10.2025 - 17:46): Повні narrator фрази
+    'олег миколайович розмовляє з атлас',
+    'олег миколайович говорить з атлас',
+    'розмова з атлас',
+    'діалог з атлас'
   ];
 
   for (const ending of youtubeEndings) {
     if (cleanText.includes(ending)) {
-      logger.debug(`🎬 YouTube ending detected: "${text}" (contains: "${ending}")`);
+      logger.debug(`🎬 Background phrase detected: "${text}" (contains: "${ending}")`);
       return true;
     }
   }

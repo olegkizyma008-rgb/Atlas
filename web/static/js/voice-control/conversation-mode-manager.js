@@ -656,10 +656,12 @@ export class ConversationModeManager {
     const confidence = transcriptionData.confidence || 1.0;
 
     // 🆕 МОДУЛЬНА ФІЛЬТРАЦІЯ - одна функція замість кількох перевірок
+    this.logger.info(`🔍 Running filterTranscription for: "${text}" (isConversationMode: true)`);
     const filterResult = filterTranscription(text, {
       confidence,
       isConversationMode: true
     });
+    this.logger.info(`🔍 Filter result: blocked=${filterResult.blocked}, reason=${filterResult.reason}`);
 
     if (filterResult.blocked) {
       this.logger.warn(

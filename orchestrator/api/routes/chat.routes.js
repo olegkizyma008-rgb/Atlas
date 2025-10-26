@@ -7,7 +7,7 @@
 
 import logger from '../../utils/logger.js';
 import pauseState from '../../state/pause-state.js';
-import { executeStepByStepWorkflow } from '../../workflow/executor-v3.js';
+import { executeWorkflow } from '../../workflow/executor-v3.js';
 import { chatCompletion, getAvailableModelsList } from '../../ai/fallback-llm.js';
 
 /**
@@ -78,7 +78,20 @@ export function setupChatRoutes(app, context) {
 
         // Запускаємо workflow
         try {
-            await executeStepByStepWorkflow(message, session, res, { stopDispatch });
+            // Resolve dependencies from DI container
+            const loggerInstance = container.resolve('logger');
+            const wsManager = container.resolve('wsManager');
+            const ttsSyncManager = container.resolve('ttsSyncManager');
+            const localizationService = container.resolve('localizationService');
+            
+            await executeWorkflow(message, { 
+                logger: loggerInstance, 
+                wsManager, 
+                ttsSyncManager, 
+                diContainer: container, 
+                localizationService,
+                res
+            });
         } catch (error) {
             logger.error('Step-by-step workflow failed', {
                 error: error.message,

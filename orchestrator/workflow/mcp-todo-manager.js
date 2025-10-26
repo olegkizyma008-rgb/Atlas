@@ -83,6 +83,9 @@ export class MCPTodoManager {
     this.lastApiCall = 0;
     this.minApiDelay = 100; // Minimum delay between API calls in ms
 
+    // Active TODO lists storage
+    this.activeTodos = new Map();
+
     // Visual capture service (shared for all items)
     this.visualCapture = null;
   }
@@ -918,7 +921,6 @@ export class MCPTodoManager {
     }
     
     this.logger.system('mcp-todo', `[TODO] Planning tools for item ${currentItem.id}`);
-    this.logger.system('mcp-todo', `[TODO] Planning tools for item ${item.id}`);
 
     // NEW 18.10.2025: Retry with fallback models
     const retryConfig = GlobalConfig.AI_BACKEND_CONFIG.retry.toolPlanning;

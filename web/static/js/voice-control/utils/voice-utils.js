@@ -23,7 +23,9 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
     return false;
   }
 
-  const cleanText = text.toLowerCase().trim();
+  // FIXED (26.10.2025 - 17:42): Видаляємо пунктуацію для точнішого matching
+  // "Дякую за перегляд!" → "дякую за перегляд"
+  const cleanText = text.toLowerCase().trim().replace(/[!?.,:;]/g, '');
 
   // Занадто коротка фраза
   if (cleanText.length < config.minPhraseLength) {
@@ -33,6 +35,7 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
   // ✅ ФІКС (12.10.2025 - 16:25): Розширено фільтрацію фонових фраз
   // Проблема: "Дякую", "Добре", "Так" з YouTube проходили фільтр
   // Рішення: Додано YouTube endings + короткі фонові фрази
+  // ✅ ФІКС (26.10.2025 - 17:40): Додано narrator voices та background sounds
   
   // ФІЛЬТР 1: YouTube/video endings та credits
   const youtubeEndings = [
@@ -52,7 +55,17 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
     'до зустрічі',
     'до побачення',
     'коментуйте',
-    'підписуйтесь'
+    'підписуйтесь',
+    // FIXED (26.10.2025 - 17:40): Narrator voices та background sounds
+    'звучить музика',
+    'грає музика',
+    'музика',
+    'розмовляє з',
+    'говорить з',
+    'каже',
+    'narrator',
+    'background music',
+    'music playing'
   ];
 
   for (const ending of youtubeEndings) {

@@ -521,3 +521,6 @@ downloaded.
 2025-10-26 17:36:56,110 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:56] "OPTIONS /tts HTTP/1.1" 200 -
 2025-10-26 17:36:56,112 [ukrainian-tts-server] INFO: TTS request: text='Привіт, Олего Миколайовичу! Я — Атлас, і я тут, що...', voice=mykyta, fx=none, length=116 chars
 2025-10-26 17:37:02,085 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:37:02] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:37:53,714 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:37:53] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:37:53,715 [ukrainian-tts-server] INFO: TTS request: text='З радістю, творче! Я завжди тут, щоб допомогти тоб...', voice=mykyta, fx=none, length=89 chars
+2025-10-26 17:37:57,902 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:37:57] "POST /tts HTTP/1.1" 200 -

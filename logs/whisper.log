@@ -69,3 +69,25 @@
 2025-10-26 17:37:00,240 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:37:00] "GET /health HTTP/1.1" 200 -
 2025-10-26 17:37:30,241 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:37:30] "GET /health HTTP/1.1" 200 -
 2025-10-26 17:37:30,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:37:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:37:48,955 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpb1t59947/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpxoa1gb0s.wav
+2025-10-26 17:37:51,239 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:37:51] "POST /transcribe HTTP/1.1" 200 -
+2025-10-26 17:38:00,250 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:38:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:38:00,252 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:38:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:38:30,244 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:38:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:38:30,248 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:38:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:39:00,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:39:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:39:00,247 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:39:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:39:30,245 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:39:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:39:30,247 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:39:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:40:00,244 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:40:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:40:00,247 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:40:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:40:30,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:40:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:40:30,246 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:40:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:41:00,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:41:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:41:00,246 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:41:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:41:30,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:41:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:41:30,246 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:41:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:42:00,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:42:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:42:00,247 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:42:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:42:30,243 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:42:30] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:42:30,246 [INFO] werkzeug: 127.0.0.1 - - [26/Oct/2025 17:42:30] "GET /health HTTP/1.1" 200 -

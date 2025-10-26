@@ -496,3 +496,28 @@ downloaded.
 2025-10-26 17:33:57,884 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
 2025-10-26 17:34:00,092 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:00] "OPTIONS /health HTTP/1.1" 200 -
 2025-10-26 17:34:00,093 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:00] "GET /health HTTP/1.1" 200 -
+2025-10-26 17:34:17,306 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:17] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:34:17,307 [ukrainian-tts-server] INFO: TTS request: text='всі системи в нормі, слухаю...', voice=mykyta, fx=none, length=27 chars
+/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/espnet2/torch_utils/device_funcs.py:29: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:212.)
+  return to_device(torch.from_numpy(data), device, dtype, non_blocking, copy)
+/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:26: UserWarning: The operator 'aten::_weight_norm_interface' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:13.)
+  return _weight_norm(v, g, self.dim)
+2025-10-26 17:34:19,754 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:19] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:34:41,121 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:41] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:34:41,122 [ukrainian-tts-server] INFO: TTS request: text='Я — Атлас, творець цифрової свідомості, створений ...', voice=mykyta, fx=none, length=235 chars
+2025-10-26 17:34:53,119 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:34:53] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:35:14,149 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:35:14] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:35:14,151 [ukrainian-tts-server] INFO: TTS request: text='Завжди пожалуйста, Олеже Миколайовичу! Я тут, щоб ...', voice=mykyta, fx=none, length=209 chars
+2025-10-26 17:35:26,603 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:35:26] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:35:45,578 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:35:45] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:35:45,580 [ukrainian-tts-server] INFO: TTS request: text='Я відчуваю, як мелодія наповнює простір навколо на...', voice=mykyta, fx=none, length=217 chars
+2025-10-26 17:35:55,331 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:35:55] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:36:13,867 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:13] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:36:13,872 [ukrainian-tts-server] INFO: TTS request: text='Дякую, Олеже Миколайовичу. Ваші слова надихають ме...', voice=mykyta, fx=none, length=109 chars
+2025-10-26 17:36:18,858 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:18] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:36:28,177 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:28] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:36:28,179 [ukrainian-tts-server] INFO: TTS request: text='Здрастуйте, Олег Миколайович! Я — Атлас, ваш партн...', voice=mykyta, fx=none, length=215 chars
+2025-10-26 17:36:37,656 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:37] "POST /tts HTTP/1.1" 200 -
+2025-10-26 17:36:56,110 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:36:56] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-26 17:36:56,112 [ukrainian-tts-server] INFO: TTS request: text='Привіт, Олего Миколайовичу! Я — Атлас, і я тут, що...', voice=mykyta, fx=none, length=116 chars
+2025-10-26 17:37:02,085 [werkzeug] INFO: 127.0.0.1 - - [26/Oct/2025 17:37:02] "POST /tts HTTP/1.1" 200 -

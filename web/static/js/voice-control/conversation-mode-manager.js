@@ -212,6 +212,12 @@ export class ConversationModeManager {
       this.handleKeywordDetected(event.payload);
     });
 
+    // FIXED (26.10.2025 - 17:45): Обробка переривання Atlas під час TTS
+    this.eventManager.on('INTERRUPT_DETECTED', (event) => {
+      this.logger.info('🛑 INTERRUPT_DETECTED event received!', event.payload);
+      this.handleInterruptDetected(event.payload);
+    });
+
     this.logger.debug('Subscribed to system events');
   }
 
@@ -712,6 +718,7 @@ export class ConversationModeManager {
   /**
    * Обробка початку TTS (Атлас починає говорити)
    * FIXED (26.10.2025 - 17:30): Зупинка Whisper під час TTS щоб не розпізнавав власний голос
+   * FIXED (26.10.2025 - 17:45): Додано можливість переривання через InterruptDetectionService
    */
   handleTTSStarted(_event) {
     this.logger.info('🔊 TTS started - pausing ALL recording to avoid self-recognition', {
@@ -746,6 +753,9 @@ export class ConversationModeManager {
     } catch (error) {
       this.logger.error('Failed to stop recording during TTS', null, error);
     }
+
+    // НОВИНКА: InterruptDetectionService автоматично увімкнеться через TTS_STARTED
+    // і буде слухати interrupt keywords (стоп, почекай, перебиваю, тощо)
   }
 
   /**
@@ -760,6 +770,7 @@ export class ConversationModeManager {
     const mode = payload?.mode || 'chat';
     const isInConversation = payload?.isInConversation || false;
     const isActivationResponse = payload?.isActivationResponse || false;
+    const isInterruptResponse = payload?.isInterruptResponse || false;
 
     console.log('[CONVERSATION] 🔊 TTS_COMPLETED event received!', {
       isInConversation,
@@ -767,6 +778,7 @@ export class ConversationModeManager {
       currentMode: this.state.getCurrentMode(),
       eventMode: mode,
       isActivationResponse,
+      isInterruptResponse,
       event,
       payload
     });
@@ -791,6 +803,22 @@ export class ConversationModeManager {
       }, 300);
 
       return; // Не запускаємо continuous listening після activation response
+    }
+
+    // СПЕЦІАЛЬНА ОБРОБКА: Interrupt response (після переривання)
+    // Після озвучення відповіді на переривання - запускаємо запис для відповіді користувача
+    if (isInterruptResponse) {
+      this.logger.info('🎙️ Interrupt response completed - starting recording for user response');
+      this.ui?.showIdleMode();
+
+      // Невелика пауза для природності (300ms)
+      setTimeout(() => {
+        if (this.state.isInConversation()) {
+          this.startConversationRecording();
+        }
+      }, 300);
+
+      return; // Не запускаємо continuous listening після interrupt response
     }
 
     // Ігноруємо якщо це task mode - conversation loop тільки для chat!
@@ -974,6 +1002,60 @@ export class ConversationModeManager {
   forceStopConversation() {
     this.logger.warn('🛑 Force stopping conversation mode');
     this.deactivateConversationMode();
+  }
+
+  /**
+   * Обробка виявлення переривання (користувач сказав "стоп", "почекай", тощо)
+   * FIXED (26.10.2025 - 17:45): Додано для функції переривання Atlas під час TTS
+   */
+  async handleInterruptDetected(payload) {
+    this.logger.info('🛑 User interrupted Atlas during TTS', payload);
+
+    // Пауза TTS
+    try {
+      this.logger.debug('⏸️ Pausing TTS playback');
+      this.eventManager.emit('TTS_PAUSE_REQUEST', {
+        reason: 'user_interrupt',
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      this.logger.error('Failed to pause TTS', null, error);
+    }
+
+    // Показуємо статус
+    this.ui?.showStatus('Слухаю вас...');
+
+    // Озвучуємо відповідь на переривання
+    const response = payload.response || 'так, слухаю вас уважно';
+    this.logger.info(`🗣️ Playing interrupt response: "${response}"`);
+
+    try {
+      // Додаємо відповідь в чат
+      if (window.atlasApp?.chatManager) {
+        window.atlasApp.chatManager.addMessage(response, 'atlas', {
+          skipTTS: true // НЕ запускати TTS через chatManager
+        });
+      }
+
+      // Озвучуємо відповідь
+      const globalEventManager = window.eventManager || this.eventManager;
+      globalEventManager.emit('TTS_SPEAK_REQUEST', {
+        text: response,
+        agent: 'atlas',
+        mode: 'conversation',
+        priority: 'high',
+        isInterruptResponse: true // Позначаємо як interrupt response
+      });
+
+      // Після TTS завершення автоматично запуститься запис через handleTTSCompleted
+      // з перевіркою isInterruptResponse для правильної обробки
+
+    } catch (error) {
+      this.logger.error('Failed to play interrupt response', null, error);
+
+      // Fallback: якщо TTS failed - одразу запускаємо запис
+      this.startConversationRecording();
+    }
   }
 
   /**

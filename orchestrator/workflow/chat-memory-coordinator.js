@@ -354,7 +354,20 @@ export class ChatMemoryCoordinator {
     _shouldStoreExchange(userMessage, assistantResponse) {
         const messageLower = userMessage.toLowerCase();
         
-        // Store if user explicitly asks to remember
+        // CRITICAL: Skip simple greetings and casual chat
+        const casualPatterns = [
+            'привіт', 'hello', 'hi', 'hey',
+            'як справи', 'how are you', 'як ти',
+            'дякую', 'thank', 'спасибі',
+            'добре', 'fine', 'good',
+            'котовий', 'кіт', 'cat'
+        ];
+        
+        if (casualPatterns.some(pattern => messageLower.includes(pattern))) {
+            return { store: false, reasoning: 'Casual conversation - not worth storing' };
+        }
+        
+        // Store ONLY if user explicitly asks to remember
         if (messageLower.includes('запам\'ятай') || messageLower.includes('remember this') || 
             messageLower.includes('збережи') || messageLower.includes('save this')) {
             return { store: true, reasoning: 'Explicit storage request' };
@@ -373,13 +386,8 @@ export class ChatMemoryCoordinator {
             return { store: true, reasoning: 'Project architecture discussion' };
         }
 
-        // Skip simple exchanges
-        if (userMessage.length < 20 || assistantResponse.length < 50) {
-            return { store: false, reasoning: 'Too short to be meaningful' };
-        }
-
-        // Default: don't store (conservative approach)
-        return { store: false, reasoning: 'No clear storage trigger' };
+        // DEFAULT: Do NOT store casual chat
+        return { store: false, reasoning: 'Casual conversation - memory not needed' };
     }
 
     /**

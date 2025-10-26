@@ -9,7 +9,7 @@
 import { BaseService } from '../core/base-service.js';
 import { API_ENDPOINTS } from '../../core/config.js';
 import { Events } from '../events/event-manager.js';
-import { containsActivationKeyword, correctAtlasWord } from '../utils/voice-utils.js';
+import { containsActivationKeyword, correctAtlasWord, isBackgroundPhrase } from '../utils/voice-utils.js';
 
 /**
  * Сервіс детекції ключових слів через Whisper
@@ -47,29 +47,11 @@ export class WhisperKeywordDetection extends BaseService {
         this.chunkDuration = config.chunkDuration || 3500; // 3.5 сек (+40% для повільної вимови)
         this.pauseBetweenChunks = config.pauseBetweenChunks || 150; // 150ms (швидший retry)
 
-        // Фільтр повторюваних фраз (фонові відео)
+        // FIXED (26.10.2025 - 17:55): Видалено дублювання backgroundPhrases
+        // Тепер використовуємо централізований isBackgroundPhrase() з voice-utils.js
+        // Фільтр повторюваних фраз
         this.recentTranscripts = []; // Останні 5 транскрипцій
         this.maxRecentTranscripts = 5;
-        this.backgroundPhrases = [
-            'дякую за перегляд',
-            'підписуйся на канал',
-            'ставте лайк',
-            'субтитр',
-            'кінець',
-            'the end',
-            'ending',
-            'credits',
-            // Додаткові фонові фрази (2025-10-11)
-            'оля шор',
-            'субтитрувальниця',
-            'до зустрічі',
-            'до побачення',
-            'будь ласка',
-            'дякую!',
-            'дякую за увагу',
-            'коментуйте',
-            'підписуйтесь'
-        ];
 
         // Стан
         this.isListening = false;
@@ -449,14 +431,9 @@ export class WhisperKeywordDetection extends BaseService {
             return;
         }
 
-        const textLower = text.toLowerCase();
-
-        // ФІЛЬТР 1: Перевірка на фонові фрази (YouTube endings, credits)
-        const isBackgroundPhrase = this.backgroundPhrases.some(phrase =>
-            textLower.includes(phrase)
-        );
-
-        if (isBackgroundPhrase) {
+        // FIXED (26.10.2025 - 17:55): Використовуємо централізовану функцію isBackgroundPhrase()
+        // замість локального списку this.backgroundPhrases
+        if (isBackgroundPhrase(text)) {
             console.log('[WHISPER_KEYWORD] 🎬 Background phrase detected (YouTube/video ending), ignoring:', text);
             return;
         }

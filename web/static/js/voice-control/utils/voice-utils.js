@@ -78,7 +78,7 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
 
   for (const ending of youtubeEndings) {
     if (cleanText.includes(ending)) {
-      logger.debug(`🎬 Background phrase detected: "${text}" (contains: "${ending}")`);
+      logger.info(`🎬 Background phrase detected: "${text}" (contains: "${ending}")`);
       return true;
     }
   }
@@ -86,7 +86,7 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
   // Перевірка на ігноровані фрази
   for (const ignoredPhrase of config.ignoredPhrases) {
     if (cleanText.includes(ignoredPhrase.toLowerCase())) {
-      logger.debug(`Background phrase detected: "${text}" (contains: "${ignoredPhrase}")`);
+      logger.info(`🎬 Background phrase detected: "${text}" (contains: "${ignoredPhrase}")`);
       return true;
     }
   }
@@ -102,7 +102,7 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
 
     const words = cleanText.split(/\s+/).filter(w => w.length > 0);
     if (words.length <= 2 && words.every(word => commonWords.includes(word))) {
-      logger.debug(`Background phrase detected: "${text}" (common words only)`);
+      logger.info(`🎬 Background phrase detected: "${text}" (common words only)`);
       return true;
     }
   }

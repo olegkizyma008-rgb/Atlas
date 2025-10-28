@@ -353,8 +353,19 @@ export class ChatMemoryCoordinator {
      */
     _shouldStoreExchange(userMessage, assistantResponse) {
         const messageLower = userMessage.toLowerCase();
+        const responseLower = assistantResponse.toLowerCase();
         
-        // CRITICAL: Skip simple greetings and casual chat
+        // CRITICAL: NEVER store prompts or system instructions
+        if (responseLower.includes('you are atlas') || 
+            responseLower.includes('system prompt') ||
+            responseLower.includes('instructions:') ||
+            responseLower.includes('critical rules') ||
+            responseLower.includes('long-term memory context') ||
+            responseLower.includes('📚 long-term memory')) {
+            return { store: false, reasoning: 'System prompt or instructions - NEVER store' };
+        }
+        
+        // Skip simple greetings and casual chat
         const casualPatterns = [
             'привіт', 'hello', 'hi', 'hey',
             'як справи', 'how are you', 'як ти',
@@ -397,11 +408,22 @@ export class ChatMemoryCoordinator {
     _extractEntities(userMessage, assistantResponse) {
         const entities = [];
         
+        // CRITICAL: Filter out prompts and system content
+        const responseLower = assistantResponse.toLowerCase();
+        if (responseLower.includes('you are atlas') || 
+            responseLower.includes('system prompt') ||
+            responseLower.includes('instructions:') ||
+            responseLower.includes('critical rules') ||
+            responseLower.includes('📚 long-term memory')) {
+            // NEVER extract entities from prompts
+            return [];
+        }
+        
         // Simple entity extraction (can be enhanced with NLP)
         const messageLower = userMessage.toLowerCase();
         
-        // Extract project mentions
-        if (messageLower.includes('atlas')) {
+        // Extract project mentions (but NOT from prompts)
+        if (messageLower.includes('atlas') && !messageLower.includes('you are atlas')) {
             entities.push({
                 name: 'Atlas Project',
                 entityType: 'project',

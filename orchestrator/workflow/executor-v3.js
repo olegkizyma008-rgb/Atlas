@@ -173,10 +173,25 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.system('executor', `[CHAT-CONTEXT] History: ${JSON.stringify(session.chatThread.messages.map(m => ({ role: m.role, content: m.content.substring(0, 50) })), null, 2)}`);
 
         // Build chat context from recent messages (last 5 exchanges = 10 messages)
-        const recentMessages = session.chatThread.messages.slice(-10).map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        }));
+        // CRITICAL: Filter out system messages and prompts from context
+        const recentMessages = session.chatThread.messages
+          .filter(msg => {
+            // Skip system messages
+            if (msg.role === 'system') return false;
+            // Skip messages that look like prompts
+            if (msg.content && (
+              msg.content.includes('You are Atlas') ||
+              msg.content.includes('SYSTEM PROMPT') ||
+              msg.content.includes('INSTRUCTIONS:') ||
+              msg.content.includes('CRITICAL RULES')
+            )) return false;
+            return true;
+          })
+          .slice(-10)
+          .map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          }));
 
         logger.system('executor', `[CHAT-CONTEXT] Sending ${recentMessages.length} messages to LLM`);
         logger.system('executor', `[CHAT-CONTEXT] Context for LLM: ${JSON.stringify(recentMessages.map(m => ({ role: m.role, preview: m.content.substring(0, 40) })), null, 2)}`);

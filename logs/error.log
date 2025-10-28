@@ -113,3 +113,203 @@
     at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
 2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
 2025-10-26 17:15:19 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:19 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:24:20 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:26:17 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-27 20:26:17 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-27 20:26:17 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-27 20:26:17 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"Connection error.","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-27 20:26:18 [ERROR] executor {"metadata":{}}
+2025-10-27 20:26:18 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-27 20:26:18 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761589567585_dx0gmgede","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-27 20:28:49 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-27 20:28:49 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:698:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-27 20:29:19 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-27 20:29:19 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-27 20:29:19 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-27 20:29:19 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"Connection error.","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-27 20:29:20 [ERROR] [STAGE-2.0-MCP] ❌ Server selection failed: timeout of 30000ms exceeded {"metadata":{"category":"server-selection","component":"server-selection","errorName":"AxiosError","stack":"AxiosError: timeout of 30000ms exceeded\n    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)\n    at RedirectableRequest.emit (node:events:519:28)\n    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)\n    at Axios.request..."}}
+2025-10-27 20:29:21 [ERROR] executor {"metadata":{}}
+2025-10-27 20:29:21 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-27 20:29:21 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761589758495_x7em8j4li","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-27 20:29:24 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: item is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-27 20:29:24 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: item is not defined
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:698:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-27 20:29:28 [ERROR] [STAGE-2.0-MCP] ❌ Server selection failed: Request failed with status code 500 {"metadata":{"category":"server-selection","component":"server-selection","errorName":"AxiosError","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-27 20:29:55 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-server {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-27 20:29:55 [ERROR] mcp-manager {"metadata":{}}
+2025-10-28 01:04:12 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:04:12 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:04:12 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:04:12 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:04:19 [ERROR] executor {"metadata":{}}
+2025-10-28 01:04:19 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:04:19 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761604791957_vzai8yqhi","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:04:43 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:04:43 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:04:43 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:04:43 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:04:51 [ERROR] executor {"metadata":{}}
+2025-10-28 01:04:51 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:04:51 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761604791957_vzai8yqhi","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:05:59 [ERROR] executor {"metadata":{}}
+2025-10-28 01:05:59 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:05:59 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606353923_5g2es51gc","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:06:51 [ERROR] executor {"metadata":{}}
+2025-10-28 01:06:51 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:06:51 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606406413_vkw62cuq2","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:11:15 [ERROR] [STAGE-0-MCP] Mode selection failed: timeout of 60000ms exceeded {"metadata":{}}
+2025-10-28 01:11:15 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: timeout of 60000ms exceeded
+    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)
+    at RedirectableRequest.emit (node:events:519:28)
+    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:11:15 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:11:15 [ERROR] [STAGE-0-MCP] No response received from API {"metadata":{}}
+2025-10-28 01:11:18 [ERROR] executor {"metadata":{}}
+2025-10-28 01:11:18 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:11:18 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606406413_vkw62cuq2","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:18:06 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:18:06 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:18:06 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:18:06 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:18:12 [ERROR] executor {"metadata":{}}
+2025-10-28 01:18:12 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:18:12 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606827791_01pttxqdp","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:20:38 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:20:38 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:20:38 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:20:38 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:20:44 [ERROR] executor {"metadata":{}}
+2025-10-28 01:20:44 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:20:44 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606827791_01pttxqdp","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:21:13 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:21:13 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:21:13 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:21:13 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:21:21 [ERROR] executor {"metadata":{}}
+2025-10-28 01:21:21 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:21:21 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761606827791_01pttxqdp","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:35:25 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-28 01:35:25 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:87:13 {"metadata":{}}
+2025-10-28 01:35:25 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-28 01:35:25 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}
+2025-10-28 01:35:32 [ERROR] executor {"metadata":{}}
+2025-10-28 01:35:32 [ERROR] MCP workflow failed: Request failed with status code 500 {"metadata":{"sessionId":"default","error":"Request failed with status code 500","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}
+2025-10-28 01:35:32 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Request failed with status code 500","sessionId":"session_1761608018847_ygvg4nc6b","stack":"AxiosError: Request failed with status code 500\n    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)\n    at IncomingMessage.emit (node:events:531:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:2..."}}

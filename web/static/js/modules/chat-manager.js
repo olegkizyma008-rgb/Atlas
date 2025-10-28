@@ -194,28 +194,69 @@ export class ChatManager {
     }
   }
 
-  addMessage(content, agent = 'user', signature = null) {
-    // FIXED 16.10.2025 - Normalize agent name to lowercase for consistent lookup
-    const agentKey = agent.toLowerCase();
-    
-    const message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      content,
-      agent: agentKey, // Use normalized agent name
-      signature: signature || AGENTS[agentKey]?.signature || `[${agent.toUpperCase()}]`,
-      timestamp: Date.now(),
-      color: AGENTS[agentKey]?.color || '#ffffff'
+  addMessage(content, type = 'assistant', options = {}) {
+    if (!content || typeof content !== 'string') {
+      this.logger.warn('Invalid message content', { content, type });
+      return null;
+    }
+
+    // CRITICAL: Filter out system messages based on .env settings
+    const showSystemMessages = window.SHOW_SYSTEM_MESSAGES !== false;
+    const systemMessageLevel = window.SYSTEM_MESSAGE_LEVEL || 1;
+
+    // Check if this is a system message
+    const isSystemMessage = type === 'system' ||
+                           content.includes('[SYSTEM]') ||
+                           content.includes('Mode:') ||
+                           content.includes('confidence:') ||
+                           content.includes('❌ MCP:');
+
+    // Filter based on settings
+    if (isSystemMessage && !showSystemMessages) {
+      // Only show critical errors (level 1)
+      if (systemMessageLevel === 0) {
+        return null; // Don't show any system messages
+      }
+      if (systemMessageLevel === 1 && !content.includes('❌') && !content.includes('Error')) {
+        return null; // Only show errors
+      }
+      if (systemMessageLevel === 2 && !content.includes('❌') && !content.includes('⚠️') && !content.includes('Error')) {
+        return null; // Only show errors and warnings
+      }
+    }
+
+    // Map agent names to signatures
+    const agentSignatures = {
+      'user': '[USER]',
+      'atlas': '[ATLAS]',
+      'tetyana': '[TETYANA]',
+      'grisha': '[GRISHA]',
+      'system': '[SYSTEM]',
+      'assistant': '[ATLAS]'
     };
 
-    this.messages.push(message);
-    this.renderMessage(message);
+    const agent = type;
+    const signature = agentSignatures[agent] || agentSignatures['assistant'];
+
+    const messageData = {
+      content,
+      type,
+      agent,
+      signature,
+      timestamp: Date.now(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      ...options
+    };
+
+    this.messages.push(messageData);
+    this.renderMessage(messageData);
 
     if (this.messages.length > CHAT_CONFIG.maxMessages) {
       this.messages.shift();
       this.removeOldestMessage();
     }
 
-    return message;
+    return messageData;
   }
 
   addUserMessage(content) {

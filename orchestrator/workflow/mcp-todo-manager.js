@@ -1137,9 +1137,14 @@ export class MCPTodoManager {
         this.logger.system('mcp-todo', `[TODO] Substituted {{USER_LANGUAGE}} in prompt`);
       }
 
+      // CRITICAL FIX: Validate item exists before accessing properties
+      if (!item || !item.action) {
+        throw new Error('Item is undefined or missing required properties (action)');
+      }
+
       const userMessage = `
 TODO Item: ${item.action}
-Success Criteria: ${item.success_criteria}
+Success Criteria: ${item.success_criteria || 'not specified'}
 Suggested Tools: ${item.tools_needed ? item.tools_needed.join(', ') : 'not specified'}
 Previous items: ${JSON.stringify(previousItemsSummary, null, 2)}
 

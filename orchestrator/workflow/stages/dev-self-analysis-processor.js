@@ -1257,28 +1257,64 @@ export class DevSelfAnalysisProcessor {
             const logContent = await fs.readFile(logPath, 'utf-8');
             const lines = logContent.split('\n').slice(-500); // Last 500 lines
             
-            // Find actual errors
-            const errors = lines.filter(l => l.includes('[31MERROR') || l.includes('ERROR'));
+            // Find actual errors with detailed parsing
+            const errors = lines.filter(l => l.includes('[ERROR]') || l.includes('ERROR'));
             if (errors.length > 0) {
-                errors.slice(-3).forEach((error, idx) => {
+                const uniqueErrors = new Map();
+                errors.slice(-10).forEach((error) => {
+                    // Extract error message
+                    let errorMsg = error;
+                    if (error.includes('[ERROR]')) {
+                        errorMsg = error.substring(error.indexOf('[ERROR]') + 7).trim();
+                    }
+                    
+                    // Extract key info
+                    const key = errorMsg.substring(0, 100);
+                    if (!uniqueErrors.has(key)) {
+                        uniqueErrors.set(key, {
+                            type: 'error',
+                            description: errorMsg.substring(0, 200),
+                            location: 'orchestrator.log',
+                            severity: 'critical',
+                            count: 1
+                        });
+                    } else {
+                        uniqueErrors.get(key).count++;
+                    }
+                });
+                
+                uniqueErrors.forEach((error, idx) => {
                     problems.critical.push({
-                        type: 'error',
-                        description: error.substring(error.indexOf(']') + 1).trim().substring(0, 150),
-                        location: 'orchestrator.log',
-                        severity: 'high',
-                        id: `error_${idx}`
+                        ...error,
+                        id: `error_${idx}`,
+                        description: error.count > 1 
+                            ? `[${error.count}x] ${error.description}`
+                            : error.description
                     });
                 });
             }
             
-            // Check for warnings
-            const warnings = lines.filter(l => l.includes('[33MWARN'));
-            if (warnings.length > 5) {
-                problems.performance.push({
-                    type: 'warnings',
-                    description: `Виявлено ${warnings.length} попереджень в логах`,
-                    location: 'orchestrator.log',
-                    severity: 'medium'
+            // Check for warnings with categorization
+            const warnings = lines.filter(l => l.includes('[WARN]') || l.includes('WARN'));
+            if (warnings.length > 0) {
+                const warningCategories = new Map();
+                warnings.forEach(w => {
+                    let category = 'general';
+                    if (w.includes('Planning attempt')) category = 'tool_planning';
+                    else if (w.includes('TTS')) category = 'tts';
+                    else if (w.includes('timeout')) category = 'timeout';
+                    
+                    warningCategories.set(category, (warningCategories.get(category) || 0) + 1);
+                });
+                
+                warningCategories.forEach((count, category) => {
+                    problems.performance.push({
+                        type: 'warning',
+                        description: `${category}: ${count} попереджень`,
+                        location: 'orchestrator.log',
+                        severity: 'medium',
+                        category
+                    });
                 });
             }
             
@@ -1327,24 +1363,34 @@ export class DevSelfAnalysisProcessor {
         }
         
         // Add SPECIFIC actionable suggestions based on real problems
+        if (problems.critical.find(p => p.type === 'error' && p.description.includes('item is not defined'))) {
+            problems.suggestions.push(
+                { suggestion: 'Виправити mcp-todo-manager.js: передача item в planTools()', area: 'mcp_workflow', priority: 'critical' },
+                { suggestion: 'Додати валідацію параметрів перед викликом LLM', area: 'validation', priority: 'high' }
+            );
+            problems.intervention_required = true;
+        }
+        
+        if (problems.critical.find(p => p.type === 'error' && p.description.includes('Cannot read properties of undefined'))) {
+            problems.suggestions.push(
+                { suggestion: 'Виправити executor-v3.js: перевірка існування масиву перед push', area: 'executor', priority: 'critical' },
+                { suggestion: 'Додати defensive programming для всіх array operations', area: 'code_quality', priority: 'high' }
+            );
+            problems.intervention_required = true;
+        }
+        
         if (problems.critical.find(p => p.type === 'duplication')) {
             problems.suggestions.push(
-                { suggestion: 'Виправити дублювання через WebSocket/SSE подвійну відправку', area: 'messaging' },
-                { suggestion: 'Перевірити TTSSyncManager на подвійні виклики', area: 'tts' }
+                { suggestion: 'Виправити дублювання через WebSocket/SSE подвійну відправку', area: 'messaging', priority: 'high' },
+                { suggestion: 'Перевірити TTSSyncManager на подвійні виклики', area: 'tts', priority: 'medium' }
             );
         }
         
-        if (problems.performance.length > 0) {
+        if (problems.performance.find(p => p.category === 'tool_planning')) {
             problems.suggestions.push(
-                { suggestion: 'Оптимізувати обробку логів для швидшого аналізу', area: 'performance' },
-                { suggestion: 'Додати кешування результатів самоаналізу', area: 'optimization' }
+                { suggestion: 'Виправити tool planning failures - перевірити передачу параметрів', area: 'mcp', priority: 'critical' }
             );
         }
-        
-        // Always suggest improvements
-        problems.suggestions.push(
-            { suggestion: 'Інтегрувати Codestral reasoning для глибшого аналізу', area: 'intelligence' }
-        );
         
         // Determine root causes
         if (problems.critical.length > 0) {

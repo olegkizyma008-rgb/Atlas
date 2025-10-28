@@ -1602,7 +1602,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       })}\n\n`);
     }
 
-    // Add summary to session history
+    // Add summary to session history - CRITICAL FIX: Check if history exists
+    if (!session.history) {
+      session.history = [];
+    }
+    
     session.history.push({
       role: 'assistant',
       content: summaryResult.summary,

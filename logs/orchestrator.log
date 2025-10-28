@@ -140,10 +140,13 @@
 2025-10-28 23:00:16 [[32MINFO[39M] [SYSTEM] executor: [DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=default {"metadata":{"category":"system","component":"executor"}}
 2025-10-28 23:00:16 [[32MINFO[39M] [HTTP] POST /chat/stream 200 (8255ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":8255,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
 2025-10-28 23:00:39 [[32MINFO[39M] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-28T21-00-39-360Z.json (1 записів) {"metadata":{}}
-[SYSTEM] mode-selection: [STAGE-0-MCP] Raw response: {"mode": "dev", "confidence": 0.98, "reasoning": "Запит на самоаналіз"} {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-28 23:00:09 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] ✅ Mode: dev (confidence: 0.98) {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-28 23:00:09 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP]    Reasoning: Запит на самоаналіз {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-28 23:00:09 [INFO] [WORKFLOW] Stage stage - system: Mode selected: dev (confidence: 0.98) {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default","reasoning":"Запит на самоаналіз"}}
+2025-10-28 23:08:42 [[32MINFO[39M] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}
+2025-10-28 23:08:42 [[32MINFO[39M] [DI] Stopping services... {"metadata":{}}
+2025-10-28 23:08:42 [[32MINFO[39M] [SYSTEM] shutdown: [DI] Session store cleared {"metadata":{"category":"system","component":"shutdown"}}
+2025-10-28 23:08:42 [[32MINFO[39M] [SYSTEM] shutdown: [DI] WebSocket manager stopped {"metadata":{"category":"system","component":"shutdown"}}
+2025-10-28 23:08:42 [[32MINFO[39M] [DI] All services stopped {"metadata":{}}
+2025-10-28 23:08:42 [[32MINFO[39M] [SYSTEM] shutdown: Application stopped successfully {"metadata":{"category":"system","component":"shutdown"}}
+nId":"default","reasoning":"Запит на самоаналіз"}}
 2025-10-28 23:00:09 [INFO] [WORKFLOW] Stage stage - atlas: DEV mode detected - Starting self-analysis {"metadata":{"category":"workflow","stage":"stage","agent":"atlas","sessionId":"default"}}
 2025-10-28 23:00:09 [INFO] [SYSTEM] dev-analysis: [DEV-ANALYSIS] 🔧 Using API: http://localhost:4000/v1/chat/completions, Model: ext-mistral-codestral-latest {"metadata":{"category":"system","component":"dev-analysis"}}
 2025-10-28 23:00:09 [INFO] [SYSTEM] dev-analysis: [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
@@ -164,3 +167,4 @@
 2025-10-28 23:00:16 [INFO] [SYSTEM] executor: [DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=default {"metadata":{"category":"system","component":"executor"}}
 2025-10-28 23:00:16 [INFO] [HTTP] POST /chat/stream 200 (8255ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":8255,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
 2025-10-28 23:00:39 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-28T21-00-39-360Z.json (1 записів) {"metadata":{}}
+2025-10-28 23:08:42 [INFO] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}

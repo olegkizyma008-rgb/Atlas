@@ -507,3 +507,8 @@ downloaded.
 2025-10-28 23:03:47,760 [werkzeug] INFO: 127.0.0.1 - - [28/Oct/2025 23:03:47] "OPTIONS /tts HTTP/1.1" 200 -
 2025-10-28 23:03:47,762 [ukrainian-tts-server] WARNING: Text too long (1662 chars), truncating to 1500
 2025-10-28 23:03:47,762 [ukrainian-tts-server] INFO: TTS request: text='Слухай, я знайшов дещо важливе... Результати самоа...', voice=mykyta, fx=none, length=1500 chars
+2025-10-28 23:04:58,339 [werkzeug] INFO: 127.0.0.1 - - [28/Oct/2025 23:04:58] "POST /tts HTTP/1.1" 200 -
+2025-10-28 23:07:18,229 [werkzeug] INFO: 127.0.0.1 - - [28/Oct/2025 23:07:18] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-28 23:07:18,232 [ukrainian-tts-server] WARNING: Text too long (1662 chars), truncating to 1500
+2025-10-28 23:07:18,232 [ukrainian-tts-server] INFO: TTS request: text='Слухай, я знайшов дещо важливе... Результати самоа...', voice=mykyta, fx=none, length=1500 chars
+2025-10-28 23:08:25,611 [werkzeug] INFO: 127.0.0.1 - - [28/Oct/2025 23:08:25] "POST /tts HTTP/1.1" 200 -

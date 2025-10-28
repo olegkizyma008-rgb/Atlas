@@ -70,6 +70,45 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // ===============================================
     logger.workflow('stage', 'system', 'Stage 0-MCP: Mode Selection', { sessionId: session.id });
 
+    // Check if session is awaiting password for DEV mode
+    if (session.awaitingDevPassword && userMessage.trim().toLowerCase() === 'mykola') {
+      logger.system('executor', `[DEV-PASSWORD] Password received, continuing DEV intervention`, {
+        sessionId: session.id
+      });
+      
+      // Force DEV mode and pass password
+      const devProcessor = container.resolve('devSelfAnalysisProcessor');
+      const analysisResult = await devProcessor.execute({
+        userMessage: session.devOriginalMessage || 'Проаналізуй себе',
+        session,
+        requiresIntervention: true,
+        password: 'mykola'
+      });
+      
+      // Clear password state
+      session.awaitingDevPassword = false;
+      session.devAnalysisResult = null;
+      session.devOriginalMessage = null;
+      
+      // Send intervention result
+      const interventionMessage = analysisResult.intervention?.message || 'Втручання виконано успішно!';
+      const localizedMessage = localizationService.translateToUser(interventionMessage);
+      
+      if (wsManager) {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: localizedMessage,
+          agent: 'atlas',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+          ttsContent: interventionMessage,
+          mode: 'dev',
+          interventionComplete: true
+        });
+      }
+      
+      return analysisResult;
+    }
+
     const modeResult = await modeProcessor.execute({
       userMessage,
       session
@@ -136,7 +175,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         const requiresIntervention = userMessage.toLowerCase().includes('виправ') || 
                                     userMessage.toLowerCase().includes('fix') ||
                                     userMessage.toLowerCase().includes('покращ') ||
-                                    userMessage.toLowerCase().includes('improve');
+                                    userMessage.toLowerCase().includes('improve') ||
+                                    userMessage.toLowerCase().includes('глибше') ||
+                                    userMessage.toLowerCase().includes('deeper');
         
         // Execute self-analysis
         const analysisResult = await devProcessor.execute({
@@ -144,6 +185,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           session,
           requiresIntervention,
           password: null // Will prompt for password if needed
+        });
+        
+        logger.system('executor', `[DEV-MODE] Analysis complete, requiresAuth: ${analysisResult.requiresAuth}`, {
+          sessionId: session.id
         });
 
         // Build comprehensive message from analysis results (available for all branches)

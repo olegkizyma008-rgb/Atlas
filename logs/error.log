@@ -349,3 +349,17 @@
 2025-10-28 23:59:52 [ERROR] Item 2 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":2}}
 2025-10-28 23:59:59 [ERROR] MCP workflow failed: Cannot read properties of undefined (reading 'push') {"metadata":{"sessionId":"default","error":"Cannot read properties of undefined (reading 'push')","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1591:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13"}}
 2025-10-28 23:59:59 [ERROR] Step-by-step workflow failed {"metadata":{"error":"Cannot read properties of undefined (reading 'push')","sessionId":"session_1761688425761_5hkcw3a7o","stack":"TypeError: Cannot read properties of undefined (reading 'push')\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1591:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13"}}
+2025-10-29 00:36:56 [ERROR] [STAGE-0-MCP] Mode selection failed: Request failed with status code 500 {"metadata":{}}
+2025-10-29 00:36:56 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: Request failed with status code 500
+    at settle (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/settle.js:19:12)
+    at IncomingMessage.handleStreamEnd (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:617:11)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:73:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13 {"metadata":{}}
+2025-10-29 00:36:56 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-29 00:36:56 [ERROR] [STAGE-0-MCP] API Response Error: status=500, data={"error":{"message":"400 The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766","type":"provider_error","provider":"atlas","code":"API_ERROR"}} {"metadata":{}}

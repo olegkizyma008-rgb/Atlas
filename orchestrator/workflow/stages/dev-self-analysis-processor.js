@@ -59,7 +59,10 @@ export class DevSelfAnalysisProcessor {
             const apiConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
             
             if (!apiConfig || typeof apiConfig !== 'object') {
-                this.logger.warn('dev-analysis', '[DEV-ANALYSIS] ⚠️ apiEndpoint config not found, using fallback');
+                this.logger.warn('[DEV-ANALYSIS] ⚠️ apiEndpoint config not found, using fallback', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                 this.apiEndpoint = 'http://localhost:4000/v1/chat/completions';
                 this.apiTimeout = 120000;
             } else {
@@ -104,7 +107,10 @@ export class DevSelfAnalysisProcessor {
                 const normalizedPassword = (password || '').trim().replace(/^["']|["']$/g, '').toLowerCase();
                 
                 if (normalizedPassword !== this.interventionPassword) {
-                    this.logger.warn('dev-analysis', `[DEV-ANALYSIS] ❌ Invalid password attempt: "${normalizedPassword}" (expected: "${this.interventionPassword}")`);
+                    this.logger.warn(`[DEV-ANALYSIS] ❌ Invalid password attempt: "${normalizedPassword}" (expected: "${this.interventionPassword}")`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                     return {
                         success: false,
                         error: 'Invalid password for code intervention',
@@ -286,7 +292,11 @@ export class DevSelfAnalysisProcessor {
             };
 
         } catch (error) {
-            this.logger.error(`[DEV-ANALYSIS] Self-analysis failed: ${error.message}`);
+            this.logger.error(`[DEV-ANALYSIS] Self-analysis failed: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis',
+                error: error.message
+            });
             
             // Return meaningful error analysis
             return {
@@ -434,7 +444,10 @@ export class DevSelfAnalysisProcessor {
             const item = todoList[i];
 
             if (!item || (!item.action && !item.description)) {
-                this.logger.warn('dev-analysis', '[DEV-ANALYSIS] Skipping TODO item без опису дії');
+                this.logger.warn('[DEV-ANALYSIS] Skipping TODO item без опису дії', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                 continue;
             }
 
@@ -467,7 +480,10 @@ export class DevSelfAnalysisProcessor {
                 const revalidated = await this._validateMetrics(revalidation, item);
                 
                 if (!revalidated) {
-                    this.logger.warn('dev-analysis', `[DEV-ANALYSIS] Item ${item.id || actionLabel} still fails after sub-items`);
+                    this.logger.warn(`[DEV-ANALYSIS] Item ${item.id || actionLabel} still fails after sub-items`, {
+                        category: 'system',
+                        component: 'dev-analysis'
+                    });
                 }
             }
             
@@ -560,7 +576,10 @@ export class DevSelfAnalysisProcessor {
                 analysis.errors.push(...recentErrors);
                 
             } catch (error) {
-                this.logger.warn('dev-analysis', `Could not analyze ${logFile}: ${error.message}`);
+                this.logger.warn(`[DEV-ANALYSIS] Could not analyze ${logFile}: ${error.message}`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
             }
         }
         
@@ -630,17 +649,26 @@ export class DevSelfAnalysisProcessor {
         let allValid = true;
         
         if (metrics.codeComplexity && metrics.codeComplexity > this.metricsThresholds.codeComplexity) {
-            this.logger.warn('dev-analysis', `Code complexity ${metrics.codeComplexity} exceeds threshold ${this.metricsThresholds.codeComplexity}`);
+            this.logger.warn(`[DEV-ANALYSIS] Code complexity ${metrics.codeComplexity} exceeds threshold ${this.metricsThresholds.codeComplexity}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             allValid = false;
         }
         
         if (metrics.errorRate && metrics.errorRate > this.metricsThresholds.errorRate) {
-            this.logger.warn('dev-analysis', `Error rate ${metrics.errorRate} exceeds threshold ${this.metricsThresholds.errorRate}`);
+            this.logger.warn(`[DEV-ANALYSIS] Error rate ${metrics.errorRate} exceeds threshold ${this.metricsThresholds.errorRate}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             allValid = false;
         }
         
         if (metrics.responseTime && metrics.responseTime > this.metricsThresholds.responseTime) {
-            this.logger.warn('dev-analysis', `Response time ${metrics.responseTime}ms exceeds threshold ${this.metricsThresholds.responseTime}ms`);
+            this.logger.warn(`[DEV-ANALYSIS] Response time ${metrics.responseTime}ms exceeds threshold ${this.metricsThresholds.responseTime}ms`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             allValid = false;
         }
         
@@ -761,7 +789,10 @@ export class DevSelfAnalysisProcessor {
             
             return JSON.parse(cleanResponse);
         } catch (error) {
-            this.logger.warn('dev-analysis', `Failed to parse response: ${error.message}`);
+            this.logger.warn(`[DEV-ANALYSIS] Failed to parse response: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             
             // Return default structure
             return {
@@ -1060,7 +1091,10 @@ export class DevSelfAnalysisProcessor {
             // Check if memory MCP server is available
             const memoryServer = session.container?.resolve('mcpManager')?.getServer('memory');
             if (!memoryServer) {
-                this.logger.warn('dev-analysis', 'Memory server not available, skipping context save');
+                this.logger.warn('[DEV-ANALYSIS] Memory server not available, skipping context save', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                 return;
             }
             
@@ -1093,7 +1127,10 @@ export class DevSelfAnalysisProcessor {
             });
             
         } catch (error) {
-            this.logger.warn('dev-analysis', `Failed to save to memory: ${error.message}`);
+            this.logger.warn(`[DEV-ANALYSIS] Failed to save to memory: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
         }
     }
 

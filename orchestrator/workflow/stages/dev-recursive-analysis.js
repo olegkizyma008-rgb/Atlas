@@ -27,7 +27,10 @@ export default class RecursiveAnalysisEngine {
         });
         
         if (currentDepth > this.maxDepth) {
-            this.logger.warn('dev-recursive', `[RECURSIVE] Max depth ${this.maxDepth} reached, stopping`);
+            this.logger.warn(`[RECURSIVE] Max depth ${this.maxDepth} reached, stopping`, {
+                category: 'system',
+                component: 'dev-recursive'
+            });
             return;
         }
 

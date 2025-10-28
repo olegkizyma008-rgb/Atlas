@@ -421,10 +421,10 @@ export function registerMCPProcessors(container) {
 
     // DEV Self-Analysis Processor (Stage 0-DEV) - NEW 28.10.2025
     container.singleton('devSelfAnalysisProcessor', (c) => {
-        const instance = new DevSelfAnalysisProcessor({
-            logger: c.resolve('logger'),
-            container: c
-        });
+        const instance = new DevSelfAnalysisProcessor(
+            c.resolve('logger'),
+            c
+        );
         logger.system('startup', '[DI] 🔬 DEV Self-Analysis Processor initialized');
         return instance;
     }, {

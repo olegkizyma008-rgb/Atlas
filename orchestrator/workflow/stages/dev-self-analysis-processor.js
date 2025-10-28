@@ -12,6 +12,9 @@ import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import GlobalConfig from '../../../config/global-config.js';
 import fs from 'fs/promises';
 
+// Get user language from environment
+const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
+
 /**
  * DEV Mode Self-Analysis Processor
  * 
@@ -141,14 +144,14 @@ export class DevSelfAnalysisProcessor {
             ];
             
             // Додаємо історію діалогу для контексту (останні 5 повідомлень)
-            const recentMessages = session.chatThread.messages.slice(-5);
+            const recentMessages = session.chatThread?.messages ? session.chatThread.messages.slice(-5) : [];
             if (recentMessages.length > 0) {
                 this.logger.info(`[DEV-ANALYSIS] 💭 Using ${recentMessages.length} messages from history for context`, {
                     category: 'system',
                     component: 'dev-analysis'
                 });
-                messages.push(...recentMessages);
-            }
+            }    
+            messages.push(...recentMessages);
             
             // Add user request with system context
             messages.push({
@@ -269,11 +272,11 @@ export class DevSelfAnalysisProcessor {
             });
             
             // Обмежуємо історію до 10 повідомлень
-            if (session.chatThread.messages.length > 10) {
+            if (session.chatThread?.messages && session.chatThread.messages.length > 10) {
                 session.chatThread.messages = session.chatThread.messages.slice(-10);
             }
             
-            this.logger.info(`[DEV-ANALYSIS] 💾 Saved to chatThread, total messages: ${session.chatThread.messages.length}`, {
+            this.logger.info(`[DEV-ANALYSIS] 💾 Saved to chatThread, total messages: ${session.chatThread?.messages?.length || 0}`, {
                 category: 'system',
                 component: 'dev-analysis'
             });
@@ -631,7 +634,13 @@ export class DevSelfAnalysisProcessor {
         if (item.priority === 'critical') return true;
         if (item.action && item.action.includes('глибше')) return true;
         if (item.action && item.action.includes('детальніше')) return true;
-        if (result.findings && result.findings.length > 0) return true;
+        
+        // Check if result has findings (findings is an object, not array)
+        if (result.findings) {
+            const hasCritical = result.findings.critical_issues && Array.isArray(result.findings.critical_issues) && result.findings.critical_issues.length > 0;
+            const hasPerf = result.findings.performance_bottlenecks && Array.isArray(result.findings.performance_bottlenecks) && result.findings.performance_bottlenecks.length > 0;
+            if (hasCritical || hasPerf) return true;
+        }
         
         return false;
     }
@@ -1366,8 +1375,9 @@ export class DevSelfAnalysisProcessor {
     async _saveAnalysisToMemory(analysisResult, session) {
         try {
             // Check if memory MCP server is available
-            const memoryServer = session.container?.resolve('mcpManager')?.getServer('memory');
-            if (!memoryServer) {
+            const mcpManager = this.container?.resolve('mcpManager');
+            const memoryServer = mcpManager?.servers?.get('memory');
+            if (!memoryServer || !memoryServer.ready) {
                 this.logger.warn('[DEV-ANALYSIS] Memory server not available, skipping context save', {
                     category: 'system',
                     component: 'dev-analysis'
@@ -1389,8 +1399,8 @@ export class DevSelfAnalysisProcessor {
                 intervention_required: analysisResult.intervention_required || false
             };
             
-            // Store in memory
-            await memoryServer.callTool('memory__create_memory', {
+            // Store in memory (using correct MCP API)
+            await memoryServer.call('create_memory', {
                 content: JSON.stringify(memoryEntry),
                 metadata: {
                     type: 'dev_analysis',
@@ -1727,6 +1737,7 @@ export class DevSelfAnalysisProcessor {
     
     /**
      * Generate intelligent analysis summary based on real data
+     * Uses USER_LANGUAGE from environment
      */
     _generateAnalysisSummary(analysisResult, detailedAnalysis) {
         const criticalCount = analysisResult.findings?.critical_issues?.length || 0;
@@ -1736,39 +1747,74 @@ export class DevSelfAnalysisProcessor {
         const warnCount = analysisResult.metrics?.warning_count || 0;
         const health = analysisResult.metrics?.system_health || 0;
         
-        let summary = '📊 **Результати аналізу:**\n\n';
+        // Localized strings based on USER_LANGUAGE
+        const strings = this._getLocalizedStrings();
+        
+        let summary = `📊 **${strings.analysisResults}**\n\n`;
         
         // System health assessment
         if (health > 80) {
-            summary += '✅ Система в хорошому стані. ';
+            summary += `✅ ${strings.systemHealthy} `;
         } else if (health > 60) {
-            summary += '⚠️ Система потребує уваги. ';
+            summary += `⚠️ ${strings.systemNeedsAttention} `;
         } else {
-            summary += '🔴 Система має серйозні проблеми. ';
+            summary += `🔴 ${strings.systemHasProblems} `;
         }
         
         // Specific findings
         if (criticalCount > 0) {
-            summary += `Виявлено **${criticalCount} критичних проблем**. `;
+            summary += strings.foundCriticalIssues.replace('{count}', criticalCount) + ' ';
         }
         
         if (errorCount > 0) {
-            summary += `В логах знайдено **${errorCount} помилок** та ${warnCount} попереджень. `;
+            summary += strings.foundErrors.replace('{errors}', errorCount).replace('{warnings}', warnCount) + ' ';
         }
         
         if (perfCount > 0) {
-            summary += `Виявлено ${perfCount} проблем продуктивності. `;
+            summary += strings.foundPerfIssues.replace('{count}', perfCount) + ' ';
         }
         
         if (suggestionCount > 0) {
-            summary += `\n\n💡 Запропоновано ${suggestionCount} конкретних покращень для оптимізації системи.`;
+            summary += `\n\n💡 ${strings.suggestions.replace('{count}', suggestionCount)}`;
         }
         
         if (criticalCount === 0 && errorCount === 0 && perfCount === 0) {
-            summary += '\n\nСистема працює стабільно без критичних проблем.';
+            summary += `\n\n${strings.systemStable}`;
         }
         
         return summary;
+    }
+    
+    /**
+     * Get localized strings based on USER_LANGUAGE
+     */
+    _getLocalizedStrings() {
+        const translations = {
+            uk: {
+                analysisResults: 'Результати аналізу',
+                systemHealthy: 'Система в хорошому стані.',
+                systemNeedsAttention: 'Система потребує уваги.',
+                systemHasProblems: 'Система має серйозні проблеми.',
+                foundCriticalIssues: 'Виявлено **{count} критичних проблем**.',
+                foundErrors: 'В логах знайдено **{errors} помилок** та {warnings} попереджень.',
+                foundPerfIssues: 'Виявлено {count} проблем продуктивності.',
+                suggestions: 'Запропоновано {count} конкретних покращень для оптимізації системи.',
+                systemStable: 'Система працює стабільно без критичних проблем.'
+            },
+            en: {
+                analysisResults: 'Analysis Results',
+                systemHealthy: 'System is in good condition.',
+                systemNeedsAttention: 'System needs attention.',
+                systemHasProblems: 'System has serious problems.',
+                foundCriticalIssues: 'Found **{count} critical issues**.',
+                foundErrors: 'Found **{errors} errors** and {warnings} warnings in logs.',
+                foundPerfIssues: 'Found {count} performance issues.',
+                suggestions: 'Proposed {count} specific improvements for system optimization.',
+                systemStable: 'System is running stably without critical issues.'
+            }
+        };
+        
+        return translations[USER_LANGUAGE] || translations['uk'];
     }
 }
 

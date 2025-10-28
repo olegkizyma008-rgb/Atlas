@@ -301,10 +301,13 @@ export class AtlasLivingBehaviorEnhanced {
 
   /**
    * Налаштування слухачів TTS
+   * ОНОВЛЕНО: Слухаємо тільки події реального відтворення, не генерації
    */
   setupTTSListeners() {
-    // Слухаємо події TTS через window
+    // Слухаємо ТІЛЬКИ події реального відтворення (з tts-manager.js)
+    // НЕ слухаємо atlas-tts-started - це спрацьовує при генерації
     window.addEventListener('atlas-tts-start', (e) => {
+      // Ця подія тепер емітується тільки при реальному playback
       this.onTTSStart(e.detail);
     });
 
@@ -312,18 +315,9 @@ export class AtlasLivingBehaviorEnhanced {
       this.onTTSEnd();
     });
 
-    // Також інтегруємось з існуючою системою
-    const originalStartSpeaking = this.livingSystem.startSpeaking.bind(this.livingSystem);
-    this.livingSystem.startSpeaking = (agent, intensity) => {
-      originalStartSpeaking(agent, intensity);
-      this.onTTSStart({ agent, intensity });
-    };
-
-    const originalStopSpeaking = this.livingSystem.stopSpeaking.bind(this.livingSystem);
-    this.livingSystem.stopSpeaking = () => {
-      originalStopSpeaking();
-      this.onTTSEnd();
-    };
+    // НЕ інтегруємось напряму з livingSystem.startSpeaking
+    // Тому що він викликається при генерації, а не при відтворенні
+    // Замість цього покладаємось на події з audio.play()
   }
 
   /**

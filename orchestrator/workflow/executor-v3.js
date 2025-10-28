@@ -360,15 +360,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // Remove TTS control info - Atlas always speaks fully
 
-        // Send to chat via WebSocket (primary channel)
-        // НЕ відправляємо ttsContent тут - TTS обробляється окремо через ttsSyncManager
+        // Send ONLY to WebSocket OR SSE, not both
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: localizedMessage,
             agent: 'atlas',
             sessionId: session.id,
             timestamp: new Date().toISOString(),
-            // ttsContent видалено - TTS обробляється через ttsSyncManager.speak()
+            ttsContent: ttsMessage, // Include TTS content for frontend to handle
             mode: 'dev',
             analysisData: {
               findings,
@@ -397,21 +396,6 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               interactiveMode
             }
           })}\n\n`);
-        }
-
-        // Queue TTS separately (not duplicated in chat)
-        if (ttsSyncManager && ttsSettings?.enabled !== false) {
-          try {
-            await ttsSyncManager.speak(ttsMessage, {
-              mode: 'detailed',
-              agent: 'atlas',
-              sessionId: session.id,
-              emotion: findings.critical_issues?.length > 0 ? 'concerned' : 'confident',
-              priority: 'high'
-            });
-          } catch (ttsError) {
-            logger.warn('executor', `Failed to enqueue DEV analysis TTS: ${ttsError.message}`);
-          }
         }
         
         // Store analysis in session for context

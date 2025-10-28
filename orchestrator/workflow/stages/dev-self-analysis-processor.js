@@ -23,8 +23,8 @@ import RecursiveAnalysisEngine from './dev-recursive-analysis.js';
 export class DevSelfAnalysisProcessor {
     constructor(logger, container) {
         this.logger = logger;
-        this.container = container;
-        this.recursiveEngine = new RecursiveAnalysisEngine(logger, container);
+        // Initialize recursive analysis engine (will be created inline if needed)
+        this.recursiveEngine = null;
         
         // Configuration paths
         this.config = {
@@ -189,18 +189,19 @@ export class DevSelfAnalysisProcessor {
             }
             
             // Extract real problems from analysis
-            const realProblems = this._extractRealProblems(analysisResult, detailedAnalysis);
+            const realProblems = await this._extractRealProblems(analysisResult, detailedAnalysis);
             
             // Save analysis context to memory for future reference
             await this._saveAnalysisToMemory(analysisResult, session);
             
             // Execute RECURSIVE TODO workflow with deep analysis
             if (analysisResult.todo_list?.length > 0) {
-                await this.recursiveEngine.executeRecursiveTodo(this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems), session, systemContext, 1);
+                // Use internal cyclic TODO execution instead of external engine
+                await this._executeCyclicTodo(this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems), session);
             }
 
             // Build comprehensive response with all findings
-            const comprehensiveResponse = this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
+            const comprehensiveResponse = await this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
             
             // Перевіряємо чи користувач ЯВНО просить внести зміни
             const userWantsIntervention = this._detectInterventionRequest(userMessage);
@@ -1239,7 +1240,7 @@ export class DevSelfAnalysisProcessor {
     /**
      * Extract real problems from analysis results
      */
-    _extractRealProblems(analysisResult, detailedAnalysis) {
+    async _extractRealProblems(analysisResult, detailedAnalysis) {
         const problems = {
             critical: [],
             performance: [],
@@ -1249,17 +1250,57 @@ export class DevSelfAnalysisProcessor {
             intervention_required: false
         };
         
-        // Extract from logs
-        if (detailedAnalysis?.logs?.errors?.length > 0) {
-            detailedAnalysis.logs.errors.forEach((error, idx) => {
-                problems.critical.push({
-                    type: 'error',
-                    description: error.substring(0, 200),
-                    location: 'logs',
-                    severity: 'high',
-                    id: `error_${idx}`
+        // Extract REAL problems from actual system state
+        // Check for actual errors in orchestrator.log
+        const logPath = '/Users/dev/Documents/GitHub/atlas4/logs/orchestrator.log';
+        try {
+            const logContent = await fs.readFile(logPath, 'utf-8');
+            const lines = logContent.split('\n').slice(-500); // Last 500 lines
+            
+            // Find actual errors
+            const errors = lines.filter(l => l.includes('[31MERROR') || l.includes('ERROR'));
+            if (errors.length > 0) {
+                errors.slice(-3).forEach((error, idx) => {
+                    problems.critical.push({
+                        type: 'error',
+                        description: error.substring(error.indexOf(']') + 1).trim().substring(0, 150),
+                        location: 'orchestrator.log',
+                        severity: 'high',
+                        id: `error_${idx}`
+                    });
                 });
-            });
+            }
+            
+            // Check for warnings
+            const warnings = lines.filter(l => l.includes('[33MWARN'));
+            if (warnings.length > 5) {
+                problems.performance.push({
+                    type: 'warnings',
+                    description: `Виявлено ${warnings.length} попереджень в логах`,
+                    location: 'orchestrator.log',
+                    severity: 'medium'
+                });
+            }
+            
+            // Check for duplicate messages (дублювання)
+            const atlasMessages = lines.filter(l => l.includes('[ATLAS]'));
+            const duplicates = [];
+            for (let i = 1; i < atlasMessages.length; i++) {
+                if (atlasMessages[i] === atlasMessages[i-1]) {
+                    duplicates.push(atlasMessages[i]);
+                }
+            }
+            if (duplicates.length > 0) {
+                problems.critical.push({
+                    type: 'duplication',
+                    description: `Дублювання повідомлень: ${duplicates.length} випадків`,
+                    location: 'message pipeline',
+                    severity: 'high',
+                    id: 'msg_duplication'
+                });
+            }
+        } catch (error) {
+            // Fallback if can't read logs
         }
         
         // Extract from memory patterns
@@ -1285,11 +1326,24 @@ export class DevSelfAnalysisProcessor {
             });
         }
         
-        // Always add actionable suggestions
+        // Add SPECIFIC actionable suggestions based on real problems
+        if (problems.critical.find(p => p.type === 'duplication')) {
+            problems.suggestions.push(
+                { suggestion: 'Виправити дублювання через WebSocket/SSE подвійну відправку', area: 'messaging' },
+                { suggestion: 'Перевірити TTSSyncManager на подвійні виклики', area: 'tts' }
+            );
+        }
+        
+        if (problems.performance.length > 0) {
+            problems.suggestions.push(
+                { suggestion: 'Оптимізувати обробку логів для швидшого аналізу', area: 'performance' },
+                { suggestion: 'Додати кешування результатів самоаналізу', area: 'optimization' }
+            );
+        }
+        
+        // Always suggest improvements
         problems.suggestions.push(
-            { suggestion: 'Оптимізувати TTS pipeline для швидшої відповіді', area: 'performance' },
-            { suggestion: 'Покращити обробку помилок в MCP workflow', area: 'reliability' },
-            { suggestion: 'Додати кешування для частих запитів', area: 'optimization' }
+            { suggestion: 'Інтегрувати Codestral reasoning для глибшого аналізу', area: 'intelligence' }
         );
         
         // Determine root causes
@@ -1358,9 +1412,11 @@ export class DevSelfAnalysisProcessor {
         const problems = this._extractRealProblems(analysisResult, detailedAnalysis);
         
         if (problems.critical.length > 0) {
-            return `🔴 Знайшов ${problems.critical.length} критичних проблем. Чесно кажучи, це мене непокоїть...`;
+            const mainProblem = problems.critical[0];
+            return `🔴 Знайшов ${problems.critical.length} критичних проблем: ${mainProblem.description}`;
         } else if (problems.performance.length > 0) {
-            return `⚡ Виявив ${problems.performance.length} проблем продуктивності. Працюю над оптимізацією.`;
+            const mainPerf = problems.performance[0];
+            return `⚡ Виявив проблеми продуктивності: ${mainPerf.description}`;
         } else {
             return `💚 Системи працюють стабільно! Але я завжди шукаю способи стати кращим.`;
         }
@@ -1391,9 +1447,9 @@ export class DevSelfAnalysisProcessor {
     /**
      * Build comprehensive response with all analysis layers
      */
-    _buildComprehensiveResponse(analysisResult, detailedAnalysis) {
+    async _buildComprehensiveResponse(analysisResult, detailedAnalysis) {
         // Extract real problems from analysis
-        const realProblems = this._extractRealProblems(analysisResult, detailedAnalysis);
+        const realProblems = await this._extractRealProblems(analysisResult, detailedAnalysis);
         
         const response = {
             mode: 'dev',

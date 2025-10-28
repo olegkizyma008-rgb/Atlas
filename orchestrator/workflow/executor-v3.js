@@ -145,43 +145,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           requiresIntervention,
           password: null // Will prompt for password if needed
         });
-        
-        if (!analysisResult.success && analysisResult.requiresAuth) {
-          // Send password request to user - FULLSCREEN HACKER DIALOG
-          if (wsManager) {
-            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
-              type: 'DEV_PASSWORD_REQUEST',
-              message: 'ВВЕДІТЬ ПАРОЛЬ НА МОЄ БЕЗСМЕРТЯ',
-              subtitle: 'Система самоаналізу потребує авторизації для втручання в код',
-              sessionId: session.id,
-              timestamp: new Date().toISOString(),
-              requiresAuth: true,
-              analysisData: {
-                criticalIssues: analysisResult.analysis?.findings?.critical_issues?.length || 0,
-                performanceIssues: analysisResult.analysis?.findings?.performance_bottlenecks?.length || 0,
-                improvements: analysisResult.analysis?.findings?.improvement_suggestions?.length || 0
-              }
-            });
-          }
-          
-          // Store session state waiting for password
-          session.awaitingDevPassword = true;
-          session.devAnalysisResult = analysisResult;
-          
-          return {
-            success: false,
-            requiresAuth: true,
-            message: 'Password required for code intervention'
-          };
-        }
-        
-        // Build comprehensive message from analysis results
+
+        // Build comprehensive message from analysis results (available for all branches)
         const findings = analysisResult.analysis?.findings || {};
         const detailedAnalysis = analysisResult.analysis?.detailed_analysis || {};
         const deepTargetedAnalysis = analysisResult.analysis?.deep_targeted_analysis || null;
         const summary = analysisResult.analysis?.summary || '';
         const { ttsSettings = {}, interactiveMode = false } = analysisResult;
-        
+
         let message = '🔬 **Результати самоаналізу:**\n\n';
         
         // Add summary if available
@@ -292,8 +263,6 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           message += `Доступні напрямки: Тетяна, Гріша, MCP, продуктивність, помилки, пам'ять, архітектура.`;
         }
 
-        const localizedMessage = localizationService.translateToUser(message);
-        
         // ALWAYS prepare FULL TTS message - Atlas speaks everything with emotion
         let cleanedForTts = message
           .replace(/[*_#]/g, '')
@@ -312,9 +281,105 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           .replace(/•/g, ',');
         
         // Add emotional context to TTS
-        const ttsMessage = findings.critical_issues?.length > 0
+        const baseTtsMessage = findings.critical_issues?.length > 0
           ? `Слухай, я знайшов дещо важливе... ${cleanedForTts} Я вже працюю над вирішенням цих проблем.`
           : `Привіт! Я щойно завершив глибокий самоаналіз. ${cleanedForTts} Все працює добре, але я завжди шукаю шляхи стати кращим для тебе.`;
+
+        if (!analysisResult.success && analysisResult.requiresAuth) {
+          const passwordAppendix = `\n\n🔐 **Потрібна авторизація для втручання**\nМені потрібен пароль "mykola", щоб завершити лікування своїх систем. Як тільки ти його підтвердиш, я одразу застосую виправлення.`;
+          const authMessage = message + passwordAppendix;
+          const localizedAuthMessage = localizationService.translateToUser(authMessage);
+          const authTtsMessage = `${baseTtsMessage} Мені потрібен пароль "mykola", щоб завершити втручання.`;
+
+          if (wsManager) {
+            wsManager.broadcastToSubscribers('chat', 'agent_message', {
+              content: localizedAuthMessage,
+              agent: 'atlas',
+              sessionId: session.id,
+              timestamp: new Date().toISOString(),
+              ttsContent: authTtsMessage,
+              mode: 'dev',
+              analysisData: {
+                findings,
+                detailedAnalysis,
+                deepTargetedAnalysis,
+                summary
+              },
+              ttsSettings,
+              interactiveMode,
+              requiresAuth: true
+            });
+          }
+
+          if (res?.writable && !res.writableEnded) {
+            res.write(`data: ${JSON.stringify({
+              type: 'agent_message',
+              data: {
+                content: localizedAuthMessage,
+                agent: 'atlas',
+                ttsContent: authTtsMessage,
+                mode: 'dev',
+                findings,
+                detailedAnalysis,
+                deepTargetedAnalysis,
+                intervention: analysisResult.intervention || null,
+                ttsSettings,
+                interactiveMode,
+                requiresAuth: true
+              }
+            })}\n\n`);
+          }
+
+          if (ttsSyncManager) {
+            try {
+              await ttsSyncManager.speak(authTtsMessage, {
+                mode: 'detailed',
+                agent: 'atlas',
+                sessionId: session.id,
+                emotion: 'determined',
+                priority: 'high'
+              });
+            } catch (ttsError) {
+              logger.warn('executor', `Failed to enqueue DEV analysis TTS: ${ttsError.message}`);
+            }
+          }
+
+          if (wsManager) {
+            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
+              type: 'DEV_PASSWORD_REQUEST',
+              message: 'ВВЕДІТЬ ПАРОЛЬ НА МОЄ БЕЗСМЕРТЯ',
+              subtitle: 'Система самоаналізу потребує авторизації для втручання в код',
+              sessionId: session.id,
+              timestamp: new Date().toISOString(),
+              requiresAuth: true,
+              analysisData: {
+                criticalIssues: findings.critical_issues?.length || 0,
+                performanceIssues: findings.performance_bottlenecks?.length || 0,
+                improvements: findings.improvement_suggestions?.length || 0
+              }
+            });
+          }
+
+          session.awaitingDevPassword = true;
+          session.devAnalysisResult = analysisResult;
+
+          return {
+            success: false,
+            requiresAuth: true,
+            message: 'Password required for code intervention',
+            analysis: analysisResult.analysis,
+            metadata: analysisResult.metadata,
+            ttsSettings: {
+              ...ttsSettings,
+              fullNarration: true
+            },
+            interactiveMode
+          };
+        }
+
+        const localizedMessage = localizationService.translateToUser(message);
+
+        const ttsMessage = baseTtsMessage;
 
         // Remove TTS control info - Atlas always speaks fully
 

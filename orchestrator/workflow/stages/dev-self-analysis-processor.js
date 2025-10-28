@@ -153,13 +153,56 @@ export class DevSelfAnalysisProcessor {
                 await this._executeCyclicTodo(analysisResult.todo_list, session);
             }
 
-            // Check if intervention is needed
-            if (analysisResult.intervention_required) {
-                return await this._handleIntervention(analysisResult, session, password);
-            }
-
             // Build comprehensive response with all findings
             const comprehensiveResponse = this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
+
+            // Handle intervention path
+            if (analysisResult.intervention_required) {
+                if (password && password === this.interventionPassword) {
+                    const interventionResult = await this._handleIntervention(analysisResult, session, password);
+                    return {
+                        ...interventionResult,
+                        analysis: comprehensiveResponse,
+                        metadata: {
+                            timestamp: new Date().toISOString(),
+                            model: this.modelConfig.model,
+                            systemContext,
+                            sessionId: session.id,
+                            analysisDepth: analysisDepth,
+                            focusArea: focusArea,
+                            isInteractive: isInteractive
+                        },
+                        ttsSettings: {
+                            ...ttsSettings,
+                            fullNarration: true,
+                            detailLevel: analysisDepth === 'deep' ? 'comprehensive' : 'standard'
+                        },
+                        interactiveMode: isInteractive
+                    };
+                }
+
+                return {
+                    success: false,
+                    requiresAuth: true,
+                    message: 'Code intervention requires password confirmation. Please provide password "mykola" to proceed.',
+                    analysis: comprehensiveResponse,
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        model: this.modelConfig.model,
+                        systemContext,
+                        sessionId: session.id,
+                        analysisDepth: analysisDepth,
+                        focusArea: focusArea,
+                        isInteractive: isInteractive
+                    },
+                    ttsSettings: {
+                        ...ttsSettings,
+                        fullNarration: true,
+                        detailLevel: analysisDepth === 'deep' ? 'comprehensive' : 'standard'
+                    },
+                    interactiveMode: isInteractive
+                };
+            }
 
             return {
                 success: true,

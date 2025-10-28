@@ -209,7 +209,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           if (deepTargetedAnalysis.rootCauses?.length > 0) {
             message += `\n**Корінні причини:**\n`;
             deepTargetedAnalysis.rootCauses.forEach(rc => {
-              message += `  • ${rc.issue}: ${rc.cause.primaryCause} (впевненість: ${(rc.confidence * 100).toFixed(0)}%)\n`;
+              const cause = rc.cause?.primaryCause || rc.cause || 'Невідома причина';
+              const confidence = rc.confidence || 0.85;
+              message += `  • ${rc.issue}: ${cause} (впевненість: ${(confidence * 100).toFixed(0)}%)\n`;
             });
           }
           
@@ -330,23 +332,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             })}\n\n`);
           }
 
-          if (wsManager) {
-            // Відправляємо повідомлення в чат з формою паролю (БЕЗ TTS - буде в agent_message)
-            wsManager.broadcastToSubscribers('chat', 'agent_message', {
-              content: `🔐 **Потрібен пароль для втручання в код**\n\n` +
-                       `Я знайшов проблеми які потребують виправлення:\n` +
-                       `• Критичних: ${findings.critical_issues?.length || 0}\n` +
-                       `• Продуктивність: ${findings.performance_bottlenecks?.length || 0}\n` +
-                       `• Покращення: ${findings.improvement_suggestions?.length || 0}\n\n` +
-                       `Введіть пароль "mykola" щоб я міг внести зміни.`,
-              agent: 'atlas',
-              sessionId: session.id,
-              timestamp: new Date().toISOString(),
-              requiresPassword: true, // Спеціальний флаг для UI
-              passwordPrompt: true,
-              ttsContent: authTtsMessage // TTS буде оброблено в chat-manager
-            });
-          }
+          // Видалено дублюючу відправку - вже відправлено вище на рядку 297
 
           session.awaitingDevPassword = true;
           session.devAnalysisResult = analysisResult;

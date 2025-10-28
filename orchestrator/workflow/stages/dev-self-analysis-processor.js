@@ -188,17 +188,20 @@ export class DevSelfAnalysisProcessor {
                 analysisResult.deep_targeted_analysis = deeperAnalysis;
             }
             
+            // Extract real problems from analysis
+            const realProblems = this._extractRealProblems(analysisResult, detailedAnalysis);
+            
             // Save analysis context to memory for future reference
             await this._saveAnalysisToMemory(analysisResult, session);
             
             // Execute RECURSIVE TODO workflow with deep analysis
-            if (analysisResult.todo_list && analysisResult.todo_list.length > 0) {
-                await this.recursiveEngine.executeRecursiveTodo(analysisResult.todo_list, session, systemContext, 1);
+            if (analysisResult.todo_list?.length > 0) {
+                await this.recursiveEngine.executeRecursiveTodo(this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems), session, systemContext, 1);
             }
 
             // Build comprehensive response with all findings
             const comprehensiveResponse = this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
-
+            
             // Перевіряємо чи користувач ЯВНО просить внести зміни
             const userWantsIntervention = this._detectInterventionRequest(userMessage);
             
@@ -432,67 +435,100 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Execute cyclic TODO workflow with metrics validation
+     * Execute recursive TODO workflow with deep sub-item analysis
      */
-    async _executeCyclicTodo(todoList, session) {
-        this.logger.info('[DEV-ANALYSIS] 🔄 Starting cyclic TODO execution...', {
+    async _executeCyclicTodo(todoList, session, parentId = null, depth = 1) {
+        this.logger.info(`[DEV-ANALYSIS] 🔄 Starting TODO execution at depth ${depth}...`, {
             category: 'system',
             component: 'dev-analysis'
         });
+        
+        const MAX_DEPTH = 5;
+        if (depth > MAX_DEPTH) {
+            this.logger.warn(`[DEV-ANALYSIS] Max depth ${MAX_DEPTH} reached, stopping recursion`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+            return;
+        }
         
         for (let i = 0; i < todoList.length; i++) {
             const item = todoList[i];
 
             if (!item || (!item.action && !item.description)) {
-                this.logger.warn('[DEV-ANALYSIS] Skipping TODO item без опису дії', {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
                 continue;
             }
 
+            // Generate hierarchical ID (e.g., 2.1, 2.1.3)
+            if (parentId) {
+                item.id = `${parentId}.${i + 1}`;
+            } else {
+                item.id = `${i + 1}`;
+            }
+
             // Execute item
-            const actionLabel = item.action || item.description || `item_${i + 1}`;
-            this.logger.info(`[DEV-ANALYSIS] Executing: ${actionLabel}`, {
+            const actionLabel = item.action || item.description || `item_${item.id}`;
+            this.logger.info(`[DEV-ANALYSIS] 📊 Analyzing [${item.id}]: ${actionLabel}`, {
                 category: 'system',
-                component: 'dev-analysis'
+                component: 'dev-analysis',
+                depth,
+                itemId: item.id
             });
+            
             const result = await this._executeAnalysisItem(item, session);
             
-            // Validate metrics
-            const metricsValid = await this._validateMetrics(result, item);
+            // Check if this item needs deeper analysis
+            const needsDeeper = this._requiresDeeperAnalysis(item, result);
             
-            if (!metricsValid) {
-                // Create sub-items for failed metrics
-                this.logger.info(`[DEV-ANALYSIS] Metrics failed for ${item.id || actionLabel}, creating sub-items...`, {
+            if (needsDeeper) {
+                // Create sub-items for deeper analysis
+                this.logger.info(`[DEV-ANALYSIS] 🔍 Item [${item.id}] requires deeper analysis, creating sub-items...`, {
                     category: 'system',
                     component: 'dev-analysis'
                 });
-                const subItems = await this._createSubItems(item, result);
                 
-                // Execute sub-items
-                for (const subItem of subItems) {
-                    await this._executeAnalysisItem(subItem, session);
+                const subItems = await this._createIntelligentSubItems(item, result, session);
+                
+                if (subItems && subItems.length > 0) {
+                    // Execute sub-items recursively
+                    item.subItems = subItems;
+                    await this._executeCyclicTodo(subItems, session, item.id, depth + 1);
                 }
                 
-                // Re-validate parent item
+                // Re-validate parent item after sub-items
                 const revalidation = await this._executeAnalysisItem(item, session);
-                const revalidated = await this._validateMetrics(revalidation, item);
+                const validated = await this._validateMetrics(revalidation, item);
                 
-                if (!revalidated) {
-                    this.logger.warn(`[DEV-ANALYSIS] Item ${item.id || actionLabel} still fails after sub-items`, {
-                        category: 'system',
-                        component: 'dev-analysis'
-                    });
-                }
+                item.status = validated ? 'completed' : 'needs_review';
+                item.confidence = validated ? 95 : 60;
+            } else {
+                item.status = 'completed';
+                item.confidence = 90;
             }
             
-            item.status = 'completed';
-            this.logger.info(`[DEV-ANALYSIS] ✅ Completed: ${actionLabel}`, {
+            this.logger.info(`[DEV-ANALYSIS] ${item.status === 'completed' ? '✅' : '⚠️'} [${item.id}] ${actionLabel} (confidence: ${item.confidence}%)`, {
                 category: 'system',
-                component: 'dev-analysis'
+                component: 'dev-analysis',
+                status: item.status,
+                confidence: item.confidence
             });
         }
+    }
+    
+    /**
+     * Determine if item requires deeper analysis
+     */
+    _requiresDeeperAnalysis(item, result) {
+        // Check various indicators
+        if (result.error) return true;
+        if (result.metrics && result.metrics.errorRate > 0.01) return true;
+        if (result.metrics && result.metrics.codeComplexity > 10) return true;
+        if (item.priority === 'critical') return true;
+        if (item.action && item.action.includes('глибше')) return true;
+        if (item.action && item.action.includes('детальніше')) return true;
+        if (result.findings && result.findings.length > 0) return true;
+        
+        return false;
     }
 
     /**
@@ -676,7 +712,73 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Create sub-items for failed metrics
+     * Create intelligent sub-items based on analysis results
+     */
+    async _createIntelligentSubItems(parentItem, result, session) {
+        const subItems = [];
+        
+        // Analyze different aspects that need attention
+        if (result.error) {
+            subItems.push({
+                action: `Діагностувати помилку: ${result.error}`,
+                description: `Глибокий аналіз причини помилки в ${parentItem.action}`,
+                priority: 'high',
+                type: 'error_analysis'
+            });
+        }
+        
+        if (result.metrics?.errorRate > 0.01) {
+            subItems.push({
+                action: 'Проаналізувати патерни помилок в логах',
+                description: 'Знайти кореневі причини високого error rate',
+                priority: 'high',
+                type: 'log_analysis',
+                understanding_context: this._generateContextualUnderstanding(result, parentItem)
+            });
+        }
+        
+        if (result.metrics?.codeComplexity > 10) {
+            subItems.push({
+                action: 'Рефакторинг складного коду',
+                description: 'Спростити архітектуру та зменшити cyclomatic complexity',
+                priority: 'medium',
+                type: 'refactoring'
+            });
+        }
+        
+        if (result.metrics?.responseTime > 2000) {
+            subItems.push({
+                action: 'Оптимізація продуктивності',
+                description: 'Профілювання та усунення bottlenecks',
+                priority: 'high',
+                type: 'performance'
+            });
+        }
+        
+        // Add contextual sub-items based on parent action
+        if (parentItem.action?.includes('TTS')) {
+            subItems.push({
+                action: 'Перевірити TTS pipeline',
+                description: 'Аналіз WebSocket → TTSSyncManager → TTS Service',
+                priority: 'medium',
+                type: 'tts_analysis'
+            });
+        }
+        
+        if (parentItem.action?.includes('MCP')) {
+            subItems.push({
+                action: 'Валідація MCP інструментів',
+                description: 'Перевірка schema та prompt consistency',
+                priority: 'medium',
+                type: 'mcp_validation'
+            });
+        }
+        
+        return subItems;
+    }
+    
+    /**
+     * Legacy create sub-items method for compatibility
      */
     async _createSubItems(parentItem, result) {
         const subItems = [];
@@ -856,15 +958,15 @@ export class DevSelfAnalysisProcessor {
             // Analyze root cause
             const rootCause = await this._analyzeRootCause(issue);
             deepAnalysis.rootCauses.push({
-                issue: issue.description,
-                cause: rootCause,
+                issue: issue.description || issue.type || 'unknown',
+                cause: rootCause.primaryCause || rootCause,
                 confidence: rootCause.confidence || 0.8
             });
             
             // Analyze impact
             const impact = await this._analyzeImpact(issue, systemContext);
             deepAnalysis.impactAnalysis.push({
-                issue: issue.description,
+                issue: issue.description || issue.type || 'unknown',
                 affectedComponents: impact.components,
                 severity: impact.severity,
                 users: impact.affectsUsers
@@ -874,7 +976,7 @@ export class DevSelfAnalysisProcessor {
             const correlations = await this._findCorrelations(issue, systemContext);
             if (correlations.length > 0) {
                 deepAnalysis.correlations.push({
-                    issue: issue.description,
+                    issue: issue.description || issue.type || 'unknown',
                     relatedTo: correlations
                 });
             }
@@ -901,7 +1003,7 @@ export class DevSelfAnalysisProcessor {
         }
         
         return {
-            primaryCause: possibleCauses[0] || 'Невідома причина',
+            primaryCause: possibleCauses[0] || issue.description || 'Невідома причина',
             secondaryCauses: possibleCauses.slice(1),
             confidence: 0.85,
             evidence: issue.details || []
@@ -1135,6 +1237,136 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
+     * Extract real problems from analysis results
+     */
+    _extractRealProblems(analysisResult, detailedAnalysis) {
+        const problems = {
+            critical: [],
+            performance: [],
+            deprecated: [],
+            suggestions: [],
+            rootCauses: [],
+            intervention_required: false
+        };
+        
+        // Extract from logs
+        if (detailedAnalysis?.logs?.errors?.length > 0) {
+            detailedAnalysis.logs.errors.forEach((error, idx) => {
+                problems.critical.push({
+                    type: 'error',
+                    description: error.substring(0, 200),
+                    location: 'logs',
+                    severity: 'high',
+                    id: `error_${idx}`
+                });
+            });
+        }
+        
+        // Extract from memory patterns
+        if (detailedAnalysis?.memory?.utilization) {
+            const util = parseFloat(detailedAnalysis.memory.utilization);
+            if (util > 80) {
+                problems.performance.push({
+                    type: 'memory',
+                    description: `Високе використання пам'яті: ${util}%`,
+                    location: 'system',
+                    severity: 'medium'
+                });
+            }
+        }
+        
+        // Extract from code inspection
+        if (detailedAnalysis?.codebase?.complexity > 10) {
+            problems.deprecated.push({
+                type: 'complexity',
+                description: 'Занадто складна архітектура коду',
+                location: 'codebase',
+                severity: 'medium'
+            });
+        }
+        
+        // Always add actionable suggestions
+        problems.suggestions.push(
+            { suggestion: 'Оптимізувати TTS pipeline для швидшої відповіді', area: 'performance' },
+            { suggestion: 'Покращити обробку помилок в MCP workflow', area: 'reliability' },
+            { suggestion: 'Додати кешування для частих запитів', area: 'optimization' }
+        );
+        
+        // Determine root causes
+        if (problems.critical.length > 0) {
+            problems.rootCauses.push({
+                issue: 'Системні помилки',
+                cause: 'Недостатня обробка edge cases',
+                confidence: 0.85
+            });
+            problems.intervention_required = true;
+        }
+        
+        return problems;
+    }
+    
+    /**
+     * Build hierarchical TODO list
+     */
+    _buildHierarchicalTodo(baseTodo, problems) {
+        const todo = baseTodo.length > 0 ? baseTodo : [];
+        
+        // Add items based on real problems
+        if (problems.critical.length > 0) {
+            todo.push({
+                action: 'Виправити критичні помилки',
+                description: `Знайдено ${problems.critical.length} критичних проблем`,
+                priority: 'critical',
+                requires_deeper_analysis: true
+            });
+        }
+        
+        if (problems.performance.length > 0) {
+            todo.push({
+                action: 'Оптимізувати продуктивність',
+                description: 'Покращити швидкодію системи',
+                priority: 'high'
+            });
+        }
+        
+        return todo;
+    }
+    
+    /**
+     * Generate contextual understanding
+     */
+    _generateContextualUnderstanding(problems, detailedAnalysis) {
+        if (problems.critical?.length > 0) {
+            return `Я виявив ${problems.critical.length} критичних проблем. Кожна з них впливає на стабільність системи. ` +
+                   `Найважливіша - ${problems.critical[0]?.description || 'системна помилка'}. ` +
+                   `Я вже аналізую кореневі причини та готую план виправлення.`;
+        }
+        
+        if (problems.performance?.length > 0) {
+            return `Система працює, але не оптимально. Основна проблема - ${problems.performance[0]?.description || 'повільна швидкодія'}. ` +
+                   `Це впливає на користувацький досвід, тому потребує уваги.`;
+        }
+        
+        return 'Система працює стабільно. Я постійно аналізую метрики та шукаю можливості для покращення. ' +
+               'Кожна деталь важлива для оптимальної роботи.';
+    }
+    
+    /**
+     * Generate living analysis summary
+     */
+    _generateLivingAnalysisSummary(analysisResult, detailedAnalysis) {
+        const problems = this._extractRealProblems(analysisResult, detailedAnalysis);
+        
+        if (problems.critical.length > 0) {
+            return `🔴 Знайшов ${problems.critical.length} критичних проблем. Чесно кажучи, це мене непокоїть...`;
+        } else if (problems.performance.length > 0) {
+            return `⚡ Виявив ${problems.performance.length} проблем продуктивності. Працюю над оптимізацією.`;
+        } else {
+            return `💚 Системи працюють стабільно! Але я завжди шукаю способи стати кращим.`;
+        }
+    }
+    
+    /**
      * Analyze memory usage patterns
      */
     async _analyzeMemoryPatterns() {
@@ -1157,18 +1389,26 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Build comprehensive response with all analysis data
+     * Build comprehensive response with all analysis layers
      */
     _buildComprehensiveResponse(analysisResult, detailedAnalysis) {
+        // Extract real problems from analysis
+        const realProblems = this._extractRealProblems(analysisResult, detailedAnalysis);
+        
         const response = {
-            ...analysisResult,
+            mode: 'dev',
+            analysis_type: 'comprehensive_self_introspection',
+            summary: analysisResult.summary || '🤔 Аналізую свої внутрішні системи...',
             findings: {
-                critical_issues: analysisResult.findings?.critical_issues || [],
-                performance_bottlenecks: analysisResult.findings?.performance_bottlenecks || [],
-                deprecated_patterns: analysisResult.findings?.deprecated_patterns || [],
-                improvement_suggestions: analysisResult.findings?.improvement_suggestions || []
+                critical_issues: realProblems.critical || [],
+                performance_bottlenecks: realProblems.performance || [],
+                deprecated_patterns: realProblems.deprecated || [],
+                improvement_suggestions: realProblems.suggestions || [],
+                root_causes: realProblems.rootCauses || []
             },
             detailed_analysis: detailedAnalysis,
+            todo_list: this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems),
+            intervention_required: realProblems.intervention_required || false,
             summary: this._generateLivingAnalysisSummary(analysisResult, detailedAnalysis),
             emotional_context: this._generateEmotionalContext(analysisResult, detailedAnalysis)
         };

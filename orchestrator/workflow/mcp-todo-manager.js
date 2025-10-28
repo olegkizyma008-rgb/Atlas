@@ -1093,7 +1093,9 @@ export class MCPTodoManager {
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors
-      const previousItemsSummary = todo.items.slice(0, item.id - 1).map(i => {
+      // FIXED 29.10.2025 - Check if item exists before accessing properties
+      const itemId = item?.id || 1;
+      const previousItemsSummary = todo.items.slice(0, itemId - 1).map(i => {
         const summary = {
           id: i.id,
           action: i.action,

@@ -56,13 +56,73 @@ export function setupChatRoutes(app, context) {
                 waitingForConfirmation: false,
                 lastMode: undefined,
                 chatThread: { messages: [], lastTopic: undefined },
-                container: container  // ✅ NEW: Add DI container to session for MCP workflow
+                container: container,  // ✅ NEW: Add DI container to session for MCP workflow
+                awaitingDevPassword: false,  // ✅ NEW: DEV mode password state
+                devAnalysisResult: null  // ✅ NEW: Store analysis result for password flow
             };
             sessions.set(sessionId, session);
         } else {
             session.lastInteraction = Date.now();
             session.originalMessage = message;
             session.container = container;  // ✅ NEW: Update container in existing session
+            
+            // ✅ NEW: Check if awaiting DEV password
+            if (session.awaitingDevPassword) {
+                const devProcessor = container.resolve('devSelfAnalysisProcessor');
+                const wsManager = container.resolve('wsManager');
+                
+                // Execute intervention with provided password
+                const interventionResult = await devProcessor.execute({
+                    userMessage: session.originalMessage,
+                    session,
+                    requiresIntervention: true,
+                    password: message.trim()
+                });
+                
+                // Reset password state
+                session.awaitingDevPassword = false;
+                session.devAnalysisResult = null;
+                
+                if (interventionResult.success) {
+                    // Send success message
+                    if (wsManager) {
+                        const findings = interventionResult.analysis?.findings || {};
+                        let successMessage = '✅ **Втручання виконано успішно!**\n\n';
+                        
+                        if (interventionResult.intervention) {
+                            successMessage += `📝 **Файлів змінено:** ${interventionResult.intervention.files_modified.length}\n`;
+                            successMessage += `🔄 **Зміни будуть застосовані при наступному перезапуску системи**\n\n`;
+                            successMessage += `**Змінені файли:**\n`;
+                            interventionResult.intervention.files_modified.forEach(file => {
+                                successMessage += `- ${file}\n`;
+                            });
+                        }
+                        
+                        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                            content: successMessage,
+                            agent: 'atlas',
+                            sessionId: session.id,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                } else {
+                    // Send error message
+                    if (wsManager) {
+                        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+                            content: '❌ **Помилка авторизації:** Невірний пароль або помилка виконання',
+                            agent: 'atlas',
+                            sessionId: session.id,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                }
+                
+                // End response
+                res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+                res.end();
+                clearInterval(keepAlive);
+                return;
+            }
         }
 
         // Keep-alive пінги

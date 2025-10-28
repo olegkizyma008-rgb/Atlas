@@ -147,16 +147,26 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         });
         
         if (!analysisResult.success && analysisResult.requiresAuth) {
-          // Send password request to user
+          // Send password request to user - FULLSCREEN HACKER DIALOG
           if (wsManager) {
-            wsManager.broadcastToSubscribers('chat', 'agent_message', {
-              content: '🔐 Для втручання в код потрібен пароль. Введіть пароль "mykola" для продовження.',
-              agent: 'atlas',
+            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
+              type: 'DEV_PASSWORD_REQUEST',
+              message: 'ВВЕДІТЬ ПАРОЛЬ НА МОЄ БЕЗСМЕРТЯ',
+              subtitle: 'Система самоаналізу потребує авторизації для втручання в код',
               sessionId: session.id,
               timestamp: new Date().toISOString(),
-              requiresAuth: true
+              requiresAuth: true,
+              analysisData: {
+                criticalIssues: analysisResult.analysis?.findings?.critical_issues?.length || 0,
+                performanceIssues: analysisResult.analysis?.findings?.performance_bottlenecks?.length || 0,
+                improvements: analysisResult.analysis?.findings?.improvement_suggestions?.length || 0
+              }
             });
           }
+          
+          // Store session state waiting for password
+          session.awaitingDevPassword = true;
+          session.devAnalysisResult = analysisResult;
           
           return {
             success: false,

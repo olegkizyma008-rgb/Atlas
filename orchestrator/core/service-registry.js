@@ -418,6 +418,27 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'processors', priority: 45 }
     });
 
+    // DEV Self-Analysis Processor (Stage 0-DEV) - NEW 28.10.2025
+    container.singleton('devSelfAnalysisProcessor', (c) => {
+        // Dynamic import will be handled in lifecycle.onInit
+        return null; // Placeholder, will be initialized in onInit
+    }, {
+        dependencies: ['logger', 'mcpManager'],
+        metadata: { category: 'processors', priority: 44 },
+        lifecycle: {
+            onInit: async function () {
+                const { DevSelfAnalysisProcessor } = await import('../workflow/stages/dev-self-analysis-processor.js');
+                const instance = new DevSelfAnalysisProcessor({
+                    logger: container.resolve('logger'),
+                    container: container
+                });
+                // Replace placeholder with actual instance
+                container._instances.set('devSelfAnalysisProcessor', instance);
+                logger.system('startup', '[DI] 🔬 DEV Self-Analysis Processor initialized');
+            }
+        }
+    });
+
     // Atlas TODO Planning Processor (Stage 1-MCP)
     container.singleton('atlasTodoPlanningProcessor', (c) => {
         return new AtlasTodoPlanningProcessor({
@@ -546,7 +567,7 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'processors', priority: 40 }
     });
 
-    logger.system('startup', '[DI] Registered 9 MCP stage processors');  // UPDATED 18.10.2025 (was 8)
+    logger.system('startup', '[DI] Registered 10 MCP stage processors');  // UPDATED 28.10.2025 (was 9)
 
     return container;
 }

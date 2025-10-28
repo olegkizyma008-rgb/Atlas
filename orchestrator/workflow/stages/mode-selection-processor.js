@@ -197,7 +197,7 @@ export class ModeSelectionProcessor {
             }
 
             // Validate structure
-            if (!normalizedMode || !['chat', 'task'].includes(normalizedMode)) {
+            if (!normalizedMode || !['chat', 'task', 'dev'].includes(normalizedMode)) {
                 throw new Error(`Invalid mode after mapping: ${parsed.mode} → ${normalizedMode}`);
             }
 

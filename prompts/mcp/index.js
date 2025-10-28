@@ -23,6 +23,7 @@
 
 import modeSelection from './stage0_mode_selection.js';  // NEW 16.10.2025
 import atlasChat from './atlas_chat.js';  // NEW 16.10.2025 - Chat mode prompt
+import devSelfAnalysis from './dev_self_analysis.js';  // NEW 28.10.2025 - DEV mode self-analysis
 import atlasTodoPlanning from './atlas_todo_planning_optimized.js';  // OPTIMIZED 15.10.2025
 import serverSelection from './stage2_0_server_selection.js';  // NEW 15.10.2025
 // REMOVED 20.10.2025: tetyana_plan_tools_optimized.js - No more GENERAL fallback, use specialized prompts only
@@ -48,6 +49,9 @@ export const MCP_PROMPTS = {
 
     // Stage 0-MCP: Chat Mode (NEW 16.10.2025) - Atlas responds directly
     ATLAS_CHAT: atlasChat,
+    
+    // Stage 0-DEV: DEV Mode (NEW 28.10.2025) - Self-analysis and code intervention
+    DEV_SELF_ANALYSIS: devSelfAnalysis,
 
     // Stage 1-MCP: Atlas creates TODO
     ATLAS_TODO_PLANNING: atlasTodoPlanning,

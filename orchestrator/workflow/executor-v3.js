@@ -99,8 +99,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     if (wsManager) {
       try {
         // System message in English
-        const systemMessage = `Mode: ${mode === 'chat' ? '💬 Chat' : '🔧 Task'} (confidence: ${Math.round(confidence * 100)}%)`;
-        const systemTts = `Mode ${mode === 'chat' ? 'chat' : 'task'}`;
+        const modeEmoji = mode === 'chat' ? '💬 Chat' : mode === 'dev' ? '🔬 Dev' : '🔧 Task';
+        const systemMessage = `Mode: ${modeEmoji} (confidence: ${Math.round(confidence * 100)}%)`;
+        const systemTts = `Mode ${mode}`;
         
         // Translate for user display
         const userMessage = localizationService.translateToUser(systemMessage);
@@ -116,6 +117,101 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         });
       } catch (error) {
         logger.warn('executor', `Failed to send mode selection WebSocket message: ${error.message}`);
+      }
+    }
+
+    // ===============================================
+    // Handle DEV mode - Self-analysis and code intervention
+    // ===============================================
+    if (mode === 'dev') {
+      logger.workflow('stage', 'atlas', 'DEV mode detected - Starting self-analysis', {
+        sessionId: session.id
+      });
+
+      try {
+        // Resolve DEV self-analysis processor
+        const devProcessor = container.resolve('devSelfAnalysisProcessor');
+        
+        // Check if password is needed for intervention
+        const requiresIntervention = userMessage.toLowerCase().includes('виправ') || 
+                                    userMessage.toLowerCase().includes('fix') ||
+                                    userMessage.toLowerCase().includes('покращ') ||
+                                    userMessage.toLowerCase().includes('improve');
+        
+        // Execute self-analysis
+        const analysisResult = await devProcessor.execute({
+          userMessage,
+          session,
+          requiresIntervention,
+          password: null // Will prompt for password if needed
+        });
+        
+        if (!analysisResult.success && analysisResult.requiresAuth) {
+          // Send password request to user
+          if (wsManager) {
+            wsManager.broadcastToSubscribers('chat', 'agent_message', {
+              content: '🔐 Для втручання в код потрібен пароль. Введіть пароль "mykola" для продовження.',
+              agent: 'atlas',
+              sessionId: session.id,
+              timestamp: new Date().toISOString(),
+              requiresAuth: true
+            });
+          }
+          
+          return {
+            success: false,
+            requiresAuth: true,
+            message: 'Password required for code intervention'
+          };
+        }
+        
+        // Send analysis results to chat
+        if (wsManager && analysisResult.analysis) {
+          const findings = analysisResult.analysis.findings;
+          let message = '🔬 **Результати самоаналізу:**\n\n';
+          
+          if (findings.critical_issues?.length > 0) {
+            message += `**Критичні проблеми:** ${findings.critical_issues.length}\n`;
+          }
+          if (findings.performance_bottlenecks?.length > 0) {
+            message += `**Проблеми продуктивності:** ${findings.performance_bottlenecks.length}\n`;
+          }
+          if (findings.improvement_suggestions?.length > 0) {
+            message += `**Пропозиції покращення:** ${findings.improvement_suggestions.length}\n`;
+          }
+          
+          if (analysisResult.intervention) {
+            message += `\n✅ **Втручання виконано:**\n`;
+            message += `- Файлів змінено: ${analysisResult.intervention.files_modified.length}\n`;
+            message += `- Зміни будуть застосовані при наступному перезапуску системи\n`;
+          }
+          
+          wsManager.broadcastToSubscribers('chat', 'agent_message', {
+            content: message,
+            agent: 'atlas',
+            sessionId: session.id,
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        return analysisResult;
+        
+      } catch (error) {
+        logger.error(`[DEV-MODE] Self-analysis failed: ${error.message}`);
+        
+        if (wsManager) {
+          wsManager.broadcastToSubscribers('chat', 'agent_message', {
+            content: `❌ Помилка самоаналізу: ${error.message}`,
+            agent: 'atlas',
+            sessionId: session.id,
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        return {
+          success: false,
+          error: error.message
+        };
       }
     }
 

@@ -246,6 +246,16 @@ export const MCP_MODEL_CONFIG = {
       max_tokens: 600,
       description: 'Final Summary для користувача - природність'
     },
+    dev_analysis: {
+      get model() {
+        return env.MCP_MODEL_DEV_ANALYSIS || 'ext-mistral-codestral-latest';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_DEV_ANALYSIS || '0.2');
+      },
+      max_tokens: 4000,
+      description: 'DEV mode self-analysis - deep introspection (Codestral Latest)'
+    },
     vision_analysis: {
       get model() {
         return env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct';

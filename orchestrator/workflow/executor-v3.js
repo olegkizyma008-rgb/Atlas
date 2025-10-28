@@ -384,13 +384,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         // Remove TTS control info - Atlas always speaks fully
 
         // Send to chat via WebSocket (primary channel)
+        // НЕ відправляємо ttsContent тут - TTS обробляється окремо через ttsSyncManager
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: localizedMessage,
             agent: 'atlas',
             sessionId: session.id,
             timestamp: new Date().toISOString(),
-            ttsContent: ttsMessage,
+            // ttsContent видалено - TTS обробляється через ttsSyncManager.speak()
             mode: 'dev',
             analysisData: {
               findings,

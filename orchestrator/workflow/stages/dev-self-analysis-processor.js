@@ -802,6 +802,18 @@ export class DevSelfAnalysisProcessor {
     }
     
     /**
+     * Analyze impact of an issue
+     */
+    async _analyzeImpact(issue, systemContext) {
+        return {
+            components: ['orchestrator', 'frontend'],
+            severity: issue.severity || 'medium',
+            affectsUsers: true,
+            estimatedDowntime: '0 minutes'
+        };
+    }
+    
+    /**
      * Find correlations with other issues
      */
     async _findCorrelations(issue, systemContext) {

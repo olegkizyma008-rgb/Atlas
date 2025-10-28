@@ -32,9 +32,14 @@ export class AtlasGLBLivingSystem {
 
       // Параметри анімації
       breathingSpeed: options.breathingSpeed || 4000, // мс на цикл
-      eyeTrackingSpeed: options.eyeTrackingSpeed || 0.15,
-      rotationSmoothness: options.rotationSmoothness || 0.1,
+      eyeTrackingSpeed: options.eyeTrackingSpeed || 0.08, // Зменшено для плавності
+      rotationSmoothness: options.rotationSmoothness || 0.05, // Зменшено для більш природного руху
       emotionIntensity: options.emotionIntensity || 1.0,
+      
+      // Обмеження обертання для природності
+      maxRotationX: options.maxRotationX || 20, // Максимальний нахил вгору/вниз
+      maxRotationY: options.maxRotationY || 35, // Максимальний поворот вліво/вправо
+      maxRotationZ: options.maxRotationZ || 5,  // Максимальний нахил вбік
 
       // TTS візуалізація
       ttsGlowIntensity: options.ttsGlowIntensity || 1.5,
@@ -358,34 +363,61 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Micro-movements - невеликі випадкові рухи для життєвості
+     * ОНОВЛЕНО: Більш органічні рухи з варіацією
      */
   updateMicroMovements(timestamp) {
     // Повільний перлін-подібний шум для природності
     const t = timestamp * 0.0001;
 
-    const microX = Math.sin(t * 1.3) * 0.3;
-    const microY = Math.cos(t * 0.7) * 0.2;
-    const microZ = Math.sin(t * 0.5) * 0.15;
+    // Багатошарові синусоїди для більш органічного руху
+    const microX = (Math.sin(t * 1.3) + Math.sin(t * 2.7) * 0.5) * 0.2;
+    const microY = (Math.cos(t * 0.7) + Math.cos(t * 1.9) * 0.3) * 0.15;
+    const microZ = (Math.sin(t * 0.5) + Math.sin(t * 1.1) * 0.4) * 0.1;
 
-    this.livingState.baseRotation.x += microX * 0.01;
-    this.livingState.baseRotation.y += microY * 0.01;
-    this.livingState.baseRotation.z += microZ * 0.01;
+    // Дуже повільне накопичення для природного дрейфу
+    this.livingState.baseRotation.x += microX * 0.008;
+    this.livingState.baseRotation.y += microY * 0.008;
+    this.livingState.baseRotation.z += microZ * 0.008;
+
+    // Обмежуємо базове обертання щоб не відходило занадто далеко
+    this.livingState.baseRotation.x = this.clampRotation(this.livingState.baseRotation.x, 3);
+    this.livingState.baseRotation.y = this.clampRotation(this.livingState.baseRotation.y, 3);
+    this.livingState.baseRotation.z = this.clampRotation(this.livingState.baseRotation.z, 2);
   }
 
   /**
      * Відстеження очима (поворот шолома за мишкою)
+     * ОНОВЛЕНО: Додано природні обмеження та ease-функції
      */
   updateEyeTracking() {
     const { mousePosition } = this.livingState;
     const speed = this.config.eyeTrackingSpeed;
 
     // Обчислюємо цільову позицію (ІНВЕРТОВАНО ГОРИЗОНТАЛЬ)
-    const targetY = -mousePosition.x * 25; // Горизонтальний поворот (інвертовано)
-    const targetX = -mousePosition.y * 15; // Вертикальний нахил
+    let targetY = -mousePosition.x * 25; // Горизонтальний поворот (інвертовано)
+    let targetX = -mousePosition.y * 15; // Вертикальний нахил
 
-    // Плавний перехід
-    this.livingState.targetRotation.y += (targetY - this.livingState.targetRotation.y) * speed;
-    this.livingState.targetRotation.x += (targetX - this.livingState.targetRotation.x) * speed;
+    // Застосовуємо природні обмеження
+    targetY = this.clampRotation(targetY, this.config.maxRotationY);
+    targetX = this.clampRotation(targetX, this.config.maxRotationX);
+
+    // Ease-out для більш природного руху (сповільнення при наближенні до цілі)
+    const deltaY = targetY - this.livingState.targetRotation.y;
+    const deltaX = targetX - this.livingState.targetRotation.x;
+    
+    // Квадратична ease-out функція
+    const easeOutQuad = (t) => t * (2 - t);
+    const easedSpeed = easeOutQuad(speed);
+
+    this.livingState.targetRotation.y += deltaY * easedSpeed;
+    this.livingState.targetRotation.x += deltaX * easedSpeed;
+  }
+
+  /**
+   * Обмеження обертання для природності
+   */
+  clampRotation(value, max) {
+    return Math.max(-max, Math.min(max, value));
   }
 
   /**
@@ -492,21 +524,39 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Застосування всіх трансформацій до моделі
+     * ОНОВЛЕНО: Покращена інтерполяція з природними обмеженнями
      */
   applyTransformations() {
     const smoothness = this.config.rotationSmoothness;
 
     // Обчислюємо цільові значення
-    const targetX = this.livingState.targetRotation.x + this.livingState.baseRotation.x;
-    const targetY = this.livingState.targetRotation.y + this.livingState.baseRotation.y;
-    const targetZ = this.livingState.targetRotation.z + this.livingState.baseRotation.z;
+    let targetX = this.livingState.targetRotation.x + this.livingState.baseRotation.x;
+    let targetY = this.livingState.targetRotation.y + this.livingState.baseRotation.y;
+    let targetZ = this.livingState.targetRotation.z + this.livingState.baseRotation.z;
 
-    // Лінійна інтерполяція (LERP) для плавного переходу
-    this.livingState.currentRotation.x = this.livingState.currentRotation.x + (targetX - this.livingState.currentRotation.x) * smoothness;
-    this.livingState.currentRotation.y = this.livingState.currentRotation.y + (targetY - this.livingState.currentRotation.y) * smoothness;
-    this.livingState.currentRotation.z = this.livingState.currentRotation.z + (targetZ - this.livingState.currentRotation.z) * smoothness;
+    // Застосовуємо глобальні обмеження для природності
+    targetX = this.clampRotation(targetX, this.config.maxRotationX);
+    targetY = this.clampRotation(targetY, this.config.maxRotationY);
+    targetZ = this.clampRotation(targetZ, this.config.maxRotationZ);
 
-    // Застосовуємо до camera orbit
+    // Покращена інтерполяція з ease-функцією
+    const deltaX = targetX - this.livingState.currentRotation.x;
+    const deltaY = targetY - this.livingState.currentRotation.y;
+    const deltaZ = targetZ - this.livingState.currentRotation.z;
+
+    // Адаптивна швидкість: швидше для великих відстаней, повільніше для малих
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    const adaptiveSmoothness = distance > 10 ? smoothness * 1.5 : smoothness;
+
+    // Cubic ease-out для природного сповільнення
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const easedSmoothness = easeOutCubic(adaptiveSmoothness);
+
+    this.livingState.currentRotation.x += deltaX * easedSmoothness;
+    this.livingState.currentRotation.y += deltaY * easedSmoothness;
+    this.livingState.currentRotation.z += deltaZ * easedSmoothness;
+
+    // Застосовуємо до camera orbit з додатковою стабілізацією
     const theta = this.livingState.currentRotation.y;
     const phi = 75 + this.livingState.currentRotation.x;
     const radius = 105;
@@ -646,18 +696,31 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Анімація під час мовлення
+     * ОНОВЛЕНО: Більш природні рухи з варіацією
      */
   startSpeechAnimation(agent) {
     const agentData = this.agentEmotions[agent] || this.agentEmotions['atlas'];
+    let speechPhase = 0;
 
-    // Легкі коливання під час мовлення
+    // Природні коливання під час мовлення
     this.speechAnimationInterval = setInterval(() => {
       if (!this.livingState.isSpeaking) return;
 
+      speechPhase += 0.1;
       const amplitude = this.config.ttsRotationAmplitude;
-      this.livingState.targetRotation.y += (Math.random() - 0.5) * amplitude;
-      this.livingState.targetRotation.x += (Math.random() - 0.5) * amplitude * 0.5;
-    }, 200);
+      
+      // Синусоїдальні рухи замість випадкових для більшої природності
+      const horizontalMove = Math.sin(speechPhase) * amplitude * 0.8;
+      const verticalMove = Math.cos(speechPhase * 0.7) * amplitude * 0.4;
+      const tiltMove = Math.sin(speechPhase * 1.3) * amplitude * 0.2;
+
+      // Додаємо невеликий випадковий компонент для життєвості
+      const randomFactor = (Math.random() - 0.5) * 0.3;
+
+      this.livingState.targetRotation.y = horizontalMove + randomFactor;
+      this.livingState.targetRotation.x = verticalMove + randomFactor * 0.5;
+      this.livingState.targetRotation.z = tiltMove;
+    }, 150); // Трохи швидше для більшої динаміки
   }
 
   /**

@@ -175,34 +175,214 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           };
         }
         
-        // Send analysis results to chat
-        if (wsManager && analysisResult.analysis) {
-          const findings = analysisResult.analysis.findings;
-          let message = '🔬 **Результати самоаналізу:**\n\n';
-          
+        // Build comprehensive message from analysis results
+        const findings = analysisResult.analysis?.findings || {};
+        const detailedAnalysis = analysisResult.analysis?.detailed_analysis || {};
+        const deepTargetedAnalysis = analysisResult.analysis?.deep_targeted_analysis || null;
+        const summary = analysisResult.analysis?.summary || '';
+        const { ttsSettings = {}, interactiveMode = false } = analysisResult;
+        
+        let message = '🔬 **Результати самоаналізу:**\n\n';
+        
+        // Add summary if available
+        if (summary) {
+          message += summary + '\n\n';
+        } else {
+          // Build summary from findings
           if (findings.critical_issues?.length > 0) {
-            message += `**Критичні проблеми:** ${findings.critical_issues.length}\n`;
+            message += `🔴 **Критичні проблеми:** ${findings.critical_issues.length}\n`;
+            findings.critical_issues.slice(0, 3).forEach(issue => {
+              message += `  • ${issue.description || issue.type}\n`;
+            });
           }
+          
           if (findings.performance_bottlenecks?.length > 0) {
-            message += `**Проблеми продуктивності:** ${findings.performance_bottlenecks.length}\n`;
+            message += `\n⚡ **Проблеми продуктивності:** ${findings.performance_bottlenecks.length}\n`;
+            findings.performance_bottlenecks.slice(0, 3).forEach(issue => {
+              message += `  • ${issue.description || issue.area}\n`;
+            });
           }
+          
           if (findings.improvement_suggestions?.length > 0) {
-            message += `**Пропозиції покращення:** ${findings.improvement_suggestions.length}\n`;
+            message += `\n💡 **Пропозиції покращення:** ${findings.improvement_suggestions.length}\n`;
+            findings.improvement_suggestions.slice(0, 3).forEach(suggestion => {
+              message += `  • ${suggestion.suggestion || suggestion.area}\n`;
+            });
+          }
+        }
+        
+        // Add detailed analysis info if available
+        if (detailedAnalysis.memory) {
+          message += `\n📊 **Стан системи:**\n`;
+          message += `  • Пам'ять: ${detailedAnalysis.memory.utilization} (${detailedAnalysis.memory.status})\n`;
+        }
+        
+        if (detailedAnalysis.logs?.metrics) {
+          const totalErrors = Object.values(detailedAnalysis.logs.metrics)
+            .reduce((sum, m) => sum + (m.errors || 0), 0);
+          if (totalErrors > 0) {
+            message += `  • Помилки в логах: ${totalErrors}\n`;
+          }
+        }
+        
+        if (analysisResult.intervention) {
+          message += `\n✅ **Втручання виконано:**\n`;
+          message += `  • Файлів змінено: ${analysisResult.intervention.files_modified.length}\n`;
+          message += `  • Зміни будуть застосовані при наступному перезапуску системи\n`;
+        }
+        
+        // Add deep targeted analysis if available
+        if (deepTargetedAnalysis) {
+          message += `\n🎯 **Глибокий цільовий аналіз:**\n`;
+          
+          if (deepTargetedAnalysis.rootCauses?.length > 0) {
+            message += `\n**Корінні причини:**\n`;
+            deepTargetedAnalysis.rootCauses.forEach(rc => {
+              message += `  • ${rc.issue}: ${rc.cause.primaryCause} (впевненість: ${(rc.confidence * 100).toFixed(0)}%)\n`;
+            });
           }
           
-          if (analysisResult.intervention) {
-            message += `\n✅ **Втручання виконано:**\n`;
-            message += `- Файлів змінено: ${analysisResult.intervention.files_modified.length}\n`;
-            message += `- Зміни будуть застосовані при наступному перезапуску системи\n`;
+          if (deepTargetedAnalysis.impactAnalysis?.length > 0) {
+            message += `\n**Аналіз впливу:**\n`;
+            deepTargetedAnalysis.impactAnalysis.forEach(impact => {
+              message += `  • ${impact.issue}: впливає на ${impact.affectedComponents.join(', ')}\n`;
+            });
           }
           
+          if (deepTargetedAnalysis.recommendations?.length > 0) {
+            message += `\n**Цільові рекомендації:**\n`;
+            deepTargetedAnalysis.recommendations.forEach(rec => {
+              message += `  • ${rec.action} (пріоритет: ${rec.priority})\n`;
+            });
+          }
+        }
+        
+        // Add focused area analysis if available
+        if (detailedAnalysis.focusAreaAnalysis) {
+          const focus = detailedAnalysis.focusAreaAnalysis;
+          message += `\n🔍 **Фокусний аналіз (${focus.area}):**\n`;
+          if (focus.findings?.length > 0) {
+            focus.findings.forEach(f => {
+              message += `  • ${f.description}\n`;
+            });
+          }
+          if (focus.metrics && Object.keys(focus.metrics).length > 0) {
+            message += `\n**Метрики:**\n`;
+            Object.entries(focus.metrics).forEach(([key, value]) => {
+              message += `  • ${key}: ${value}\n`;
+            });
+          }
+        }
+        
+        // Add deep understanding context
+        message += `\n🧠 **Розуміння контексту:**\n`;
+        message += `Я проаналізував свої внутрішні системи та виявив області для покращення. `;
+        message += `Кожна знахідка базується на глибокому розумінні архітектури та взаємозв'язків між компонентами. `;
+        
+        if (findings.critical_issues?.length === 0 && findings.performance_bottlenecks?.length === 0) {
+          message += `Система працює стабільно, але завжди є простір для вдосконалення.`;
+        } else {
+          message += `Виявлені проблеми потребують уваги для оптимальної роботи системи.`;
+        }
+        
+        // Add interactive mode prompt if enabled
+        if (interactiveMode) {
+          message += `\n\n💬 **Інтерактивний режим активний**\n`;
+          message += `Ви можете задавати уточнюючі питання або просити глибший аналіз конкретних областей.\n`;
+          message += `Доступні напрямки: Тетяна, Гріша, MCP, продуктивність, помилки, пам'ять, архітектура.`;
+        }
+
+        const localizedMessage = localizationService.translateToUser(message);
+        
+        // ALWAYS prepare FULL TTS message - Atlas speaks everything with emotion
+        let cleanedForTts = message
+          .replace(/[*_#]/g, '')
+          .replace(/\n+/g, '. ')
+          .replace(/🔬/g, '')
+          .replace(/🔴/g, '')
+          .replace(/⚡/g, '')
+          .replace(/💡/g, '')
+          .replace(/📊/g, '')
+          .replace(/🧠/g, '')
+          .replace(/🎯/g, '')
+          .replace(/🔍/g, '')
+          .replace(/💬/g, '')
+          .replace(/✅/g, 'успішно')
+          .replace(/⚠️/g, 'увага')
+          .replace(/•/g, ',');
+        
+        // Add emotional context to TTS
+        const ttsMessage = findings.critical_issues?.length > 0
+          ? `Слухай, я знайшов дещо важливе... ${cleanedForTts} Я вже працюю над вирішенням цих проблем.`
+          : `Привіт! Я щойно завершив глибокий самоаналіз. ${cleanedForTts} Все працює добре, але я завжди шукаю шляхи стати кращим для тебе.`;
+
+        // Remove TTS control info - Atlas always speaks fully
+
+        // Send to chat via WebSocket
+        if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: message,
+            content: localizedMessage,
             agent: 'atlas',
             sessionId: session.id,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            ttsContent: ttsMessage,
+            mode: 'dev',
+            analysisData: {
+              findings,
+              detailedAnalysis,
+              deepTargetedAnalysis,
+              summary
+            },
+            ttsSettings,
+            interactiveMode
           });
         }
+
+        // Send via SSE stream
+        if (res?.writable && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({
+            type: 'agent_message',
+            data: {
+              content: localizedMessage,
+              agent: 'atlas',
+              ttsContent: ttsMessage,
+              mode: 'dev',
+              findings,
+              detailedAnalysis,
+              deepTargetedAnalysis,
+              intervention: analysisResult.intervention || null,
+              ttsSettings,
+              interactiveMode
+            }
+          })}\n\n`);
+        }
+
+        // Queue TTS with full emotional narration
+        if (ttsSyncManager) {
+          try {
+            await ttsSyncManager.speak(ttsMessage, {
+              mode: 'detailed', // Use validated detailed mode for full narration
+              agent: 'atlas',
+              sessionId: session.id,
+              emotion: findings.critical_issues?.length > 0 ? 'concerned' : 'confident',
+              priority: 'high' // DEV mode always high priority
+            });
+          } catch (ttsError) {
+            logger.warn('executor', `Failed to enqueue DEV analysis TTS: ${ttsError.message}`);
+          }
+        }
+        
+        // Store analysis in session for context
+        session.lastDevAnalysis = {
+          timestamp: new Date().toISOString(),
+          findings,
+          detailedAnalysis,
+          deepTargetedAnalysis,
+          summary: analysisResult.analysis?.summary || message,
+          interactiveMode,
+          focusArea: analysisResult.metadata?.focusArea,
+          analysisDepth: analysisResult.metadata?.analysisDepth
+        };
         
         return analysisResult;
         

@@ -115,12 +115,29 @@ export class DevSelfAnalysisProcessor {
             // Gather system context
             const systemContext = await this._gatherSystemContext();
             
-            // Build analysis prompt
+            // Ініціалізуємо chatThread якщо не існує (як у chat mode)
+            if (!session.chatThread) {
+                session.chatThread = { messages: [], lastTopic: undefined };
+            }
+            
+            // Build analysis prompt з підтримкою контексту
             const prompt = MCP_PROMPTS.DEV_SELF_ANALYSIS;
             const messages = [
-                { role: 'system', content: prompt.SYSTEM_PROMPT },
-                { role: 'user', content: prompt.buildUserPrompt(userMessage, systemContext) }
+                { role: 'system', content: prompt.SYSTEM_PROMPT }
             ];
+            
+            // Додаємо історію діалогу для контексту (останні 5 повідомлень)
+            const recentMessages = session.chatThread.messages.slice(-5);
+            if (recentMessages.length > 0) {
+                this.logger.system('dev-analysis', `[DEV-ANALYSIS] 💭 Using ${recentMessages.length} messages from history for context`);
+                messages.push(...recentMessages);
+            }
+            
+            // Додаємо поточне повідомлення користувача
+            messages.push({ 
+                role: 'user', 
+                content: prompt.buildUserPrompt(userMessage, systemContext) 
+            });
 
             // Call LLM for analysis
             this.logger.system('dev-analysis', '[DEV-ANALYSIS] Calling LLM for deep analysis...');
@@ -211,6 +228,24 @@ export class DevSelfAnalysisProcessor {
                     interactiveMode: isInteractive
                 };
             }
+
+            // Зберігаємо повідомлення в chatThread для підтримки контексту
+            session.chatThread.messages.push({
+                role: 'user',
+                content: userMessage
+            });
+            
+            session.chatThread.messages.push({
+                role: 'assistant',
+                content: JSON.stringify(comprehensiveResponse.findings || {})
+            });
+            
+            // Обмежуємо історію до 10 повідомлень
+            if (session.chatThread.messages.length > 10) {
+                session.chatThread.messages = session.chatThread.messages.slice(-10);
+            }
+            
+            this.logger.system('dev-analysis', `[DEV-ANALYSIS] 💾 Saved to chatThread, total messages: ${session.chatThread.messages.length}`);
 
             return {
                 success: true,

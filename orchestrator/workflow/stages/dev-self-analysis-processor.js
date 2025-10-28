@@ -71,7 +71,10 @@ export class DevSelfAnalysisProcessor {
             
             this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('dev_analysis');
             
-            this.logger.system('dev-analysis', `[DEV-ANALYSIS] 🔧 Using API: ${this.apiEndpoint}, Model: ${this.modelConfig.model}`);
+            this.logger.info(`[DEV-ANALYSIS] 🔧 Using API: ${this.apiEndpoint}, Model: ${this.modelConfig.model}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
         }
     }
 
@@ -80,7 +83,10 @@ export class DevSelfAnalysisProcessor {
      */
     async execute(context) {
         this._ensureConfig();
-        this.logger.system('dev-analysis', '[DEV-ANALYSIS] 🧠 Starting self-analysis...');
+        this.logger.info('[DEV-ANALYSIS] 🧠 Starting self-analysis...', {
+            category: 'system',
+            component: 'dev-analysis'
+        });
 
         const { userMessage, session, password, ttsSettings = {} } = context;
         
@@ -106,7 +112,10 @@ export class DevSelfAnalysisProcessor {
                     };
                 }
                 
-                this.logger.system('dev-analysis', '[DEV-ANALYSIS] ✅ Password verified - proceeding with intervention');
+                this.logger.info('[DEV-ANALYSIS] ✅ Password verified - proceeding with intervention', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
             }
 
             // Gather system context
@@ -126,18 +135,24 @@ export class DevSelfAnalysisProcessor {
             // Додаємо історію діалогу для контексту (останні 5 повідомлень)
             const recentMessages = session.chatThread.messages.slice(-5);
             if (recentMessages.length > 0) {
-                this.logger.system('dev-analysis', `[DEV-ANALYSIS] 💭 Using ${recentMessages.length} messages from history for context`);
+                this.logger.info(`[DEV-ANALYSIS] 💭 Using ${recentMessages.length} messages from history for context`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                 messages.push(...recentMessages);
             }
             
-            // Додаємо поточне повідомлення користувача
-            messages.push({ 
-                role: 'user', 
-                content: prompt.buildUserPrompt(userMessage, systemContext) 
+            // Add user request with system context
+            messages.push({
+                role: 'user',
+                content: MCP_PROMPTS.DEV_SELF_ANALYSIS.buildUserPrompt(userMessage, systemContext)
             });
 
             // Call LLM for analysis
-            this.logger.system('dev-analysis', '[DEV-ANALYSIS] Calling LLM for deep analysis...');
+            this.logger.info('[DEV-ANALYSIS] Calling LLM for deep analysis...', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             
             const response = await axios.post(this.apiEndpoint, {
                 model: this.modelConfig.model,
@@ -245,7 +260,10 @@ export class DevSelfAnalysisProcessor {
                 session.chatThread.messages = session.chatThread.messages.slice(-10);
             }
             
-            this.logger.system('dev-analysis', `[DEV-ANALYSIS] 💾 Saved to chatThread, total messages: ${session.chatThread.messages.length}`);
+            this.logger.info(`[DEV-ANALYSIS] 💾 Saved to chatThread, total messages: ${session.chatThread.messages.length}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
 
             return {
                 success: true,
@@ -407,7 +425,10 @@ export class DevSelfAnalysisProcessor {
      * Execute cyclic TODO workflow with metrics validation
      */
     async _executeCyclicTodo(todoList, session) {
-        this.logger.system('dev-analysis', '[DEV-ANALYSIS] 🔄 Starting cyclic TODO execution...');
+        this.logger.info('[DEV-ANALYSIS] 🔄 Starting cyclic TODO execution...', {
+            category: 'system',
+            component: 'dev-analysis'
+        });
         
         for (let i = 0; i < todoList.length; i++) {
             const item = todoList[i];
@@ -419,7 +440,10 @@ export class DevSelfAnalysisProcessor {
 
             // Execute item
             const actionLabel = item.action || item.description || `item_${i + 1}`;
-            this.logger.system('dev-analysis', `[DEV-ANALYSIS] Executing: ${actionLabel}`);
+            this.logger.info(`[DEV-ANALYSIS] Executing: ${actionLabel}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             const result = await this._executeAnalysisItem(item, session);
             
             // Validate metrics
@@ -427,7 +451,10 @@ export class DevSelfAnalysisProcessor {
             
             if (!metricsValid) {
                 // Create sub-items for failed metrics
-                this.logger.system('dev-analysis', `[DEV-ANALYSIS] Metrics failed for ${item.id || actionLabel}, creating sub-items...`);
+                this.logger.info(`[DEV-ANALYSIS] Metrics failed for ${item.id || actionLabel}, creating sub-items...`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
                 const subItems = await this._createSubItems(item, result);
                 
                 // Execute sub-items
@@ -445,7 +472,10 @@ export class DevSelfAnalysisProcessor {
             }
             
             item.status = 'completed';
-            this.logger.system('dev-analysis', `[DEV-ANALYSIS] ✅ Completed: ${actionLabel}`);
+            this.logger.info(`[DEV-ANALYSIS] ✅ Completed: ${actionLabel}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
         }
     }
 
@@ -667,7 +697,10 @@ export class DevSelfAnalysisProcessor {
             };
         }
         
-        this.logger.system('dev-analysis', '[DEV-ANALYSIS] 🔧 Initiating code intervention...');
+        this.logger.info('[DEV-ANALYSIS] 🔧 Initiating code intervention...', {
+            category: 'system',
+            component: 'dev-analysis'
+        });
         
         // Use Tetyana's MCP tools for code modification
         const tetyanaPlanProcessor = this.container.resolve('tetyanaPlanToolsProcessor');
@@ -1054,7 +1087,10 @@ export class DevSelfAnalysisProcessor {
                 }
             });
             
-            this.logger.system('dev-analysis', '[DEV-ANALYSIS] 💾 Analysis context saved to memory');
+            this.logger.info('[DEV-ANALYSIS] 💾 Analysis context saved to memory', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             
         } catch (error) {
             this.logger.warn('dev-analysis', `Failed to save to memory: ${error.message}`);
@@ -1178,13 +1214,19 @@ export class DevSelfAnalysisProcessor {
         
         // Якщо тільки аналіз - НЕ просить втручання
         if (hasAnalysisOnly && !hasInterventionKeyword) {
-            this.logger.system('dev-analysis', '[DEV-ANALYSIS] 📊 Analysis only - no intervention requested');
+            this.logger.info('[DEV-ANALYSIS] 📊 Analysis only - no intervention requested', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             return false;
         }
         
         // Якщо є ключові слова втручання - просить зміни
         if (hasInterventionKeyword) {
-            this.logger.system('dev-analysis', '[DEV-ANALYSIS] 🔧 Intervention requested by user');
+            this.logger.info('[DEV-ANALYSIS] 🔧 Intervention requested by user', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             return true;
         }
         

@@ -21,7 +21,10 @@ export default class RecursiveAnalysisEngine {
      * Execute recursive TODO with deep analysis
      */
     async executeRecursiveTodo(todoList, session, systemContext, currentDepth = 1) {
-        this.logger.system('dev-recursive', `[RECURSIVE] 🔄 Starting depth ${currentDepth} analysis...`);
+        this.logger.info(`[RECURSIVE] 🔄 Starting depth ${currentDepth} analysis...`, {
+            category: 'system',
+            component: 'dev-recursive'
+        });
         
         if (currentDepth > this.maxDepth) {
             this.logger.warn('dev-recursive', `[RECURSIVE] Max depth ${this.maxDepth} reached, stopping`);
@@ -36,7 +39,10 @@ export default class RecursiveAnalysisEngine {
             }
 
             const actionLabel = item.action || item.description || `item_${i + 1}`;
-            this.logger.system('dev-recursive', `[RECURSIVE] 📊 Analyzing: ${actionLabel}`);
+            this.logger.info(`[RECURSIVE] 📊 Analyzing: ${actionLabel}`, {
+                category: 'system',
+                component: 'dev-recursive'
+            });
 
             // Step 1: Analyze logs if required
             if (item.requires_log_analysis) {
@@ -55,13 +61,19 @@ export default class RecursiveAnalysisEngine {
 
             // Step 3: Execute sub-tasks recursively
             if (item.sub_tasks && item.sub_tasks.length > 0) {
-                this.logger.system('dev-recursive', `[RECURSIVE] 🔍 Diving deeper: ${item.sub_tasks.length} sub-tasks`);
+                this.logger.info(`[RECURSIVE] 🔍 Diving deeper: ${item.sub_tasks.length} sub-tasks`, {
+                    category: 'system',
+                    component: 'dev-recursive'
+                });
                 await this.executeRecursiveTodo(item.sub_tasks, session, systemContext, currentDepth + 1);
             }
 
             // Step 4: Trigger next analysis cycle if needed
             if (item.triggers_next && result.requires_deeper_analysis) {
-                this.logger.system('dev-recursive', `[RECURSIVE] 🔄 Triggering next cycle for: ${actionLabel}`);
+                this.logger.info(`[RECURSIVE] 🔄 Triggering next cycle for: ${actionLabel}`, {
+                    category: 'system',
+                    component: 'dev-recursive'
+                });
                 const nextCycleTasks = await this._generateNextCycleTasks(item, result, systemContext);
                 await this.executeRecursiveTodo(nextCycleTasks, session, systemContext, currentDepth + 1);
             }
@@ -70,17 +82,26 @@ export default class RecursiveAnalysisEngine {
             const validated = await this._validateTaskCompletion(item, result);
             item.status = validated ? 'completed' : 'needs_review';
             
-            this.logger.system('dev-recursive', `[RECURSIVE] ${validated ? '✅' : '⚠️'} ${actionLabel}`);
+            this.logger.info(`[RECURSIVE] ${validated ? '✅' : '⚠️'} ${actionLabel}`, {
+                category: 'system',
+                component: 'dev-recursive'
+            });
         }
 
-        this.logger.system('dev-recursive', `[RECURSIVE] ✅ Depth ${currentDepth} complete`);
+        this.logger.info(`[RECURSIVE] ✅ Depth ${currentDepth} complete`, {
+            category: 'system',
+            component: 'dev-recursive'
+        });
     }
 
     /**
      * Deep log analysis with pattern recognition
      */
     async _deepLogAnalysis(item, systemContext) {
-        this.logger.system('dev-recursive', '[RECURSIVE] 📋 Analyzing logs deeply...');
+        this.logger.info('[RECURSIVE] 📋 Analyzing logs deeply...', {
+            category: 'system',
+            component: 'dev-recursive'
+        });
         
         const logsDir = path.join(process.cwd(), 'logs');
         const logFiles = ['orchestrator.log', 'workflow.log', 'error.log'];

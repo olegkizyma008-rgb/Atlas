@@ -29,6 +29,7 @@ import {
     AtlasReplanTodoProcessor,
     McpFinalSummaryProcessor
 } from '../workflow/stages/index.js';
+import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -420,23 +421,15 @@ export function registerMCPProcessors(container) {
 
     // DEV Self-Analysis Processor (Stage 0-DEV) - NEW 28.10.2025
     container.singleton('devSelfAnalysisProcessor', (c) => {
-        // Dynamic import will be handled in lifecycle.onInit
-        return null; // Placeholder, will be initialized in onInit
+        const instance = new DevSelfAnalysisProcessor({
+            logger: c.resolve('logger'),
+            container: c
+        });
+        logger.system('startup', '[DI] 🔬 DEV Self-Analysis Processor initialized');
+        return instance;
     }, {
-        dependencies: ['logger', 'mcpManager'],
-        metadata: { category: 'processors', priority: 44 },
-        lifecycle: {
-            onInit: async function () {
-                const { DevSelfAnalysisProcessor } = await import('../workflow/stages/dev-self-analysis-processor.js');
-                const instance = new DevSelfAnalysisProcessor({
-                    logger: container.resolve('logger'),
-                    container: container
-                });
-                // Replace placeholder with actual instance
-                container._instances.set('devSelfAnalysisProcessor', instance);
-                logger.system('startup', '[DI] 🔬 DEV Self-Analysis Processor initialized');
-            }
-        }
+        dependencies: ['logger'],
+        metadata: { category: 'processors', priority: 44 }
     });
 
     // Atlas TODO Planning Processor (Stage 1-MCP)

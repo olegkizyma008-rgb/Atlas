@@ -135,6 +135,33 @@ export class ModeSelectionProcessor {
                 this.logger.error(`[STAGE-0-MCP] No response received from API`);
             }
 
+            // DEV mode keyword detection fallback (NEW 28.10.2025)
+            const devKeywords = [
+                'самоаналіз',
+                'само аналіз',
+                'режим дев',
+                'dev mode',
+                'analyze yourself',
+                'self analysis',
+                'self-analysis',
+                'внутрішній аналіз',
+                'зазирнути в себе',
+                'code intervention'
+            ];
+
+            const lowerMessage = userMessage?.toLowerCase?.() || '';
+            const devDetected = devKeywords.some((keyword) => lowerMessage.includes(keyword));
+
+            if (devDetected) {
+                this.logger.warn('[STAGE-0-MCP] ⚠️ API failed, але знайдено DEV ключові слова — вмикаю DEV режим');
+                return {
+                    success: true,
+                    mode: 'dev',
+                    confidence: 0.8,
+                    reasoning: 'API error, але повідомлення містить явні DEV ключові слова'
+                };
+            }
+
             // FIXED 16.10.2025: Default to chat mode on error (intelligent fallback)
             // Причина: Chat безпечніше за Task при помилці класифікації
             // - Chat: розмова (користувач просто говорить)

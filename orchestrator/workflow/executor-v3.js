@@ -552,6 +552,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           focusArea: analysisResult.metadata?.focusArea,
           analysisDepth: analysisResult.metadata?.analysisDepth
         };
+        session.lastDevAnalysisMessage = userMessage; // CRITICAL: Save original message for intervention context
+        
+        logger.system('executor', `[DEV-MODE] ✅ Analysis context saved: lastDevAnalysis + lastDevAnalysisMessage`, {
+          sessionId: session.id,
+          hasFindings: !!findings,
+          criticalIssues: findings?.critical_issues?.length || 0
+        });
         
         return analysisResult;
         

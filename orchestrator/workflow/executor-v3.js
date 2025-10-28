@@ -70,25 +70,74 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // ===============================================
     logger.workflow('stage', 'system', 'Stage 0-MCP: Mode Selection', { sessionId: session.id });
 
-    // Check if session is awaiting password for DEV mode
-    if (session.awaitingDevPassword && userMessage.trim().toLowerCase() === 'mykola') {
-      logger.system('executor', `[DEV-PASSWORD] Password received, continuing DEV intervention`, {
+    // Check if session is awaiting password for DEV mode OR if user requests intervention after analysis
+    const isPasswordProvided = session.awaitingDevPassword && userMessage.trim().toLowerCase() === 'mykola';
+    const isInterventionRequest = session.lastDevAnalysis && (
+      userMessage.toLowerCase().includes('внеси зміни') ||
+      userMessage.toLowerCase().includes('виправ') ||
+      userMessage.toLowerCase().includes('fix') ||
+      userMessage.toLowerCase().includes('застосуй') ||
+      userMessage.toLowerCase().includes('apply')
+    );
+    
+    if (isPasswordProvided || isInterventionRequest) {
+      logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention requested'}, continuing DEV mode`, {
         sessionId: session.id
       });
       
-      // Force DEV mode and pass password
+      // If intervention requested but no password yet, show dialog and wait
+      if (isInterventionRequest && !isPasswordProvided) {
+        session.awaitingDevPassword = true;
+        session.devOriginalMessage = session.lastDevAnalysisMessage || 'Проаналізуй себе';
+        
+        // Re-send analysis with password request
+        const analysisData = session.lastDevAnalysis;
+        const findings = analysisData?.findings || {};
+        
+        const passwordMessage = `🔐 **Потрібна авторизація для втручання**\n\nЯ готовий внести виправлення в свій код. Для безпеки мені потрібен пароль "mykola".\n\n**Що буде виправлено:**\n${findings.critical_issues?.length || 0} критичних проблем\n${findings.performance_bottlenecks?.length || 0} проблем продуктивності\n\nВведи пароль щоб продовжити.`;
+        const localizedMessage = localizationService.translateToUser(passwordMessage);
+        
+        if (wsManager) {
+          wsManager.broadcastToSubscribers('chat', 'agent_message', {
+            content: localizedMessage,
+            agent: 'atlas',
+            sessionId: session.id,
+            timestamp: new Date().toISOString(),
+            ttsContent: 'Мені потрібен пароль mykola щоб внести зміни',
+            mode: 'dev',
+            requiresAuth: true
+          });
+          
+          // Trigger password dialog
+          wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
+            sessionId: session.id,
+            analysisData: {
+              criticalIssues: findings.critical_issues?.length || 0,
+              performanceIssues: findings.performance_bottlenecks?.length || 0,
+              improvements: findings.improvement_suggestions?.length || 0
+            }
+          });
+        }
+        
+        return { success: false, requiresAuth: true };
+      }
+      
+      // Password provided - execute intervention
       const devProcessor = container.resolve('devSelfAnalysisProcessor');
       const analysisResult = await devProcessor.execute({
         userMessage: session.devOriginalMessage || 'Проаналізуй себе',
         session,
         requiresIntervention: true,
-        password: 'mykola'
+        password: 'mykola',
+        container
       });
       
       // Clear password state
       session.awaitingDevPassword = false;
       session.devAnalysisResult = null;
       session.devOriginalMessage = null;
+      session.lastDevAnalysis = null;
+      session.lastDevAnalysisMessage = null;
       
       // Send intervention result
       const interventionMessage = analysisResult.intervention?.message || 'Втручання виконано успішно!';
@@ -424,6 +473,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           session.awaitingDevPassword = true;
           session.devAnalysisResult = analysisResult;
           session.devOriginalMessage = userMessage; // Зберігаємо оригінальне повідомлення
+          session.lastDevAnalysis = {
+            findings,
+            detailedAnalysis,
+            deepTargetedAnalysis,
+            summary
+          };
+          session.lastDevAnalysisMessage = userMessage;
           
           logger.system('executor', `[DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=${session.id}`);
 

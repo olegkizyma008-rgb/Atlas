@@ -794,22 +794,10 @@ export class DevSelfAnalysisProcessor {
         }
         
         return {
-            primaryCause: possibleCauses[0] || 'Unknown',
+            primaryCause: possibleCauses[0] || 'Невідома причина',
             secondaryCauses: possibleCauses.slice(1),
             confidence: 0.85,
             evidence: issue.details || []
-        };
-    }
-    
-    /**
-     * Analyze impact of an issue
-     */
-    async _analyzeImpact(issue, systemContext) {
-        return {
-            components: ['orchestrator', 'frontend'],
-            severity: issue.severity || 'medium',
-            affectsUsers: true,
-            estimatedDowntime: '0 minutes'
         };
     }
     
@@ -831,12 +819,14 @@ export class DevSelfAnalysisProcessor {
      * Generate targeted recommendation
      */
     async _generateTargetedRecommendation(issue, rootCause) {
+        const location = issue.location || 'системі';
+        const cause = rootCause.primaryCause || 'невідома проблема';
         return {
-            issue: issue.description,
-            action: `Fix ${rootCause.primaryCause} in ${issue.location || 'system'}`,
-            priority: issue.severity === 'high' ? 'immediate' : 'normal',
-            estimatedEffort: '2 hours',
-            implementation: 'Use MCP tools for automated fix'
+            issue: issue.description || 'Невизначена проблема',
+            action: `Виправити ${cause} в ${location}`,
+            priority: issue.severity === 'high' ? 'негайно' : 'нормальний',
+            estimatedEffort: '2 години',
+            implementation: 'Використати MCP інструменти для автоматичного виправлення'
         };
     }
 
@@ -937,30 +927,30 @@ export class DevSelfAnalysisProcessor {
     
     async _analyzeTetyana() {
         return [
-            { type: 'status', description: 'Tetyana MCP tool executor is operational' },
-            { type: 'capability', description: 'Can execute filesystem, shell, and web tools' }
+            { type: 'status', description: 'Тетяна - виконавець MCP інструментів працює' },
+            { type: 'capability', description: 'Може виконувати файлові, shell та веб інструменти' }
         ];
     }
     
     async _analyzeGrisha() {
         return [
-            { type: 'status', description: 'Grisha verification system is active' },
-            { type: 'capability', description: 'Visual and eligibility verification enabled' }
+            { type: 'status', description: 'Гріша - система верифікації активна' },
+            { type: 'capability', description: 'Візуальна та eligibility верифікація увімкнена' }
         ];
     }
     
     async _analyzeMCPServers() {
         return [
-            { type: 'status', description: 'MCP servers configured and running' },
-            { type: 'servers', description: 'filesystem, shell, memory, playwright available' }
+            { type: 'status', description: 'MCP сервери налаштовані та працюють' },
+            { type: 'servers', description: 'filesystem, shell, memory, playwright доступні' }
         ];
     }
     
     async _analyzePerformanceDeep(depth) {
         const findings = [];
         if (depth === 'deep') {
-            findings.push({ type: 'cpu', description: 'CPU usage patterns analyzed' });
-            findings.push({ type: 'io', description: 'I/O operations profiled' });
+            findings.push({ type: 'cpu', description: 'Проаналізовано шаблони використання CPU' });
+            findings.push({ type: 'io', description: 'Профільовано операції вводу/виводу' });
         }
         return findings;
     }
@@ -968,8 +958,8 @@ export class DevSelfAnalysisProcessor {
     async _analyzeErrorsDeep(depth) {
         const findings = [];
         if (depth === 'deep') {
-            findings.push({ type: 'stack_trace', description: 'Full stack traces analyzed' });
-            findings.push({ type: 'frequency', description: 'Error frequency patterns identified' });
+            findings.push({ type: 'stack_trace', description: 'Проаналізовано повні stack traces' });
+            findings.push({ type: 'frequency', description: 'Виявлено шаблони частоти помилок' });
         }
         return findings;
     }

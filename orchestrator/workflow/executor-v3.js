@@ -383,7 +383,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // Remove TTS control info - Atlas always speaks fully
 
-        // Send to chat via WebSocket
+        // Send to chat via WebSocket (primary channel)
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: localizedMessage,
@@ -402,9 +402,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             interactiveMode
           });
         }
-
-        // Send via SSE stream
-        if (res?.writable && !res.writableEnded) {
+        // Only send via SSE if WebSocket not available
+        else if (res?.writable && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({
             type: 'agent_message',
             data: {
@@ -422,15 +421,15 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           })}\n\n`);
         }
 
-        // Queue TTS with full emotional narration
-        if (ttsSyncManager) {
+        // Queue TTS separately (not duplicated in chat)
+        if (ttsSyncManager && ttsSettings?.enabled !== false) {
           try {
             await ttsSyncManager.speak(ttsMessage, {
-              mode: 'detailed', // Use validated detailed mode for full narration
+              mode: 'detailed',
               agent: 'atlas',
               sessionId: session.id,
               emotion: findings.critical_issues?.length > 0 ? 'concerned' : 'confident',
-              priority: 'high' // DEV mode always high priority
+              priority: 'high'
             });
           } catch (ttsError) {
             logger.warn('executor', `Failed to enqueue DEV analysis TTS: ${ttsError.message}`);

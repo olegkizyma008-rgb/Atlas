@@ -151,6 +151,12 @@ class AtlasWebSocketClient {
         this.emit('chat-message', { type, data });
         break;
 
+      case 'dev_password_request':
+        // Handle DEV mode password request
+        this.logger.info('DEV password request received', data);
+        this.emit('dev_password_request', data);
+        break;
+
       case 'subscribed':
         this.logger.info('Subscribed to channels', data.channels);
         break;

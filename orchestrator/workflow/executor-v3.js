@@ -179,12 +179,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                                     userMessage.toLowerCase().includes('глибше') ||
                                     userMessage.toLowerCase().includes('deeper');
         
-        // Execute self-analysis
+        // Execute self-analysis with container for MCP access
         const analysisResult = await devProcessor.execute({
           userMessage,
           session,
           requiresIntervention,
-          password: null // Will prompt for password if needed
+          password: null, // Will prompt for password if needed
+          container // Pass container for MCP filesystem access
         });
         
         logger.system('executor', `[DEV-MODE] Analysis complete, requiresAuth: ${analysisResult.requiresAuth}`, {
@@ -198,47 +199,77 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         const summary = analysisResult.analysis?.summary || '';
         const { ttsSettings = {}, interactiveMode = false } = analysisResult;
 
-        let message = '🔬 **Результати самоаналізу:**\n\n';
+        // Build detailed message with metrics table
+        const metrics = analysisResult.analysis?.metrics || {};
         
-        // Add summary if available
+        let message = '🔬 **Аналіз системи Atlas**\n\n';
+        
+        // Add metrics table
+        if (metrics.error_count !== undefined || metrics.warning_count !== undefined) {
+          message += '**📊 Метрики системи:**\n';
+          message += '```\n';
+          message += `Помилки:      ${metrics.error_count || 0}\n`;
+          message += `Попередження:  ${metrics.warning_count || 0}\n`;
+          message += `Здоров'я:     ${metrics.system_health || 'N/A'}%\n`;
+          message += `Uptime:       ${Math.floor((metrics.uptime || 0) / 60)} хв\n`;
+          message += '```\n\n';
+        }
+        
+        // Add summary
         if (summary) {
           message += summary + '\n\n';
-        } else {
-          // Build summary from findings
-          if (findings.critical_issues?.length > 0) {
-            message += `🔴 **Критичні проблеми:** ${findings.critical_issues.length}\n`;
-            findings.critical_issues.slice(0, 3).forEach(issue => {
-              message += `  • ${issue.description || issue.type}\n`;
-            });
-          }
-          
-          if (findings.performance_bottlenecks?.length > 0) {
-            message += `\n⚡ **Проблеми продуктивності:** ${findings.performance_bottlenecks.length}\n`;
-            findings.performance_bottlenecks.slice(0, 3).forEach(issue => {
-              message += `  • ${issue.description || issue.area}\n`;
-            });
-          }
-          
-          if (findings.improvement_suggestions?.length > 0) {
-            message += `\n💡 **Пропозиції покращення:** ${findings.improvement_suggestions.length}\n`;
-            findings.improvement_suggestions.slice(0, 3).forEach(suggestion => {
-              message += `  • ${suggestion.suggestion || suggestion.area}\n`;
-            });
-          }
         }
         
-        // Add detailed analysis info if available
-        if (detailedAnalysis.memory) {
-          message += `\n📊 **Стан системи:**\n`;
-          message += `  • Пам'ять: ${detailedAnalysis.memory.utilization} (${detailedAnalysis.memory.status})\n`;
+        // Add critical issues with evidence
+        if (findings.critical_issues?.length > 0) {
+          message += `🔴 **Критичні проблеми (${findings.critical_issues.length}):**\n`;
+          findings.critical_issues.forEach((issue, idx) => {
+            if (idx < 5) { // Show top 5
+              message += `\n${idx + 1}. **${issue.type || 'Проблема'}**\n`;
+              message += `   • ${issue.description}\n`;
+              if (issue.location) message += `   • Місце: ${issue.location}\n`;
+              if (issue.frequency) message += `   • Частота: ${issue.frequency}\n`;
+              if (issue.evidence) message += `   • Доказ: ${issue.evidence.substring(0, 100)}...\n`;
+            }
+          });
+          message += '\n';
         }
         
-        if (detailedAnalysis.logs?.metrics) {
-          const totalErrors = Object.values(detailedAnalysis.logs.metrics)
-            .reduce((sum, m) => sum + (m.errors || 0), 0);
-          if (totalErrors > 0) {
-            message += `  • Помилки в логах: ${totalErrors}\n`;
-          }
+        // Add performance bottlenecks
+        if (findings.performance_bottlenecks?.length > 0) {
+          message += `\n⚡ **Проблеми продуктивності (${findings.performance_bottlenecks.length}):**\n`;
+          findings.performance_bottlenecks.forEach((issue, idx) => {
+            if (idx < 3) {
+              message += `  ${idx + 1}. ${issue.description || issue.area}`;
+              if (issue.metrics) message += ` (${issue.metrics})`;
+              message += '\n';
+            }
+          });
+        }
+        
+        // Add improvement suggestions
+        if (findings.improvement_suggestions?.length > 0) {
+          message += `\n💡 **Рекомендації (${findings.improvement_suggestions.length}):**\n`;
+          findings.improvement_suggestions.forEach((suggestion, idx) => {
+            if (idx < 3) {
+              const priority = suggestion.priority === 'high' ? '🔴' : suggestion.priority === 'medium' ? '🟡' : '🟢';
+              message += `  ${priority} ${suggestion.suggestion || suggestion.area}\n`;
+              if (suggestion.implementation) message += `     → ${suggestion.implementation}\n`;
+            }
+          });
+        }
+        
+        // Add TODO list if available
+        const todoList = analysisResult.analysis?.todo_list || [];
+        if (todoList.length > 0) {
+          message += `\n\n📋 **TODO список:**\n`;
+          todoList.forEach((item, idx) => {
+            const priority = item.priority === 'critical' ? '🔴' : 
+                           item.priority === 'high' ? '🟠' : 
+                           item.priority === 'medium' ? '🟡' : '🟢';
+            message += `${idx + 1}. ${priority} ${item.action}\n`;
+            if (item.details) message += `   → ${item.details}\n`;
+          });
         }
         
         if (analysisResult.intervention) {

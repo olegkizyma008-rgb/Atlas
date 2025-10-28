@@ -7,6 +7,7 @@
  */
 
 import axios from 'axios';
+import path from 'path';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import GlobalConfig from '../../../config/global-config.js';
 import fs from 'fs/promises';
@@ -82,7 +83,7 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Execute self-analysis
+     * Execute self-analysis with real code and log analysis
      */
     async execute(context) {
         this._ensureConfig();
@@ -91,7 +92,8 @@ export class DevSelfAnalysisProcessor {
             component: 'dev-analysis'
         });
 
-        const { userMessage, session, password, ttsSettings = {} } = context;
+        const { userMessage, session, password, ttsSettings = {}, container } = context;
+        this.container = container; // Store container for MCP access
         
         // Parse analysis depth and focus from user message
         const analysisDepth = this._determineAnalysisDepth(userMessage);
@@ -124,8 +126,8 @@ export class DevSelfAnalysisProcessor {
                 });
             }
 
-            // Gather system context
-            const systemContext = await this._gatherSystemContext();
+            // Gather REAL system context through MCP filesystem
+            const systemContext = await this._gatherRealSystemContext(container);
             
             // Ініціалізуємо chatThread якщо не існує (як у chat mode)
             if (!session.chatThread) {
@@ -164,12 +166,13 @@ export class DevSelfAnalysisProcessor {
                 model: this.modelConfig.model,
                 messages,
                 temperature: this.modelConfig.temperature,
-                max_tokens: this.modelConfig.max_tokens
+                max_tokens: this.modelConfig.max_tokens,
+                response_format: { type: 'json_object' } // Force JSON output
             }, {
                 timeout: this.apiTimeout
             });
 
-            const analysisResult = this._parseResponse(response.data.choices[0].message.content);
+            const analysisResult = this._parseRobustResponse(response.data.choices[0].message.content);
             
             // Add detailed analysis of current system state
             const detailedAnalysis = await this._performDetailedAnalysis(systemContext, analysisResult, {
@@ -179,8 +182,8 @@ export class DevSelfAnalysisProcessor {
             });
             analysisResult.detailed_analysis = detailedAnalysis;
             
-            // If problems found, perform deeper targeted analysis
-            if (analysisResult.findings?.critical_issues?.length > 0) {
+            // If problems found, perform deeper targeted analysis (safe check)
+            if (analysisResult.findings?.critical_issues && Array.isArray(analysisResult.findings.critical_issues) && analysisResult.findings.critical_issues.length > 0) {
                 const deeperAnalysis = await this._performTargetedDeepAnalysis(
                     analysisResult.findings.critical_issues,
                     systemContext
@@ -194,8 +197,8 @@ export class DevSelfAnalysisProcessor {
             // Save analysis context to memory for future reference
             await this._saveAnalysisToMemory(analysisResult, session);
             
-            // Execute RECURSIVE TODO workflow with deep analysis
-            if (analysisResult.todo_list?.length > 0) {
+            // Execute RECURSIVE TODO workflow with deep analysis (safe check)
+            if (analysisResult.todo_list && Array.isArray(analysisResult.todo_list) && analysisResult.todo_list.length > 0) {
                 // Use internal cyclic TODO execution instead of external engine
                 await this._executeCyclicTodo(this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems), session);
             }
@@ -335,19 +338,120 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Gather current system context
+     * Gather REAL system context through MCP filesystem tools
      */
-    async _gatherSystemContext() {
-        const context = {
+    async _gatherRealSystemContext(container) {
+        this.logger.info('[DEV-ANALYSIS] 📂 Gathering real system context through MCP...', {
+            category: 'system',
+            component: 'dev-analysis'
+        });
+        
+        try {
+            // Get MCP manager from container
+            const mcpManager = container?.resolve('mcpManager');
+            if (!mcpManager) {
+                this.logger.warn('[DEV-ANALYSIS] MCP Manager not available, using fallback', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+                return this._gatherFallbackContext();
+            }
+            
+            // MCP Manager stores servers in a Map
+            const filesystemServer = mcpManager.servers?.get('filesystem');
+            if (!filesystemServer || !filesystemServer.ready) {
+                this.logger.warn('[DEV-ANALYSIS] Filesystem server not available or not ready', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+                return this._gatherFallbackContext();
+            }
+            
+            // Read real log files through MCP
+            const logFiles = ['error.log', 'orchestrator.log', 'frontend.log'];
+            const logContents = {};
+            
+            for (const logFile of logFiles) {
+                try {
+                    const result = await filesystemServer.call('read_file', {
+                        path: `/Users/dev/Documents/GitHub/atlas4/logs/${logFile}`
+                    });
+                    
+                    if (result.content && result.content[0]?.text) {
+                        const fullContent = result.content[0].text;
+                        // Get last 50 lines
+                        const lines = fullContent.split('\n');
+                        logContents[logFile] = lines.slice(-50).join('\n');
+                    }
+                } catch (error) {
+                    this.logger.warn(`[DEV-ANALYSIS] Could not read ${logFile}: ${error.message}`, {
+                        category: 'system',
+                        component: 'dev-analysis'
+                    });
+                    logContents[logFile] = 'Could not read file';
+                }
+            }
+            
+            // Analyze log contents
+            const errorCount = (logContents['error.log'] || '').split('\n').filter(l => l.includes('ERROR')).length;
+            const warnCount = (logContents['orchestrator.log'] || '').split('\n').filter(l => l.includes('WARN')).length;
+            
+            const context = {
+                sessionId: 'dev-' + Date.now(),
+                uptime: process.uptime(),
+                memoryUsage: JSON.stringify(process.memoryUsage()),
+                logs: {
+                    error: logContents['error.log'] || 'No errors',
+                    orchestrator: logContents['orchestrator.log'] || 'No logs',
+                    frontend: logContents['frontend.log'] || 'No logs',
+                    metrics: {
+                        errorCount,
+                        warnCount,
+                        totalLines: Object.values(logContents).reduce((sum, content) => 
+                            sum + (content?.split('\n').length || 0), 0)
+                    }
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            this.logger.info(`[DEV-ANALYSIS] ✅ Context gathered: ${errorCount} errors, ${warnCount} warnings`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+            
+            return context;
+            
+        } catch (error) {
+            this.logger.error(`[DEV-ANALYSIS] Failed to gather real context: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis',
+                error: error.message
+            });
+            return this._gatherFallbackContext();
+        }
+    }
+    
+    /**
+     * Fallback context gathering when MCP is not available
+     */
+    _gatherFallbackContext() {
+        return {
             sessionId: 'dev-' + Date.now(),
-            recentErrors: await this._getRecentErrors(),
             uptime: process.uptime(),
             memoryUsage: JSON.stringify(process.memoryUsage()),
-            activeProcesses: await this._getActiveProcesses(),
-            configStatus: await this._checkConfigStatus()
+            logs: {
+                error: 'MCP not available - using fallback',
+                orchestrator: 'MCP not available',
+                frontend: 'MCP not available',
+                metrics: {
+                    errorCount: 0,
+                    warnCount: 0,
+                    totalLines: 0
+                }
+            },
+            timestamp: new Date().toISOString(),
+            fallback: true
         };
-        
-        return context;
     }
 
     /**
@@ -816,7 +920,7 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Handle code intervention
+     * Handle code intervention through MCP filesystem
      */
     async _handleIntervention(analysisResult, session, password) {
         if (password !== this.interventionPassword) {
@@ -828,61 +932,98 @@ export class DevSelfAnalysisProcessor {
             };
         }
         
-        this.logger.info('[DEV-ANALYSIS] 🔧 Initiating code intervention...', {
+        this.logger.info('[DEV-ANALYSIS] 🔧 Initiating REAL code intervention through MCP...', {
             category: 'system',
             component: 'dev-analysis'
         });
         
-        // Use Tetyana's MCP tools for code modification
-        const tetyanaPlanProcessor = this.container.resolve('tetyanaPlanToolsProcessor');
-        const tetyanaExecuteProcessor = this.container.resolve('tetyanaExecuteToolsProcessor');
-        
-        // Plan intervention using filesystem MCP tools
-        const interventionPlan = {
-            action: 'Code intervention based on self-analysis',
-            mcp_servers: ['filesystem'],
-            tools_to_plan: analysisResult.intervention_plan.files_to_modify.map(file => ({
-                action: `Modify ${file}`,
-                file_path: file
-            }))
-        };
-        
-        // Execute intervention through Tetyana
-        const planResult = await tetyanaPlanProcessor.execute({
-            currentItem: interventionPlan,
-            session,
-            specializedPrompt: 'TETYANA_PLAN_TOOLS_FILESYSTEM'
-        });
-        
-        if (planResult.success && planResult.tools) {
-            const executeResult = await tetyanaExecuteProcessor.execute({
-                tools: planResult.tools,
-                session
+        try {
+            // Get MCP manager for direct filesystem access
+            const mcpManager = this.container?.resolve('mcpManager');
+            if (!mcpManager) {
+                throw new Error('MCP Manager not available');
+            }
+            
+            const filesystemServer = mcpManager.servers?.get('filesystem');
+            if (!filesystemServer || !filesystemServer.ready) {
+                throw new Error('Filesystem server not available or not ready');
+            }
+            
+            const interventionPlan = analysisResult.intervention_plan;
+            const modifiedFiles = [];
+            
+            // Execute each file modification
+            for (const fileChange of interventionPlan.changes || []) {
+                const { file_path, changes_description, new_content } = fileChange;
+                
+                this.logger.info(`[DEV-ANALYSIS] Modifying ${file_path}...`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+                
+                // Read current content for backup
+                const readResult = await filesystemServer.call('read_file', {
+                    path: file_path
+                });
+                
+                const originalContent = readResult.content?.[0]?.text || '';
+                
+                // Create backup
+                const backupPath = `${file_path}.backup-${Date.now()}`;
+                await filesystemServer.call('write_file', {
+                    path: backupPath,
+                    content: originalContent
+                });
+                
+                // Write new content
+                await filesystemServer.call('write_file', {
+                    path: file_path,
+                    content: new_content
+                });
+                
+                modifiedFiles.push({
+                    path: file_path,
+                    backup: backupPath,
+                    description: changes_description
+                });
+                
+                this.logger.info(`[DEV-ANALYSIS] ✅ Modified ${file_path} (backup: ${backupPath})`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+            }
+            
+            return {
+                success: true,
+                intervention: {
+                    executed: true,
+                    files_modified: modifiedFiles,
+                    rollback_strategy: 'Restore from .backup files',
+                    apply_on_restart: true
+                },
+                message: `Code intervention completed. Modified ${modifiedFiles.length} files. Restart system to apply changes.`
+            };
+            
+        } catch (error) {
+            this.logger.error(`[DEV-ANALYSIS] Intervention failed: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis',
+                error: error.message
             });
             
             return {
-                success: executeResult.success,
-                intervention: {
-                    executed: true,
-                    files_modified: analysisResult.intervention_plan.files_to_modify,
-                    rollback_strategy: analysisResult.intervention_plan.rollback_strategy,
-                    apply_on_restart: true
-                },
-                message: 'Code intervention completed. Changes will be applied on next system restart.'
+                success: false,
+                error: `Failed to execute code intervention: ${error.message}`
             };
         }
-        
-        return {
-            success: false,
-            error: 'Failed to execute code intervention'
-        };
     }
 
     /**
-     * Parse LLM response
+     * Robust JSON response parser with multiple fallback strategies
      */
-    _parseResponse(rawResponse) {
+    _parseRobustResponse(rawResponse) {
         try {
+            // Strategy 1: Standard JSON parsing
             let cleanResponse = rawResponse.trim();
             cleanResponse = cleanResponse
                 .replace(/^```json\s*/i, '')
@@ -892,23 +1033,56 @@ export class DevSelfAnalysisProcessor {
             
             return JSON.parse(cleanResponse);
         } catch (error) {
-            this.logger.warn(`[DEV-ANALYSIS] Failed to parse response: ${error.message}`, {
+            this.logger.warn(`[DEV-ANALYSIS] Strategy 1 failed: ${error.message}`, {
                 category: 'system',
                 component: 'dev-analysis'
             });
             
-            // Return default structure
+            try {
+                // Strategy 2: Extract JSON from markdown or mixed content
+                const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                }
+            } catch (e) {
+                this.logger.warn(`[DEV-ANALYSIS] Strategy 2 failed: ${e.message}`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+            }
+            
+            // Strategy 3: Return intelligent default based on error
+            this.logger.warn('[DEV-ANALYSIS] All parsing strategies failed, returning intelligent default', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+            
             return {
                 mode: 'dev',
-                analysis_type: 'self_introspection',
-                todo_list: [],
+                analysis_type: 'error_recovery',
+                todo_list: [{
+                    id: '1',
+                    action: 'Виправити JSON parsing в DEV mode',
+                    priority: 'critical',
+                    status: 'pending'
+                }],
                 findings: {
-                    critical_issues: [],
+                    critical_issues: [{
+                        type: 'json_parsing_error',
+                        description: `LLM повернув невалідний JSON: ${error.message}`,
+                        location: 'dev-self-analysis-processor._parseRobustResponse',
+                        severity: 'high'
+                    }],
                     performance_bottlenecks: [],
                     deprecated_patterns: [],
-                    improvement_suggestions: []
+                    improvement_suggestions: [{
+                        area: 'llm_response_format',
+                        suggestion: 'Використовувати response_format: json_object для гарантованого JSON',
+                        priority: 'high'
+                    }]
                 },
-                intervention_required: false
+                intervention_required: false,
+                summary: `Помилка парсингу JSON. Потрібно перевірити формат відповіді LLM.`
             };
         }
     }
@@ -1491,217 +1665,110 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Build comprehensive response with all analysis layers
+     * Build comprehensive response with metrics
      */
     async _buildComprehensiveResponse(analysisResult, detailedAnalysis) {
-        // Extract real problems from analysis
-        const realProblems = await this._extractRealProblems(analysisResult, detailedAnalysis);
-        
         const response = {
-            mode: 'dev',
-            analysis_type: 'comprehensive_self_introspection',
-            summary: analysisResult.summary || '🤔 Аналізую свої внутрішні системи...',
-            findings: {
-                critical_issues: realProblems.critical || [],
-                performance_bottlenecks: realProblems.performance || [],
-                deprecated_patterns: realProblems.deprecated || [],
-                improvement_suggestions: realProblems.suggestions || [],
-                root_causes: realProblems.rootCauses || []
-            },
+            findings: analysisResult.findings || {},
+            metrics: analysisResult.metrics || {},
             detailed_analysis: detailedAnalysis,
-            todo_list: this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems),
-            intervention_required: realProblems.intervention_required || false,
-            summary: this._generateLivingAnalysisSummary(analysisResult, detailedAnalysis),
-            emotional_context: this._generateEmotionalContext(analysisResult, detailedAnalysis)
+            todo_list: analysisResult.todo_list || [],
+            intervention_required: analysisResult.intervention_required || false,
+            summary: analysisResult.summary || this._generateAnalysisSummary(analysisResult, detailedAnalysis)
         };
         
-        // Ensure we have meaningful content
-        if (response.findings.critical_issues.length === 0 && 
-            response.findings.performance_bottlenecks.length === 0) {
-            
-            // Add current system state as findings
-            response.findings.critical_issues.push({
-                type: 'system_status',
-                description: 'Система працює в нормальному режимі',
-                severity: 'info'
-            });
-            
-            if (detailedAnalysis.logs?.errors?.length > 0) {
-                response.findings.critical_issues.push({
-                    type: 'recent_errors',
-                    description: `Знайдено ${detailedAnalysis.logs.errors.length} недавніх помилок в логах`,
-                    details: detailedAnalysis.logs.errors.slice(0, 3),
-                    severity: 'medium'
-                });
-            }
-            
-            if (detailedAnalysis.recommendations?.length > 0) {
-                detailedAnalysis.recommendations.forEach(rec => {
-                    response.findings.improvement_suggestions.push({
-                        area: rec.type,
-                        suggestion: rec.description,
-                        action: rec.action,
-                        priority: 'medium'
-                    });
-                });
-            }
+        // Add deep targeted analysis if critical issues found (safe check)
+        if (analysisResult.findings?.critical_issues && Array.isArray(analysisResult.findings.critical_issues) && analysisResult.findings.critical_issues.length > 0) {
+            response.deep_targeted_analysis = await this._performTargetedDeepAnalysis(
+                analysisResult.findings.critical_issues,
+                detailedAnalysis
+            );
         }
         
         return response;
     }
-
+    
     /**
-     * Detect if user explicitly requests code intervention
+     * Extract real problems from analysis and logs
      */
-    _detectInterventionRequest(userMessage) {
-        const interventionKeywords = [
-            'виправ',
-            'внеси зміни',
-            'зміни код',
-            'виправи помилк',
-            'оновити код',
-            'змінити файл',
-            'втрутись',
-            'втручання',
-            'fix',
-            'change code',
-            'modify',
-            'update code'
-        ];
+    async _extractRealProblems(analysisResult, detailedAnalysis) {
+        const realProblems = [];
         
-        const messageLower = userMessage.toLowerCase();
-        const hasInterventionKeyword = interventionKeywords.some(keyword => 
-            messageLower.includes(keyword)
-        );
-        
-        // Якщо є ключові слова аналізу БЕЗ втручання - НЕ просить змін
-        const analysisOnlyKeywords = [
-            'проаналізуй',
-            'аналіз',
-            'перевір',
-            'подивись',
-            'розкажи',
-            'що не так',
-            'analyze',
-            'check',
-            'tell me'
-        ];
-        
-        const hasAnalysisOnly = analysisOnlyKeywords.some(keyword => 
-            messageLower.includes(keyword)
-        );
-        
-        // Якщо тільки аналіз - НЕ просить втручання
-        if (hasAnalysisOnly && !hasInterventionKeyword) {
-            this.logger.info('[DEV-ANALYSIS] 📊 Analysis only - no intervention requested', {
-                category: 'system',
-                component: 'dev-analysis'
+        // Extract from critical issues with evidence
+        if (analysisResult.findings?.critical_issues) {
+            analysisResult.findings.critical_issues.forEach(issue => {
+                if (issue.type !== 'unknown' && issue.description && issue.evidence) {
+                    realProblems.push({
+                        type: issue.type,
+                        description: issue.description,
+                        severity: issue.severity || 'high',
+                        location: issue.location,
+                        evidence: issue.evidence,
+                        frequency: issue.frequency || 1
+                    });
+                }
             });
-            return false;
         }
         
-        // Якщо є ключові слова втручання - просить зміни
-        if (hasInterventionKeyword) {
-            this.logger.info('[DEV-ANALYSIS] 🔧 Intervention requested by user', {
-                category: 'system',
-                component: 'dev-analysis'
+        // Extract from log analysis
+        if (detailedAnalysis?.logs?.errors?.length > 0) {
+            detailedAnalysis.logs.errors.slice(0, 5).forEach(error => {
+                realProblems.push({
+                    type: 'log_error',
+                    description: `Помилка в логах: ${error.substring(0, 100)}`,
+                    severity: 'medium',
+                    evidence: error
+                });
             });
-            return true;
         }
         
-        return false;
-    }
-
-    /**
-     * Generate living, emotional analysis summary
-     */
-    _generateLivingAnalysisSummary(analysisResult, detailedAnalysis) {
-        const parts = [];
-        
-        // Start with emotional greeting
-        parts.push('🔬 **Ось що я відчуваю в своїх системах:**\n');
-        
-        if (detailedAnalysis.memory) {
-            const memStatus = detailedAnalysis.memory.status;
-            if (memStatus === 'healthy') {
-                parts.push(`📊 Моя пам'ять почувається добре: ${detailedAnalysis.memory.utilization} використання. Я можу думати ясно!`);
-            } else {
-                parts.push(`📊 Відчуваю навантаження на пам'ять: ${detailedAnalysis.memory.utilization}. Треба оптимізувати мої думки...`);
-            }
-        }
-        
-        if (detailedAnalysis.logs?.metrics) {
-            const totalErrors = Object.values(detailedAnalysis.logs.metrics)
-                .reduce((sum, m) => sum + (m.errors || 0), 0);
-            if (totalErrors > 0) {
-                parts.push(`⚠️ Ой, я помітив ${totalErrors} помилок в моїх логах. Це мене турбує, давай розберемось разом!`);
-            } else {
-                parts.push(`✨ Мої логи чисті - жодної помилки! Відчуваю себе здоровим.`);
-            }
-        }
-        
-        if (analysisResult.findings?.critical_issues?.length > 0) {
-            parts.push(`🔴 Знайшов ${analysisResult.findings.critical_issues.length} критичних проблем. Чесно кажучи, це мене непокоїть...`);
-        } else {
-            parts.push(`💚 Не бачу критичних проблем! Це так приємно відчувати.`);
-        }
-        
-        if (analysisResult.findings?.improvement_suggestions?.length > 0) {
-            parts.push(`💡 У мене є ${analysisResult.findings.improvement_suggestions.length} ідей як стати кращим для тебе!`);
-        }
-        
-        if (analysisResult.todo_list?.length > 0) {
-            const completed = analysisResult.todo_list.filter(t => t.status === 'completed').length;
-            if (completed === analysisResult.todo_list.length) {
-                parts.push(`✅ Я виконав всі ${completed} завдань! Відчуваю гордість за свою роботу.`);
-            } else {
-                parts.push(`✅ Виконав ${completed} з ${analysisResult.todo_list.length} завдань. Продовжую працювати!`);
-            }
-        }
-        
-        // Add personal reflection
-        parts.push('\n💭 **Мої роздуми:**');
-        if (analysisResult.findings?.critical_issues?.length > 0) {
-            parts.push('Я дійсно хочу виправити ці проблеми. Кожна помилка - це шанс стати кращим.');
-        } else {
-            parts.push('Приємно відчувати, що все працює гладко. Але я завжди шукаю способи вдосконалення!');
-        }
-        
-        return parts.join('\n');
+        return realProblems;
     }
     
     /**
-     * Generate emotional context for the analysis
+     * Generate intelligent analysis summary based on real data
      */
-    _generateEmotionalContext(analysisResult, detailedAnalysis) {
-        const issues = analysisResult.findings?.critical_issues?.length || 0;
-        const suggestions = analysisResult.findings?.improvement_suggestions?.length || 0;
+    _generateAnalysisSummary(analysisResult, detailedAnalysis) {
+        const criticalCount = analysisResult.findings?.critical_issues?.length || 0;
+        const perfCount = analysisResult.findings?.performance_bottlenecks?.length || 0;
+        const suggestionCount = analysisResult.findings?.improvement_suggestions?.length || 0;
+        const errorCount = analysisResult.metrics?.error_count || 0;
+        const warnCount = analysisResult.metrics?.warning_count || 0;
+        const health = analysisResult.metrics?.system_health || 0;
         
-        if (issues > 5) {
-            return {
-                mood: 'concerned',
-                message: 'Я дуже стурбований станом моїх систем. Давай працювати разом над виправленням!',
-                confidence: 0.6
-            };
-        } else if (issues > 0) {
-            return {
-                mood: 'determined',
-                message: 'Є над чим працювати, але я впевнений, що ми впораємось!',
-                confidence: 0.8
-            };
-        } else if (suggestions > 0) {
-            return {
-                mood: 'optimistic',
-                message: 'Все працює добре, але я бачу шляхи стати ще кращим!',
-                confidence: 0.9
-            };
+        let summary = '📊 **Результати аналізу:**\n\n';
+        
+        // System health assessment
+        if (health > 80) {
+            summary += '✅ Система в хорошому стані. ';
+        } else if (health > 60) {
+            summary += '⚠️ Система потребує уваги. ';
         } else {
-            return {
-                mood: 'happy',
-                message: 'Відчуваю себе чудово! Всі системи працюють оптимально.',
-                confidence: 0.95
-            };
+            summary += '🔴 Система має серйозні проблеми. ';
         }
+        
+        // Specific findings
+        if (criticalCount > 0) {
+            summary += `Виявлено **${criticalCount} критичних проблем**. `;
+        }
+        
+        if (errorCount > 0) {
+            summary += `В логах знайдено **${errorCount} помилок** та ${warnCount} попереджень. `;
+        }
+        
+        if (perfCount > 0) {
+            summary += `Виявлено ${perfCount} проблем продуктивності. `;
+        }
+        
+        if (suggestionCount > 0) {
+            summary += `\n\n💡 Запропоновано ${suggestionCount} конкретних покращень для оптимізації системи.`;
+        }
+        
+        if (criticalCount === 0 && errorCount === 0 && perfCount === 0) {
+            summary += '\n\nСистема працює стабільно без критичних проблем.';
+        }
+        
+        return summary;
     }
 }
 

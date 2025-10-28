@@ -1,15 +1,17 @@
-[MCP Registry] ✅ Initialized: 5/5 servers enabled
-[Validation Config] ✅ Initialized: 5 stages enabled
-file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/dev-self-analysis-processor.js:9
-const axios = require('axios');
-              ^
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
 
-ReferenceError: Cannot determine intended module format because both require() and top-level await are present. If the code is intended to be CommonJS, wrap await in an async function. If the code is intended to be an ES module, replace require() with import.
-    at file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/dev-self-analysis-processor.js:9:15
-    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
-    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
-  code: 'ERR_AMBIGUOUS_MODULE_SYNTAX'
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/dev/Documents/GitHub/atlas4/orchestrator/config/global-config.js' imported from /Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/dev-self-analysis-processor.js
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:717:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:694:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:308:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/dev/Documents/GitHub/atlas4/orchestrator/config/global-config.js'
 }
 
 Node.js v22.19.0

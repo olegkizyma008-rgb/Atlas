@@ -359,22 +359,28 @@ export class TTSManager {
         this.logger.info(`Audio can play for ${agent}`);
       };
 
+      // Слухач події 'play' - коли аудіо РЕАЛЬНО починає відтворюватися
+      audio.addEventListener('play', () => {
+        this.logger.info(`Audio PLAYBACK STARTED for ${agent}`);
+        this.ttsActive = true;
+
+        // Повідомляємо мікрофон-менеджер про початок TTS
+        if (this.microphoneManager && this.microphoneManager.onTTSStarted) {
+          this.microphoneManager.onTTSStarted();
+        }
+
+        // Emit DOM events about TTS start - ТІЛЬКИ при реальному відтворенні
+        try {
+          window.dispatchEvent(new CustomEvent('atlas-tts-started', { detail: { agent } }));
+          window.dispatchEvent(new CustomEvent('atlas-tts-start', { detail: { agent, audio } }));
+        } catch {
+          // Ignore dispatch errors
+        }
+      }, { once: true });
+
       // Запускаємо відтворення
-      this.logger.info(`Starting audio playback for ${agent}`);
-      this.ttsActive = true;
+      this.logger.info(`Attempting to start audio playback for ${agent}`);
 
-      // Повідомляємо мікрофон-менеджер про початок TTS
-      if (this.microphoneManager && this.microphoneManager.onTTSStarted) {
-        this.microphoneManager.onTTSStarted();
-      }
-
-      // Emit DOM events about TTS start
-      try {
-        window.dispatchEvent(new CustomEvent('atlas-tts-started', { detail: { agent } }));
-        window.dispatchEvent(new CustomEvent('atlas-tts-start', { detail: { agent, audio } }));
-      } catch {
-        // Ignore dispatch errors
-      }
 
       this.logger.info(`Attempting to play audio for ${agent}, autoplay unlocked: ${this.autoplayUnlocked}`);
       audio.play().catch((playError) => {

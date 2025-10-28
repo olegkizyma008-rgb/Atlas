@@ -350,9 +350,10 @@ class AtlasApp {
     });
 
     this.managers.webSocket.on('tts-start', (data) => {
-      // TTS Visualization не має handleServerTTSStart методу
-      if (this.managers.livingBehavior) {
-        this.managers.livingBehavior.onTTSStart(data.text || '', null);
+      // НЕ запускаємо мімічні процеси тут - вони запустяться при реальному відтворенні аудіо
+      // Зберігаємо текст для майбутнього використання
+      if (this.managers.ttsVisualization) {
+        this.managers.ttsVisualization.startTTS(data.text || '', null);
       }
     });
 

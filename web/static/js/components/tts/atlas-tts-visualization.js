@@ -286,19 +286,25 @@ export class AtlasTTSVisualization {
     this.state.currentTTSText = text;
     this.state.isActive = true;
 
-    if (audioElement && this.state.audioContext) {
-      this.connectAudioSource(audioElement);
-    }
-
     // Аналіз тексту для прогнозування фонем
     if (this.config.enablePhonemeMapping) {
       this.analyzeTextForPhonemes(text);
     }
 
-    // NOTE: startSpeaking викликається в app-refactored.js через подію tts-start
-    // Не викликаємо тут жодних методів моделі, щоб уникнути дублювання
+    // Якщо передано audioElement - підключаємо його та запускаємо мімічні процеси
+    if (audioElement && this.state.audioContext) {
+      this.connectAudioSource(audioElement);
+      
+      // Запускаємо мімічні процеси ТІЛЬКИ коли аудіо починає відтворюватися
+      audioElement.addEventListener('play', () => {
+        if (this.modelController && typeof this.modelController.onTTSStart === 'function') {
+          this.modelController.onTTSStart(text, audioElement);
+        }
+        console.log('🎤 Facial animations started on audio playback');
+      }, { once: true });
+    }
 
-    console.log('🎤 TTS Visualization started for:', text.substring(0, 50) + '...');
+    console.log('🎤 TTS Visualization prepared for:', text.substring(0, 50) + '...');
   }
 
   stopTTS() {

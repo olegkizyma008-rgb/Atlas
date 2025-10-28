@@ -181,8 +181,11 @@ export class DevSelfAnalysisProcessor {
             // Build comprehensive response with all findings
             const comprehensiveResponse = this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
 
-            // Handle intervention path
-            if (analysisResult.intervention_required) {
+            // Перевіряємо чи користувач ЯВНО просить внести зміни
+            const userWantsIntervention = this._detectInterventionRequest(userMessage);
+            
+            // Handle intervention path - ТІЛЬКИ якщо користувач явно просить
+            if (userWantsIntervention && analysisResult.intervention_required) {
                 if (password && password === this.interventionPassword) {
                     const interventionResult = await this._handleIntervention(analysisResult, session, password);
                     return {
@@ -1133,6 +1136,62 @@ export class DevSelfAnalysisProcessor {
         }
         
         return response;
+    }
+
+    /**
+     * Detect if user explicitly requests code intervention
+     */
+    _detectInterventionRequest(userMessage) {
+        const interventionKeywords = [
+            'виправ',
+            'внеси зміни',
+            'зміни код',
+            'виправи помилк',
+            'оновити код',
+            'змінити файл',
+            'втрутись',
+            'втручання',
+            'fix',
+            'change code',
+            'modify',
+            'update code'
+        ];
+        
+        const messageLower = userMessage.toLowerCase();
+        const hasInterventionKeyword = interventionKeywords.some(keyword => 
+            messageLower.includes(keyword)
+        );
+        
+        // Якщо є ключові слова аналізу БЕЗ втручання - НЕ просить змін
+        const analysisOnlyKeywords = [
+            'проаналізуй',
+            'аналіз',
+            'перевір',
+            'подивись',
+            'розкажи',
+            'що не так',
+            'analyze',
+            'check',
+            'tell me'
+        ];
+        
+        const hasAnalysisOnly = analysisOnlyKeywords.some(keyword => 
+            messageLower.includes(keyword)
+        );
+        
+        // Якщо тільки аналіз - НЕ просить втручання
+        if (hasAnalysisOnly && !hasInterventionKeyword) {
+            this.logger.system('dev-analysis', '[DEV-ANALYSIS] 📊 Analysis only - no intervention requested');
+            return false;
+        }
+        
+        // Якщо є ключові слова втручання - просить зміни
+        if (hasInterventionKeyword) {
+            this.logger.system('dev-analysis', '[DEV-ANALYSIS] 🔧 Intervention requested by user');
+            return true;
+        }
+        
+        return false;
     }
 
     /**

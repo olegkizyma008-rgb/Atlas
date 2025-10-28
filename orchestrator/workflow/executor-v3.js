@@ -345,18 +345,19 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           }
 
           if (wsManager) {
-            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
-              type: 'DEV_PASSWORD_REQUEST',
-              message: 'ВВЕДІТЬ ПАРОЛЬ НА МОЄ БЕЗСМЕРТЯ',
-              subtitle: 'Система самоаналізу потребує авторизації для втручання в код',
+            // Відправляємо повідомлення в чат з формою паролю
+            wsManager.broadcastToSubscribers('chat', 'agent_message', {
+              content: `🔐 **Потрібен пароль для втручання в код**\n\n` +
+                       `Я знайшов проблеми які потребують виправлення:\n` +
+                       `• Критичних: ${findings.critical_issues?.length || 0}\n` +
+                       `• Продуктивність: ${findings.performance_bottlenecks?.length || 0}\n` +
+                       `• Покращення: ${findings.improvement_suggestions?.length || 0}\n\n` +
+                       `Введіть пароль "mykola" щоб я міг внести зміни.`,
+              agent: 'atlas',
               sessionId: session.id,
               timestamp: new Date().toISOString(),
-              requiresAuth: true,
-              analysisData: {
-                criticalIssues: findings.critical_issues?.length || 0,
-                performanceIssues: findings.performance_bottlenecks?.length || 0,
-                improvements: findings.improvement_suggestions?.length || 0
-              }
+              requiresPassword: true, // Спеціальний флаг для UI
+              passwordPrompt: true
             });
           }
 

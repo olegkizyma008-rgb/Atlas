@@ -693,15 +693,6 @@ export class ChatManager {
     
     this.logger.info(`[TTS-DIAG] handleAgentMessage: agent=${agent}, has_ttsContent=${!!ttsContent}, has_content=${!!content}, ttsContent_length=${ttsContent?.length || 0}, content_length=${content?.length || 0}, voice=${voice || 'undefined'}, mode=${mode || 'undefined'}`);
 
-    // Додаємо лог у веб-інтерфейс
-    if (window.atlasLogger) {
-      const agentName = agent.toUpperCase();
-      const statusText = `📝 Відповідь від ${agentName}`;
-      window.atlasLogger.success(statusText, `Agent-${agentName}`);
-    }
-
-    this.emit('agent-response-start', { agent, content });
-    this.emit('agent-response-complete', { agent, message });
 
     // Захист від дублювання TTS за messageId
     const ttsKey = `tts_${messageId || Date.now()}_${agent}`; // Use timestamp if no messageId
@@ -1004,6 +995,56 @@ export class ChatManager {
         }
       }
     }
+  }
+
+  addPasswordInputToChat(messageElement) {
+    // Створюємо форму паролю прямо в чаті
+    const passwordForm = document.createElement('div');
+    passwordForm.className = 'dev-password-form';
+    passwordForm.innerHTML = `
+      <div class="password-input-container">
+        <input 
+          type="password" 
+          class="dev-password-input" 
+          placeholder="Введіть пароль..."
+          autocomplete="off"
+        />
+        <button class="dev-password-submit">Підтвердити</button>
+      </div>
+    `;
+
+    messageElement.appendChild(passwordForm);
+
+    // Обробка відправки паролю
+    const input = passwordForm.querySelector('.dev-password-input');
+    const submitBtn = passwordForm.querySelector('.dev-password-submit');
+
+    const submitPassword = async () => {
+      const password = input.value.trim();
+      if (!password) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Перевірка...';
+
+      try {
+        await this.sendMessage(password);
+        passwordForm.remove();
+      } catch (error) {
+        this.logger.error('Password submission failed:', error);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Підтвердити';
+        input.value = '';
+        input.focus();
+      }
+    };
+
+    submitBtn.addEventListener('click', submitPassword);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submitPassword();
+    });
+
+    // Автофокус
+    setTimeout(() => input.focus(), 100);
   }
 
   destroy() {

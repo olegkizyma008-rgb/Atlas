@@ -9,7 +9,7 @@
 import axios from 'axios';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import GlobalConfig from '../../../config/global-config.js';
-import RecursiveAnalysisEngine from './dev-recursive-analysis.js';
+import fs from 'fs/promises';
 
 /**
  * DEV Mode Self-Analysis Processor

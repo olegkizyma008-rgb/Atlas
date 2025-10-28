@@ -942,7 +942,7 @@ export class MCPTodoManager {
         
         this.logger.system('mcp-todo', `[TODO] Planning attempt ${attempt}/${maxAttempts} with ${modelConfig.model}`);
         
-        const result = await this._planToolsAttempt(item, todo, options, modelConfig);
+        const result = await this._planToolsAttempt(currentItem, todo, options, modelConfig);
         
         // Success! Return result
         this.logger.system('mcp-todo', `[TODO] ✅ Planning succeeded on attempt ${attempt}`);

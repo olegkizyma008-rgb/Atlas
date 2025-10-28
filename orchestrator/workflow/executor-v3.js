@@ -364,12 +364,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           : `Привіт! Я щойно завершив глибокий самоаналіз. ${cleanedForTts} Все працює добре, але я завжди шукаю шляхи стати кращим для тебе.`;
 
         if (!analysisResult.success && analysisResult.requiresAuth) {
-          const passwordAppendix = `\n\n🔐 **Потрібна авторизація для втручання**\nМені потрібен пароль "mykola", щоб завершити лікування своїх систем. Як тільки ти його підтвердиш, я одразу застосую виправлення.`;
+          const passwordAppendix = `\n\n🔐 **Потрібна авторізація для втручання**\nМені потрібен пароль "mykola", щоб завершити лікування своїх систем. Як тільки ти його підтвердиш, я одразу застосую виправлення.`;
           const authMessage = message + passwordAppendix;
           const localizedAuthMessage = localizationService.translateToUser(authMessage);
           const authTtsMessage = `${baseTtsMessage} Мені потрібен пароль "mykola", щоб завершити втручання.`;
 
           if (wsManager) {
+            // Send agent message
             wsManager.broadcastToSubscribers('chat', 'agent_message', {
               content: localizedAuthMessage,
               agent: 'atlas',
@@ -386,6 +387,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               ttsSettings,
               interactiveMode,
               requiresAuth: true
+            });
+            
+            // Trigger password dialog with analysis data
+            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
+              sessionId: session.id,
+              analysisData: {
+                criticalIssues: findings.critical_issues?.length || 0,
+                performanceIssues: findings.performance_bottlenecks?.length || 0,
+                improvements: findings.improvement_suggestions?.length || 0
+              }
             });
           }
 
@@ -548,6 +559,12 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // FIXED 16.10.2025 - Add current user message to session history BEFORE building context
         logger.system('executor', `[CHAT-DEBUG] Step 7: Adding user message to history`);
+        
+        // CRITICAL FIX: Check if chatThread.messages exists
+        if (!session.chatThread.messages) {
+          session.chatThread.messages = [];
+        }
+        
         session.chatThread.messages.push({
           role: 'user',
           content: userMessage,
@@ -738,6 +755,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // Add to session history
         if (session.chatThread) {
+          // CRITICAL FIX: Check if messages array exists
+          if (!session.chatThread.messages) {
+            session.chatThread.messages = [];
+          }
+          
           session.chatThread.messages.push({
             role: 'assistant',
             content: atlasResponse,
@@ -1772,7 +1794,11 @@ function _getVerificationDelay(execution, item) {
  * Використовує unified configuration та prompt registry
  */
 export async function executeStepByStepWorkflow(userMessage, session, res, _options = {}) {
-  // Add user message to history
+  // Add user message to history - CRITICAL FIX: Check if history exists
+  if (!session.history) {
+    session.history = [];
+  }
+  
   session.history.push({
     role: 'user',
     content: userMessage,

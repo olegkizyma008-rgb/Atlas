@@ -201,9 +201,10 @@ export class DevSelfAnalysisProcessor {
             await this._saveAnalysisToMemory(analysisResult, session);
             
             // Execute RECURSIVE TODO workflow with deep analysis (safe check)
-            if (analysisResult.todo_list && Array.isArray(analysisResult.todo_list) && analysisResult.todo_list.length > 0) {
+            const todoList = Array.isArray(analysisResult.todo_list) ? analysisResult.todo_list : [];
+            if (todoList.length > 0) {
                 // Use internal cyclic TODO execution instead of external engine
-                await this._executeCyclicTodo(this._buildHierarchicalTodo(analysisResult.todo_list || [], realProblems), session);
+                await this._executeCyclicTodo(this._buildHierarchicalTodo(todoList, realProblems), session);
             }
 
             // Build comprehensive response with all findings
@@ -1400,12 +1401,9 @@ export class DevSelfAnalysisProcessor {
             };
             
             // Store in memory (using correct MCP API)
-            await memoryServer.call('create_memory', {
-                content: JSON.stringify(memoryEntry),
-                metadata: {
-                    type: 'dev_analysis',
-                    sessionId: session.id
-                }
+            await memoryServer.call('store_memory', {
+                key: `dev_analysis_${session.id}_${Date.now()}`,
+                value: JSON.stringify(memoryEntry)
             });
             
             this.logger.info('[DEV-ANALYSIS] 💾 Analysis context saved to memory', {
@@ -1595,8 +1593,8 @@ export class DevSelfAnalysisProcessor {
     _buildHierarchicalTodo(baseTodo, problems) {
         const todo = baseTodo.length > 0 ? baseTodo : [];
         
-        // Add items based on real problems
-        if (problems.critical.length > 0) {
+        // Add items based on real problems (problems is an object with arrays)
+        if (problems.critical && problems.critical.length > 0) {
             todo.push({
                 action: 'Виправити критичні помилки',
                 description: `Знайдено ${problems.critical.length} критичних проблем`,
@@ -1605,7 +1603,7 @@ export class DevSelfAnalysisProcessor {
             });
         }
         
-        if (problems.performance.length > 0) {
+        if (problems.performance && problems.performance.length > 0) {
             todo.push({
                 action: 'Оптимізувати продуктивність',
                 description: 'Покращити швидкодію системи',
@@ -1614,6 +1612,20 @@ export class DevSelfAnalysisProcessor {
         }
         
         return todo;
+    }
+    
+    /**
+     * Detect if user explicitly requests code intervention
+     */
+    _detectInterventionRequest(userMessage) {
+        const msg = userMessage.toLowerCase();
+        const interventionKeywords = [
+            'виправ', 'fix', 'змін', 'change', 'модифік', 'modify',
+            'внес', 'apply', 'застосуй', 'implement', 'впровад',
+            'код', 'code', 'файл', 'file'
+        ];
+        
+        return interventionKeywords.some(keyword => msg.includes(keyword));
     }
     
     /**
@@ -1638,13 +1650,13 @@ export class DevSelfAnalysisProcessor {
     /**
      * Generate living analysis summary
      */
-    _generateLivingAnalysisSummary(analysisResult, detailedAnalysis) {
-        const problems = this._extractRealProblems(analysisResult, detailedAnalysis);
+    async _generateLivingAnalysisSummary(analysisResult, detailedAnalysis) {
+        const problems = await this._extractRealProblems(analysisResult, detailedAnalysis);
         
-        if (problems.critical.length > 0) {
+        if (problems.critical && problems.critical.length > 0) {
             const mainProblem = problems.critical[0];
             return `🔴 Знайшов ${problems.critical.length} критичних проблем: ${mainProblem.description}`;
-        } else if (problems.performance.length > 0) {
+        } else if (problems.performance && problems.performance.length > 0) {
             const mainPerf = problems.performance[0];
             return `⚡ Виявив проблеми продуктивності: ${mainPerf.description}`;
         } else {
@@ -1698,42 +1710,6 @@ export class DevSelfAnalysisProcessor {
         return response;
     }
     
-    /**
-     * Extract real problems from analysis and logs
-     */
-    async _extractRealProblems(analysisResult, detailedAnalysis) {
-        const realProblems = [];
-        
-        // Extract from critical issues with evidence
-        if (analysisResult.findings?.critical_issues) {
-            analysisResult.findings.critical_issues.forEach(issue => {
-                if (issue.type !== 'unknown' && issue.description && issue.evidence) {
-                    realProblems.push({
-                        type: issue.type,
-                        description: issue.description,
-                        severity: issue.severity || 'high',
-                        location: issue.location,
-                        evidence: issue.evidence,
-                        frequency: issue.frequency || 1
-                    });
-                }
-            });
-        }
-        
-        // Extract from log analysis
-        if (detailedAnalysis?.logs?.errors?.length > 0) {
-            detailedAnalysis.logs.errors.slice(0, 5).forEach(error => {
-                realProblems.push({
-                    type: 'log_error',
-                    description: `Помилка в логах: ${error.substring(0, 100)}`,
-                    severity: 'medium',
-                    evidence: error
-                });
-            });
-        }
-        
-        return realProblems;
-    }
     
     /**
      * Generate intelligent analysis summary based on real data

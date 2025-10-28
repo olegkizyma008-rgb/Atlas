@@ -630,11 +630,30 @@ export class ChatManager {
   }
 
   async handleAgentMessage(data) {
-    const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized } = data;
+    const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized, requiresAuth, analysisData } = data;
 
     if (!content) {
       this.logger.warn('Received agent message with no content');
       return;
+    }
+    
+    // Check if DEV mode requires password authentication
+    if (mode === 'dev' && requiresAuth && analysisData) {
+      this.logger.info('🔐 DEV mode requires password - showing dialog');
+      
+      // Import and show password dialog
+      import('../modules/dev-password-handler.js').then(module => {
+        const devPasswordHandler = new module.DevPasswordHandler();
+        devPasswordHandler.showPasswordDialog({
+          analysisData: {
+            criticalIssues: analysisData.findings?.critical_issues?.length || 0,
+            performanceIssues: analysisData.findings?.performance_bottlenecks?.length || 0,
+            improvements: analysisData.findings?.improvement_suggestions?.length || 0
+          }
+        });
+      }).catch(err => {
+        this.logger.error('Failed to load DEV password handler:', err);
+      });
     }
 
     // FILTER 21.10.2025: Skip system duplicate messages (summary from Grisha)

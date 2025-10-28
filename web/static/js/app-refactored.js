@@ -39,6 +39,7 @@ import { AnimatedLoggingSystem } from './components/logging/animated-logging.js'
 import { AtlasTTSVisualization } from './components/tts/atlas-tts-visualization.js';
 import { AtlasGLBLivingSystem } from './components/model3d/atlas-glb-living-system.js';
 import { AtlasLivingBehaviorEnhanced } from './components/model3d/atlas-living-behavior-enhanced.js';
+import { AtlasInteractivePersonality } from './components/model3d/atlas-interactive-personality.js';
 import { DevPasswordHandler } from './modules/dev-password-handler.js';
 
 // ✅ КРИТИЧНО: Експортуємо eventManager в window для доступу з TTS та інших модулів
@@ -65,6 +66,7 @@ class AtlasApp {
       livingBehavior: null,
       glbLivingSystem: null,
       ttsVisualization: null,
+      interactivePersonality: null,
       webSocket: atlasWebSocket,
       devPasswordHandler: null
     };
@@ -202,6 +204,13 @@ class AtlasApp {
     this.logger.info('💬 Initializing Chat Manager...');
     this.managers.chat = new ChatManager();
     await this.managers.chat.init();
+    
+    // 7.1 Ініціалізуємо Interactive Personality для живої поведінки
+    if (this.managers.glbLivingSystem) {
+      this.logger.info('🧠 Initializing Interactive Personality...');
+      this.managers.interactivePersonality = new AtlasInteractivePersonality(this.managers.glbLivingSystem);
+      this.logger.info('✨ Atlas is now truly alive with personality!');
+    }
 
     // 7.5. Ініціалізуємо DEV Password Handler
     this.logger.info('🔐 Initializing DEV Password Handler...');

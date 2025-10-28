@@ -71,12 +71,15 @@ export function setupChatRoutes(app, context) {
                 const devProcessor = container.resolve('devSelfAnalysisProcessor');
                 const wsManager = container.resolve('wsManager');
                 
+                // Normalize password - remove quotes and trim
+                const normalizedPassword = message.trim().replace(/^["']|["']$/g, '').toLowerCase();
+                
                 // Execute intervention with provided password
                 const interventionResult = await devProcessor.execute({
                     userMessage: session.originalMessage,
                     session,
                     requiresIntervention: true,
-                    password: message.trim()
+                    password: normalizedPassword
                 });
                 
                 // Reset password state

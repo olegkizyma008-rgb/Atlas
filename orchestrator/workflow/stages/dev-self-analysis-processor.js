@@ -96,12 +96,20 @@ export class DevSelfAnalysisProcessor {
 
         try {
             // Verify password if intervention is requested
-            if (context.requiresIntervention && password !== this.interventionPassword) {
-                return {
-                    success: false,
-                    error: 'Invalid password for code intervention',
-                    requiresAuth: true
-                };
+            if (context.requiresIntervention) {
+                // Normalize password - remove quotes, trim and lowercase
+                const normalizedPassword = (password || '').trim().replace(/^["']|["']$/g, '').toLowerCase();
+                
+                if (normalizedPassword !== this.interventionPassword) {
+                    this.logger.warn('dev-analysis', `[DEV-ANALYSIS] ❌ Invalid password attempt: "${normalizedPassword}" (expected: "${this.interventionPassword}")`);
+                    return {
+                        success: false,
+                        error: 'Invalid password for code intervention',
+                        requiresAuth: true
+                    };
+                }
+                
+                this.logger.system('dev-analysis', '[DEV-ANALYSIS] ✅ Password verified - proceeding with intervention');
             }
 
             // Gather system context

@@ -330,22 +330,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             })}\n\n`);
           }
 
-          if (ttsSyncManager) {
-            try {
-              await ttsSyncManager.speak(authTtsMessage, {
-                mode: 'detailed',
-                agent: 'atlas',
-                sessionId: session.id,
-                emotion: 'determined',
-                priority: 'high'
-              });
-            } catch (ttsError) {
-              logger.warn('executor', `Failed to enqueue DEV analysis TTS: ${ttsError.message}`);
-            }
-          }
-
           if (wsManager) {
-            // Відправляємо повідомлення в чат з формою паролю
+            // Відправляємо повідомлення в чат з формою паролю (БЕЗ TTS - буде в agent_message)
             wsManager.broadcastToSubscribers('chat', 'agent_message', {
               content: `🔐 **Потрібен пароль для втручання в код**\n\n` +
                        `Я знайшов проблеми які потребують виправлення:\n` +
@@ -357,7 +343,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               sessionId: session.id,
               timestamp: new Date().toISOString(),
               requiresPassword: true, // Спеціальний флаг для UI
-              passwordPrompt: true
+              passwordPrompt: true,
+              ttsContent: authTtsMessage // TTS буде оброблено в chat-manager
             });
           }
 

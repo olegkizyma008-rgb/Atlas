@@ -6,13 +6,10 @@
  * @date 2025-10-28
  */
 
-import logger from '../../utils/logger.js';
-import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
-import axios from 'axios';
-import GlobalConfig from '../../../config/atlas-config.js';
-import fs from 'fs/promises';
-import path from 'path';
-import { HierarchicalIdManager } from '../utils/hierarchical-id-manager.js';
+const axios = require('axios');
+const MCP_PROMPTS = require('../../../prompts/mcp');
+const GlobalConfig = require('../../config/global-config');
+const RecursiveAnalysisEngine = require('./dev-recursive-analysis');
 
 /**
  * DEV Mode Self-Analysis Processor
@@ -24,10 +21,10 @@ import { HierarchicalIdManager } from '../utils/hierarchical-id-manager.js';
  * - Apply non-standard thinking patterns
  */
 export class DevSelfAnalysisProcessor {
-    constructor({ llmClient, logger: loggerInstance, container }) {
-        this.llmClient = llmClient;
-        this.logger = loggerInstance || logger;
+    constructor(logger, container) {
+        this.logger = logger;
         this.container = container;
+        this.recursiveEngine = new RecursiveAnalysisEngine(logger, container);
         
         // Configuration paths
         this.config = {
@@ -173,9 +170,9 @@ export class DevSelfAnalysisProcessor {
             // Save analysis context to memory for future reference
             await this._saveAnalysisToMemory(analysisResult, session);
             
-            // Execute cyclic TODO workflow
+            // Execute RECURSIVE TODO workflow with deep analysis
             if (analysisResult.todo_list && analysisResult.todo_list.length > 0) {
-                await this._executeCyclicTodo(analysisResult.todo_list, session);
+                await this.recursiveEngine.executeRecursiveTodo(analysisResult.todo_list, session, systemContext, 1);
             }
 
             // Build comprehensive response with all findings

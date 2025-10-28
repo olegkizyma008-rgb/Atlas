@@ -6,10 +6,10 @@
  * @date 2025-10-28
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
 
-class RecursiveAnalysisEngine {
+export default class RecursiveAnalysisEngine {
     constructor(logger, container) {
         this.logger = logger;
         this.container = container;
@@ -376,5 +376,3 @@ class RecursiveAnalysisEngine {
         return true;
     }
 }
-
-module.exports = RecursiveAnalysisEngine;

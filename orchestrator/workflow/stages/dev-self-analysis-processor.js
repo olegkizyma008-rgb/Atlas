@@ -6,10 +6,10 @@
  * @date 2025-10-28
  */
 
-const axios = require('axios');
-const MCP_PROMPTS = require('../../../prompts/mcp');
-const GlobalConfig = require('../../config/global-config');
-const RecursiveAnalysisEngine = require('./dev-recursive-analysis');
+import axios from 'axios';
+import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
+import GlobalConfig from '../../config/global-config.js';
+import RecursiveAnalysisEngine from './dev-recursive-analysis.js';
 
 /**
  * DEV Mode Self-Analysis Processor

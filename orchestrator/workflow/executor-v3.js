@@ -362,6 +362,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
           session.awaitingDevPassword = true;
           session.devAnalysisResult = analysisResult;
+          session.devOriginalMessage = userMessage; // Зберігаємо оригінальне повідомлення
+          
+          logger.system('executor', `[DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=${session.id}`);
 
           return {
             success: false,

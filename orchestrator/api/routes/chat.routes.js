@@ -70,17 +70,24 @@ export function setupChatRoutes(app, context) {
             if (session.awaitingDevPassword) {
                 const devProcessor = container.resolve('devSelfAnalysisProcessor');
                 const wsManager = container.resolve('wsManager');
+                const logger = container.resolve('logger');
                 
                 // Normalize password - remove quotes and trim
                 const normalizedPassword = message.trim().replace(/^["']|["']$/g, '').toLowerCase();
                 
+                logger.info(`[CHAT-ROUTES] DEV password received: "${normalizedPassword}" (original: "${message}")`);
+                logger.info(`[CHAT-ROUTES] Session awaiting password: ${session.awaitingDevPassword}`);
+                logger.info(`[CHAT-ROUTES] Original message: "${session.originalMessage}"`);
+                
                 // Execute intervention with provided password
                 const interventionResult = await devProcessor.execute({
-                    userMessage: session.originalMessage,
+                    userMessage: session.devOriginalMessage || session.originalMessage,
                     session,
                     requiresIntervention: true,
                     password: normalizedPassword
                 });
+                
+                logger.info(`[CHAT-ROUTES] Intervention result: success=${interventionResult.success}, requiresAuth=${interventionResult.requiresAuth}`);
                 
                 // Reset password state
                 session.awaitingDevPassword = false;
@@ -120,10 +127,7 @@ export function setupChatRoutes(app, context) {
                     }
                 }
                 
-                // End response
-                res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
                 res.end();
-                clearInterval(keepAlive);
                 return;
             }
         }

@@ -3648,6 +3648,130 @@ Select 1-2 most relevant servers.
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   }
+
+  /**
+   * Execute MCP verification workflow for a single verification item
+   * UNIFIED METHOD for both Tetyana and Grisha agents
+   * Created 2025-10-29 to eliminate code duplication
+   * 
+   * @param {Object} verificationItem - Verification item to execute
+   * @param {string} verificationItem.id - Item ID
+   * @param {string} verificationItem.action - Action to perform
+   * @param {string} verificationItem.success_criteria - Success criteria
+   * @param {string[]} [verificationItem.mcp_servers] - Pre-selected MCP servers
+   * @param {Object} session - Session object with processors
+   * @returns {Promise<Object>} Execution results
+   */
+  async executeVerificationWorkflow(verificationItem, session) {
+    try {
+      this.logger.system('mcp-todo', '[UNIFIED-MCP] Starting unified MCP verification workflow');
+      this.logger.system('mcp-todo', `[UNIFIED-MCP] Item: ${verificationItem.action}`);
+      
+      // Stage 2.0: Server Selection
+      let selectedServers = verificationItem.mcp_servers || [];
+      let selectedPrompts = [];
+      
+      if (selectedServers.length === 0) {
+        // Need to select servers
+        const serverSelectionProcessor = session?.processors?.serverSelection || 
+                                        this.container?.resolve('serverSelectionProcessor');
+        
+        if (serverSelectionProcessor) {
+          this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.0: Server Selection...');
+          const selectionResult = await serverSelectionProcessor.execute({
+            currentItem: verificationItem,
+            availableServers: this.mcpManager.getAvailableServers(),
+            atlasRecommendation: verificationItem.mcp_servers,
+            session: session
+          });
+          
+          if (selectionResult.success && selectionResult.selected_servers) {
+            selectedServers = selectionResult.selected_servers;
+            selectedPrompts = selectionResult.selected_prompts || [];
+            this.logger.system('mcp-todo', `[UNIFIED-MCP] Selected servers: ${selectedServers.join(', ')}`);
+          }
+        } else {
+          // Fallback to internal selection
+          const serverSelection = await this._selectMCPServers(verificationItem, null);
+          selectedServers = serverSelection.selected_servers || [];
+        }
+      }
+      
+      // Stage 2.1: Plan Tools
+      const tetyanaPlanProcessor = session?.processors?.tetyanaPlan || 
+                                  this.container?.resolve('tetyanaPlanToolsProcessor');
+      
+      let plannedTools = [];
+      if (tetyanaPlanProcessor) {
+        this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.1: Plan Tools...');
+        const planResult = await tetyanaPlanProcessor.execute({
+          currentItem: verificationItem,
+          selected_servers: selectedServers,
+          selected_prompts: selectedPrompts,
+          session: session
+        });
+        
+        if (planResult.success && planResult.planned_tools) {
+          plannedTools = planResult.planned_tools;
+          this.logger.system('mcp-todo', `[UNIFIED-MCP] Planned ${plannedTools.length} tools`);
+        }
+      } else {
+        // Fallback to internal planning
+        const plan = await this.planTools(verificationItem, null, {
+          selectedServers,
+          toolsSummary: this.mcpManager.getDetailedToolsSummary(selectedServers)
+        });
+        plannedTools = plan.tool_calls || [];
+      }
+      
+      // Stage 2.2: Execute Tools
+      const tetyanaExecuteProcessor = session?.processors?.tetyanaExecute || 
+                                     this.container?.resolve('tetyanaExecuteToolsProcessor');
+      
+      let executionResults = { all_successful: false, results: [] };
+      if (tetyanaExecuteProcessor) {
+        this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.2: Execute Tools...');
+        const execResult = await tetyanaExecuteProcessor.execute({
+          currentItem: verificationItem,
+          planned_tools: plannedTools,
+          session: session
+        });
+        
+        if (execResult.success) {
+          executionResults = execResult.execution || { all_successful: false, results: [] };
+          this.logger.system('mcp-todo', `[UNIFIED-MCP] Executed: ${executionResults.all_successful ? '✅' : '❌'}`);
+        }
+      } else {
+        // Fallback to internal execution
+        const execution = await this.executeTools({ tool_calls: plannedTools }, verificationItem);
+        executionResults = execution;
+      }
+      
+      // Return unified result structure
+      return {
+        success: executionResults.all_successful,
+        execution: executionResults,
+        metadata: {
+          selected_servers: selectedServers,
+          selected_prompts: selectedPrompts,
+          planned_tools: plannedTools,
+          unified_workflow: true
+        }
+      };
+      
+    } catch (error) {
+      this.logger.error(`[UNIFIED-MCP] Workflow failed: ${error.message}`, {
+        category: 'mcp-todo',
+        error: error.stack
+      });
+      
+      return {
+        success: false,
+        execution: { all_successful: false, results: [], error: error.message },
+        metadata: { error: true, unified_workflow: true }
+      };
+    }
+  }
 }
 
 export default MCPTodoManager;

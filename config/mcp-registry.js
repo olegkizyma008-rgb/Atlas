@@ -71,33 +71,29 @@ export const MCP_REGISTRY = {
     },
 
     java_sdk: {
-      command: 'java',
+      command: 'npx',
       args: [
-        '-jar',
-        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/java-sdk/mcp-java-server.jar'
+        '-y',
+        '@modelcontextprotocol/server-java'
       ],
       env: {
-        JAVA_HOME: env.JAVA_HOME || '/usr/libexec/java_home',
-        CLASSPATH: '/Users/dev/Documents/GitHub/atlas4/mcp-servers/java-sdk/lib/*'
+        JAVA_HOME: env.JAVA_HOME || '/usr/libexec/java_home'
       },
-      description: 'Java development tools and code execution',
-      enabled: true
+      description: 'Java development tools and code execution (disabled - package not available)',
+      enabled: false
     },
 
     python_sdk: {
-      command: 'python3',
+      command: 'npx',
       args: [
-        '-m',
-        'mcp_python_server',
-        '--config',
-        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/python-sdk/config.json'
+        '-y',
+        '@modelcontextprotocol/server-python'
       ],
       env: {
-        PYTHONPATH: '/Users/dev/Documents/GitHub/atlas4/mcp-servers/python-sdk',
         PYTHON_ENV: 'production'
       },
-      description: 'Python development tools and code execution',
-      enabled: true
+      description: 'Python development tools and code execution (disabled - package not available)',
+      enabled: false
     }
   },
 

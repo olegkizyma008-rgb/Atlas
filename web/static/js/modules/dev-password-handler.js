@@ -47,28 +47,30 @@ export class DevPasswordHandler {
 
   async submitPassword(password) {
     try {
-      this.logger.info('Processing DEV password locally...');
-
-      // Instead of making HTTP call, send password through WebSocket
-      // The server will handle it when awaitingDevPassword is true
-      if (this.wsClient && this.wsClient.sendMessage) {
-        // Send as regular message - server will detect awaitingDevPassword state
-        this.wsClient.sendMessage(password, {
-          sessionId: this.currentSessionId
-        });
-      } else {
-        this.logger.error('WebSocket client not available for password submission');
-        devPasswordDialog.showError('ПОМИЛКА ПЕРЕДАЧІ ПАРОЛЯ');
+      const trimmedPassword = (password || '').trim();
+      if (!trimmedPassword) {
+        this.logger.warn('Empty DEV password submission ignored');
+        devPasswordDialog.showError('Пароль не може бути порожнім');
         return;
       }
 
-      // Hide dialog immediately - server will handle the response
-      devPasswordDialog.hide();
+      this.logger.info('Submitting DEV password through chat manager...');
 
-      this.logger.info('DEV password sent through WebSocket');
+      if (this.chatManager && typeof this.chatManager.sendMessage === 'function') {
+        await this.chatManager.sendMessage(trimmedPassword);
+      } else {
+        // Fallback: direct HTTP call via orchestrator client
+        const { orchestratorClient } = await import('../core/api-client.js');
+        await orchestratorClient.sendMessage(trimmedPassword, {
+          sessionId: this.currentSessionId
+        });
+      }
+
+      devPasswordDialog.hide();
+      this.logger.info('DEV password submitted successfully');
 
     } catch (error) {
-      this.logger.error('Failed to send DEV password through WebSocket', error);
+      this.logger.error('Failed to submit DEV password', error);
       devPasswordDialog.showError('ПОМИЛКА ПЕРЕДАЧІ ПАРОЛЯ');
     }
   }

@@ -23,7 +23,10 @@ export function setupChatRoutes(app, context) {
     // =============================================================================
 
     app.post('/chat/stream', async (req, res) => {
-        const { message, sessionId = 'default', stopDispatch = false } = req.body;
+        // CRITICAL: Use consistent sessionId from frontend or generate one
+        const frontendSessionId = req.body.sessionId || req.headers['x-session-id'];
+        const sessionId = frontendSessionId || `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const { message, stopDispatch = false } = req.body;
 
         if (!message?.trim()) {
             return res.status(400).json({ error: 'Message is required' });
@@ -58,7 +61,11 @@ export function setupChatRoutes(app, context) {
                 chatThread: { messages: [], lastTopic: undefined },
                 container: container,  // ✅ NEW: Add DI container to session for MCP workflow
                 awaitingDevPassword: false,  // ✅ NEW: DEV mode password state
-                devAnalysisResult: null  // ✅ NEW: Store analysis result for password flow
+                devAnalysisResult: null,  // ✅ NEW: Store analysis result for password flow
+                lastDevAnalysis: null,  // ✅ NEW: Store DEV analysis context
+                lastDevAnalysisMessage: null,  // ✅ NEW: Store original message for intervention
+                devAnalysisDepth: 0,  // ✅ NEW: Track recursion depth
+                devProblemsQueue: []  // ✅ NEW: Queue of problems to analyze deeply
             };
             sessions.set(sessionId, session);
         } else {

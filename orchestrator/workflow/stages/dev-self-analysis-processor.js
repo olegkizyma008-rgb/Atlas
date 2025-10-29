@@ -544,9 +544,9 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Execute recursive TODO workflow with deep sub-item analysis
+     * Execute cyclic TODO workflow with metrics validation and DEEP RECURSIVE ANALYSIS
      */
-    async _executeCyclicTodo(todoList, session, parentId = null, depth = 1) {
+    async _executeCyclicTodo(todoList, session, parentId = null, depth = 0) {
         this.logger.info(`[DEV-ANALYSIS] 🔄 Starting TODO execution at depth ${depth}...`, {
             category: 'system',
             component: 'dev-analysis'
@@ -586,6 +586,25 @@ export class DevSelfAnalysisProcessor {
             
             const result = await this._executeAnalysisItem(item, session);
             
+            // ENHANCED: Create detailed analysis request for EACH problem found
+            if (result.errors && result.errors.length > 0) {
+                this.logger.info(`[DEV-ANALYSIS] 🔍 Found ${result.errors.length} errors, creating deep analysis requests...`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+                
+                // Add each error to problems queue for deep analysis
+                for (const error of result.errors) {
+                    session.devProblemsQueue.push({
+                        type: 'error',
+                        description: error,
+                        parentId: item.id,
+                        depth: depth + 1,
+                        needsDeepAnalysis: true
+                    });
+                }
+            }
+            
             // Check if this item needs deeper analysis
             const needsDeeper = this._requiresDeeperAnalysis(item, result);
             
@@ -596,7 +615,21 @@ export class DevSelfAnalysisProcessor {
                     component: 'dev-analysis'
                 });
                 
-                const subItems = await this._createIntelligentSubItems(item, result, session);
+                // ENHANCED: Create sub-items for EACH specific problem found
+                const subItems = await this._createDetailedSubItems(item, result, session);
+                
+                // Also process queued problems
+                if (session.devProblemsQueue && session.devProblemsQueue.length > 0) {
+                    const queuedProblems = session.devProblemsQueue.splice(0, 5); // Process up to 5 problems
+                    for (const problem of queuedProblems) {
+                        subItems.push({
+                            action: `Deep analysis: ${problem.description}`,
+                            priority: 'high',
+                            type: 'deep_analysis',
+                            problemDetails: problem
+                        });
+                    }
+                }
                 
                 if (subItems && subItems.length > 0) {
                     // Execute sub-items recursively
@@ -827,9 +860,9 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
-     * Create intelligent sub-items based on analysis results
+     * Create detailed sub-items for EACH specific problem found
      */
-    async _createIntelligentSubItems(parentItem, result, session) {
+    async _createDetailedSubItems(item, result, session) {
         const subItems = [];
         
         // Analyze different aspects that need attention
@@ -1614,38 +1647,6 @@ export class DevSelfAnalysisProcessor {
         return todo;
     }
     
-    /**
-     * Detect if user explicitly requests code intervention
-     */
-    _detectInterventionRequest(userMessage) {
-        const msg = userMessage.toLowerCase();
-        const interventionKeywords = [
-            'виправ', 'fix', 'змін', 'change', 'модифік', 'modify',
-            'внес', 'apply', 'застосуй', 'implement', 'впровад',
-            'код', 'code', 'файл', 'file'
-        ];
-        
-        return interventionKeywords.some(keyword => msg.includes(keyword));
-    }
-    
-    /**
-     * Generate contextual understanding
-     */
-    _generateContextualUnderstanding(problems, detailedAnalysis) {
-        if (problems.critical?.length > 0) {
-            return `Я виявив ${problems.critical.length} критичних проблем. Кожна з них впливає на стабільність системи. ` +
-                   `Найважливіша - ${problems.critical[0]?.description || 'системна помилка'}. ` +
-                   `Я вже аналізую кореневі причини та готую план виправлення.`;
-        }
-        
-        if (problems.performance?.length > 0) {
-            return `Система працює, але не оптимально. Основна проблема - ${problems.performance[0]?.description || 'повільна швидкодія'}. ` +
-                   `Це впливає на користувацький досвід, тому потребує уваги.`;
-        }
-        
-        return 'Система працює стабільно. Я постійно аналізую метрики та шукаю можливості для покращення. ' +
-               'Кожна деталь важлива для оптимальної роботи.';
-    }
     
     /**
      * Generate living analysis summary
@@ -1659,17 +1660,6 @@ export class DevSelfAnalysisProcessor {
         } else if (problems.performance && problems.performance.length > 0) {
             const mainPerf = problems.performance[0];
             return `⚡ Виявив проблеми продуктивності: ${mainPerf.description}`;
-        } else {
-            return `💚 Системи працюють стабільно! Але я завжди шукаю способи стати кращим.`;
-        }
-    }
-    
-    /**
-     * Analyze memory usage patterns
-     */
-    async _analyzeMemoryPatterns() {
-        const memUsage = process.memoryUsage();
-        const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
         const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
         const rssMB = Math.round(memUsage.rss / 1024 / 1024);
         
@@ -1686,6 +1676,7 @@ export class DevSelfAnalysisProcessor {
         };
     }
 
+    
     /**
      * Build comprehensive response with metrics
      */

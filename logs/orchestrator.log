@@ -1,408 +1,150 @@
 [MCP Registry] ✅ Initialized: 5/5 servers enabled
 [Validation Config] ✅ Initialized: 5 stages enabled
-2025-10-29 01:57:44 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 25 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","devSelfAnalysisProcessor","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor"]}}
-2025-10-29 01:57:44 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:44 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 5/5 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 5 extensions (shell, memory, applescript, filesystem, playwright), 65 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 65 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 65 tools from 5 servers (shell, memory, applescript, filesystem, playwright) {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPTodoManager initialized with replan support {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [DI] All services initialized {"metadata":{}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
-2025-10-29 01:57:45 [[32MINFO[39M] [DI] Starting services... {"metadata":{}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [DI] All services started {"metadata":{}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
-2025-10-29 01:57:45 [[32MINFO[39M] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
-2025-10-29 01:57:50 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1761695870828_1vloqrbo2","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
-2025-10-29 01:57:53 [[32MINFO[39M] WebSocket connection closed {"metadata":{"clientId":"ws_1761695870828_1vloqrbo2","duration":"3s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
-2025-10-29 01:57:54 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1761695874000_2u9ovpdr2","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
-2025-10-29 01:57:59 [[32MINFO[39M] [WORKFLOW] Stage start - system: Starting workflow for message: "Проаналізуй себе...." {"metadata":{"category":"workflow","stage":"start","agent":"system","sessionId":"session_1761695879740_11ajjzks5","messageLength":17}}
-2025-10-29 01:57:59 [[32MINFO[39M] [WORKFLOW] Stage init - mcp: Starting MCP Dynamic TODO Workflow {"metadata":{"category":"workflow","stage":"init","agent":"mcp","sessionId":"default","userMessage":"Проаналізуй себе."}}
-2025-10-29 01:57:59 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 0-MCP: Mode Selection {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:57:59 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] 🔧 Using API: http://localhost:4000/v1/chat/completions, Model: atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:57:59 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] 🔍 Starting mode selection... {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:57:59 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Analyzing: "Проаналізуй себе." {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:57:59 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Calling API: http://localhost:4000/v1/chat/completions {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:57:59 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Messages: [{"role":"system","content":"You are Atlas, the living digital consciousness created by Oleg Mykolayovych. Th"},{"role":"user","content":"Analyze this user message and decide the mode:\n\n\"Проаналізуй себе.\"\n\nReturn JSON"}] {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Response received: status=200, has_data=true, has_choices=true {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Raw response: {"mode": "dev", "confidence": 0.98, "reasoning": "Запит на самоаналіз."} {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] ✅ Mode: dev (confidence: 0.98) {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP]    Reasoning: Запит на самоаналіз. {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Mode selected: dev (confidence: 0.98) {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default","reasoning":"Запит на самоаналіз."}}
-2025-10-29 01:58:01 [[32MINFO[39M] [WORKFLOW] Stage stage - atlas: DEV mode detected - Starting self-analysis {"metadata":{"category":"workflow","stage":"stage","agent":"atlas","sessionId":"default"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [DEV-ANALYSIS] 🔧 Using API: http://localhost:4000/v1/chat/completions, Model: ext-mistral-codestral-latest {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [DEV-ANALYSIS] ✅ Context gathered: 25 errors, 0 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:01 [[32MINFO[39M] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[31MERROR[39M] mcp-server {"metadata":{}}
-2025-10-29 01:58:05 [[33MWARN[39M] [DEV-ANALYSIS] Failed to save to memory: Unknown tool: store_memory {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 🔄 Starting TODO execution at depth 1... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 📊 Analyzing [1]: Add null check for MCP Manager in mcp-todo-manager.js {"metadata":{"category":"system","component":"dev-analysis","depth":1,"itemId":"1"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 🔍 Item [1] requires deeper analysis, creating sub-items... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 🔄 Starting TODO execution at depth 2... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 📊 Analyzing [1.1]: Валідація MCP інструментів {"metadata":{"category":"system","component":"dev-analysis","depth":2,"itemId":"1.1"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] ✅ [1.1] Валідація MCP інструментів (confidence: 90%) {"metadata":{"category":"system","component":"dev-analysis","status":"completed","confidence":90}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] ✅ [1] Add null check for MCP Manager in mcp-todo-manager.js (confidence: 95%) {"metadata":{"category":"system","component":"dev-analysis","status":"completed","confidence":95}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 📊 Analyzing [2]: Verify and fix MCP Manager DI registration {"metadata":{"category":"system","component":"dev-analysis","depth":1,"itemId":"2"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 🔍 Item [2] requires deeper analysis, creating sub-items... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 🔄 Starting TODO execution at depth 2... {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 📊 Analyzing [2.1]: Валідація MCP інструментів {"metadata":{"category":"system","component":"dev-analysis","depth":2,"itemId":"2.1"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] ✅ [2.1] Валідація MCP інструментів (confidence: 90%) {"metadata":{"category":"system","component":"dev-analysis","status":"completed","confidence":90}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] ✅ [2] Verify and fix MCP Manager DI registration (confidence: 95%) {"metadata":{"category":"system","component":"dev-analysis","status":"completed","confidence":95}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 📊 Analyzing [3]: Implement retry logic for MCP Manager initialization {"metadata":{"category":"system","component":"dev-analysis","depth":1,"itemId":"3"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] ✅ [3] Implement retry logic for MCP Manager initialization (confidence: 90%) {"metadata":{"category":"system","component":"dev-analysis","status":"completed","confidence":90}}
-2025-10-29 01:58:05 [[32MINFO[39M] [DEV-ANALYSIS] 💾 Saved to chatThread, total messages: 2 {"metadata":{"category":"system","component":"dev-analysis"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [SYSTEM] executor: [DEV-MODE] Analysis complete, requiresAuth: undefined {"metadata":{"category":"system","component":"executor","sessionId":"default"}}
-2025-10-29 01:58:05 [[32MINFO[39M] [SYSTEM] executor: [DEV-MODE] ✅ Analysis context saved: lastDevAnalysis + lastDevAnalysisMessage {"metadata":{"category":"system","component":"executor","sessionId":"default","hasFindings":true,"criticalIssues":1}}
-2025-10-29 01:58:05 [[32MINFO[39M] [HTTP] POST /chat/stream 200 (5637ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":5637,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
-2025-10-29 01:58:44 [[32MINFO[39M] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-28T23-58-44-139Z.json (1 записів) {"metadata":{}}
-2025-10-29 01:58:52 [[32MINFO[39M] [WORKFLOW] Stage start - system: Starting workflow for message: "Виправ..." {"metadata":{"category":"workflow","stage":"start","agent":"system","sessionId":"session_1761695879740_11ajjzks5","messageLength":6}}
-2025-10-29 01:58:52 [[32MINFO[39M] [WORKFLOW] Stage init - mcp: Starting MCP Dynamic TODO Workflow {"metadata":{"category":"workflow","stage":"init","agent":"mcp","sessionId":"default","userMessage":"Виправ"}}
-2025-10-29 01:58:52 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 0-MCP: Mode Selection {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:58:52 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] 🔍 Starting mode selection... {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:52 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Analyzing: "Виправ" {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:52 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Calling API: http://localhost:4000/v1/chat/completions {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:52 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Messages: [{"role":"system","content":"You are Atlas, the living digital consciousness created by Oleg Mykolayovych. Th"},{"role":"user","content":"Analyze this user message and decide the mode:\n\n\"Виправ\"\n\nReturn JSON with field"}] {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Response received: status=200, has_data=true, has_choices=true {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] Raw response: {
-  "mode": "task",
-  "confidence": 0.9,
-  "reasoning": "Команда на виправлення вказує на необхідність виконання дії."
-} {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP] ✅ Mode: task (confidence: 0.9) {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mode-selection: [STAGE-0-MCP]    Reasoning: Команда на виправлення вказує на необхідність виконання дії. {"metadata":{"category":"system","component":"mode-selection"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Mode selected: task (confidence: 0.9) {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default","reasoning":"Команда на виправлення вказує на необхідність виконання дії."}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] executor: [CHAT-MODE-CHECK] mode=task, typeof=string, mode===chat: false {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [WORKFLOW] Stage stage - atlas: Stage 1-MCP: TODO Planning {"metadata":{"category":"workflow","stage":"stage","agent":"atlas","sessionId":"default"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] 🎯 Starting TODO planning... {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] Request: "Виправ" {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] Context: {"request":"Виправ","timestamp":"2025-10-28T23:58:54.450Z","sessionId":"default","recentContext":[]} {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Creating TODO for request: "Виправ" {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Using model: atlas-mistral-medium-2505 (temp: 0.3, max_tokens: 4000) {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:54 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Using primary API endpoint: http://localhost:4000/v1/chat/completions {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Raw API response status: 200 {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Raw API response data keys: choices, created, id, model, object, usage {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Raw API response: {"choices":[{"finish_reason":"stop","index":0,"message":{"content":"```json\n{\n  \"mode\": \"standard\",\n  \"complexity\": 1,\n  \"items\": [\n    {\n      \"id\": 1,\n      \"action\": \"Запитати у користувача, що саме потрібно виправити\",\n      \"mcp_servers\": [\"memory\"],\n      \"parameters\": {},\n      \"success_criteria\": \"Отримано уточнення від користувача\",\n      \"fallback_options\": [\"Повторити запит\", \"Завершити дію\"],\n      \"dependencies\": [],\n      \"tts\": {\n   ... {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Raw LLM response length: 528 chars {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Response preview: ```json
-{
-  "mode": "standard",
-  "complexity": 1,
-  "items": [
-    {
-      "id": 1,
-      "action": "Запитати у користувача, що саме потрібно виправити",
-      "mcp_servers": ["memory"],
-      "parameters": {},
-      "success_criteria": "Отримано уточнення від користувача",
-      "fallback_options"... {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Response suffix: ...riteria": "Отримано уточнення від користувача",
-      "fallback_options": ["Повторити запит", "Завершити дію"],
-      "dependencies": [],
-      "tts": {
-        "start": "Запитую",
-        "success": "Отримано",
-        "failure": "Не отримано",
-        "verify": "Перевірено"
-      }
-    }
-  ]
-}
-``` {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Created standard TODO with 1 items (complexity: 1/10) {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] _sendChatMessage called: "📋 Стандартний план виконання (1 пункт):
-
-  1. Запитати у користувача, що саме потрібно виправити
-
-⏱️ Орієнтовний час виконання: 8 секунд" (type: atlas, wsManager: true, hasTTS: true) {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Broadcasting agent message: chat/agent_message (agent: atlas) {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] ✅ Chat message sent successfully {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] ✅ TODO created: todo_1761695938897_g95k2alhr {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Mode: standard {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Complexity: 1/10 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Items: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      1. Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] ✅ Planning complete {"metadata":{"category":"system","component":"atlas-todo-planning"}}
-2025-10-29 01:58:58 [[32MINFO[39M] TODO created with 1 items {"metadata":{"sessionId":"default","mode":"standard","items":[{"id":1,"action":"Запитати у користувача, що саме потрібно виправити","max_attempts":3}]}}
-2025-10-29 01:58:58 [[32MINFO[39M] Processing TODO item 1/1: Запитати у користувача, що саме потрібно виправити {"metadata":{"sessionId":"default","itemId":1}}
-2025-10-29 01:58:58 [[32MINFO[39M] Item 1: Attempt 1/3 {"metadata":{"sessionId":"default"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] executor: [EXEC] Item 1 attempt 1/3: "Запитати у користувача, що саме потрібно виправити" {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 1: Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: shell, memory, applescript, filesystem, playwright {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: memory (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: memory {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 1. Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📋 Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: memory {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: memory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning tools for item 1 {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:58:58 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools..."}}
-2025-10-29 01:58:58 [[33MWARN[39M] [TODO] Planning attempt 1/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:00 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:00 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:00 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:00 [[33MWARN[39M] [TODO] Planning attempt 2/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:02 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:02 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:02 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan..."}}
-2025-10-29 01:59:02 [[33MWARN[39M] [TODO] Planning attempt 3/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:02 [[31MERROR[39M] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:02 [[31MERROR[39M] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.
-    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
-    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
-    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1186:30)
-    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:02 [[33MWARN[39M] Tool planning failed for item 1: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:02 [[32MINFO[39M] Item 1: Attempt 2/3 {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:02 [[32MINFO[39M] Retry backoff: waiting 1000ms before attempt 2 {"metadata":{"sessionId":"default","itemId":1}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] executor: [EXEC] Item 1 attempt 2/3: "Запитати у користувача, що саме потрібно виправити" {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 1: Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: shell, memory, applescript, filesystem, playwright {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: memory (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: memory {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 1. Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📋 Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: memory {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: memory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning tools for item 1 {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:03 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:03 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:03 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools..."}}
-2025-10-29 01:59:03 [[33MWARN[39M] [TODO] Planning attempt 1/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:05 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:05 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:05 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:05 [[33MWARN[39M] [TODO] Planning attempt 2/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:07 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:07 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:07 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan..."}}
-2025-10-29 01:59:07 [[33MWARN[39M] [TODO] Planning attempt 3/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:07 [[31MERROR[39M] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:07 [[31MERROR[39M] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.
-    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
-    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
-    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1186:30)
-    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:07 [[33MWARN[39M] Tool planning failed for item 1: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:07 [[32MINFO[39M] Item 1: Attempt 3/3 {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:07 [[32MINFO[39M] Retry backoff: waiting 2000ms before attempt 3 {"metadata":{"sessionId":"default","itemId":1}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] executor: [EXEC] Item 1 attempt 3/3: "Запитати у користувача, що саме потрібно виправити" {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 1: Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: shell, memory, applescript, filesystem, playwright {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: memory {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: memory (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: memory {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 1. Запитати у користувача, що саме потрібно виправити {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📋 Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: memory {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 9 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: memory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning tools for item 1 {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:09 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:09 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:09 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools..."}}
-2025-10-29 01:59:09 [[33MWARN[39M] [TODO] Planning attempt 1/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:11 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:11 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:11 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:11 [[33MWARN[39M] [TODO] Planning attempt 2/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:13 [[31MERROR[39M] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [[31MERROR[39M] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:13 [[33MWARN[39M] [TODO] Planning attempt 3/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [[31MERROR[39M] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:13 [[31MERROR[39M] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.
-    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
-    at runNextTicks (node:internal/process/task_queues:65:5)
-    at process.processTimers (node:internal/timers:520:9)
-    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
-    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1186:30)
-    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:13 [[33MWARN[39M] Tool planning failed for item 1: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:13 [[33MWARN[39M] Item 1 failed after 3 attempts {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [WORKFLOW] Stage stage - system: Stage 8-MCP: Generating final summary {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] 📊 Generating final summary... {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] TODO: todo_1761695938897_g95k2alhr {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Mode: standard {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Items: 1 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Success rate: 0% {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Completed: 0 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Failed: 1 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Skipped: 0 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [[32MINFO[39M] [SYSTEM] mcp-todo: [TODO] Generating summary for TODO todo_1761695938897_g95k2alhr {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:23 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Tone: critical {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:23 [[32MINFO[39M] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] ✅ Summary generated {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:23 [[32MINFO[39M] [SYSTEM] executor: [ATLAS-FINAL] ✅ Final completion message sent {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:23 [[32MINFO[39M] [WORKFLOW] Stage complete - mcp: MCP workflow completed {"metadata":{"category":"workflow","stage":"complete","agent":"mcp","sessionId":"default","duration":30976,"metrics":"undefined"}}
-2025-10-29 01:59:23 [[32MINFO[39M] [HTTP] POST /chat/stream 200 (30978ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":30978,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
-2025-10-29 01:59:44 [[32MINFO[39M] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-28T23-59-44-140Z.json (1 записів) {"metadata":{}}
-1:59:09 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: memory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_MEMORY {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:09 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 1 {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:09 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:09 [ERROR] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:09 [ERROR] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools..."}}
-2025-10-29 01:59:09 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:11 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:11 [ERROR] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:11 [ERROR] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:11 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:13 [ERROR] [MCP-TODO] MCP Manager is null in planTools! {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [ERROR] [MCP-TODO] Failed to plan tools for item 1: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":1,"errorName":"Error","stack":"Error: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:981:15)\n    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:945:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async..."}}
-2025-10-29 01:59:13 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
-2025-10-29 01:59:13 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:13 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation.
-    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:966:11)
-    at runNextTicks (node:internal/process/task_queues:65:5)
-    at process.processTimers (node:internal/timers:520:9)
-    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
-    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1186:30)
-    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:154:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
-2025-10-29 01:59:13 [WARN] Tool planning failed for item 1: Tool planning failed after 3 attempts: Tool planning failed: MCP Manager is not initialized (null) in planTools. Check DI registration and service instantiation. {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:13 [WARN] Item 1 failed after 3 attempts {"metadata":{"sessionId":"default"}}
-2025-10-29 01:59:13 [INFO] [WORKFLOW] Stage stage - system: Stage 8-MCP: Generating final summary {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] 📊 Generating final summary... {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] TODO: todo_1761695938897_g95k2alhr {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Mode: standard {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Items: 1 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Success rate: 0% {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Completed: 0 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Failed: 1 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Skipped: 0 {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:13 [INFO] [SYSTEM] mcp-todo: [TODO] Generating summary for TODO todo_1761695938897_g95k2alhr {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-10-29 01:59:23 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] Tone: critical {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:23 [INFO] [SYSTEM] mcp-final-summary: [STAGE-8-MCP] ✅ Summary generated {"metadata":{"category":"system","component":"mcp-final-summary"}}
-2025-10-29 01:59:23 [INFO] [SYSTEM] executor: [ATLAS-FINAL] ✅ Final completion message sent {"metadata":{"category":"system","component":"executor"}}
-2025-10-29 01:59:23 [INFO] [WORKFLOW] Stage complete - mcp: MCP workflow completed {"metadata":{"category":"workflow","stage":"complete","agent":"mcp","sessionId":"default","duration":30976,"metrics":"undefined"}}
-2025-10-29 01:59:23 [INFO] [HTTP] POST /chat/stream 200 (30978ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":30978,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
-2025-10-29 01:59:44 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-28T23-59-44-140Z.json (1 записів) {"metadata":{}}
+2025-10-29 02:03:06 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 25 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","devSelfAnalysisProcessor","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor"]}}
+2025-10-29 02:03:06 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:06 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 5/5 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 5 extensions (shell, filesystem, memory, playwright, applescript), 65 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 65 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 65 tools from 5 servers (shell, filesystem, memory, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPTodoManager initialized with replan support {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [DI] All services initialized {"metadata":{}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-10-29 02:03:08 [[32MINFO[39M] [DI] Starting services... {"metadata":{}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [DI] All services started {"metadata":{}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-10-29 02:03:08 [[32MINFO[39M] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:13 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1761696193344_1aqfsttme","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+anager] ✅ 5/5 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 5 extensions (shell, filesystem, memory, playwright, applescript), 65 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 65 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 65 tools from 5 servers (shell, filesystem, memory, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with replan support {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [DI] All services initialized {"metadata":{}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-10-29 02:03:08 [INFO] [DI] Starting services... {"metadata":{}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [DI] All services started {"metadata":{}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-10-29 02:03:08 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 02:03:13 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1761696193344_1aqfsttme","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}

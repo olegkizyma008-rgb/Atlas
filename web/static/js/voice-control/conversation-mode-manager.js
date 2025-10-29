@@ -609,6 +609,13 @@ export class ConversationModeManager {
     // CRITICAL: Очищуємо silence timeout - користувач говорить!
     this.clearResponseWaitTimer();
 
+    // FIXED (29.10.2025 - 22:15): Reset conversation timer при користувацькому input
+    if (this.state.isInConversation() && text.trim()) {
+      this.clearConversationTimer();
+      this.startConversationTimer();
+      this.logger.debug('🔄 Conversation timer reset after user input');
+    }
+
     // Quick-send: приймаємо якщо mode=quick-send АБО якщо очікуємо транскрипцію
     if (this.state.getCurrentMode() === ConversationModes.QUICK_SEND || this.state.isTranscriptionPending()) {
       this.logger.info(`📤 Quick-send transcription: "${text}"`);
@@ -831,6 +838,12 @@ export class ConversationModeManager {
     }
 
     this.logger.info('🔊 Atlas finished speaking (chat mode) - starting continuous listening');
+
+    // FIXED (29.10.2025 - 22:15): Reset conversation timer при відповіді Atlas
+    // Діалог не повинен переривитись якщо є активність
+    this.clearConversationTimer();
+    this.startConversationTimer();
+    this.logger.debug('🔄 Conversation timer reset after Atlas response');
 
     // Видалення індікатора через UI controller
     this.ui?.showIdleMode();

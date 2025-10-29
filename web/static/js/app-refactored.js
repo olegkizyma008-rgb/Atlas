@@ -588,8 +588,12 @@ class AtlasApp {
     // Інтеграція чату з НОВОЮ живою системою GLB
     const activeModelController = this.managers.glbLivingSystem || this.managers.livingBehavior || this.managers.model3D;
     if (this.managers.chat && activeModelController) {
-      this.managers.chat.on('message-sent', () => {
-        if (this.managers.glbLivingSystem) {
+      this.managers.chat.on('message-sent', (data) => {
+        // НОВИНКА (29.10.2025): Аналіз емоційного стану на основі повідомлення
+        if (this.managers.glbLivingSystem && data?.message) {
+          this.managers.glbLivingSystem.analyzeUserMessage(data.message);
+          this.managers.glbLivingSystem.reactToEvent('message-sent');
+        } else if (this.managers.glbLivingSystem) {
           this.managers.glbLivingSystem.reactToEvent('message-sent');
           this.managers.glbLivingSystem.setEmotion('listening', 0.7, 1500);
         } else if (this.managers.livingBehavior) {
@@ -615,7 +619,12 @@ class AtlasApp {
 
       this.managers.chat.on('agent-response-complete', (data) => {
         const agentName = data.agent || 'atlas';
-        if (this.managers.glbLivingSystem) {
+        // НОВИНКА (29.10.2025): Зберігаємо відповідь Atlas для контексту емоційного аналізу
+        if (this.managers.glbLivingSystem && data?.response) {
+          this.managers.glbLivingSystem.handleAtlasResponse(data.response);
+          this.managers.glbLivingSystem.stopSpeaking();
+          this.managers.glbLivingSystem.setEmotion('satisfied', 0.7, 2000);
+        } else if (this.managers.glbLivingSystem) {
           this.managers.glbLivingSystem.stopSpeaking();
           this.managers.glbLivingSystem.setEmotion('satisfied', 0.7, 2000);
         } else if (this.managers.livingBehavior) {

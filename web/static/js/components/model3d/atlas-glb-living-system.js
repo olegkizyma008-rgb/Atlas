@@ -11,7 +11,10 @@
  * - ⚡ Реакції на агентів (Atlas, Тетяна, Гриша)
  * - 🧠 Інтелектуальна поведінка (навчання, пам'ять)
  * - 💚 Природні анімації (дихання, мерехтіння, micro-movements)
+ * - 🎨 Динамічні кольори ореолу на основі настрою (НОВИНКА v4.1)
  */
+
+import { AtlasEmotionalStateService } from './atlas-emotional-state.js';
 
 export class AtlasGLBLivingSystem {
   constructor(modelViewerSelector, options = {}) {
@@ -132,6 +135,11 @@ export class AtlasGLBLivingSystem {
     this.animationFrameId = null;
     this.emotionTimeout = null;
     this.ttsAnalyser = null;
+
+    // НОВИНКА (29.10.2025): Емоційна система для динамічного ореолу
+    this.emotionalState = new AtlasEmotionalStateService();
+    this.lastUserMessage = '';
+    this.lastAtlasResponse = '';
 
     this.init();
   }
@@ -639,6 +647,52 @@ export class AtlasGLBLivingSystem {
     if (className) {
       this.modelViewer.classList.add(className);
     }
+
+    // НОВИНКА (29.10.2025): Оновлюємо колір ореолу на основі емоційного стану
+    this.updateEmotionalGlow();
+  }
+
+  /**
+   * Оновлення кольору ореолу на основі емоційного стану
+   * НОВИНКА v4.1 (29.10.2025)
+   */
+  updateEmotionalGlow() {
+    const state = this.emotionalState.getCurrentState();
+    const css = this.emotionalState.getTransitionCSS();
+
+    // Застосовуємо плавні CSS переходи
+    this.modelViewer.style.filter = css.filter;
+    this.modelViewer.style.transition = css.transition;
+    this.modelViewer.style.opacity = css.opacity;
+
+    console.log(`🎨 Emotional glow updated: ${state.label} (intensity: ${state.intensity.toFixed(2)})`);
+  }
+
+  /**
+   * Аналіз повідомлення користувача та оновлення емоційного стану
+   * НОВИНКА v4.1 (29.10.2025)
+   */
+  analyzeUserMessage(userMessage) {
+    if (!userMessage || !userMessage.trim()) return;
+
+    this.lastUserMessage = userMessage;
+    const newState = this.emotionalState.analyzeEmotion(userMessage, this.lastAtlasResponse);
+
+    console.log(`🧠 User message analyzed: "${userMessage.substring(0, 50)}..." -> ${newState.label}`);
+
+    // Оновлюємо візуальний стан
+    this.updateEmotionalGlow();
+  }
+
+  /**
+   * Обробка відповіді Atlas
+   * НОВИНКА v4.1 (29.10.2025)
+   */
+  handleAtlasResponse(response) {
+    if (!response || !response.trim()) return;
+
+    this.lastAtlasResponse = response;
+    console.log(`💬 Atlas response recorded: "${response.substring(0, 50)}..."`);
   }
 
   /**

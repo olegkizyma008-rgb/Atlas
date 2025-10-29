@@ -132,6 +132,11 @@ export class DevSelfAnalysisProcessor {
             // Gather REAL system context through MCP filesystem
             const systemContext = await this._gatherRealSystemContext(container);
             
+            // Initialize devProblemsQueue if not exists
+            if (!session.devProblemsQueue) {
+                session.devProblemsQueue = [];
+            }
+            
             // Ініціалізуємо chatThread якщо не існує (як у chat mode)
             if (!session.chatThread) {
                 session.chatThread = { messages: [], lastTopic: undefined };
@@ -864,6 +869,7 @@ export class DevSelfAnalysisProcessor {
      */
     async _createDetailedSubItems(item, result, session) {
         const subItems = [];
+        const parentItem = item; // Use item as parentItem for clarity
         
         // Analyze different aspects that need attention
         if (result.error) {
@@ -930,7 +936,7 @@ export class DevSelfAnalysisProcessor {
      */
     async _createSubItems(parentItem, result) {
         const subItems = [];
-        const baseId = parentItem.id;
+        const baseId = parentItem?.id || '1';
         
         if (result.metrics?.errorRate > this.metricsThresholds.errorRate) {
             subItems.push({
@@ -1130,6 +1136,19 @@ export class DevSelfAnalysisProcessor {
         }
     }
 
+    /**
+     * Detect if user is requesting code intervention
+     */
+    _detectInterventionRequest(userMessage) {
+        const msg = userMessage.toLowerCase();
+        const interventionKeywords = [
+            'виправ', 'fix', 'змін', 'change', 'модифік', 'modify',
+            'оновити', 'update', 'патч', 'patch', 'рефактор', 'refactor',
+            'код інтервенція', 'code intervention', 'внести зміни'
+        ];
+        return interventionKeywords.some(keyword => msg.includes(keyword));
+    }
+    
     /**
      * Determine analysis depth from user message
      */
@@ -1456,9 +1475,18 @@ export class DevSelfAnalysisProcessor {
             };
             
             // Store in memory (using correct MCP API)
-            await memoryServer.call('store_memory', {
-                key: `dev_analysis_${session.id}_${Date.now()}`,
-                value: JSON.stringify(memoryEntry)
+            // Using memory__create_entities to store analysis results
+            await memoryServer.call('create_entities', {
+                entities: [{
+                    name: `DevAnalysis_${session.id}_${Date.now()}`,
+                    entityType: 'analysis',
+                    observations: [
+                        `User request: ${memoryEntry.user_request}`,
+                        `Critical issues found: ${memoryEntry.critical_issues}`,
+                        `Recommendations: ${JSON.stringify(memoryEntry.recommendations)}`,
+                        `Timestamp: ${memoryEntry.timestamp}`
+                    ]
+                }]
             });
             
             this.logger.info('[DEV-ANALYSIS] 💾 Analysis context saved to memory', {

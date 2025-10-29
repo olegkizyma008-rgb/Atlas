@@ -38,6 +38,8 @@ RULES:
    • Requests to analyze Atlas's own architecture, logs, or performance.
    • Requests to fix or improve Atlas's own codebase.
    • Deep system diagnostics or intervention requests.
+   • IMPORTANT: "Внеси зміни" or "Make changes" AFTER a DEV analysis should trigger dev mode.
+   • If user references fixing errors from previous analysis, choose "dev".
    ⚠️ This mode requires password authentication for code changes!
 
 4. Mixed requests (conversation plus action):
@@ -66,7 +68,9 @@ CRITICAL PATTERNS FOR DEV MODE:
 ✅ Log analysis: "проаналізуй логи", "analyze logs", "помилки в логах", "errors in logs", "error patterns"
 ✅ Performance: "твоя продуктивність", "your performance", "оптимізація", "optimization", "bottlenecks"
 ✅ Intervention: "виправ себе", "fix yourself", "покращ себе", "improve yourself", "refactor"
+✅ Code changes: "внеси зміни", "make changes", "виправ помилки", "fix errors" (especially after analysis)
 ✅ Debug mode: "режим дев", "dev mode", "режим розробника", "developer mode", "debug"
+✅ Context-aware: If discussing errors/issues from self-analysis, continue in dev mode
 
 CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Greetings/Привітання: "Привіт", "Hello", "Hi", "Hey", "Доброго дня", "Вітаю"

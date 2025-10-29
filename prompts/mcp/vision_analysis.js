@@ -49,8 +49,8 @@ CRITICAL RULES:
 3. For text: must match exactly (case-sensitive unless specified)
 4. Distinguish between actual results and UI chrome (menus, timestamps, ports)
 5. Incomplete operations or intermediate states are NOT valid results
-6. For Calculator.app on macOS: Look for the Calculator window with its distinctive UI (gray background, number display, buttons)
-7. Calculator can be verified as "open" if the Calculator window is visible, even if partially obscured
+6. For macOS applications: Look for the application window with its distinctive UI elements
+7. An application can be verified as "open" if its window is visible, even if partially obscured
 
 Return this exact JSON structure:
 {

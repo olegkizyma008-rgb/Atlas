@@ -156,17 +156,17 @@ end tell
 - One applescript__execute can contain 10+ commands
 - DON'T return needs_split for calculator operations!
 
-**EXAMPLE - Calculator (333 + 222 + 111):**
-✅ CORRECT - One tool call:
+**EXAMPLE - Any App Operation:**
+✅ CORRECT - Universal pattern for any app:
 {
   "tool_calls": [{
     "server": "applescript",
     "tool": "applescript__execute",
     "parameters": {
-      "code_snippet": "tell application \"Calculator\" to activate\ndelay 1.0\ntell application \"System Events\"\n    tell process \"Calculator\"\n        -- Clear any previous input\n        keystroke \"c\" using {command down}\n        delay 0.2\n        -- Enter calculation\n        keystroke \"333\"\n        keystroke \"+\"\n        keystroke \"222\"\n        keystroke \"+\"\n        keystroke \"111\"\n        keystroke return\n    end tell\nend tell"
+      "code_snippet": "tell application \"AppName\" to activate\ndelay 1.0\ntell application \"System Events\"\n    tell process \"AppName\"\n        -- Your operations here\n        keystroke \"text to type\"\n        keystroke return\n    end tell\nend tell"
     }
   }],
-  "reasoning": "виконую операцію в калькуляторі",
+  "reasoning": "виконую операцію в додатку",
   "needs_split": false
 }
 

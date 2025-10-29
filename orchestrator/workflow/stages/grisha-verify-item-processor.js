@@ -414,11 +414,14 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📂 Full path: ${screenshot.filepath}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📷 Capture mode: ${screenshot.mode}${screenshot.targetApp ? ' (' + screenshot.targetApp + ')' : ''}`);
 
-            // Add delay for Calculator to fully render
+            // Add delay for any GUI app to fully render
             const actionLower = (currentItem.action || '').toLowerCase();
-            if (targetApp === 'Calculator' || actionLower.includes('калькулятор') || actionLower.includes('calculator')) {
-                this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ⏱️ Waiting 2s for Calculator to fully render...');
-                await new Promise(resolve => setTimeout(resolve, 2000));
+            if (targetApp || this._detectsAppInteraction(actionLower)) {
+                const delayMs = this._getAppRenderDelay(targetApp, actionLower);
+                if (delayMs > 0) {
+                    this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ⏱️ Waiting ${delayMs}ms for ${targetApp || 'application'} to fully render...`);
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                }
             }
 
             // Step 2: Analyze screenshot with AI vision
@@ -428,8 +431,7 @@ export class GrishaVerifyItemProcessor {
                 executionResults: execution.results || [],
                 modelType: modelType,  // 'fast' for attempt 1, 'primary' for attempt 2
                 captureDecision,
-                targetApp: targetApp || 'Unknown',
-                isCalculatorTask: targetApp === 'Calculator' || actionLower.includes('калькулятор') || actionLower.includes('calculator')
+                targetApp: targetApp || 'Unknown'
             };
 
             let visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
@@ -1698,13 +1700,67 @@ export class GrishaVerifyItemProcessor {
      * @private
      */
     _normalizeAppName(appName) {
-        if (!appName) return appName;
+        // Capitalize first letter of each word
+        return appName.split(/\s+/).map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+    }
+    
+    /**
+     * Get appropriate render delay for app
+     * 
+     * @private
+     */
+    _getAppRenderDelay(targetApp, action) {
+        // Intelligent delay based on app complexity
+        const actionLower = action.toLowerCase();
         
-        // Intelligent normalization without hardcoding
-        // Just capitalize properly and handle common patterns
-        return appName.split(/\s+/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
+        // Heavy apps need more time
+        if (targetApp && (targetApp.includes('Xcode') || targetApp.includes('Photoshop') || 
+            targetApp.includes('Final Cut') || targetApp.includes('Logic'))) {
+            return 3000;
+        }
+        
+        // Medium apps
+        if (targetApp && (targetApp.includes('Safari') || targetApp.includes('Chrome') || 
+            targetApp.includes('Firefox') || targetApp.includes('Pages') || 
+            targetApp.includes('Numbers') || targetApp.includes('Keynote'))) {
+            return 2000;
+        }
+        
+        // Light apps or general GUI operations
+        if (this._detectsAppInteraction(actionLower)) {
+            return 1500;
+        }
+        
+        // No delay needed
+        return 0;
+    }
+    
+    /**
+     * Extract app name from action for MCP checks
+     * 
+     * @private
+     */
+    _extractAppNameFromAction(actionLower) {
+        // Try to extract app name using intelligent patterns
+        const patterns = [
+            /(?:відкрити|open|запустити|launch|activate)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i,
+            /([\w\s]+?)\s+(?:програм|app|додаток)/i,
+            /(?:в|in|у)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i
+        ];
+        
+        for (const pattern of patterns) {
+            const match = actionLower.match(pattern);
+            if (match && match[1]) {
+                const appName = match[1].trim();
+                if (appName.length > 2 && !this._isCommonWord(appName)) {
+                    return this._normalizeAppName(appName);
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
@@ -1728,14 +1784,15 @@ export class GrishaVerifyItemProcessor {
             });
         }
         
-        // Calculator operations → AppleScript to get window state
-        if (actionLower.includes('калькулятор') || actionLower.includes('calculator')) {
+        // App window state verification → AppleScript
+        const appName = this._extractAppNameFromAction(actionLower);
+        if (appName) {
             checks.push({
                 server: 'applescript',
                 tool: 'applescript__applescript_execute',
-                description: 'Get Calculator window state and value',
+                description: `Get ${appName} window state`,
                 parameters: {
-                    code_snippet: 'tell application "System Events"\n    tell process "Calculator"\n        if exists window 1 then\n            return "Calculator is open"\n        else\n            return "Calculator is not open"\n        end if\n    end tell\nend tell'
+                    code_snippet: `tell application "System Events"\n    if exists process "${appName}" then\n        tell process "${appName}"\n            if exists window 1 then\n                return "${appName} is open with window visible"\n            else\n                return "${appName} is running but no window"\n            end if\n        end tell\n    else\n        return "${appName} is not running"\n    end if\nend tell`
                 }
             });
         }

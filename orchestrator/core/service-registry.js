@@ -432,6 +432,53 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'processors', priority: 44 }
     });
 
+    // Self-Correction Validator - NEW 29.10.2025
+    container.singleton('selfCorrectionValidator', (c) => {
+        const SelfCorrectionValidator = require('../ai/validation/self-correction-validator');
+        return new SelfCorrectionValidator(
+            c.resolve('logger'),
+            c.resolve('llmClient')
+        );
+    }, {
+        dependencies: ['logger', 'llmClient'],
+        metadata: { category: 'validators', priority: 43 }
+    });
+
+    // Context-Aware Tool Filter - NEW 29.10.2025
+    container.singleton('contextAwareToolFilter', (c) => {
+        const ContextAwareToolFilter = require('../ai/context-aware-tool-filter');
+        return new ContextAwareToolFilter(
+            c.resolve('logger')
+        );
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'filters', priority: 42 }
+    });
+
+    // Workflow State Machine - NEW 29.10.2025
+    container.singleton('workflowStateMachine', (c) => {
+        const { StateMachineFactory } = require('../workflow/state-machine');
+        return StateMachineFactory.createMCPWorkflow(
+            c.resolve('logger')
+        );
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'workflow', priority: 41 }
+    });
+
+    // Router Classifier Processor - NEW 29.10.2025
+    // Optional fast pre-filter before server selection
+    container.singleton('routerClassifier', (c) => {
+        const RouterClassifierProcessor = require('../workflow/stages/router-classifier-processor');
+        return new RouterClassifierProcessor(
+            c.resolve('logger'),
+            c.resolve('llmClient')
+        );
+    }, {
+        dependencies: ['logger', 'llmClient'],
+        metadata: { category: 'processors', priority: 40 }
+    });
+
     // Atlas TODO Planning Processor (Stage 1-MCP)
     container.singleton('atlasTodoPlanningProcessor', (c) => {
         return new AtlasTodoPlanningProcessor({

@@ -33,7 +33,7 @@ export class ServerSelectionProcessor {
     async execute(context) {
         this.logger.system('server-selection', '[STAGE-2.0-MCP] 🔍 Selecting MCP servers...');
 
-        const { currentItem, todo } = context;
+        const { currentItem, todo, container } = context;
 
         if (!currentItem) {
             throw new Error('currentItem is required for server selection');
@@ -44,9 +44,21 @@ export class ServerSelectionProcessor {
 
             // Отримати список доступних MCP серверів
             const availableServers = this._getAvailableServers();
-            const serversDescription = this._buildServersDescription(availableServers);
+            
+            // NEW: Use Router Classifier for initial fast filtering if available
+            let preFilteredServers = availableServers;
+            if (context.suggestedServers && context.suggestedServers.length > 0) {
+                // Router already narrowed down the selection
+                preFilteredServers = availableServers.filter(s => 
+                    context.suggestedServers.includes(s.name)
+                );
+                this.logger.system('server-selection', 
+                    `[STAGE-2.0-MCP] Using router suggestions: ${context.suggestedServers.join(', ')}`);
+            }
+            
+            const serversDescription = this._buildServersDescription(preFilteredServers);
 
-            this.logger.system('server-selection', `[STAGE-2.0-MCP] Available servers: ${availableServers.map(s => s.name).join(', ')}`);
+            this.logger.system('server-selection', `[STAGE-2.0-MCP] Available servers: ${preFilteredServers.map(s => s.name).join(', ')}`);
 
             // Викликати LLM для аналізу
             const result = await this._analyzeAndSelectServers(currentItem, serversDescription);

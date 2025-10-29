@@ -28,14 +28,29 @@ export class ValidationPipeline {
    * @param {Object} options.mcpManager - MCP Manager instance
    * @param {Object} options.historyManager - Tool History Manager instance
    * @param {Object} options.llmValidator - LLM Validator instance (optional)
+   * @param {Object} options.llmClient - LLM Client for self-correction (optional)
    */
   constructor(options = {}) {
     this.mcpManager = options.mcpManager;
     this.historyManager = options.historyManager;
     this.llmValidator = options.llmValidator;
+    this.llmClient = options.llmClient;
+    
+    // Initialize self-correction validator if llmClient available
+    if (this.llmClient) {
+        const SelfCorrectionValidator = require('./self-correction-validator');
+        this.selfCorrectionValidator = new SelfCorrectionValidator(
+            logger,
+            this.llmClient
+        );
+    } else {
+        this.selfCorrectionValidator = null;
+    }
 
     this.validators = new Map();
     this.config = VALIDATION_CONFIG;
+    // Enable self-correction by default
+    this.config.enableSelfCorrection = true;
 
     // Metrics
     this.metrics = {
@@ -78,18 +93,34 @@ export class ValidationPipeline {
 
     logger.system('validation-pipeline', `🔍 Starting validation for ${toolCalls.length} tool calls`);
 
+    // Step 0: Self-correction cycle (if enabled)
+    let correctedToolCalls = [...toolCalls];
+    let selfCorrectionResult = null;
+    
+    if (this.config.enableSelfCorrection && this.selfCorrectionValidator) {
+      logger.info('validation-pipeline', 'Running self-correction cycle');
+      selfCorrectionResult = await this.selfCorrectionValidator.validate(toolCalls, context);
+      
+      if (selfCorrectionResult.success && selfCorrectionResult.correctedPlan) {
+        correctedToolCalls = selfCorrectionResult.correctedPlan;
+        logger.info('validation-pipeline', `Self-correction applied ${selfCorrectionResult.attempts} corrections`);
+      }
+    }
+
     const result = {
       valid: true,
-      toolCalls: [...toolCalls],  // Copy for potential modifications
+      toolCalls: correctedToolCalls,
       errors: [],
       warnings: [],
       corrections: [],
       rejectedAt: null,
       stages: {},
+      selfCorrection: selfCorrectionResult,
       metadata: {
         totalDuration: 0,
         stagesExecuted: 0,
-        earlyRejection: false
+        earlyRejection: false,
+        selfCorrectionApplied: selfCorrectionResult?.success || false
       }
     };
 

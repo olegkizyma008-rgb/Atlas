@@ -105,6 +105,30 @@ export class TetyanaPlanToolsProcessor {
                 };
             }
 
+            // NEW 29.10.2025: Apply Context-Aware Tool Filter if available
+            let filteredTools = availableTools;
+            if (context.container) {
+                try {
+                    const contextFilter = context.container.resolve('contextAwareToolFilter');
+                    if (contextFilter) {
+                        const filterContext = {
+                            action: currentItem.action,
+                            targetFile: currentItem.parameters?.file,
+                            targetDir: currentItem.parameters?.directory,
+                            gitStatus: context.gitStatus,
+                            fileSystem: context.fileSystem,
+                            userLevel: context.userLevel || 'intermediate'
+                        };
+                        filteredTools = contextFilter.filterTools(availableTools, filterContext);
+                        this.logger.system('tetyana-plan-tools', 
+                            `[STAGE-2.1-MCP] 🎯 Context filter: ${availableTools.length} → ${filteredTools.length} tools`);
+                    }
+                } catch (err) {
+                    // Context filter not available, use all tools
+                    this.logger.debug('tetyana-plan-tools', 'Context filter not available');
+                }
+            }
+
             // NEW 20.10.2025: Use auto-assigned prompts from server selection stage
             // Prompts are automatically mapped in Stage 2.0 based on selected servers
             let promptOverride = null;

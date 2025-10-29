@@ -1,14 +1,13 @@
 /**
  * DEV Password Handler - Integration with WebSocket and Chat
  * Handles password dialog events and communication with backend
- * 
+ *
  * @version 1.0.0
  * @date 2025-10-28
  */
 
 import { devPasswordDialog } from '../components/dev-password-dialog.js';
 import { logger } from '../core/logger.js';
-import { orchestratorClient } from '../core/api-client.js';
 
 export class DevPasswordHandler {
   constructor(options = {}) {
@@ -17,7 +16,7 @@ export class DevPasswordHandler {
     this.wsClient = options.wsClient;
     this.currentSessionId = null;
     this.currentAnalysisData = null;
-    
+
     this.setupPasswordDialog();
   }
 
@@ -38,31 +37,38 @@ export class DevPasswordHandler {
 
   async handlePasswordRequest(data) {
     this.logger.info('DEV password request received', data);
-    
+
     this.currentSessionId = data.sessionId;
     this.currentAnalysisData = data.analysisData;
-    
+
     // Show fullscreen hacker dialog
     devPasswordDialog.show(data);
   }
 
   async submitPassword(password) {
     try {
-      this.logger.info('Submitting DEV password...');
-      
-      // Send password as regular chat message
-      // Backend will detect awaitingDevPassword state and process it
-      const response = await orchestratorClient.sendMessage(password, {
-        sessionId: this.currentSessionId
-      });
-      
-      // Hide dialog
+      this.logger.info('Processing DEV password locally...');
+
+      // Instead of making HTTP call, send password through WebSocket
+      // The server will handle it when awaitingDevPassword is true
+      if (this.wsClient && this.wsClient.sendMessage) {
+        // Send as regular message - server will detect awaitingDevPassword state
+        this.wsClient.sendMessage(password, {
+          sessionId: this.currentSessionId
+        });
+      } else {
+        this.logger.error('WebSocket client not available for password submission');
+        devPasswordDialog.showError('ПОМИЛКА ПЕРЕДАЧІ ПАРОЛЯ');
+        return;
+      }
+
+      // Hide dialog immediately - server will handle the response
       devPasswordDialog.hide();
-      
-      this.logger.info('DEV password submitted successfully');
-      
+
+      this.logger.info('DEV password sent through WebSocket');
+
     } catch (error) {
-      this.logger.error('Failed to submit DEV password', error);
+      this.logger.error('Failed to send DEV password through WebSocket', error);
       devPasswordDialog.showError('ПОМИЛКА ПЕРЕДАЧІ ПАРОЛЯ');
     }
   }
@@ -77,7 +83,7 @@ export class DevPasswordHandler {
     this.wsClient.on('dev_password_request', (data) => {
       this.handlePasswordRequest(data);
     });
-    
+
     this.logger.info('DEV password WebSocket listener registered');
   }
 

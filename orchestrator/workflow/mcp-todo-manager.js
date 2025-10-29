@@ -73,9 +73,12 @@ export class MCPTodoManager {
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.localizationService - Localization Service instance
      */
-  constructor({ logger, wsManager = null, localizationService = null }) {
+  constructor({ logger, wsManager = null, localizationService = null, mcpManager = null, ttsSyncManager = null, atlasReplanProcessor = null }) {
     this.logger = logger;
+    this.mcpManager = mcpManager;
     this.wsManager = wsManager;
+    this.ttsSyncManager = ttsSyncManager;
+    this.atlasReplanProcessor = atlasReplanProcessor;
     this.localizationService = localizationService || new LocalizationService({ logger });
     this.currentTodo = null;
     this.currentSessionId = null;

@@ -1081,14 +1081,24 @@ export class MCPTodoManager {
           });
           planPrompt = this._createUniversalPrompt(options.selectedServers);
         }
-      } else if (options.promptOverride && MCP_PROMPTS[options.promptOverride]) {
+      } else if (options.promptOverride && typeof options.promptOverride === 'string' && MCP_PROMPTS[options.promptOverride]) {
         // Single specialized prompt exists
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
       } else {
         // Fallback to universal prompt
         const servers = options.selectedServers || ['all'];
-        this.logger.warn(`[MCP-TODO] ⚠️ No specialized prompt found, using universal prompt for ${servers.join(', ')}`, {
+        
+        // FIXED 2025-10-29: Handle undefined promptOverride gracefully
+        if (options.promptOverride && !MCP_PROMPTS[options.promptOverride]) {
+          this.logger.warn(`[MCP-TODO] ⚠️ Prompt ${options.promptOverride} not found in MCP_PROMPTS`, {
+            category: 'mcp-todo',
+            component: 'mcp-todo',
+            availablePrompts: Object.keys(MCP_PROMPTS).join(', ')
+          });
+        }
+        
+        this.logger.warn(`[MCP-TODO] ⚠️ Using universal prompt for ${servers.join(', ')}`, {
           category: 'mcp-todo',
           component: 'mcp-todo'
         });

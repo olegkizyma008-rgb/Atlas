@@ -426,12 +426,24 @@ export class GrishaVerifyItemProcessor {
 
             // Step 2: Analyze screenshot with AI vision
             // ENHANCED 2025-10-22: Pass modelType for attempt-based model selection
+            // FIXED 2025-10-29: Add TODO context for mathematical operations
             const analysisContext = {
                 action: currentItem.action,
                 executionResults: execution.results || [],
                 modelType: modelType,  // 'fast' for attempt 1, 'primary' for attempt 2
                 captureDecision,
-                targetApp: targetApp || 'Unknown'
+                targetApp: targetApp || 'Unknown',
+                // Add TODO context for better understanding of mathematical operations
+                todoContext: {
+                    allItems: todo?.items?.map(item => ({
+                        id: item.id,
+                        action: item.action,
+                        status: item.status
+                    })) || [],
+                    currentItemIndex: todo?.items?.findIndex(item => item.id === currentItem.id) || 0,
+                    totalItems: todo?.items?.length || 1,
+                    originalUserRequest: todo?.user_message || currentItem.action
+                }
             };
 
             let visionAnalysis = await this.visionAnalysis.analyzeScreenshot(

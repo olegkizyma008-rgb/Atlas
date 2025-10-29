@@ -49,6 +49,12 @@ export const ANALYSIS_USER_PROMPT = `
 **Execution Summary:**
 {{EXECUTION_SUMMARY}}
 {{/if}}
+{{#if TODO_CONTEXT}}
+**Full Task Context:**
+- Original Request: {{TODO_CONTEXT.originalUserRequest}}
+- Current Step: {{TODO_CONTEXT.currentItemIndex}} of {{TODO_CONTEXT.totalItems}}
+- All Steps: {{TODO_CONTEXT.allItems}}
+{{/if}}
 
 Analyze the screenshot and verify if the success criteria is met.
 
@@ -60,6 +66,7 @@ CRITICAL RULES:
 5. Incomplete operations or intermediate states are NOT valid results
 6. For macOS applications: Look for the application window with its distinctive UI elements
 7. An application can be verified as "open" if its window is visible, even if partially obscured
+8. For mathematical operations: Read the EXACT result displayed in Calculator
 
 Return this exact JSON structure:
 {
@@ -69,7 +76,8 @@ Return this exact JSON structure:
   "visual_evidence": {
     "observed": "EXACT value/text/state seen in screenshot",
     "matches_criteria": boolean,
-    "details": "specific visual details and context"
+    "details": "specific visual details and context",
+    "mathematical_result": "exact number if this is a calculation"
   },
   "suggestions": "what needs to change if not verified" or null
 }`;

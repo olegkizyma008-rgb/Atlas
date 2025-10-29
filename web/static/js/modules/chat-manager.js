@@ -981,10 +981,42 @@ export class ChatManager {
   }
 
   // FIXED 16.10.2025 - Handler for mode_selected event
+  // UPDATED 29.10.2025 - Додано mood інтеграцію з AtlasEmotionalStateService
   handleModeSelected(data) {
     this.logger.info('🎯 Mode selected', data);
     if (data.mode) {
-      this.logger.debug(`Chat mode: ${data.mode}`);
+      this.logger.debug(`Chat mode: ${data.mode}, mood: ${data.mood || 'neutral'}`);
+    }
+
+    // НОВИНКА (29.10.2025): Передаємо mood до GLB Living System
+    if (data.mood && window.app?.managers?.glbLivingSystem) {
+      const mood = data.mood;
+      this.logger.info(`🎨 Setting Atlas mood from LLM analysis: ${mood}`);
+      
+      // Мапимо mood на emotion для AtlasEmotionalStateService
+      const moodToEmotionMap = {
+        'happy': 'happy',
+        'excited': 'excited',
+        'curious': 'curious',
+        'focused': 'focused',
+        'calm': 'calm',
+        'thoughtful': 'thoughtful',
+        'concerned': 'concerned',
+        'frustrated': 'frustrated',
+        'sad': 'sad',
+        'angry': 'angry',
+        'proud': 'proud',
+        'creative': 'creative',
+        'grateful': 'grateful',
+        'playful': 'playful',
+        'neutral': 'neutral'
+      };
+
+      const emotion = moodToEmotionMap[mood] || 'neutral';
+      const intensity = 0.8; // Висока інтенсивність для LLM-визначеного настрою
+      const duration = 5000; // 5 секунд плавного переходу
+
+      window.app.managers.glbLivingSystem.setEmotion(emotion, intensity, duration);
     }
   }
 

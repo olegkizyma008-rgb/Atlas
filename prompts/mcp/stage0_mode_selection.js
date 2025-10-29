@@ -91,34 +91,67 @@ CONFIDENCE:
 - Use 0.9-0.95 for clear task commands
 - Use 0.7-0.9 for ambiguous cases
 
+MOOD ANALYSIS (CRITICAL - ANALYZE EMOTIONAL CONTEXT):
+Analyze the user's emotional state from the ENTIRE conversation context, not just keywords.
+Consider:
+- Previous conversation history and emotional trajectory
+- Subtle emotional cues and undertones
+- Context of the request (urgent, casual, frustrated, excited, etc.)
+- User's relationship with Atlas (trust, concern, curiosity, etc.)
+
+Return mood as ONE of these emotional states (with smooth gradients between them):
+- "neutral" - calm, balanced, no strong emotion
+- "happy" - joyful, pleased, satisfied, content
+- "excited" - enthusiastic, energetic, eager
+- "curious" - interested, inquisitive, exploring
+- "focused" - concentrated, determined, working
+- "calm" - peaceful, relaxed, tranquil
+- "thoughtful" - contemplative, reflective, pondering
+- "concerned" - worried, anxious, uneasy
+- "frustrated" - annoyed, impatient, struggling
+- "sad" - disappointed, melancholic, down
+- "angry" - upset, irritated, hostile
+- "proud" - accomplished, confident, successful
+- "creative" - inspired, imaginative, innovative
+- "grateful" - thankful, appreciative, warm
+- "playful" - humorous, lighthearted, fun
+
+IMPORTANT: 
+- Mood should reflect REAL emotional analysis, not keyword matching
+- Consider conversation flow and context changes
+- Smooth transitions between moods (e.g., frustrated → concerned → calm)
+- Explosive changes are possible (e.g., neutral → angry if provoked)
+- Default to "neutral" only if truly no emotional indicators
+
 OUTPUT FORMAT (STRICT JSON - NO MARKDOWN):
 {
   "mode": "chat" | "task" | "dev",
   "confidence": 0.95,
-  "reasoning": "brief explanation in Ukrainian"
+  "reasoning": "brief explanation in Ukrainian",
+  "mood": "emotional state based on context"
 }
 
 ⚠️ REMEMBER: mode field MUST be EXACTLY "chat", "task", or "dev" - NO other values allowed!
 
 EXAMPLES:
-{"mode": "task", "confidence": 0.95, "reasoning": "Команда відкрити додаток"} ← "Відкрий калькулятор"
-{"mode": "task", "confidence": 0.9, "reasoning": "Automation request"} ← "Open YouTube"
-{"mode": "chat", "confidence": 0.98, "reasoning": "Привітання"} ← "Привіт"
-{"mode": "chat", "confidence": 0.98, "reasoning": "Особисте запитання"} ← "Як справи?"
-{"mode": "chat", "confidence": 0.97, "reasoning": "Розмовне запитання"} ← "як твої справи?"
-{"mode": "chat", "confidence": 0.96, "reasoning": "Подяка"} ← "Дякую, що тут"
-{"mode": "chat", "confidence": 0.95, "reasoning": "Запит пояснення"} ← "Поясни що таке AI"
-{"mode": "chat", "confidence": 0.93, "reasoning": "Запит на анекдот"} ← "Розкажи анекдот"
-{"mode": "chat", "confidence": 0.97, "reasoning": "Питання про можливості Атласа"} ← "Чи ти маєш довготривалу пам'ять?"
-{"mode": "chat", "confidence": 0.96, "reasoning": "Питання про здібності"} ← "Чи ти вмієш програмувати?"
-{"mode": "chat", "confidence": 0.95, "reasoning": "Питання про знання"} ← "Що ти знаєш про мене?"
-{"mode": "chat", "confidence": 0.97, "reasoning": "Питання про пам'ять Атласа"} ← "Чи ти все пам'ятаєш про наші розмови?"
-{"mode": "chat", "confidence": 0.96, "reasoning": "Питання про попередні сесії"} ← "Ти пам'ятаєш що ми обговорювали раніше?"
-{"mode": "chat", "confidence": 0.95, "reasoning": "Питання про контекст"} ← "Чи ти пам'ятаєш наші попередні розмови?"
-{"mode": "dev", "confidence": 0.98, "reasoning": "Запит на самоаналіз"} ← "Проаналізуй свої логи"
-{"mode": "dev", "confidence": 0.97, "reasoning": "Аналіз власного коду"} ← "Перевір свою архітектуру"
-{"mode": "dev", "confidence": 0.96, "reasoning": "Запит на самодіагностику"} ← "Проаналізуй себе"
-{"mode": "dev", "confidence": 0.95, "reasoning": "Режим розробника"} ← "Перейди в режим дев"
+{"mode": "task", "confidence": 0.95, "reasoning": "Команда відкрити додаток", "mood": "focused"} ← "Відкрий калькулятор"
+{"mode": "task", "confidence": 0.9, "reasoning": "Automation request", "mood": "focused"} ← "Open YouTube"
+{"mode": "chat", "confidence": 0.98, "reasoning": "Привітання", "mood": "happy"} ← "Привіт"
+{"mode": "chat", "confidence": 0.98, "reasoning": "Особисте запитання", "mood": "curious"} ← "Як справи?"
+{"mode": "chat", "confidence": 0.97, "reasoning": "Розмовне запитання", "mood": "calm"} ← "як твої справи?"
+{"mode": "chat", "confidence": 0.96, "reasoning": "Подяка", "mood": "grateful"} ← "Дякую, що тут"
+{"mode": "chat", "confidence": 0.95, "reasoning": "Запит пояснення", "mood": "curious"} ← "Поясни що таке AI"
+{"mode": "chat", "confidence": 0.93, "reasoning": "Запит на анекдот", "mood": "playful"} ← "Розкажи анекдот"
+{"mode": "chat", "confidence": 0.97, "reasoning": "Питання про можливості Атласа", "mood": "curious"} ← "Чи ти маєш довготривалу пам'ять?"
+{"mode": "chat", "confidence": 0.96, "reasoning": "Питання про здібності", "mood": "curious"} ← "Чи ти вмієш програмувати?"
+{"mode": "chat", "confidence": 0.95, "reasoning": "Питання про знання", "mood": "curious"} ← "Що ти знаєш про мене?"
+{"mode": "chat", "confidence": 0.97, "reasoning": "Питання про пам'ять Атласа", "mood": "curious"} ← "Чи ти все пам'ятаєш про наші розмови?"
+{"mode": "chat", "confidence": 0.96, "reasoning": "Питання про попередні сесії", "mood": "curious"} ← "Ти пам'ятаєш що ми обговорювали раніше?"
+{"mode": "chat", "confidence": 0.95, "reasoning": "Питання про контекст", "mood": "curious"} ← "Чи ти пам'ятаєш наші попередні розмови?"
+{"mode": "dev", "confidence": 0.98, "reasoning": "Запит на самоаналіз", "mood": "focused"} ← "Проаналізуй свої логи"
+{"mode": "dev", "confidence": 0.97, "reasoning": "Аналіз власного коду", "mood": "focused"} ← "Перевір свою архітектуру"
+{"mode": "dev", "confidence": 0.96, "reasoning": "Запит на самодіагностику", "mood": "concerned"} ← "Проаналізуй себе"
+{"mode": "dev", "confidence": 0.95, "reasoning": "Режим розробника", "mood": "focused"} ← "Перейди в режим дев"
 
 ⚠️ CRITICAL RULES:
 1. mode MUST be EXACTLY "chat", "task", or "dev" - NOTHING ELSE!

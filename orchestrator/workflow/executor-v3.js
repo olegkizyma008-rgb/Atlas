@@ -183,10 +183,12 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
     const mode = modeResult.mode;
     const confidence = modeResult.confidence;
+    const mood = modeResult.mood || 'neutral'; // НОВИНКА (29.10.2025): Mood з LLM аналізу
 
-    logger.workflow('stage', 'system', `Mode selected: ${mode} (confidence: ${confidence})`, {
+    logger.workflow('stage', 'system', `Mode selected: ${mode} (confidence: ${confidence}, mood: ${mood})`, {
       sessionId: session.id,
-      reasoning: modeResult.reasoning
+      reasoning: modeResult.reasoning,
+      mood: mood
     });
 
     // Send mode selection to frontend via SSE
@@ -196,7 +198,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         data: {
           mode,
           confidence,
-          reasoning: modeResult.reasoning
+          reasoning: modeResult.reasoning,
+          mood: mood // НОВИНКА (29.10.2025): Передаємо mood до frontend
         }
       })}\n\n`);
     }

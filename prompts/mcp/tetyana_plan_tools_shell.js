@@ -155,7 +155,7 @@ RESPONSE FORMAT (REQUIRED):
   "tool_calls": [
     {
       "server": "shell",
-      "tool": "shell__execute_command",
+      "tool": "shell_execute_command",
       "parameters": {
         "command": "your command here"
       }

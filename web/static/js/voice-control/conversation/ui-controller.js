@@ -35,7 +35,7 @@ export class ConversationUIController {
 
     // Animation timeouts
     this.animationTimeouts = [];
-    
+
     // Logger instance
     this.logger = logger;
 
@@ -96,15 +96,22 @@ export class ConversationUIController {
 
     // Очистити всі класи режимів
     this.clearModeClasses();
-    
+
+    // Видалити специфічні класи keyword-waiting
+    this.micButton?.classList.remove('keyword-waiting');
+    this.micButton?.classList.remove('breathing');
+
     // Додати клас режиму idle
     this.micButton?.classList.add(UIClasses.MODE_IDLE);
-    
+
     // Оновити іконку кнопки
     this.updateButtonIcon('🔵'); // Синій кружок - ready
 
     // Сховати статус
     this.hideStatus();
+
+    // Очистити всі анімації
+    this.clearAnimations();
 
     logger.debug('🎨 UI updated: IDLE mode');
   }
@@ -382,20 +389,20 @@ export class ConversationUIController {
      */
   showConversationWaitingForKeyword() {
     this.hideRecording();
-    
+
     // Clear all mode classes
     this.clearModeClasses();
-    
+
     // Додати keyword-waiting клас (pulse + breathing - ІДЕНТИЧНИЙ початковому)
     this.micButton?.classList.add('keyword-waiting');
     this.micButton?.classList.add('breathing');
-    
+
     // Жовта іконка
     this.updateButtonIcon('🟡'); // Жовтий - waiting for keyword
-    
+
     // Status message
     this.showListeningForKeyword();
-    
+
     this.logger.debug('🎨 UI updated: KEYWORD_WAITING mode (pulse + breathing)');
   }
 
@@ -448,7 +455,7 @@ export class ConversationUIController {
      */
   updateButtonIcon(icon) {
     if (!this.micButton) return;
-    
+
     const textElement = this.micButton.querySelector('.btn-text');
     if (textElement) {
       textElement.textContent = icon;

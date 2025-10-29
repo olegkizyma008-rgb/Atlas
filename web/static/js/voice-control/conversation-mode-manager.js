@@ -548,7 +548,7 @@ export class ConversationModeManager {
       // FIXED (12.10.2025): Використовуємо window.eventManager для TTS (глобальний, НЕ локальний!)
       // TTS Manager підписаний на window.eventManager, НЕ на this.eventManager
       const globalEventManager = window.eventManager || this.eventManager;
-      
+
       // Емітуємо подію для TTS (isActivationResponse=true означає що після цього треба запис)
       globalEventManager.emit('TTS_SPEAK_REQUEST', {
         text: activationResponse,
@@ -853,13 +853,7 @@ export class ConversationModeManager {
     if (this.pendingMessage) {
       this.logger.info(`📤 Sending pending message: "${this.pendingMessage.text}"`);
       this.logger.info(`⚠️ Pending message is DUPLICATE - Atlas TTS already played, starting continuous listening`);
-      const { text, metadata } = this.pendingMessage;
-      this.pendingMessage = null; // Очищуємо pending
-
-      // Відправляємо pending (може бути проігноровано якщо вже відправлено)
-      setTimeout(() => {
-        this.sendToChat(text, metadata);
-      }, 100);
+      this.pendingMessage = null; // Очищуємо pending БЕЗ відправки
 
       // КРИТИЧНО: Запускаємо continuous listening БЕЗ очікування нового TTS
       // Бо pending message - це ДУБЛІКАТ, Atlas вже відповів!
@@ -913,10 +907,10 @@ export class ConversationModeManager {
      */
   onUserSilenceTimeout() {
     this.state.setWaitingForUserResponse(false);
-    
+
     // ✅ CRITICAL FIX (12.10.2025): Показати ЖОВТУ кнопку (waiting for keyword), НЕ idle!
     this.ui?.showConversationWaitingForKeyword(); // Жовта кнопка + breathing animation
-    
+
     // ✅ Залишаємось в conversation mode, просто чекаємо "Атлас"
     this.logger.info('🔄 Returning to keyword detection mode after silence');
 
@@ -940,12 +934,18 @@ export class ConversationModeManager {
   sendToChat(text, metadata = {}) {
     this.logger.info(`📨 Sending to chat: "${text}"`);
 
+    // КРИТИЧНО: Перевірка чи вже є pending message
+    if (this.pendingMessage && this.pendingMessage.text === text) {
+      this.logger.warn(`⚠️ Message already pending, skipping duplicate: "${text}"`);
+      return;
+    }
+
     // КРИТИЧНО: Перевірка чи попередній stream завершився
     // Chat Manager відкидає повідомлення якщо isStreaming = true
     if (this.chatManager && this.chatManager.isStreaming) {
       this.logger.warn(`⚠️ Cannot send message - chat is still streaming previous response`);
       this.logger.warn(`⏳ Queueing message: "${text}"`);
-      
+
       // Зберігаємо для відправки після завершення TTS
       this.pendingMessage = { text, metadata };
       return;

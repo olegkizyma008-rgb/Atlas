@@ -270,7 +270,7 @@ export class WhisperKeywordDetection extends BaseService {
         // Якщо занадто багато помилок - зупиняємо
         if (this.errorCount >= this.maxRetries) {
           this.logger.error('Max retries reached, stopping keyword detection');
-          this.stop();
+          this.stopListening();
           return;
         }
       })

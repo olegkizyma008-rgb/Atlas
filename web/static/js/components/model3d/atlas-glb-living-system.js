@@ -92,6 +92,7 @@ export class AtlasGLBLivingSystem {
       // TTS стан
       isSpeaking: false,
       speechIntensity: 0,
+      isListening: false,
 
       // Пам'ять і навчання
       interactionHistory: [],
@@ -101,7 +102,12 @@ export class AtlasGLBLivingSystem {
       // Анімація
       breathingPhase: 0,
       idlePhase: 0,
-      microMovementPhase: 0
+      microMovementPhase: 0,
+
+      // НОВИНКА (29.10.2025): Система пріоритетів анімацій
+      animationMode: 'idle', // 'idle', 'gesture', 'speaking', 'listening'
+      isGestureActive: false,
+      eyeTrackingEnabled: true
     };
 
     // Емоційна палітра для різних агентів
@@ -405,23 +411,38 @@ export class AtlasGLBLivingSystem {
   /**
      * Відстеження очима (поворот шолома за мишкою)
      * ОНОВЛЕНО: Додано природні обмеження та ease-функції
+     * FIXED (29.10.2025): Вимкнено під час жестів, TTS та слухання
      */
   updateEyeTracking() {
-    const { mousePosition } = this.livingState;
-    const speed = this.config.eyeTrackingSpeed;
+    if (!this.config.enableEyeTracking || !this.livingState.isUserPresent) return;
 
-    // Обчислюємо цільову позицію (ІНВЕРТОВАНО ГОРИЗОНТАЛЬ)
-    let targetY = -mousePosition.x * 25; // Горизонтальний поворот (інвертовано)
-    let targetX = -mousePosition.y * 15; // Вертикальний нахил
+    // КРИТИЧНО: НЕ відстежуємо під час жестів, TTS або слухання
+    if (this.livingState.isGestureActive || 
+        this.livingState.isSpeaking || 
+        this.livingState.isListening ||
+        !this.livingState.eyeTrackingEnabled) {
+      return;
+    }
 
-    // Застосовуємо природні обмеження
-    targetY = this.clampRotation(targetY, this.config.maxRotationY);
-    targetX = this.clampRotation(targetX, this.config.maxRotationX);
+    const { x, y } = this.livingState.mousePosition;
 
-    // Ease-out для більш природного руху (сповільнення при наближенні до цілі)
-    const deltaY = targetY - this.livingState.targetRotation.y;
-    const deltaX = targetX - this.livingState.targetRotation.x;
-    
+    // Перетворення позиції мишки на обертання
+    const targetY = x * this.config.maxRotationY;
+    const targetX = -y * this.config.maxRotationX;
+
+    // Обмеження обертання
+    const clampedY = this.clampRotation(targetY, this.config.maxRotationY);
+    const clampedX = this.clampRotation(targetX, this.config.maxRotationX);
+
+    // Обчислення дельти (різниці) обертання
+    const deltaY = clampedY - this.livingState.targetRotation.y;
+    const deltaX = clampedX - this.livingState.targetRotation.x;
+
+    // Адаптивна швидкість: повільніше для близьких позицій
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const baseSpeed = this.config.eyeTrackingSpeed;
+    const speed = distance > 5 ? baseSpeed * 1.5 : baseSpeed * 0.8;
+
     // Квадратична ease-out функція
     const easeOutQuad = (t) => t * (2 - t);
     const easedSpeed = easeOutQuad(speed);
@@ -440,8 +461,16 @@ export class AtlasGLBLivingSystem {
   /**
      * Idle поведінка - періодичні рухи коли нічого не відбувається
      * ОНОВЛЕНО: Додано виглядання за межі екрану як жива істота
+     * FIXED (29.10.2025): Вимкнено під час активних анімацій
      */
   updateIdleBehavior(timestamp) {
+    // КРИТИЧНО: НЕ виконуємо idle behavior під час жестів, TTS, слухання
+    if (this.livingState.isGestureActive || 
+        this.livingState.isSpeaking || 
+        this.livingState.isListening) {
+      return;
+    }
+
     const timeSinceLastActivity = timestamp - this.livingState.lastMouseMove;
 
     if (timeSinceLastActivity > 5000 && !this.livingState.isSpeaking) {
@@ -791,6 +820,7 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Початок мовлення (TTS)
+     * FIXED (29.10.2025): Блокує eye tracking під час мовлення
      */
   startSpeaking(agent = 'atlas', intensity = 0.8) {
     console.log(`🎤 ${agent} started speaking`);
@@ -798,6 +828,8 @@ export class AtlasGLBLivingSystem {
     this.livingState.isSpeaking = true;
     this.livingState.speechIntensity = intensity;
     this.livingState.currentAgent = agent;
+    this.livingState.animationMode = 'speaking';
+    this.livingState.eyeTrackingEnabled = false;
 
     // Емоція для агента
     const agentData = this.agentEmotions[agent] || this.agentEmotions['atlas'];
@@ -833,31 +865,30 @@ export class AtlasGLBLivingSystem {
       this.livingState.targetRotation.y = horizontalMove + randomFactor;
       this.livingState.targetRotation.x = verticalMove + randomFactor * 0.5;
       this.livingState.targetRotation.z = tiltMove;
-    }, 150); // Трохи швидше для більшої динаміки
+    }, this.config.ttsAnimationInterval);
   }
 
   /**
-     * Кінець мовлення
-     */
+   * Зупинка мовлення
+   * FIXED (29.10.2025): Розблоковує eye tracking після TTS
+   */
   stopSpeaking() {
-    console.log('🛑 Speaking stopped');
+    console.log('🔇 Stopped speaking');
 
     this.livingState.isSpeaking = false;
     this.livingState.speechIntensity = 0;
+    this.livingState.currentAgent = null;
+    this.livingState.animationMode = 'idle';
+    this.livingState.eyeTrackingEnabled = true;
 
+    // Зупиняємо анімацію мовлення
     if (this.speechAnimationInterval) {
       clearInterval(this.speechAnimationInterval);
+      this.speechAnimationInterval = null;
     }
 
-    // Повернення до нейтралі
-    this.setEmotion('satisfied', 0.6, 1500);
-  }
-
-  /**
-   * Compatibility method for TTS start (called from app-refactored.js)
-   */
-  onTTSStart(text, audioElement) {
-    this.startSpeaking(text, audioElement);
+    // Повертаємося до нейтрального стану
+    this.setEmotion('neutral', 0.5, 1000);
   }
 
   /**

@@ -227,6 +227,7 @@ export class GestureAnimator {
 
   /**
    * Виконання жесту
+   * FIXED (29.10.2025): Блокує eye tracking під час виконання
    */
   async performGesture(gesture, options = {}) {
     if (!gesture || this.isAnimating) {
@@ -239,6 +240,10 @@ export class GestureAnimator {
 
     this.isAnimating = true;
     this.currentGesture = gesture;
+
+    // КРИТИЧНО: Блокуємо eye tracking під час жесту
+    this.livingSystem.livingState.isGestureActive = true;
+    this.livingSystem.livingState.animationMode = 'gesture';
 
     console.log(`🎭 Performing gesture: ${gesture.label}`);
 
@@ -258,6 +263,10 @@ export class GestureAnimator {
 
     this.isAnimating = false;
     this.currentGesture = null;
+
+    // Розблоковуємо eye tracking
+    this.livingSystem.livingState.isGestureActive = false;
+    this.livingSystem.livingState.animationMode = 'idle';
 
     // Обробка черги
     if (this.gestureQueue.length > 0) {
@@ -329,32 +338,33 @@ export class GestureAnimator {
 
   /**
    * Повернення до нейтральної позиції
+   * FIXED (29.10.2025): Плавний перехід з ease-out
    */
   async returnToNeutral() {
-    return new Promise((resolve) => {
-      const startTime = Date.now();
-      const duration = 400;
+    const currentRotation = {
+      x: this.livingSystem.livingState.currentRotation.x,
+      y: this.livingSystem.livingState.currentRotation.y,
+      z: this.livingSystem.livingState.currentRotation.z
+    };
 
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = this.easeInOutCubic(progress);
-
-        this.livingSystem.livingState.targetRotation.x *= (1 - easedProgress);
-        this.livingSystem.livingState.targetRotation.y *= (1 - easedProgress);
-        this.livingSystem.livingState.targetRotation.z *= (1 - easedProgress);
-
-        if (progress < 1) {
-          this.animationFrame = requestAnimationFrame(animate);
-        } else {
-          // Скидаємо scale
-          this.livingSystem.modelViewer.scale = '1 1 1';
-          resolve();
+    // Плавний перехід до нейтральної позиції
+    const neutralGesture = {
+      label: 'neutral',
+      keyframes: [
+        {
+          rotation: { x: currentRotation.x * 0.5, y: currentRotation.y * 0.5, z: currentRotation.z * 0.5 },
+          scale: 1.0,
+          duration: 200
+        },
+        {
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: 1.0,
+          duration: 300
         }
-      };
-
-      animate();
-    });
+      ],
+      easing: 'ease-out'
+    };
+    await this.animateKeyframes(neutralGesture);
   }
 
   /**

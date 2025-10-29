@@ -1,20 +1,21 @@
 /**
  * @fileoverview Interrupt Detection Service
  * Виявлення спроб користувача перервати Atlas під час TTS
+ * UPDATED 2025-10-29: Покращена фільтрація для запобігання само-прослуховування
  *
  * WORKFLOW:
- * 1. TTS_STARTED → увімкнути continuous listening для interrupt keywords
- * 2. Whisper розпізнає фрагменти під час TTS
- * 3. Перевірка на interrupt keywords (стоп, почекай, перебиваю, тощо)
- * 4. INTERRUPT_DETECTED → пауза TTS → запит підтвердження → запис відповіді
- *
+ * 1. TTS_STARTED → увімкнути ТІЛЬКИ listening для interrupt keywords
+ * 2. Whisper розпізнає ТІЛЬКИ команди зупинки (стоп, почекай, досить)
+ * 3. ВСЕ ІНШЕ ігнорується під час TTS
+ * 4. INTERRUPT_DETECTED → пауза TTS → підтвердження
+ * 5. TTS_COMPLETED → вимкнути interrupt listening
  * @version 1.0.0
  * @date 2025-10-26
  */
 
 import { BaseService } from '../core/base-service.js';
 import { Events } from '../events/event-manager.js';
-import { containsInterruptKeyword } from '../utils/voice-utils.js';
+// Removed unused import - using strict patterns instead
 import { API_ENDPOINTS } from '../../core/config.js';
 
 /**
@@ -76,7 +77,7 @@ export class InterruptDetectionService extends BaseService {
     }
 
     // Початок TTS - увімкнути interrupt listening
-    this.eventManager.on('TTS_STARTED', async (event) => {
+    this.eventManager.on('TTS_STARTED', async (_event) => {
       this.logger.info('🔊 TTS started - enabling interrupt detection');
       this.isTTSActive = true;
       await this.startListening();
@@ -366,17 +367,49 @@ export class InterruptDetectionService extends BaseService {
 
   /**
    * Перевірка тексту на interrupt keyword
+   * UPDATED 2025-10-29: Суворіша фільтрація під час TTS
    */
   checkForInterrupt(text) {
     if (!text) {
       return;
     }
 
-    // Перевірка через voice-utils
-    const hasInterrupt = containsInterruptKeyword(text);
+    // КРИТИЧНО: Під час TTS слухаємо ТІЛЬКИ команди зупинки
+    // Ігноруємо все інше включаючи власний голос Atlas
+    const textLower = text.toLowerCase().trim();
+
+    // Список ТОЧНИХ команд переривання
+    const STRICT_INTERRUPT_PATTERNS = [
+      'стоп',
+      'зупинись',
+      'досить',
+      'почекай',
+      'тихо',
+      'замовкни',
+      'перестань',
+      'припини',
+      'stop',
+      'wait',
+      'pause'
+    ];
+
+    // Перевіряємо чи текст містить ТІЛЬКИ команду зупинки
+    // Довгі речення ігноруються (Atlas говорить довгими реченнями)
+    const words = textLower.split(' ').filter(w => w.length > 0);
+
+    // Якщо більше 3 слів - це не команда, а само-прослуховування
+    if (words.length > 3) {
+      this.logger.debug(`Ignored long phrase during TTS: "${text}"`);
+      return;
+    }
+
+    // Перевіряємо чи є команда переривання
+    const hasInterrupt = STRICT_INTERRUPT_PATTERNS.some(pattern =>
+      textLower.includes(pattern)
+    );
 
     if (hasInterrupt) {
-      this.logger.info(`🛑 INTERRUPT DETECTED: "${text}"`);
+      this.logger.info(`🛑 INTERRUPT COMMAND DETECTED: "${text}"`);
 
       // Генерація відповіді на переривання
       const response = this.getRandomInterruptResponse();
@@ -390,6 +423,8 @@ export class InterruptDetectionService extends BaseService {
 
       // Зупинка listening після виявлення
       this.stopListening();
+    } else {
+      this.logger.debug(`Not an interrupt command, ignoring: "${text}"`);
     }
   }
 

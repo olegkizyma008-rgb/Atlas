@@ -4,7 +4,7 @@
  */
 
 import { BaseService } from '../core/base-service.js';
-import { Events, eventManager } from '../events/event-manager.js';
+import { Events } from '../events/event-manager.js';
 import { ConversationEvents } from '../conversation/constants.js'; // ADDED: для conversation events
 import { createLogger } from '../core/logger.js';
 import { MediaManager } from './microphone/media-manager.js';
@@ -600,6 +600,16 @@ export class MicrophoneButtonService extends BaseService {
      * Підписка на події системи
      */
   subscribeToSystemEvents() {
+    // ADDED 2025-10-29: TTS lock для запобігання само-прослуховування
+    // Блокування мікрофона коли Atlas говорить
+    this.eventManager.on(Events.TTS_STARTED, (event) => {
+      this.handleTTSStarted(event);
+    });
+
+    this.eventManager.on(Events.TTS_COMPLETED, (event) => {
+      this.handleTTSCompleted(event);
+    });
+
     // Готовність до голосової активації
     this.subscribe(Events.SPEECH_READY, () => {
       if (this.currentState === 'idle') {
@@ -609,7 +619,7 @@ export class MicrophoneButtonService extends BaseService {
 
     // Виявлення ключових слів
     this.subscribe(Events.KEYWORD_DETECTED, (event) => {
-      if (this.config.enableVoiceActivation && this.currentState === 'idle') {
+      if (this.config.enableVoiceActivation && this.currentState === 'idle' && !this._ttsLocked) {
         this.handleVoiceActivation(event.payload);
       }
     });
@@ -956,6 +966,15 @@ export class MicrophoneButtonService extends BaseService {
      * @returns {Promise<void>}
      */
   async startRecording(trigger, metadata = {}) {
+    // ADDED 2025-10-29: Блокування запису під час TTS
+    if (this._ttsLocked) {
+      this.logger.warn('Recording blocked during TTS playback', {
+        trigger,
+        agent: this._ttsAgent
+      });
+      return;
+    }
+
     try {
       this.logger.info(`Starting recording (trigger: ${trigger})`);
 
@@ -1100,10 +1119,10 @@ export class MicrophoneButtonService extends BaseService {
       // Використовуємо довший timeout для conversation mode
       // Після activation TTS користувачу потрібен час подумати
       const isConversationMode = this.currentSession?.trigger === 'voice_activation';
-      const timeout = isConversationMode 
-        ? this.config.conversationSilenceTimeout 
+      const timeout = isConversationMode
+        ? this.config.conversationSilenceTimeout
         : this.config.silenceTimeout;
-      
+
       this.logger.debug(`Setting silence timeout: ${timeout}ms (conversation: ${isConversationMode})`);
       
       this.silenceTimer = setTimeout(() => {
@@ -1373,6 +1392,73 @@ export class MicrophoneButtonService extends BaseService {
       this.logger.error('Error during force stop', null, error);
       this.setState('error', 'Force stop error');
     }
+  }
+
+  /**
+     * Обробка початку TTS
+     * ADDED 2025-10-29: Блокування мікрофона під час програвання TTS
+     * @param {Object} event - TTS event
+     */
+  handleTTSStarted(event) {
+    const agent = event?.payload?.agent || event?.agent || 'atlas';
+    
+    this.logger.info(`🔊 TTS started - locking microphone to prevent self-listening`, {
+      agent,
+      previousState: this.currentState,
+      wasRecording: this.isRecording()
+    });
+
+    // Зберігаємо стан до TTS
+    this._preTTSState = this.currentState;
+    this._ttsLocked = true;
+    this._ttsAgent = agent;
+    this._ttsLockTimestamp = Date.now();
+
+    // Якщо йшов запис - зупиняємо
+    if (this.isRecording()) {
+      this.logger.warn('Stopping active recording due to TTS start');
+      this.stopRecording('tts_interrupt').catch(err => {
+        this.logger.error('Failed to stop recording for TTS', null, err);
+      });
+    }
+
+    // Встановлюємо safety timeout
+    this._setupTTSTimeoutTimer();
+
+    // Оновлюємо UI
+    if (this.animationController) {
+      this.animationController.setState('disabled', 'TTS Active');
+    }
+  }
+
+  /**
+     * Обробка завершення TTS
+     * ADDED 2025-10-29: Розблокування мікрофона після TTS
+     * @param {Object} event - TTS event
+     */
+  handleTTSCompleted(event) {
+    const agent = event?.payload?.agent || event?.agent || 'atlas';
+    const lockDuration = this._ttsLockTimestamp ? Date.now() - this._ttsLockTimestamp : 0;
+    
+    this.logger.info(`✅ TTS completed - unlocking microphone`, {
+      agent,
+      lockDuration,
+      preTTSState: this._preTTSState
+    });
+
+    // Скидаємо lock
+    this._ttsLocked = false;
+    this._ttsAgent = null;
+    this._ttsLockTimestamp = null;
+    this._clearTTSTimeoutTimer();
+
+    // Відновлюємо UI стан
+    if (this.animationController && this._preTTSState) {
+      this.animationController.setState(this._preTTSState);
+    }
+
+    // НЕ запускаємо автоматично запис - це має робити ConversationModeManager
+    this._preTTSState = null;
   }
 
   /**

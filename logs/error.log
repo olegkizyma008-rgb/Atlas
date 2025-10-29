@@ -1216,3 +1216,18 @@ rect (-1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
     at async GrishaVerifyItemProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/grisha-verify-item-processor.js:250:32)
     at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1403:32)
     at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 20:04:03 [ERROR] [STAGE-0-MCP] Mode selection failed: timeout of 60000ms exceeded {"metadata":{}}
+2025-10-29 20:04:03 [ERROR] [STAGE-0-MCP] Error stack: AxiosError: timeout of 60000ms exceeded
+    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)
+    at RedirectableRequest.emit (node:events:519:28)
+    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+    at Axios.request (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/core/Axios.js:45:41)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async ModeSelectionProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/mode-selection-processor.js:89:30)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:179:24)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{}}
+2025-10-29 20:04:03 [ERROR] [STAGE-0-MCP] Error name: AxiosError {"metadata":{}}
+2025-10-29 20:04:03 [ERROR] [STAGE-0-MCP] No response received from API {"metadata":{}}

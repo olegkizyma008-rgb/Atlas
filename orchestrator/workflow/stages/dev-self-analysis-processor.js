@@ -1404,6 +1404,28 @@ export class DevSelfAnalysisProcessor {
     }
 
     /**
+     * Analyze memory usage patterns
+     */
+    async _analyzeMemoryPatterns() {
+        const memUsage = process.memoryUsage();
+        const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+        const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+        const rssMB = Math.round(memUsage.rss / 1024 / 1024);
+        
+        return {
+            current: {
+                heapUsed: heapUsedMB,
+                heapTotal: heapTotalMB,
+                rss: rssMB,
+                external: Math.round(memUsage.external / 1024 / 1024)
+            },
+            utilization: (heapUsedMB / heapTotalMB * 100).toFixed(2) + '%',
+            status: heapUsedMB > 500 ? 'warning' : 'healthy',
+            recommendation: heapUsedMB > 500 ? 'Consider memory optimization' : null
+        };
+    }
+
+    /**
      * Save analysis context to memory
      */
     async _saveAnalysisToMemory(analysisResult, session) {

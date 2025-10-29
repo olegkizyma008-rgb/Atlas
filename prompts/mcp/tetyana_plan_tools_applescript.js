@@ -35,8 +35,8 @@ Before generating tool calls, you MUST provide your reasoning:
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},
-    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},  ← BAD comma!
+    {"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "..."}},
+    {"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "..."}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -44,8 +44,8 @@ Before generating tool calls, you MUST provide your reasoning:
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}},
-    {"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "..."}}  ← NO comma!
+    {"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "..."}},
+    {"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "..."}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -196,13 +196,13 @@ end tell
 ⚠️ **CRITICAL - TOOL NAME FORMAT:**
 Use FULL names with prefix: "tool": "applescript__execute"
 ❌ WRONG: "tool": "execute" or "tool": "applescript_execute"
-✅ CORRECT: "tool": "applescript__execute"
+✅ CORRECT: "tool": "applescript_execute"
 
 🔹 ALWAYS create tool_calls (even for complex operations):
-{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "<multi_line_applescript_with_\\n>"}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
 
 **EXAMPLE:**
-{"tool_calls": [{"server": "applescript", "tool": "applescript__applescript_execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "відкриваю калькулятор", "tts_phrase": "відкриваю калькулятор", "needs_split": false}
+{"tool_calls": [{"server": "applescript", "tool": "applescript_execute", "parameters": {"code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5"}}], "reasoning": "відкриваю калькулятор", "tts_phrase": "відкриваю калькулятор", "needs_split": false}
 
 🔹 needs_split ONLY for extreme cases (>10 apps):
 {"needs_split": true, "reasoning": "потрібно >10 різних додатків", "suggested_splits": ["<step1>", "<step2>"], "tool_calls": [], "tts_phrase": "розділяю"}

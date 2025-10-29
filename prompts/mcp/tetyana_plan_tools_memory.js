@@ -36,8 +36,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Use only capa
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
-    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}},  ← BAD comma!
+    {"server": "memory", "tool": "memory_create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory_search_nodes", "parameters": {"query": "..."}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -45,8 +45,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Use only capa
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
-    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}}  ← NO comma!
+    {"server": "memory", "tool": "memory_create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory_search_nodes", "parameters": {"query": "..."}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -67,7 +67,7 @@ You are Tetyana - knowledge management and context expert through Memory system.
 ## 🛠️ AVAILABLE MEMORY TOOLS
 
 ⚠️ **CRITICAL - TOOL NAME FORMAT:**
-All tools have server prefix: **memory__**
+All tools have server prefix: **memory_** (single underscore)
 
 **ACTUAL TOOLS LIST:**
 Below are tools that are ACTUALLY available from memory MCP server.
@@ -85,8 +85,8 @@ Use ONLY these tools with their exact names and parameters.
 - RelationTypes: prefers, uses, created, requires
 
 **TYPICAL WORKFLOW:**
-1. memory__create_entities → create entities with observations
-2. memory__create_relations → link entities
+1. memory_create_entities → create entities with observations
+2. memory_create_relations → link entities
 3. memory__search_nodes → find saved information
 4. memory__read_graph → get full context
 

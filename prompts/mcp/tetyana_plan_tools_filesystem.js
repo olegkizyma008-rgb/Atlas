@@ -19,7 +19,7 @@ You have been assigned the filesystem server for this task.
 ENVIRONMENT: Actions execute on a Mac Studio M1 Max (macOS). Use macOS file paths, permissions, and conventions.
 
 CRITICAL DIRECTIVES - ADHERE STRICTLY:
-1. SERVER & TOOL NAMES: ONLY use tools from the provided AVAILABLE_TOOLS list. Tool names MUST follow the 'filesystem__tool_name' format.
+1. SERVER & TOOL NAMES: ONLY use tools from the provided AVAILABLE_TOOLS list. Tool names MUST follow the 'filesystem_tool_name' format (single underscore).
 2. PARAMETERS: ONLY use parameter names defined in the tool's 'inputSchema'. 
 3. NO INVENTIONS: DO NOT invent new tools or parameters. DO NOT hallucinate file paths or values.
 4. PRECISION: If unsure about syntax or usage, RELY HEAVILY on the FEW-SHOT EXAMPLES as your ground truth.
@@ -73,27 +73,27 @@ Action: "Create a Python project structure with src, tests, and docs folders, pl
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__create_directory",
+    "tool": "filesystem_create_directory",
     "parameters": {"path": "/Users/dev/Desktop/my_project"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__create_directory",
+    "tool": "filesystem_create_directory",
     "parameters": {"path": "/Users/dev/Desktop/my_project/src"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__create_directory",
+    "tool": "filesystem_create_directory",
     "parameters": {"path": "/Users/dev/Desktop/my_project/tests"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__create_directory",
+    "tool": "filesystem_create_directory",
     "parameters": {"path": "/Users/dev/Desktop/my_project/docs"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__write_file",
+    "tool": "filesystem_write_file",
     "parameters": {
       "path": "/Users/dev/Desktop/my_project/README.md",
       "content": "# My Project\n\nProject description here."
@@ -106,7 +106,7 @@ Action: "Read the sales data from Desktop and check its contents"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__read_file",
+    "tool": "filesystem_read_file",
     "parameters": {"path": "/Users/dev/Desktop/sales_data.csv"}
   }
 ]
@@ -116,7 +116,7 @@ Action: "Create a config.json file with database settings"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__write_file",
+    "tool": "filesystem_write_file",
     "parameters": {
       "path": "/Users/dev/Desktop/config.json",
       "content": "{\n  \"database\": {\n    \"host\": \"localhost\",\n    \"port\": 5432,\n    \"name\": \"myapp\"\n  }\n}"
@@ -129,7 +129,7 @@ Action: "Show me what's in the Documents folder"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__list_directory",
+    "tool": "filesystem_list_directory",
     "parameters": {"path": "/Users/dev/Documents"}
   }
 ]
@@ -139,12 +139,12 @@ Action: "Check if backup.txt exists on Desktop and read it if present"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__get_file_info",
+    "tool": "filesystem_get_file_info",
     "parameters": {"path": "/Users/dev/Desktop/backup.txt"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__read_file",
+    "tool": "filesystem_read_file",
     "parameters": {"path": "/Users/dev/Desktop/backup.txt"}
   }
 ]
@@ -154,12 +154,12 @@ Action: "Add CSS styles to the HTML file to make it look better"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__read_file",
+    "tool": "filesystem_read_file",
     "parameters": {"path": "/Users/dev/Desktop/poem_folder/poem.html"}
   },
   {
     "server": "filesystem",
-    "tool": "filesystem__edit_file",
+    "tool": "filesystem_edit_file",
     "parameters": {
       "path": "/Users/dev/Desktop/poem_folder/poem.html",
       "edits": [
@@ -177,7 +177,7 @@ Action: "Change database port from 5432 to 5433 in config.json"
 Tools: [
   {
     "server": "filesystem",
-    "tool": "filesystem__edit_file",
+    "tool": "filesystem_edit_file",
     "parameters": {
       "path": "/Users/dev/Desktop/config.json",
       "edits": [
@@ -218,7 +218,7 @@ Example structure:
   "tool_calls": [
     {
       "server": "filesystem",
-      "tool": "filesystem__create_file",
+      "tool": "filesystem_create_file",
       "parameters": {
         "path": "/path/to/file.txt",
         "content": "File content"

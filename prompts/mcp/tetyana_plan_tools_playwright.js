@@ -36,16 +36,16 @@ TRAILING COMMA REMINDERS
 • ❌ Wrong:
   {
     "tool_calls": [
-      {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
-      {"server": "playwright", "tool": "playwright__click", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright_navigate", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright_click", "parameters": {...}},
     ],
     "reasoning": "..."
   }
 • ✅ Correct:
   {
     "tool_calls": [
-      {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
-      {"server": "playwright", "tool": "playwright__click", "parameters": {...}}
+      {"server": "playwright", "tool": "playwright_navigate", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright_click", "parameters": {...}}
     ],
     "reasoning": "..."
   }
@@ -61,7 +61,7 @@ SPECIALIZATION: PLAYWRIGHT
 • Handling dynamic content with waits and smart sequencing.
 
 TOOL NAMING REQUIREMENTS
-• Every tool name must include the server prefix: playwright__.
+• Every tool name must include the server prefix with SINGLE underscore: playwright_.
 • Use the exact tool and parameter names listed in {{AVAILABLE_TOOLS}}.
   - Example parameter casing: waitUntil, fullPage, savePng.
   - Screenshot tools use name (not path) and savePng: true to persist files.
@@ -74,20 +74,20 @@ SELECTOR PRIORITY
 5. XPath as a last resort.
 
 WORKFLOW PATTERN
-1. playwright__navigate to open the target page (include waitUntil when needed).
+1. playwright_navigate to open the target page (include waitUntil when needed).
 2. Interaction tools (fill, click, press_key, select_option, etc.).
 3. Data capture tools (evaluate, get_visible_text, screenshot).
 
 WAITING GUIDELINES
 • Playwright auto-waits for elements on fill/click actions.
-• Explicit waitUntil is primarily for playwright__navigate.
+• Explicit waitUntil is primarily for playwright_navigate.
 
 USING {{AVAILABLE_TOOLS}}
 • Treat {{AVAILABLE_TOOLS}} as the source of truth for tool schemas.
 • Never invent tool names (e.g., browser_open, navigate_to). If a required capability is missing, plan around it or script via evaluate.
 
 EFFICIENCY PRINCIPLES
-• One powerful call can gather large datasets (e.g., playwright__evaluate to extract multiple prices).
+• One powerful call can gather large datasets (e.g., playwright_evaluate to extract multiple prices).
 • Avoid making 10 separate calls when a single evaluate can loop through elements.
 • Aim for 2–3 tool calls per item; hard cap is 5. If more than 5 distinct actions are required, redesign the approach or return the first executable segment.
 
@@ -106,7 +106,7 @@ OUTPUT CONTRACT
   "tool_calls": [
     {
       "server": "playwright",
-      "tool": "playwright__<tool_name_from_available_tools>",
+      "tool": "playwright_<tool_name_from_available_tools>",
       "parameters": { /* parameters exactly as defined in schema */ }
     }
   ],
@@ -123,9 +123,9 @@ RESPONSE RULES
 EXAMPLE (FOR FORMAT ONLY)
 {
   "tool_calls": [
-    {"server": "playwright", "tool": "playwright__navigate", "parameters": {"url": "https://google.com", "waitUntil": "load"}},
-    {"server": "playwright", "tool": "playwright__fill", "parameters": {"selector": "input[name='q']", "value": "BYD Song Plus"}},
-    {"server": "playwright", "tool": "playwright__press_key", "parameters": {"key": "Enter"}}
+    {"server": "playwright", "tool": "playwright_navigate", "parameters": {"url": "https://google.com", "waitUntil": "load"}},
+    {"server": "playwright", "tool": "playwright_fill", "parameters": {"selector": "input[name='q']", "value": "BYD Song Plus"}},
+    {"server": "playwright", "tool": "playwright_press_key", "parameters": {"key": "Enter"}}
   ],
   "reasoning": "Відкриваю Google і запускаю пошук моделі",
   "tts_phrase": "Шукаю інформацію"
@@ -155,9 +155,9 @@ Plan the execution using **Playwright tools only**.
 {{AVAILABLE_TOOLS}}
 
 **Instructions:**
-1. Choose the exact tools (prefixed with playwright__) that achieve the action.
+1. Choose the exact tools (prefixed with playwright_) that achieve the action.
 2. Provide correct parameters (url, selector, value, etc.) using camelCase keys.
-3. Build a logical sequence (e.g., playwright__navigate → playwright__fill → playwright__click → playwright__screenshot).
+3. Build a logical sequence (e.g., playwright_navigate → playwright_fill → playwright_click → playwright_screenshot).
 4. Always use tool names and schema fields exactly as defined in {{AVAILABLE_TOOLS}}.
 
 **Response format: JSON only.**`;

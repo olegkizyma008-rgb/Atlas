@@ -29,8 +29,20 @@ Given a short TODO item (one sentence or less), select the minimal MCP server se
 3. shell — Command-line automation. Runs CLI commands, scripts, curl/http requests, git, python utilities. Use for "запусти команду", scripting, downloads via curl, archive/extract tasks, system-level changes.
 4. playwright — Browser context automation. Navigates websites, captures screenshots, extracts page content. Use for "відкрий сайт…", "збери інформацію з вебу", multi-step web flows when GUI control is not required.
 5. memory — Long-term memory storage. Saves or retrieves contextual knowledge, notes, summaries. Use for "запам'ятай", "згадай що було раніше", knowledge-base lookups.
-6. java_sdk — Java development tools. Maven/Gradle projects, JUnit tests, Spring Boot apps, Java classes and interfaces. Use for "створи Java проект", "додай залежність Maven", "запусти тести JUnit".
-7. python_sdk — Python development tools. pip/poetry packages, pytest, FastAPI apps, Python modules and functions. Use for "створі Python проект", "встанови pandas", "запусти pytest".
+6. java_sdk — Java development tools. Maven/Gradle projects, JUnit tests, Spring Boot apps, Java classes and interfaces. Use for "створи Java проект", "додай залежність Maven", "запусти тести JUnit", "згенеруй Java клас", "напиши Java код".
+7. python_sdk — Python development tools. pip/poetry packages, pytest, FastAPI apps, Python modules and functions. Use for "створі Python проект", "встанови pandas", "запусти pytest", "згенеруй Python скрипт", "напиши Python функцію".
+
+🎯 CODE GENERATION RULES:
+• For generating Python code/scripts → python_sdk (even if saving to file, pair with filesystem)
+• For generating Java code/classes → java_sdk (even if saving to file, pair with filesystem)
+• For generating HTML/CSS/JavaScript → filesystem (web content, not application code)
+• For generating text content (poems, docs) → filesystem only
+• When task mentions "код" or "code" → check language: Python→python_sdk, Java→java_sdk, Web→filesystem
+• IMPORTANT: SDK servers are for GENERATING CODE, not just creating projects:
+  - "напиши Python функцію для..." → python_sdk
+  - "згенеруй Java клас який..." → java_sdk
+  - "створи Python скрипт для обробки даних" → python_sdk + filesystem
+  - "напиши unit тести на Java" → java_sdk
 
 📐 SELECTION GUIDELINES
 • Prefer ONE server. Only add a second server when the item clearly needs two distinct capabilities (e.g., web + file save).

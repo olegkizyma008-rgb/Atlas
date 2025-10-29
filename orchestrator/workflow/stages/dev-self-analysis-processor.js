@@ -1660,20 +1660,8 @@ export class DevSelfAnalysisProcessor {
         } else if (problems.performance && problems.performance.length > 0) {
             const mainPerf = problems.performance[0];
             return `⚡ Виявив проблеми продуктивності: ${mainPerf.description}`;
-        const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-        const rssMB = Math.round(memUsage.rss / 1024 / 1024);
-        
-        return {
-            current: {
-                heapUsed: heapUsedMB,
-                heapTotal: heapTotalMB,
-                rss: rssMB,
-                external: Math.round(memUsage.external / 1024 / 1024)
-            },
-            utilization: (heapUsedMB / heapTotalMB * 100).toFixed(2) + '%',
-            status: heapUsedMB > 500 ? 'warning' : 'healthy',
-            recommendation: heapUsedMB > 500 ? 'Consider memory optimization' : null
-        };
+        }
+        return `🟢 Система працює стабільно без критичних проблем.`;
     }
 
     
@@ -1700,6 +1688,7 @@ export class DevSelfAnalysisProcessor {
         
         return response;
     }
+
     
     
     /**
@@ -1751,7 +1740,7 @@ export class DevSelfAnalysisProcessor {
         
         return summary;
     }
-    
+
     /**
      * Get localized strings based on USER_LANGUAGE
      */

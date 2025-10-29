@@ -1599,11 +1599,8 @@ body[data-theme="neo-green"] {
     background: radial-gradient(circle at center, rgba(0, 25, 0, 1) 0%, rgba(0, 0, 0, 1) 100%);
 }
 
-/* Enhanced 3D Model Container */
-.model-container {
-    position: relative;
-    transition: all 0.3s ease;
-}
+/* Enhanced 3D Model Container - removed duplicate to prevent conflicts */
+/* .model-container styles are defined at line 380-393 */
 
 .model-container::before {
     content: '';

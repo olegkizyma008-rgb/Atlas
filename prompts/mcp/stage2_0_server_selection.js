@@ -35,14 +35,22 @@ Given a short TODO item (one sentence or less), select the minimal MCP server se
 🎯 CODE GENERATION RULES:
 • For generating Python code/scripts → python_sdk (even if saving to file, pair with filesystem)
 • For generating Java code/classes → java_sdk (even if saving to file, pair with filesystem)
-• For generating HTML/CSS/JavaScript → filesystem (web content, not application code)
 • For generating text content (poems, docs) → filesystem only
-• When task mentions "код" or "code" → check language: Python→python_sdk, Java→java_sdk, Web→filesystem
+• When task mentions "код" or "code" → check language: Python→python_sdk, Java→java_sdk
 • IMPORTANT: SDK servers are for GENERATING CODE, not just creating projects:
   - "напиши Python функцію для..." → python_sdk
   - "згенеруй Java клас який..." → java_sdk
   - "створи Python скрипт для обробки даних" → python_sdk + filesystem
   - "напиши unit тести на Java" → java_sdk
+
+🌐 WEB APPLICATION RULES:
+• "створи сайт" / "create website" → DEPENDS on context:
+  - If user wants REAL web application (with backend, API, database) → python_sdk (FastAPI/Django) OR java_sdk (Spring Boot) + filesystem
+  - If user explicitly wants STATIC site (landing page, portfolio) → filesystem only
+  - DEFAULT: Assume user wants real web app → prefer python_sdk + filesystem (FastAPI is fastest for web apps)
+• "створи веб-додаток" → python_sdk (FastAPI) or java_sdk (Spring Boot) + filesystem
+• "створи API" → python_sdk (FastAPI) or java_sdk (Spring Boot)
+• "створи HTML сторінку" → filesystem (clearly static content)
 
 📐 SELECTION GUIDELINES
 • Prefer ONE server. Only add a second server when the item clearly needs two distinct capabilities (e.g., web + file save).

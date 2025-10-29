@@ -71,7 +71,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     logger.workflow('stage', 'system', 'Stage 0-MCP: Mode Selection', { sessionId: session.id });
 
     // Check if session is awaiting password for DEV mode OR if user requests intervention after analysis
-    const isPasswordProvided = session.awaitingDevPassword && userMessage.trim().toLowerCase() === 'mykola';
+    const normalizedMessage = userMessage.trim().toLowerCase();
+    const isPasswordProvided = session.awaitingDevPassword && normalizedMessage === 'mykola';
+    
+    // Also check if password is provided in the message (e.g., "виправ з паролем mykola")
+    const passwordInMessage = normalizedMessage.includes('mykola') || normalizedMessage.includes('з паролем') || normalizedMessage.includes('with password');
     const isInterventionRequest = session.lastDevAnalysis && (
       userMessage.toLowerCase().includes('внеси зміни') ||
       userMessage.toLowerCase().includes('виправ') ||
@@ -92,13 +96,15 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       lastDevAnalysisTimestamp: session.lastDevAnalysis?.timestamp
     });
     
-    if (isPasswordProvided || isInterventionRequest) {
-      logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention requested'}, continuing DEV mode`, {
-        sessionId: session.id
+    if (isPasswordProvided || (isInterventionRequest && passwordInMessage)) {
+      logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention with password requested'}, continuing DEV mode`, {
+        sessionId: session.id,
+        passwordProvided: isPasswordProvided,
+        passwordInMessage: passwordInMessage
       });
       
       // If intervention requested but no password yet, show dialog and wait
-      if (isInterventionRequest && !isPasswordProvided) {
+      if (isInterventionRequest && !isPasswordProvided && !passwordInMessage) {
         session.awaitingDevPassword = true;
         session.devOriginalMessage = session.lastDevAnalysisMessage || 'Проаналізуй себе';
         

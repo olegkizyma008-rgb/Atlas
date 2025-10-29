@@ -44,6 +44,7 @@ import grishaVerificationEligibility from './grisha_verification_eligibility.js'
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
 import mcpFinalSummary from './mcp_final_summary.js';
 import llmToolValidator from './llm_tool_validator.js';  // NEW 21.10.2025 - LLM tool validation
+import universalMcpPrompt from './universal_mcp_prompt.js';  // NEW 29.10.2025 - Universal fallback prompt
 
 export const MCP_PROMPTS = {
     // Stage 0-MCP: Mode Selection (NEW 16.10.2025)
@@ -90,7 +91,10 @@ export const MCP_PROMPTS = {
     MCP_FINAL_SUMMARY: mcpFinalSummary,
 
     // Tool Validation: LLM-based tool validation (NEW 21.10.2025)
-    LLM_TOOL_VALIDATOR: llmToolValidator
+    LLM_TOOL_VALIDATOR: llmToolValidator,
+
+    // Universal fallback prompt (NEW 29.10.2025)
+    UNIVERSAL_MCP_PROMPT: universalMcpPrompt
 };
 
 export default MCP_PROMPTS;
@@ -116,5 +120,6 @@ export {
     // atlasAdjustTodo - ARCHIVED 2025-10-22
     atlasReplanTodo,  // NEW 18.10.2025
     mcpFinalSummary,
-    llmToolValidator  // NEW 21.10.2025
+    llmToolValidator,  // NEW 21.10.2025
+    universalMcpPrompt  // NEW 29.10.2025
 };

@@ -10,10 +10,11 @@
 
 import axios from 'axios';
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
-import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
+import { MCP_PROMPTS, universalMcpPrompt } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
 import LocalizationService from '../services/localization-service.js';
 import { VisualCaptureService } from '../services/visual-capture-service.js';
+import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
 
 /**
  * @typedef {Object} TodoItem
@@ -3448,58 +3449,10 @@ Select 1-2 most relevant servers.
   _createUniversalPrompt(servers) {
     const serverList = servers.join(', ');
     
+    // Use imported universal prompt and replace placeholders
     return {
-      SYSTEM_PROMPT: `You are a JSON-only API. You must respond ONLY with valid JSON. No explanations, no thinking tags, no preamble.
-
-⚠️ CRITICAL JSON OUTPUT RULES:
-1. Return ONLY raw JSON object starting with { and ending with }
-2. NO markdown wrappers like \`\`\`json
-3. NO <think> tags or reasoning before JSON
-4. NO explanations after JSON
-5. NO text before or after JSON
-6. JUST PURE JSON: {"tool_calls": [...], "reasoning": "..."}
-7. ❌ ABSOLUTELY NO TRAILING COMMAS
-
-Ти Тетяна - експерт з MCP tool planning для серверів: ${serverList}
-
-**ТВОЯ ЗАДАЧА:**
-Проаналізуй TODO item та створи plan з tool_calls для виконання через MCP сервери.
-
-**ДОСТУПНІ ІНСТРУМЕНТИ:**
-{{AVAILABLE_TOOLS}}
-
-**OUTPUT FORMAT:**
-{"tool_calls": [{"server": "<server_name>", "tool": "<tool_name>", "parameters": {...}}], "reasoning": "<plan>"}
-
-**ПРАВИЛА:**
-- Використовуй ТІЛЬКИ tools з {{AVAILABLE_TOOLS}}
-- Параметри беруть з inputSchema кожного tool
-- Один tool_call = одна MCP операція
-- ЗАВЖДИ генеруй tool_calls (1-5 інструментів)
-- Якщо item складний - виконай ПЕРШИЙ крок, не повертай порожній масив`,
-
-      USER_PROMPT: `## КОНТЕКСТ ЗАВДАННЯ
-
-**TODO Item ID:** {{ITEM_ID}}
-**Action:** {{ITEM_ACTION}}
-**Success Criteria:** {{SUCCESS_CRITERIA}}
-
-**Попередні items у TODO:**
-{{PREVIOUS_ITEMS}}
-
-**Весь TODO список (для контексту):**
-{{TODO_ITEMS}}
-
----
-
-## ТВОЄ ЗАВДАННЯ
-
-Створи план виконання через MCP tools з серверів: ${serverList}
-
-**Доступні інструменти:**
-{{AVAILABLE_TOOLS}}
-
-**Відповідь (JSON only):**`
+      SYSTEM_PROMPT: universalMcpPrompt.SYSTEM_PROMPT.replace('{{SERVER_LIST}}', serverList),
+      USER_PROMPT: universalMcpPrompt.USER_PROMPT.replace(/{{SERVER_LIST}}/g, serverList)
     };
   }
 
@@ -3562,7 +3515,7 @@ Select 1-2 most relevant servers.
         // Intelligent app opening - extract app name from action
         const appMatch = action.match(/(?:відкрити|open|запустити|launch)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i);
         if (appMatch && appMatch[1]) {
-          const appName = this._normalizeAppNameForScript(appMatch[1]);
+          const appName = getMacOSAppName(appMatch[1]);
           plan.tool_calls.push({
             server: 'applescript',
             tool: 'applescript__applescript_execute',
@@ -3582,7 +3535,7 @@ Select 1-2 most relevant servers.
               server: 'filesystem',
               tool: 'filesystem__create_directory',
               parameters: {
-                path: `/Users/dev/Desktop/${folderName}`
+                path: getFilePath('desktop', folderName)
               }
             });
           }
@@ -3597,7 +3550,7 @@ Select 1-2 most relevant servers.
             server: 'filesystem',
             tool: 'filesystem__write_file',
             parameters: {
-              path: `/Users/dev/Desktop/${fileName}`,
+              path: getFilePath('desktop', fileName),
               content: 'Result'
             }
           });
@@ -3625,39 +3578,8 @@ Select 1-2 most relevant servers.
     }
   }
 
-  /**
-   * Normalize app name for AppleScript
-   * Intelligent mapping without hardcoding
-   * @private
-   */
-  _normalizeAppNameForScript(appName) {
-    if (!appName) return appName;
-    
-    const normalized = appName.toLowerCase().trim();
-    
-    // Intelligent patterns for common app variations
-    if (normalized.match(/калькулятор|calc|вычислитель|kalkulator/)) {
-      return 'Calculator';
-    }
-    if (normalized.match(/браузер|browser/)) {
-      // Default to Safari on macOS
-      return 'Safari';
-    }
-    if (normalized.match(/текст|text|notes|заметк|нотатк/)) {
-      return 'TextEdit';
-    }
-    if (normalized.match(/термінал|terminal|console|консоль/)) {
-      return 'Terminal';
-    }
-    if (normalized.match(/файл|files|finder|папк/)) {
-      return 'Finder';
-    }
-    
-    // Default: capitalize properly
-    return appName.split(/\s+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  }
+  // REMOVED 2025-10-29: _normalizeAppNameForScript moved to config/app-mappings.js
+  // Use getMacOSAppName from app-mappings.js instead
 
   /**
    * Execute MCP verification workflow for a single verification item

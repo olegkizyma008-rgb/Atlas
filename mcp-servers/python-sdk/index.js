@@ -192,6 +192,188 @@ const TOOLS = [
       required: ["target_path"],
     },
   },
+  {
+    name: "format_code",
+    description: "Format Python code using black",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file_path: {
+          type: "string",
+          description: "Path to Python file or directory to format",
+        },
+        line_length: {
+          type: "number",
+          description: "Maximum line length (default: 88)",
+          default: 88,
+        },
+      },
+      required: ["file_path"],
+    },
+  },
+  {
+    name: "lint_code",
+    description: "Lint Python code using pylint or flake8",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file_path: {
+          type: "string",
+          description: "Path to Python file or directory",
+        },
+        tool: {
+          type: "string",
+          enum: ["pylint", "flake8"],
+          description: "Linting tool to use (default: flake8)",
+          default: "flake8",
+        },
+        config_file: {
+          type: "string",
+          description: "Path to config file (optional)",
+        },
+      },
+      required: ["file_path"],
+    },
+  },
+  {
+    name: "create_requirements",
+    description: "Generate requirements.txt from installed packages",
+    inputSchema: {
+      type: "object",
+      properties: {
+        output_path: {
+          type: "string",
+          description: "Output path for requirements.txt",
+        },
+        freeze: {
+          type: "boolean",
+          description: "Use pip freeze (default: true)",
+          default: true,
+        },
+      },
+      required: ["output_path"],
+    },
+  },
+  {
+    name: "run_flask_app",
+    description: "Run Flask development server",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_file: {
+          type: "string",
+          description: "Path to Flask app file (e.g., app.py)",
+        },
+        host: {
+          type: "string",
+          description: "Host to bind (default: 127.0.0.1)",
+          default: "127.0.0.1",
+        },
+        port: {
+          type: "number",
+          description: "Port to bind (default: 5000)",
+          default: 5000,
+        },
+        debug: {
+          type: "boolean",
+          description: "Enable debug mode (default: true)",
+          default: true,
+        },
+      },
+      required: ["app_file"],
+    },
+  },
+  {
+    name: "create_dockerfile",
+    description: "Create Dockerfile for Python application",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_dir: {
+          type: "string",
+          description: "Project directory",
+        },
+        python_version: {
+          type: "string",
+          description: "Python version (default: 3.11)",
+          default: "3.11",
+        },
+        entry_point: {
+          type: "string",
+          description: "Entry point file (e.g., app.py)",
+        },
+        port: {
+          type: "number",
+          description: "Exposed port (default: 8000)",
+          default: 8000,
+        },
+      },
+      required: ["project_dir", "entry_point"],
+    },
+  },
+  {
+    name: "search_packages",
+    description: "Search for Python packages on PyPI",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of results (default: 10)",
+          default: 10,
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "generate_docs",
+    description: "Generate documentation using Sphinx",
+    inputSchema: {
+      type: "object",
+      properties: {
+        source_dir: {
+          type: "string",
+          description: "Source directory containing Python files",
+        },
+        output_dir: {
+          type: "string",
+          description: "Output directory for documentation",
+        },
+        format: {
+          type: "string",
+          enum: ["html", "pdf", "markdown"],
+          description: "Documentation format (default: html)",
+          default: "html",
+        },
+      },
+      required: ["source_dir", "output_dir"],
+    },
+  },
+  {
+    name: "profile_code",
+    description: "Profile Python code performance using cProfile",
+    inputSchema: {
+      type: "object",
+      properties: {
+        script_path: {
+          type: "string",
+          description: "Path to Python script to profile",
+        },
+        sort_by: {
+          type: "string",
+          enum: ["time", "calls", "cumulative"],
+          description: "Sort results by (default: time)",
+          default: "time",
+        },
+      },
+      required: ["script_path"],
+    },
+  },
 ];
 
 // List tools handler
@@ -360,6 +542,169 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         let cmd = `mypy "${target_path}"`;
         if (strict) cmd += " --strict";
         if (ignore_missing_imports) cmd += " --ignore-missing-imports";
+
+        const { stdout, stderr } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                output: stdout,
+                stderr: stderr || "",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "format_code": {
+        const { file_path, line_length = 88 } = args;
+        const cmd = `black --line-length ${line_length} "${file_path}"`;
+
+        const { stdout, stderr } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                output: stdout,
+                stderr: stderr || "",
+                message: "Code formatted successfully",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "lint_code": {
+        const { file_path, tool = "flake8", config_file } = args;
+        let cmd = `${tool} "${file_path}"`;
+        if (config_file) {
+          cmd += ` --config="${config_file}"`;
+        }
+
+        const { stdout, stderr } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                output: stdout,
+                stderr: stderr || "",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "create_requirements": {
+        const { output_path, freeze = true } = args;
+        const cmd = freeze ? "pip3 freeze" : "pip3 list --format=freeze";
+
+        const { stdout } = await execAsync(cmd);
+        await fs.writeFile(output_path, stdout);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                file_path: output_path,
+                message: "requirements.txt created",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "run_flask_app": {
+        const { app_file, host = "127.0.0.1", port = 5000, debug = true } = args;
+        const debugFlag = debug ? "--debug" : "";
+        const cmd = `flask --app "${app_file}" run --host ${host} --port ${port} ${debugFlag}`;
+
+        const { stdout, stderr } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                output: stdout,
+                stderr: stderr || "",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "create_dockerfile": {
+        const { project_dir, python_version = "3.11", entry_point, port = 8000 } = args;
+        const dockerfileContent = `FROM python:${python_version}-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE ${port}\nCMD ["python", "${entry_point}"]`;
+
+        const dockerfilePath = path.join(project_dir, "Dockerfile");
+        await fs.writeFile(dockerfilePath, dockerfileContent);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                file_path: dockerfilePath,
+                message: "Dockerfile created",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "search_packages": {
+        const { query, limit = 10 } = args;
+        const searchUrl = `https://pypi.org/pypi?:action=search&term=${encodeURIComponent(query)}&_limit=${limit}`;
+        const cmd = `curl -s "${searchUrl}"`;
+
+        const { stdout } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                results: stdout,
+              }),
+            },
+          ],
+        };
+      }
+
+      case "generate_docs": {
+        const { source_dir, output_dir, format = "html" } = args;
+        await fs.mkdir(output_dir, { recursive: true });
+        const cmd = `sphinx-build -b ${format} "${source_dir}" "${output_dir}"`;
+
+        const { stdout, stderr } = await execAsync(cmd);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: true,
+                output_dir,
+                stdout,
+                stderr: stderr || "",
+              }),
+            },
+          ],
+        };
+      }
+
+      case "profile_code": {
+        const { script_path, sort_by = "time" } = args;
+        const cmd = `python3 -m cProfile -s ${sort_by} "${script_path}"`;
 
         const { stdout, stderr } = await execAsync(cmd);
         return {

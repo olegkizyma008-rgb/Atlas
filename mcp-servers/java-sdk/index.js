@@ -344,6 +344,135 @@ const TOOLS = [
       required: ["project_dir"],
     },
   },
+  {
+    name: "format_code",
+    description: "Format Java code using Google Java Format",
+    inputSchema: {
+      type: "object",
+      properties: {
+        source_path: {
+          type: "string",
+          description: "Path to Java file or directory to format",
+        },
+        replace: {
+          type: "boolean",
+          description: "Replace files in-place (default: true)",
+          default: true,
+        },
+      },
+      required: ["source_path"],
+    },
+  },
+  {
+    name: "generate_javadoc",
+    description: "Generate Javadoc documentation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        source_dir: {
+          type: "string",
+          description: "Source directory containing Java files",
+        },
+        output_dir: {
+          type: "string",
+          description: "Output directory for generated documentation",
+        },
+        classpath: {
+          type: "string",
+          description: "Classpath for documentation generation (optional)",
+        },
+      },
+      required: ["source_dir", "output_dir"],
+    },
+  },
+  {
+    name: "run_spring_boot",
+    description: "Run Spring Boot application",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_dir: {
+          type: "string",
+          description: "Project directory containing Spring Boot app",
+        },
+        profile: {
+          type: "string",
+          description: "Spring profile to activate (e.g., dev, prod)",
+        },
+        port: {
+          type: "number",
+          description: "Server port (optional)",
+        },
+      },
+      required: ["project_dir"],
+    },
+  },
+  {
+    name: "create_dockerfile",
+    description: "Create Dockerfile for Java application",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_dir: {
+          type: "string",
+          description: "Project directory",
+        },
+        base_image: {
+          type: "string",
+          description: "Base Docker image (default: openjdk:17-slim)",
+          default: "openjdk:17-slim",
+        },
+        jar_name: {
+          type: "string",
+          description: "JAR file name",
+        },
+        port: {
+          type: "number",
+          description: "Exposed port (default: 8080)",
+          default: 8080,
+        },
+      },
+      required: ["project_dir", "jar_name"],
+    },
+  },
+  {
+    name: "search_dependencies",
+    description: "Search for dependencies in Maven Central",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query (artifact name or group:artifact)",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of results (default: 10)",
+          default: 10,
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "decompile_class",
+    description: "Decompile .class file to Java source using javap",
+    inputSchema: {
+      type: "object",
+      properties: {
+        class_file: {
+          type: "string",
+          description: "Path to .class file",
+        },
+        verbose: {
+          type: "boolean",
+          description: "Show verbose output (default: false)",
+          default: false,
+        },
+      },
+      required: ["class_file"],
+    },
+  },
 ];
 
 function assertString(value, name) {
@@ -723,6 +852,123 @@ const TOOL_HANDLERS = {
       maxBuffer: MAX_BUFFER,
     });
 
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async format_code(args) {
+    const { source_path, replace = true } = args;
+    assertString(source_path, "source_path");
+    
+    const replaceFlag = replace ? "--replace" : "";
+    const cmd = `java -jar google-java-format.jar ${replaceFlag} "${quote(source_path)}"`;
+    
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+      message: replace ? "Code formatted in-place" : "Formatted code returned",
+    };
+  },
+
+  async generate_javadoc(args) {
+    const { source_dir, output_dir, classpath } = args;
+    assertString(source_dir, "source_dir");
+    assertString(output_dir, "output_dir");
+    
+    await ensureDirectory(output_dir);
+    let cmd = `javadoc -d "${quote(output_dir)}" -sourcepath "${quote(source_dir)}" -subpackages .`;
+    if (classpath) {
+      cmd += ` -classpath "${quote(classpath)}"`;
+    }
+    
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    return {
+      success: true,
+      output_dir,
+      stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async run_spring_boot(args) {
+    const { project_dir, profile, port } = args;
+    assertString(project_dir, "project_dir");
+    
+    let cmd = "mvn spring-boot:run";
+    if (profile) {
+      cmd += ` -Dspring-boot.run.profiles=${profile}`;
+    }
+    if (port) {
+      cmd += ` -Dspring-boot.run.arguments=--server.port=${port}`;
+    }
+    
+    const { stdout, stderr } = await execAsync(cmd, {
+      cwd: project_dir,
+      maxBuffer: MAX_BUFFER,
+    });
+    
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async create_dockerfile(args) {
+    const { project_dir, base_image = "openjdk:17-slim", jar_name, port = 8080 } = args;
+    assertString(project_dir, "project_dir");
+    assertString(jar_name, "jar_name");
+    
+    const dockerfileContent = `FROM ${base_image}
+WORKDIR /app
+COPY target/${jar_name} app.jar
+EXPOSE ${port}
+ENTRYPOINT ["java", "-jar", "app.jar"]`;
+    
+    const dockerfilePath = path.join(project_dir, "Dockerfile");
+    await fs.writeFile(dockerfilePath, dockerfileContent, "utf8");
+    
+    return {
+      success: true,
+      file_path: dockerfilePath,
+      message: "Dockerfile created",
+    };
+  },
+
+  async search_dependencies(args) {
+    const { query, limit = 10 } = args;
+    assertString(query, "query");
+    
+    const searchUrl = `https://search.maven.org/solrsearch/select?q=${encodeURIComponent(query)}&rows=${limit}&wt=json`;
+    const cmd = `curl -s "${searchUrl}"`;
+    
+    const { stdout } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    const results = JSON.parse(stdout);
+    
+    return {
+      success: true,
+      results: results.response.docs.map(doc => ({
+        group_id: doc.g,
+        artifact_id: doc.a,
+        latest_version: doc.latestVersion,
+        repository_url: `https://mvnrepository.com/artifact/${doc.g}/${doc.a}`,
+      })),
+    };
+  },
+
+  async decompile_class(args) {
+    const { class_file, verbose = false } = args;
+    assertString(class_file, "class_file");
+    
+    const verboseFlag = verbose ? "-v" : "-c";
+    const cmd = `javap ${verboseFlag} "${quote(class_file)}"`;
+    
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
     return {
       success: true,
       output: stdout,

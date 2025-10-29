@@ -80,6 +80,18 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       userMessage.toLowerCase().includes('apply')
     );
     
+    // CRITICAL DEBUG: Log session state for DEV mode detection
+    logger.system('executor', `[DEV-CHECK] Session state check:`, {
+      sessionId: session.id,
+      hasLastDevAnalysis: !!session.lastDevAnalysis,
+      hasLastDevAnalysisMessage: !!session.lastDevAnalysisMessage,
+      awaitingDevPassword: session.awaitingDevPassword,
+      userMessage: userMessage.substring(0, 50),
+      isPasswordProvided,
+      isInterventionRequest,
+      lastDevAnalysisTimestamp: session.lastDevAnalysis?.timestamp
+    });
+    
     if (isPasswordProvided || isInterventionRequest) {
       logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention requested'}, continuing DEV mode`, {
         sessionId: session.id

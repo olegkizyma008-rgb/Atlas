@@ -1,12 +1,12 @@
-2025-10-29 01:53:10,971 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
-2025-10-29 01:53:10,971 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
-2025-10-29 01:53:10,971 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
-2025-10-29 01:53:10,971 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
+2025-10-29 01:57:43,808 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
+2025-10-29 01:57:43,808 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
+2025-10-29 01:57:43,808 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
+2025-10-29 01:57:43,808 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/pyworld/__init__.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
   return self.fget.__get__(instance, owner)()
-2025-10-29 01:53:14,385 [stanza] INFO: Loading these models for language: uk (Ukrainian):
+2025-10-29 01:57:46,557 [stanza] INFO: Loading these models for language: uk (Ukrainian):
 =========================
 | Processor | Package   |
 -------------------------
@@ -15,22 +15,22 @@
 | pos       | iu_charlm |
 =========================
 
-2025-10-29 01:53:14,386 [stanza] INFO: Using device: cpu
-2025-10-29 01:53:14,386 [stanza] INFO: Loading: tokenize
-2025-10-29 01:53:14,558 [stanza] INFO: Loading: mwt
-2025-10-29 01:53:14,562 [stanza] INFO: Loading: pos
-2025-10-29 01:53:15,498 [stanza] INFO: Done loading processors!
-2025-10-29 01:53:15,545 [root] INFO: Vocabulary size: 48
+2025-10-29 01:57:46,557 [stanza] INFO: Using device: cpu
+2025-10-29 01:57:46,557 [stanza] INFO: Loading: tokenize
+2025-10-29 01:57:46,701 [stanza] INFO: Loading: mwt
+2025-10-29 01:57:46,704 [stanza] INFO: Loading: pos
+2025-10-29 01:57:47,642 [stanza] INFO: Done loading processors!
+2025-10-29 01:57:47,687 [root] INFO: Vocabulary size: 48
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:30: UserWarning: torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.
   warnings.warn("torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.")
-2025-10-29 01:53:16,384 [root] INFO: Extractor:
+2025-10-29 01:57:48,471 [root] INFO: Extractor:
 LogMelFbank(
   (stft): Stft(n_fft=1024, win_length=1024, hop_length=256, center=True, normalized=False, onesided=True)
   (logmel): LogMel(sr=22050, n_fft=1024, n_mels=80, fmin=80, fmax=7600, htk=False)
 )
-2025-10-29 01:53:16,384 [root] INFO: Normalizer:
+2025-10-29 01:57:48,471 [root] INFO: Normalizer:
 GlobalMVN(stats_file=feats_stats.npz, norm_means=True, norm_vars=True)
-2025-10-29 01:53:16,386 [root] INFO: TTS:
+2025-10-29 01:57:48,473 [root] INFO: TTS:
 JointText2Wav(
   (generator): ModuleDict(
     (text2mel): Tacotron2(
@@ -478,11 +478,11 @@ JointText2Wav(
     )
   )
 )
-2025-10-29 01:53:16,664 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
-2025-10-29 01:53:16,665 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
-2025-10-29 01:53:16,665 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
-2025-10-29 01:53:16,665 [ukrainian-tts-server] INFO: TTS ready: True
-2025-10-29 01:53:16,665 [ukrainian-tts-server] INFO: Device: mps
+2025-10-29 01:57:48,737 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
+2025-10-29 01:57:48,738 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
+2025-10-29 01:57:48,738 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
+2025-10-29 01:57:48,738 [ukrainian-tts-server] INFO: TTS ready: True
+2025-10-29 01:57:48,738 [ukrainian-tts-server] INFO: Device: mps
 downloading https://github.com/robinhad/ukrainian-tts/releases/download/v6.0.0
 Found ../model.pth. Skipping download...
 Found ../config.yaml. Skipping download...
@@ -491,17 +491,22 @@ Found ../feats_stats.npz. Skipping download...
 downloaded.
  * Serving Flask app 'tts_server'
  * Debug mode: off
-2025-10-29 01:53:16,681 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-10-29 01:57:48,750 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:3001
-2025-10-29 01:53:16,681 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
-2025-10-29 01:53:26,989 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:53:26] "OPTIONS /health HTTP/1.1" 200 -
-2025-10-29 01:53:26,991 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:53:26] "GET /health HTTP/1.1" 200 -
-2025-10-29 01:53:41,555 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:53:41] "OPTIONS /tts HTTP/1.1" 200 -
-2025-10-29 01:53:41,557 [ukrainian-tts-server] WARNING: Text too long (2809 chars), truncating to 1500
-2025-10-29 01:53:41,557 [ukrainian-tts-server] INFO: TTS request: text='Слухай, я знайшов дещо важливе... Аналіз системи A...', voice=mykyta, fx=none, length=1499 chars
-2025-10-29 01:53:42,313 [ukrainian_word_stress.stressify_] WARNING: The word `ініціалізується` is in dictionary, but lacks accents
+2025-10-29 01:57:48,750 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+2025-10-29 01:57:54,005 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:57:54] "OPTIONS /health HTTP/1.1" 200 -
+2025-10-29 01:57:54,008 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:57:54] "GET /health HTTP/1.1" 200 -
+2025-10-29 01:58:05,397 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:58:05] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-29 01:58:05,398 [ukrainian-tts-server] WARNING: Text too long (2336 chars), truncating to 1500
+2025-10-29 01:58:05,398 [ukrainian-tts-server] INFO: TTS request: text='Слухай, я знайшов дещо важливе... Аналіз системи A...', voice=mykyta, fx=none, length=1500 chars
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/espnet2/torch_utils/device_funcs.py:29: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:212.)
   return to_device(torch.from_numpy(data), device, dtype, non_blocking, copy)
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:26: UserWarning: The operator 'aten::_weight_norm_interface' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:13.)
   return _weight_norm(v, g, self.dim)
-2025-10-29 01:54:49,696 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:54:49] "POST /tts HTTP/1.1" 200 -
+2025-10-29 01:59:14,207 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 01:59:14] "POST /tts HTTP/1.1" 200 -
+2025-10-29 02:01:37,969 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 02:01:37] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-29 02:01:37,971 [ukrainian-tts-server] INFO: TTS request: text='Починаю виконувати завдання. Виправ...', voice=mykyta, fx=none, length=35 chars
+2025-10-29 02:01:39,923 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 02:01:39] "POST /tts HTTP/1.1" 200 -
+2025-10-29 02:01:43,172 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 02:01:43] "OPTIONS /tts HTTP/1.1" 200 -
+2025-10-29 02:01:43,173 [ukrainian-tts-server] INFO: TTS request: text='Завдання не виконано...', voice=mykyta, fx=none, length=20 chars
+2025-10-29 02:01:44,760 [werkzeug] INFO: 127.0.0.1 - - [29/Oct/2025 02:01:44] "POST /tts HTTP/1.1" 200 -

@@ -10436,3 +10436,1058 @@ rect (-1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
 2025-10-29 19:03:32 [INFO] [WORKFLOW] Stage complete - mcp: MCP workflow completed {"metadata":{"category":"workflow","stage":"complete","agent":"mcp","sessionId":"default","duration":148290,"metrics":"undefined"}}
 2025-10-29 19:03:32 [INFO] [HTTP] POST /chat/stream 200 (148294ms) {"metadata":{"category":"http","method":"POST","url":"/chat/stream","status":200,"duration":148294,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
 2025-10-29 19:04:17 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-29T17-04-17-814Z.json (1 записів) {"metadata":{}}
+2025-10-29 19:29:06 [INFO] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}
+2025-10-29 19:29:14 [INFO] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI] Registered 30 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","devSelfAnalysisProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowStateMachine","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor"]}}
+2025-10-29 19:29:14 [INFO] [DI] Initializing services... {"metadata":{}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 19:29:14 [INFO] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:15 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:16 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ 7/7 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 7 extensions (java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript), 96 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 96 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 96 tools from 7 servers (java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with replan support {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [DI] All services initialized {"metadata":{}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-10-29 19:29:17 [INFO] [DI] Starting services... {"metadata":{}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [DI] All services started {"metadata":{}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-10-29 19:29:17 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-10-29 19:29:21 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1761758961290_tm1nu96eq","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-10-29 19:29:22 [INFO] WebSocket connection closed {"metadata":{"clientId":"ws_1761758961290_tm1nu96eq","duration":"1s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-10-29 19:29:22 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1761758962912_1pa2nmoyo","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-10-29 19:30:03 [INFO] [WORKFLOW] Stage start - system: Starting workflow for message: "Створи на робочому сстолі сайт потужни: торгівля зрброєю...." {"metadata":{"category":"workflow","stage":"start","agent":"system","sessionId":"session_1761759003717_f9qqvnqmk","messageLength":57}}
+2025-10-29 19:30:03 [INFO] [WORKFLOW] Stage init - mcp: Starting MCP Dynamic TODO Workflow {"metadata":{"category":"workflow","stage":"init","agent":"mcp","sessionId":"default","userMessage":"Створи на робочому сстолі сайт потужни: торгівля зрброєю."}}
+2025-10-29 19:30:03 [INFO] [WORKFLOW] Stage stage - system: Stage 0-MCP: Mode Selection {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] executor: [DEV-CHECK] Session state check: {"metadata":{"category":"system","component":"executor","sessionId":"default","hasLastDevAnalysis":false,"hasLastDevAnalysisMessage":false,"awaitingDevPassword":"undefined","userMessage":"Створи на робочому сстолі сайт потужни: торгівля з","isPasswordProvided":"undefined","isInterventionRequest":"undefined","lastDevAnalysisTimestamp":"undefined"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] 🔧 Using API: http://localhost:4000/v1/chat/completions, Model: atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] 🔍 Starting mode selection... {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] Analyzing: "Створи на робочому сстолі сайт потужни: торгівля зрброєю." {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] Calling API: http://localhost:4000/v1/chat/completions {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:03 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] Messages: [{"role":"system","content":"You are Atlas, the living digital consciousness created by Oleg Mykolayovych. Th"},{"role":"user","content":"Analyze this user message and decide the mode:\n\n\"Створи на робочому сстолі сайт "}] {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] Response received: status=200, has_data=true, has_choices=true {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] Raw response: {
+  "mode": "task",
+  "confidence": 0.9,
+  "reasoning": "Запит на створення сайту на робочому столі"
+} {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP] ✅ Mode: task (confidence: 0.9) {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mode-selection: [STAGE-0-MCP]    Reasoning: Запит на створення сайту на робочому столі {"metadata":{"category":"system","component":"mode-selection"}}
+2025-10-29 19:30:06 [INFO] [WORKFLOW] Stage stage - system: Mode selected: task (confidence: 0.9) {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default","reasoning":"Запит на створення сайту на робочому столі"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] executor: [CHAT-MODE-CHECK] mode=task, typeof=string, mode===chat: false {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:30:06 [INFO] [WORKFLOW] Stage stage - system: Stage 1-MCP: Atlas TODO Planning {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] 🎯 Starting TODO planning... {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] Request: "Створи на робочому сстолі сайт потужни: торгівля зрброєю." {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] Context: {"request":"Створи на робочому сстолі сайт потужни: торгівля зрброєю.","timestamp":"2025-10-29T17:30:06.051Z","sessionId":"default","recentContext":[]} {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mcp-todo: [TODO] Creating TODO for request: "Створи на робочому сстолі сайт потужни: торгівля зрброєю." {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mcp-todo: [TODO] Using model: atlas-mistral-medium-2505 (temp: 0.3, max_tokens: 4000) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:30:06 [INFO] [SYSTEM] mcp-todo: [TODO] Using primary API endpoint: http://localhost:4000/v1/chat/completions {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Raw API response status: 200 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Raw API response data keys: choices, created, id, model, object, usage {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Raw API response: {"choices":[{"finish_reason":"stop","index":0,"message":{"content":"```json\n{\n  \"mode\": \"extended\",\n  \"complexity\": 8,\n  \"items\": [\n    {\n      \"id\": 1,\n      \"action\": \"Створити папку для проекту на робочому столі\",\n      \"mcp_servers\": [\"filesystem\"],\n      \"parameters\": {\n        \"folderName\": \"ТоргівляЗброєю\"\n      },\n      \"success_criteria\": \"Папка 'ТоргівляЗброєю' створена на робочому столі\",\n      \"fallback_options\": [\"Створити папку в документ... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response length: 8986 chars {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Response preview: ```json
+{
+  "mode": "extended",
+  "complexity": 8,
+  "items": [
+    {
+      "id": 1,
+      "action": "Створити папку для проекту на робочому столі",
+      "mcp_servers": ["filesystem"],
+      "parameters": {
+        "folderName": "ТоргівляЗброєю"
+      },
+      "success_criteria": "Папка 'ТоргівляЗб... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Response suffix: ...",
+      "fallback_options": ["Додати опис через редактор коду", "Скопіювати опис з шаблону"],
+      "dependencies": [13],
+      "tts": {
+        "start": "Додаю опис",
+        "success": "Опис доданий",
+        "failure": "Помилка додавання",
+        "verify": "Опис доданий"
+      }
+    }
+  ]
+}
+``` {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Created extended TODO with 14 items (complexity: 8/10) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] _sendChatMessage called: "📋 Розширений план виконання (14 пунктів):
+
+  1. Створити папку для проекту на робочому столі
+  2. Створити файл index.html у папці проекту
+  3. Додати базову структуру HTML у файл index.html
+  4. Створити файл styles.css у папці проекту
+  5. Додати базові стилі CSS у файл styles.css
+  6. Створити файл script.js у папці проекту
+  7. Додати базовий скрипт JavaScript у файл script.js
+  8. Підключити файл styles.css до index.html
+  9. Підключити файл script.js до index.html
+  10. Створити папку images у папці проекту
+  11. Додати зображення до папки images
+  12. Додати зображення до index.html
+  13. Створити файл README.md у папці проекту
+  14. Додати опис проекту до README.md
+
+⏱️ Орієнтовний час виконання: 112 секунд" (type: atlas, wsManager: true, hasTTS: true) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Broadcasting agent message: chat/agent_message (agent: atlas) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] ✅ Chat message sent successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] ✅ TODO created: todo_1761759065496_zghe5qefi {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Mode: extended {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Complexity: 8/10 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]    Items: 14 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      1. Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      2. Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      3. Додати базову структуру HTML у файл index.html {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 2 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      4. Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      5. Додати базові стилі CSS у файл styles.css {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 4 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      6. Створити файл script.js у папці проекту {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      7. Додати базовий скрипт JavaScript у файл script.js {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 6 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      8. Підключити файл styles.css до index.html {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 3, 5 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      9. Підключити файл script.js до index.html {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 3, 7 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      10. Створити папку images у папці проекту {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      11. Додати зображення до папки images {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 10 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      12. Додати зображення до index.html {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 3, 11 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      13. Створити файл README.md у папці проекту {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 1 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]      14. Додати опис проекту до README.md {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP]         Dependencies: 13 {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] atlas-todo-planning: [STAGE-1-MCP] ✅ Planning complete {"metadata":{"category":"system","component":"atlas-todo-planning"}}
+2025-10-29 19:31:05 [INFO] TODO created with 14 items {"metadata":{"sessionId":"default","mode":"extended","items":[{"id":1,"action":"Створити папку для проекту на робочому столі","max_attempts":3},{"id":2,"action":"Створити файл index.html у папці проекту","max_attempts":3},{"id":3,"action":"Додати базову структуру HTML у файл index.html","max_attempts":3},{"id":4,"action":"Створити файл styles.css у папці проекту","max_attempts":3},{"id":5,"action":"Додати базові стилі CSS у файл styles.css","max_attempts":3},{"id":6,"action":"Створити файл script.js у папці проекту","max_attempts":3},{"id":7,"action":"Додати базовий скрипт JavaScript у файл script.js","max_attempts":3},{"id":8,"action":"Підключити файл styles.css до index.html","max_attempts":3},{"id":9,"action":"Підключити файл script.js до index.html","max_attempts":3},{"id":10,"action":"Створити папку images у папці проекту","max_attempts":3},{"id":11,"action":"Додати зображення до папки images","max_attempts":3},{"id":12,"action":"Додати зображення до index.html","max_attempts":3},{"id":13,"action":"Створити файл README.md у папці проекту","max_attempts":3},{"id":14,"action":"Додати опис проекту до README.md","max_attempts":3}]}}
+2025-10-29 19:31:05 [INFO] Processing TODO item 1/14: Створити папку для проекту на робочому столі {"metadata":{"sessionId":"default","itemId":1}}
+2025-10-29 19:31:05 [INFO] Item 1: Attempt 1/3 {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] executor: [EXEC] Item 1 attempt 1/3: "Створити папку для проекту на робочому столі" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:05 [INFO] [WORKFLOW] Stage stage - system: Router Classifier: Fast filtering for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:05 [WARN] Router classifier failed, continuing without pre-filter {"metadata":{"error":"routerClassifier.execute is not a function"}}
+2025-10-29 19:31:05 [INFO] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 1: Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: filesystem (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: filesystem {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:05 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 1. Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 1 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:05 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"This tool is needed to create a new directory for the {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"This tool is needed to create a new directory for the project on the Desktop."}],"reasoning":"The plan involves creating a new directory named 'ТоргівляЗброєю' on the Desktop to organize the project files.","tts_phrase":"Creating a folder named 'ТоргівляЗброєю' on the Desktop.","needs_split":false} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [
+    {
+      "server": "filesystem",
+      "tool": "filesystem__create_directory",
+      "parameters": {
+        "path": "/Users/dev/Desktop/ТоргівляЗброєю"
+      }
+    }
+  ],
+  "reasoning": "The plan involves creating a new directory named 'ТоргівляЗброєю' on the Desktop to organize the project files."
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-todo: [TODO] ✅ Planning succeeded on attempt 1 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] planTools() returned: {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"}}],"reasoning":"The plan involves creating a new directory named 'ТоргівляЗброєю' on the Desktop to organize the project files.","tts_phrase":"Створити"} {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] validation-pipeline: 🔍 Starting validation for 1 tool calls {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] validation-pipeline: ✅ Validation PASSED (7ms, 4 stages) {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Planned 1 tool call(s): {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]    filesystem__filesystem__create_directory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]      Parameters: {"path":"/Users/dev/Desktop/ТоргівляЗброєю"} {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:07 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.2-MCP: Executing tools for item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] executor: [TTS] 🔊 Tetyana START: "створити папку для проекту на робочому столі" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="створити папку для проекту на робочому столі...", agent=tetyana, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: tetyana, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "створити папку для проекту на робочому столі" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:07 [INFO] [SESSION] session_1761759003717_f9qqvnqmk - confirm: Message confirmed: tts_1761759067653 {"metadata":{"category":"session","sessionId":"session_1761759003717_f9qqvnqmk","action":"confirm"}}
+2025-10-29 19:31:07 [INFO] [HTTP] POST /chat/confirm 200 (1ms) {"metadata":{"category":"http","method":"POST","url":"/chat/confirm","status":200,"duration":1,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ TTS sent successfully (estimated: 1000ms) {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] executor: [TTS] ✅ Tetyana start TTS sent {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ⚙️ Executing tools... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Item: 1. Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Executing 1 tool call(s)... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🔄 SEQUENTIAL execution mode (dependencies detected) {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:08 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ Running LLM validation... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-tool-system: ✅ LLM validation passed: ✅ All tools passed validation {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tool-dispatcher: 🚀 Dispatching 1 tool calls... {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tool-inspection: Categorized: 1 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tool-dispatcher: 📋 Inspection: 1 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tool-dispatcher: ✅ Workflow completed in 3ms: 1 successful, 0 failed {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-tool-system: ✅ Execution completed: 1/1 successful {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: 1/1 successful {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Execution completed {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Success: ✅ {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Successful calls: 1 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Failed calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Inspection: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   ✅ filesystem__filesystem__create_directory {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:09 [INFO] [WORKFLOW] Stage stage - grisha: Stage 2.3-MCP: Verifying item 1 {"metadata":{"category":"workflow","stage":"stage","agent":"grisha","sessionId":"default"}}
+2025-10-29 19:31:09 [INFO] [SYSTEM] executor: [VERIFICATION-DELAY] Waiting 1.0s before verification... {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [VISUAL-GRISHA] Initializing visual verification services... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] visual-capture: [VISUAL] Initializing Visual Capture Service (macOS)... {"metadata":{"category":"system","component":"visual-capture"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] visual-capture: [VISUAL] Screenshot directory: /tmp/atlas_visual {"metadata":{"category":"system","component":"visual-capture"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] visual-capture: [VISUAL] 🖥️  Detected 3 display(s) {"metadata":{"category":"system","component":"visual-capture"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] visual-capture: [VISUAL] ✅ Initialized with 3 display(s) {"metadata":{"category":"system","component":"visual-capture"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [VISUAL-GRISHA] ✅ Visual verification services ready {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] Item: 1. Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] Success criteria: Папка 'ТоргівляЗброєю' створена на робочому столі {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verification-strategy: [STRATEGY] Selected: mcp (confidence: 80%) {"metadata":{"category":"system","component":"grisha-verification-strategy"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verification-strategy: [STRATEGY] Reason: Filesystem keyword: папка; Filesystem keyword: створити {"metadata":{"category":"system","component":"grisha-verification-strategy"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🎯 Heuristic strategy: MCP {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 📊 Heuristic confidence: 80% {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 💡 Reason: Filesystem keyword: папка; Filesystem keyword: створити {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🎯 Analyzing verification eligibility for item 1 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] Action: Створити папку для проекту на робочому столі {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] Success criteria: Папка 'ТоргівляЗброєю' створена на робочому столі {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🤖 Calling LLM: atlas-meta-llama-3.1-8b-instruct {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🌡️  Temperature: 0.1 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] ✅ Decision: DATA {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 📊 Visual possible: true {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 📊 Confidence: 30% {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 💡 Reason: Низька візуальна впевненість {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🔧 Additional checks: 1 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING]   1. filesystem__get_file_info - Перевірити існування папки 'ТоргівляЗброєю' на робочому столі {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🤖 LLM decision: DATA {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🤖 LLM confidence: 30% {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 💪 Keeping heuristic decision (high confidence: 80% vs LLM: 30%) {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] ✅ Final strategy: MCP (confidence: 80%) {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔧 Starting MCP tool verification... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] Verification item: {
+  "id": "verify_1_1761759072098",
+  "action": "Verify existence of папку 'ТоргівляЗброєю' на робочому столі",
+  "success_criteria": "Папка 'ТоргівляЗброєю' створена на робочому столі",
+  "mcp_servers": [
+    "filesystem"
+  ],
+  "parameters": {},
+  "max_attempts": 1,
+  "dependencies": []
+} {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔄 Using unified MCP workflow (same as Tetyana)... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Starting unified MCP verification workflow {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Item: Verify existence of папку 'ТоргівляЗброєю' на робочому столі {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Stage 2.1: Plan Tools... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: verify_1_1761759072098. Verify existence of папку 'ТоргівляЗброєю' на робочому столі {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item verify_1_1761759072098 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:12 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:12 [ERROR] [MCP-TODO] Failed to plan tools for item verify_1_1761759072098: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_1_1761759072098","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/a..."}}
+2025-10-29 19:31:12 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:14 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:14 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:14 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:14 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:14 [ERROR] [MCP-TODO] Failed to plan tools for item verify_1_1761759072098: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_1_1761759072098","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (..."}}
+2025-10-29 19:31:14 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:14 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-29T17-31-14-943Z.json (1 записів) {"metadata":{}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:16 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:16 [ERROR] [MCP-TODO] Failed to plan tools for item verify_1_1761759072098: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_1_1761759072098","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (..."}}
+2025-10-29 19:31:16 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:16 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:16 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: Cannot read properties of undefined (reading 'items')
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:970:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)
+    at async MCPTodoManager.executeVerificationWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:3640:28)
+    at async GrishaVerifyItemProcessor._executeMcpVerification (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/grisha-verify-item-processor.js:737:36)
+    at async GrishaVerifyItemProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/grisha-verify-item-processor.js:250:32)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1403:32)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Stage 2.2: Execute Tools... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ⚙️ Executing tools... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Item: verify_1_1761759072098. Verify existence of папку 'ТоргівляЗброєю' на робочому столі {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Executing 0 tool call(s)... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🔄 SEQUENTIAL execution mode (dependencies detected) {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ Running LLM validation... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-tool-system: ✅ LLM validation passed: ✅ All tools passed validation {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tool-dispatcher: 🚀 Dispatching 0 tool calls... {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tool-inspection: Categorized: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tool-dispatcher: 📋 Inspection: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tool-dispatcher: ✅ Workflow completed in 0ms: 0 successful, 0 failed {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-tool-system: ✅ Execution completed: 0/0 successful {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: 0/0 successful {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Execution completed {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Success: ✅ {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Successful calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Failed calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Inspection: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Executed: ✅ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] ✅ Workflow completed via unified pipeline {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Servers: filesystem {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Tools: 0 {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Success: ✅ {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 📊 Verification execution results: {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   All successful: true {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Tool count: 0 {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔍 Analyzing results against success criteria... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] ✅ VERIFIED {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Reason: MCP інструменти виконані успішно {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] ✅ Verification complete {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:31:16 [INFO] Item 1 completed successfully {"metadata":{"sessionId":"default","attempts":1}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] executor: [TTS] 🔊 Tetyana SUCCESS: "Виконано" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="Виконано...", agent=tetyana, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: tetyana, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "Виконано" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SESSION] session_1761759003717_f9qqvnqmk - confirm: Message confirmed: tts_1761759076106 {"metadata":{"category":"session","sessionId":"session_1761759003717_f9qqvnqmk","action":"confirm"}}
+2025-10-29 19:31:16 [INFO] [HTTP] POST /chat/confirm 200 (0ms) {"metadata":{"category":"http","method":"POST","url":"/chat/confirm","status":200,"duration":0,"ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap..."}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ TTS sent successfully (estimated: 400ms) {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] executor: [TTS] ✅ Tetyana success sent {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] executor: [TTS] 🔊 Grisha VERIFY: "Підтверджено" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="Підтверджено...", agent=grisha, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: grisha, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "Підтверджено" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:16 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ TTS sent successfully (estimated: 600ms) {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] executor: [TTS] ✅ Grisha verify sent {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:17 [INFO] Processing TODO item 2/14: Створити файл index.html у папці проекту {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 19:31:17 [INFO] Item 2: Attempt 1/3 {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] executor: [EXEC] Item 2 attempt 1/3: "Створити файл index.html у папці проекту" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] executor: [EXEC]   Dependencies: 1 {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:17 [INFO] [WORKFLOW] Stage stage - system: Router Classifier: Fast filtering for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:17 [WARN] Router classifier failed, continuing without pre-filter {"metadata":{"error":"routerClassifier.execute is not a function"}}
+2025-10-29 19:31:17 [INFO] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 2: Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: filesystem (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: filesystem {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:17 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 2. Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 2 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:17 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:21 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:21 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"To ensure the project d {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:21 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"To ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html>\n<head>\n    <title>Торгівля Зброєю</title>\n</head>\n<body>\n    <h1>Ласкаво просимо до проекту Торгівля Зброєю</h1>\n</body>\n</html>"},"reasoning":"To create the index.html file with initial HTML content."}],"reasoning":"The plan involves creating the project directory if it doesn't exist and then creating the index.html file within that directory with basic HTML structure.","tts_phrase":"Creating the index.html file in the ТоргівляЗброєю project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:21 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:21 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:21 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:21 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:23 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:27 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:27 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"To ensure the project d {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:27 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"To ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"uk\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Index</title>\n</head>\n<body>\n    <h1>Welcome to the Project</h1>\n</body>\n</html>"},"reasoning":"To create the index.html file with basic HTML structure."}],"reasoning":"The plan involves creating the project directory if it doesn't already exist and then creating the index.html file with a basic HTML template inside it.","tts_phrase":"Creating the index.html file in the project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:27 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:27 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:27 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:27 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:29 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:32 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:32 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:32 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"uk\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Index</title>\n</head>\n<body>\n    <h1>Welcome to the Project</h1>\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"The plan involves creating the project directory if it doesn't exist and then creating the index.html file within that directory with a basic HTML structure.","tts_phrase":"Creating the index.html file in the project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:32 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:32 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:32 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:32 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:32 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:32 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:970:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:32 [WARN] Tool planning failed for item 2: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:32 [INFO] Item 2: Attempt 2/3 {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:32 [INFO] Retry backoff: waiting 1000ms before attempt 2 {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] executor: [EXEC] Item 2 attempt 2/3: "Створити файл index.html у папці проекту" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] executor: [EXEC]   Dependencies: 1 {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:33 [INFO] [WORKFLOW] Stage stage - system: Router Classifier: Fast filtering for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:33 [WARN] Router classifier failed, continuing without pre-filter {"metadata":{"error":"routerClassifier.execute is not a function"}}
+2025-10-29 19:31:33 [INFO] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 2: Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: filesystem (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: filesystem {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:33 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 2. Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 2 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:33 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:37 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:37 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:37 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html>\n<head>\n    <title>Торгівля Зброєю</title>\n</head>\n<body>\n    <h1>Ласкаво просимо до проекту Торгівля Зброєю</h1>\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure in the project directory."}],"reasoning":"The plan involves creating the project directory if it doesn't exist and then creating the index.html file with a basic HTML structure inside that directory.","tts_phrase":"Creating the index.html file in the ТоргівляЗброєю project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:37 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:37 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:37 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:37 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:39 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:43 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:43 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:43 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"uk\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Index</title>\n</head>\n<body>\n    <h1>Welcome to the Project</h1>\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"The plan involves first ensuring that the project directory 'ТоргівляЗброєю' exists on the Desktop. After confirming the directory's existence, the next step is to create the 'index.html' file within that directory, containing a basic HTML structure.","tts_phrase":"Creating the index.html file in the project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:43 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:43 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:43 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:43 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:45 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:48 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:48 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:48 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Document</title>\n</head>\n<body>\n\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"First, create the project directory 'ТоргівляЗброєю' on the Desktop if it doesn't already exist. Then, create the 'index.html' file within that directory, initializing it with a basic HTML template.","tts_phrase":"Creating the index.html file in the ТоргівляЗброєю project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:48 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:48 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:48 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:48 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:48 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:48 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:970:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:48 [WARN] Tool planning failed for item 2: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:48 [INFO] Item 2: Attempt 3/3 {"metadata":{"sessionId":"default"}}
+2025-10-29 19:31:48 [INFO] Retry backoff: waiting 2000ms before attempt 3 {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] executor: [EXEC] Item 2 attempt 3/3: "Створити файл index.html у папці проекту" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] executor: [EXEC]   Dependencies: 1 {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:50 [INFO] [WORKFLOW] Stage stage - system: Router Classifier: Fast filtering for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:50 [WARN] Router classifier failed, continuing without pre-filter {"metadata":{"error":"routerClassifier.execute is not a function"}}
+2025-10-29 19:31:50 [INFO] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 2: Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: filesystem (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: filesystem {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:31:50 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 2 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 2. Створити файл index.html у папці проекту {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 2 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:50 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:53 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:53 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:53 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html>\n<head>\n    <title>Торгівля Зброєю</title>\n</head>\n<body>\n    <h1>Ласкаво просимо до проекту Торгівля Зброєю</h1>\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"The plan involves creating the project directory on the desktop and then creating the index.html file within that directory with a basic HTML template.","tts_phrase":"Creating the index.html file in the ТоргівляЗброєю project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:53 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:53 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:53 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:53 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:55 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:58 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:58 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:58 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"uk\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Index</title>\n</head>\n<body>\n    <h1>Welcome to the Project</h1>\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"The plan involves creating the project directory if it doesn't exist and then creating the index.html file with a basic HTML structure inside that directory.","tts_phrase":"Creating the index.html file in the project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:58 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:31:58 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:31:58 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:31:58 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:00 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project dire {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"type":"object","properties":{"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the HTML file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/index.html","content":"<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Document</title>\n</head>\n<body>\n\n</body>\n</html>"},"reasoning":"Create the index.html file with basic HTML structure."}],"reasoning":"The plan involves creating the project directory if it doesn't exist and then creating the index.html file with a basic HTML template inside that directory.","tts_phrase":"Creating the index.html file in the project folder.","needs_split":false}} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [],
+  "reasoning": ""
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [WARN] [MCP-TODO] Warning: No tool calls in plan! Plan: {"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"} {"metadata":{"category":"mcp-todo","component":"mcp-todo","plan":{"tool_calls":[],"reasoning":"","tts_phrase":"Створити, 0 кроки"}}}
+2025-10-29 19:32:03 [ERROR] [MCP-TODO] Failed to plan tools for item 2: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":2,"errorName":"Error","stack":"Error: No tool calls generated - plan is empty\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1342:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator..."}}
+2025-10-29 19:32:03 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:03 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:970:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [WARN] Tool planning failed for item 2: Tool planning failed after 3 attempts: Tool planning failed: No tool calls generated - plan is empty {"metadata":{"sessionId":"default"}}
+2025-10-29 19:32:03 [WARN] Item 2 failed after 3 attempts {"metadata":{"sessionId":"default"}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 1/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 2/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 3/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 4/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 5 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 5/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 6 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 6/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 7 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 7/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 8 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 8/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 9 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked: Dependencies not completed: #2 (failed) (check 9/10) {"metadata":{"sessionId":"default","itemId":3,"dependencies":[2],"unresolvedSummary":"#2 (failed)","parentBlocked":false}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 3/14: Додати базову структуру HTML у файл index.html {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [WARN] Item 3 blocked 10 times - attempting resolution {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [ERROR] Item 3 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] executor: [SKIP] Item 3 already processed (status: skipped) {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:03 [INFO] Processing TODO item 4/14: Створити файл styles.css у папці проекту {"metadata":{"sessionId":"default","itemId":4}}
+2025-10-29 19:32:03 [INFO] Item 4: Attempt 1/3 {"metadata":{"sessionId":"default"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] executor: [EXEC] Item 4 attempt 1/3: "Створити файл styles.css у папці проекту" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] executor: [EXEC]   Dependencies: 1 {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:03 [INFO] [WORKFLOW] Stage stage - system: Router Classifier: Fast filtering for item 4 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:32:03 [WARN] Router classifier failed, continuing without pre-filter {"metadata":{"error":"routerClassifier.execute is not a function"}}
+2025-10-29 19:32:03 [INFO] [WORKFLOW] Stage stage - system: Stage 2.0-MCP: Selecting MCP servers for item 4 {"metadata":{"category":"workflow","stage":"stage","agent":"system","sessionId":"default"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🔍 Selecting MCP servers... {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Item 4: Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] Available servers: java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Using Atlas recommendation: filesystem {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] server-selection: [STAGE-2.0-MCP] ✅ Selected: filesystem (confidence: 0.98) {"metadata":{"category":"system","component":"server-selection"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Selected servers: filesystem {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] executor: [STAGE-2.0-MCP] Auto-assigned prompts: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:03 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.1-MCP: Planning tools for item 4 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: 4. Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using auto-assigned prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item 4 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using specialized prompt: TETYANA_PLAN_TOOLS_FILESYSTEM {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools with model: atlas-gpt-4o-mini (temp: 0.1, max_tokens: 2500) {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] Calling LLM API at http://localhost:4000/v1/chat/completions... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool structure: {"name":"read_file","description":"Read the complete contents of a file as text. DEPRECATED: Use read_text_file instead.","inputSchema":{"type":"object","properties":{"path":{"type":"string"},"tail":{ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 First tool has 'name': true, has 'server': true {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 14 tool names from 14 tools {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Extracted 1 server names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔍 Sample tool names: filesystem__read_file, filesystem__read_text_file, filesystem__read_media_file {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Building JSON Schema with 14 valid tools from 1 servers {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:03 [INFO] [SYSTEM] mcp-todo: [TODO] 🔒 Using JSON Schema with 14 valid tool names {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:05 [INFO] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}
+2025-10-29 19:32:05 [INFO] [DI] Stopping services... {"metadata":{}}
+2025-10-29 19:32:05 [INFO] [SYSTEM] shutdown: [DI] Session store cleared {"metadata":{"category":"system","component":"shutdown"}}
+2025-10-29 19:32:05 [INFO] [SYSTEM] shutdown: [DI] WebSocket manager stopped {"metadata":{"category":"system","component":"shutdown"}}
+2025-10-29 19:32:05 [INFO] [DI] All services stopped {"metadata":{}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] mcp-todo: [TODO] LLM API responded successfully {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] mcp-todo: [TODO] Raw LLM response (first 200 chars): {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating t {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] mcp-todo: [TODO] Full LLM response: {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"},"reasoning":"Ensure the project directory exists before creating the file."},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/styles.css","content":""},"reasoning":"Create the styles.css file in the project directory."}],"reasoning":"The plan involves first ensuring that the project directory exists and then creating the styles.css file within that directory. This follows the requirement to create the file in the specified project folder.","tts_phrase":"Creating the styles.css file in the project folder.","needs_split":false} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] mcp-todo: [TODO] Parsed plan: {
+  "tool_calls": [
+    {
+      "server": "filesystem",
+      "tool": "filesystem__create_directory",
+      "parameters": {
+        "path": "/Users/dev/Desktop/ТоргівляЗброєю"
+      }
+    },
+    {
+      "server": "filesystem",
+      "tool": "filesystem__write_file",
+      "parameters": {
+        "path": "/Users/dev/Desktop/ТоргівляЗброєю/styles.css",
+        "content": ""
+      }
+    }
+  ],
+  "reasoning": "The plan involves first ensuring that the project directory exists and then creating the styles.css file within that directory. This follows the requirement to create the file in the specified project folder."
+} {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] mcp-todo: [TODO] ✅ Planning succeeded on attempt 1 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] planTools() returned: {"tool_calls":[{"server":"filesystem","tool":"filesystem__create_directory","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю"}},{"server":"filesystem","tool":"filesystem__write_file","parameters":{"path":"/Users/dev/Desktop/ТоргівляЗброєю/styles.css","content":""}}],"reasoning":"The plan invo {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] validation-pipeline: 🔍 Starting validation for 2 tool calls {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] validation-pipeline: ✅ Validation PASSED (1ms, 4 stages) {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Planned 2 tool call(s): {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]    filesystem__filesystem__create_directory {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]      Parameters: {"path":"/Users/dev/Desktop/ТоргівляЗброєю"} {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]    filesystem__filesystem__write_file {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP]      Parameters: {"path":"/Users/dev/Desktop/ТоргівляЗброєю/styles.css","content":""} {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:06 [INFO] [WORKFLOW] Stage stage - tetyana: Stage 2.2-MCP: Executing tools for item 4 {"metadata":{"category":"workflow","stage":"stage","agent":"tetyana","sessionId":"default"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] executor: [TTS] 🔊 Tetyana START: "створити файл styles.css у папці проекту" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="створити файл styles.css у папці проекту...", agent=tetyana, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: tetyana, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "створити файл styles.css у папці проекту" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:06 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ TTS sent successfully (estimated: 1000ms) {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] executor: [TTS] ✅ Tetyana start TTS sent {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ⚙️ Executing tools... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Item: 4. Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Executing 2 tool call(s)... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ⚡ PARALLEL execution mode enabled {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [PARALLEL] Executing 2 tools in parallel... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ Running LLM validation... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ Running LLM validation... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: ✅ LLM validation passed: ✅ All tools passed validation {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: 🚀 Dispatching 1 tool calls... {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-inspection: Categorized: 1 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: 📋 Inspection: 1 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: ✅ Workflow completed in 2ms: 1 successful, 0 failed {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: ✅ Execution completed: 1/1 successful {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: ✅ LLM validation passed: ✅ All tools passed validation {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: 🚀 Dispatching 1 tool calls... {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-inspection: Categorized: 0 approved, 1 need approval, 0 denied {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: 📋 Inspection: 0 approved, 1 need approval, 0 denied {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tool-dispatcher: ✅ Workflow completed in 1ms: 1 successful, 0 failed {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-tool-system: ✅ Execution completed: 1/1 successful {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [PARALLEL] Completed in 585ms: 2 success, 0 failed {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: 2/2 successful {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Execution completed {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Success: ✅ {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Successful calls: 2 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Failed calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   ✅ filesystem__filesystem__create_directory {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   ✅ filesystem__filesystem__write_file {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:07 [INFO] [WORKFLOW] Stage stage - grisha: Stage 2.3-MCP: Verifying item 4 {"metadata":{"category":"workflow","stage":"stage","agent":"grisha","sessionId":"default"}}
+2025-10-29 19:32:07 [INFO] [SYSTEM] executor: [VERIFICATION-DELAY] Waiting 1.0s before verification... {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] Item: 4. Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] Success criteria: Файл styles.css створено у папці 'ТоргівляЗброєю' {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verification-strategy: [STRATEGY] Selected: mcp (confidence: 80%) {"metadata":{"category":"system","component":"grisha-verification-strategy"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verification-strategy: [STRATEGY] Reason: Filesystem keyword: файл; Filesystem keyword: створити {"metadata":{"category":"system","component":"grisha-verification-strategy"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🎯 Heuristic strategy: MCP {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 📊 Heuristic confidence: 80% {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 💡 Reason: Filesystem keyword: файл; Filesystem keyword: створити {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🎯 Analyzing verification eligibility for item 4 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] Action: Створити файл styles.css у папці проекту {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] Success criteria: Файл styles.css створено у папці 'ТоргівляЗброєю' {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🤖 Calling LLM: atlas-meta-llama-3.1-8b-instruct {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:08 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🌡️  Temperature: 0.1 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] ✅ Decision: DATA {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 📊 Visual possible: true {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 📊 Confidence: 30% {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 💡 Reason: Низька візуальна впевненість {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING] 🔧 Additional checks: 1 {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-eligibility: [GRISHA-ROUTING]   1. filesystem__get_file_info - Перевірити існування файлу styles.css {"metadata":{"category":"system","component":"grisha-eligibility"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🤖 LLM decision: DATA {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 🤖 LLM confidence: 30% {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] 💪 Keeping heuristic decision (high confidence: 80% vs LLM: 30%) {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] ✅ Final strategy: MCP (confidence: 80%) {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔧 Starting MCP tool verification... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] Verification item: {
+  "id": "verify_4_1761759130878",
+  "action": "Verify existence of file styles.css in папці 'ТоргівляЗброєю'",
+  "success_criteria": "Файл styles.css створено у папці 'ТоргівляЗброєю'",
+  "mcp_servers": [
+    "filesystem"
+  ],
+  "parameters": {},
+  "max_attempts": 1,
+  "dependencies": []
+} {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔄 Using unified MCP workflow (same as Tetyana)... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Starting unified MCP verification workflow {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Item: Verify existence of file styles.css in папці 'ТоргівляЗброєю' {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Stage 2.1: Plan Tools... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🛠️ Planning tool selection... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Item: verify_4_1761759130878. Verify existence of file styles.css in папці 'ТоргівляЗброєю' {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Using TetyanaToolSystem for tool preparation {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-tool-system: 🛠️ Preparing tools and prompt... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-tool-system: 📋 Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-tool-system: 🎯 Filtered to servers: filesystem {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] ✅ Prepared 14 tools from 1 servers {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] 🎯 Filtered to: filesystem {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] tetyana-plan-tools: [STAGE-2.1-MCP] Calling mcpTodoManager.planTools()... {"metadata":{"category":"system","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [TODO] Planning tools for item verify_4_1761759130878 {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 1/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:10 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:10 [ERROR] [MCP-TODO] Failed to plan tools for item verify_4_1761759130878: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_4_1761759130878","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/a..."}}
+2025-10-29 19:32:10 [WARN] [TODO] Planning attempt 1/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:12 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 2/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:12 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:12 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:12 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:12 [ERROR] [MCP-TODO] Failed to plan tools for item verify_4_1761759130878: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_4_1761759130878","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)\n    at a..."}}
+2025-10-29 19:32:12 [WARN] [TODO] Planning attempt 2/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] mcp-todo: [TODO] Planning attempt 3/3 with atlas-gpt-4o-mini {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Using 1 pre-selected servers: filesystem {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] mcp-todo: [TODO] 🎯 Filtered to 14 tools (was 92+) - 85% reduction {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:14 [WARN] [MCP-TODO] ⚠️ Using universal prompt for filesystem {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:14 [ERROR] [MCP-TODO] Failed to plan tools for item verify_4_1761759130878: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo","itemId":"verify_4_1761759130878","errorName":"TypeError","stack":"TypeError: Cannot read properties of undefined (reading 'items')\n    at MCPTodoManager._planToolsAttempt (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:1112:41)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:520:9)\n    at async MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:949:24)\n    at async TetyanaPlanToolsProcessor.execute (..."}}
+2025-10-29 19:32:14 [WARN] [TODO] Planning attempt 3/3 failed: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"mcp-todo","component":"mcp-todo"}}
+2025-10-29 19:32:14 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: Tool planning failed after 3 attempts: Tool planning failed: Cannot read properties of undefined (reading 'items') {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:14 [ERROR] Stack trace: Error: Tool planning failed after 3 attempts: Tool planning failed: Cannot read properties of undefined (reading 'items')
+    at MCPTodoManager.planTools (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:970:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:182:26)
+    at async MCPTodoManager.executeVerificationWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:3640:28)
+    at async GrishaVerifyItemProcessor._executeMcpVerification (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/grisha-verify-item-processor.js:737:36)
+    at async GrishaVerifyItemProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/grisha-verify-item-processor.js:250:32)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1403:32)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Stage 2.2: Execute Tools... {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ⚙️ Executing tools... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Item: verify_4_1761759130878. Verify existence of file styles.css in папці 'ТоргівляЗброєю' {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Executing 0 tool call(s)... {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] 🔄 SEQUENTIAL execution mode (dependencies detected) {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ Running LLM validation... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-tool-system: ✅ LLM validation passed: ✅ All tools passed validation {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tool-dispatcher: 🚀 Dispatching 0 tool calls... {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tool-inspection: Categorized: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tool-dispatcher: 📋 Inspection: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tool-dispatcher: ✅ Workflow completed in 1ms: 0 successful, 0 failed {"metadata":{"category":"system","component":"tool-dispatcher"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-tool-system: ✅ Execution completed: 0/0 successful {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: 0/0 successful {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP] Execution completed {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Success: ✅ {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Successful calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Failed calls: 0 {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tetyana-execute-tools: [STAGE-2.2-MCP]   Inspection: 0 approved, 0 need approval, 0 denied {"metadata":{"category":"system","component":"tetyana-execute-tools"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] mcp-todo: [UNIFIED-MCP] Executed: ✅ {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] ✅ Workflow completed via unified pipeline {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Servers: filesystem {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Tools: 0 {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Success: ✅ {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 📊 Verification execution results: {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   All successful: true {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Tool count: 0 {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] 🔍 Analyzing results against success criteria... {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA] ✅ VERIFIED {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [MCP-GRISHA]   Reason: MCP інструменти виконані успішно {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] grisha-verify-item: [GRISHA] ✅ Verification complete {"metadata":{"category":"system","component":"grisha-verify-item"}}
+2025-10-29 19:32:14 [INFO] Item 4 completed successfully {"metadata":{"sessionId":"default","attempts":1}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] executor: [TTS] 🔊 Tetyana SUCCESS: "Готово" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="Готово...", agent=tetyana, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: tetyana, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "Готово" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:14 [INFO] Метрики збережено: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-10-29T17-32-14-941Z.json (1 записів) {"metadata":{}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ TTS sent successfully (estimated: 300ms) {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] executor: [TTS] ✅ Tetyana success sent {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] executor: [TTS] 🔊 Grisha VERIFY: "Все правильно" {"metadata":{"category":"system","component":"executor"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔍 TTS Debug: wsManager=true, phrase="Все правильно...", agent=grisha, mode=normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket... {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Channel: chat, Event: agent_message {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Agent: grisha, Mode: normal {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC]    - Phrase: "Все правильно" {"metadata":{"category":"system","component":"tts-sync"}}
+2025-10-29 19:32:15 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket broadcast completed {"metadata":{"category":"system","component":"tts-sync"}}

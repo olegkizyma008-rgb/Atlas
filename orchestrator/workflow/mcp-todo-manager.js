@@ -2367,8 +2367,20 @@ Context: ${JSON.stringify(context, null, 2)}
       } else {
         parsed = cleanResponse;
       }
+      // FIXED 2025-10-29 - Handle JSON Schema wrapper format
+      // LLM sometimes returns {"type":"object","properties":{"tool_calls":[...]}} instead of {"tool_calls":[...]}
+      let actualData = parsed;
+      if (parsed.type === 'object' && parsed.properties) {
+        // Extract actual data from JSON Schema wrapper
+        actualData = parsed.properties;
+        this.logger.warn('[MCP-TODO] ⚠️ LLM returned JSON Schema format instead of data, extracting properties', {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
+        });
+      }
+      
       // FIXED 2025-10-22 - Auto-fix null server by extracting from tool name
-      const toolCalls = (parsed.tool_calls || []).map(call => {
+      const toolCalls = (actualData.tool_calls || []).map(call => {
         const server = call.server || call.mcp_server || call.server_name;
         const rawTool = call.tool || call.tool_name;
 
@@ -2385,7 +2397,7 @@ Context: ${JSON.stringify(context, null, 2)}
       
       return {
         tool_calls: toolCalls,
-        reasoning: parsed.reasoning || ''
+        reasoning: actualData.reasoning || ''
       };
     } catch (error) {
       // Truncate long responses for logging

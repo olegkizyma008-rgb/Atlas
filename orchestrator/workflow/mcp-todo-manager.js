@@ -1136,7 +1136,7 @@ export class MCPTodoManager {
       
       // NEW 2025-10-24: Replace {{USER_LANGUAGE}} placeholder with actual user language
       if (systemPrompt.includes('{{USER_LANGUAGE}}')) {
-        systemPrompt = localizationService.replaceLanguagePlaceholder(systemPrompt);
+        systemPrompt = this.localizationService.replaceLanguagePlaceholder(systemPrompt);
         this.logger.system('mcp-todo', `[TODO] Substituted {{USER_LANGUAGE}} in prompt`);
       }
 

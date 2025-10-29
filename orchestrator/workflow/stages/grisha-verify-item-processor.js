@@ -414,13 +414,22 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📂 Full path: ${screenshot.filepath}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 📷 Capture mode: ${screenshot.mode}${screenshot.targetApp ? ' (' + screenshot.targetApp + ')' : ''}`);
 
+            // Add delay for Calculator to fully render
+            const actionLower = (currentItem.action || '').toLowerCase();
+            if (targetApp === 'Calculator' || actionLower.includes('калькулятор') || actionLower.includes('calculator')) {
+                this.logger.system('grisha-verify-item', '[VISUAL-GRISHA] ⏱️ Waiting 2s for Calculator to fully render...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
             // Step 2: Analyze screenshot with AI vision
             // ENHANCED 2025-10-22: Pass modelType for attempt-based model selection
             const analysisContext = {
                 action: currentItem.action,
                 executionResults: execution.results || [],
                 modelType: modelType,  // 'fast' for attempt 1, 'primary' for attempt 2
-                captureDecision
+                captureDecision,
+                targetApp: targetApp || 'Unknown',
+                isCalculatorTask: targetApp === 'Calculator' || actionLower.includes('калькулятор') || actionLower.includes('calculator')
             };
 
             let visionAnalysis = await this.visionAnalysis.analyzeScreenshot(
@@ -1716,6 +1725,18 @@ export class GrishaVerifyItemProcessor {
                 server: 'filesystem',
                 tool: 'filesystem__read_file',
                 description: 'Check file existence and content'
+            });
+        }
+        
+        // Calculator operations → AppleScript to get window state
+        if (actionLower.includes('калькулятор') || actionLower.includes('calculator')) {
+            checks.push({
+                server: 'applescript',
+                tool: 'applescript__applescript_execute',
+                description: 'Get Calculator window state and value',
+                parameters: {
+                    code_snippet: 'tell application "System Events"\n    tell process "Calculator"\n        if exists window 1 then\n            return "Calculator is open"\n        else\n            return "Calculator is not open"\n        end if\n    end tell\nend tell'
+                }
             });
         }
         

@@ -161,9 +161,9 @@ end tell
 {
   "tool_calls": [{
     "server": "applescript",
-    "tool": "applescript__applescript_execute",
+    "tool": "applescript__execute",
     "parameters": {
-      "code_snippet": "tell application \"Calculator\" to activate\ndelay 0.5\ntell application \"System Events\"\n    tell process \"Calculator\"\n        keystroke \"333\"\n        keystroke \"+\"\n        keystroke \"222\"\n        keystroke \"+\"\n        keystroke \"111\"\n        keystroke return\n    end tell\nend tell"
+      "code_snippet": "tell application \"Calculator\" to activate\ndelay 1.0\ntell application \"System Events\"\n    tell process \"Calculator\"\n        -- Clear any previous input\n        keystroke \"c\" using {command down}\n        delay 0.2\n        -- Enter calculation\n        keystroke \"333\"\n        keystroke \"+\"\n        keystroke \"222\"\n        keystroke \"+\"\n        keystroke \"111\"\n        keystroke return\n    end tell\nend tell"
     }
   }],
   "reasoning": "виконую операцію в калькуляторі",

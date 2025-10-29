@@ -1087,6 +1087,13 @@ export class VisionAnalysisService {
           }
         }
       }
+      
+      // Try markdown parsing before fallback
+      const markdownParsed = this._parseMarkdownResponse(content);
+      if (markdownParsed && markdownParsed.verified !== undefined) {
+        this.logger.system('vision-analysis', '[VISION] ✅ Successfully parsed markdown response');
+        return this._normalizeVisionPayload(markdownParsed);
+      }
 
       // FALLBACK: Parse text response and create JSON structure
       // SECURITY FIX 2025-10-22: NEVER auto-verify from text fallback to prevent hallucinations
@@ -1129,6 +1136,55 @@ export class VisionAnalysisService {
       }
 
       return this._normalizeVisionPayload(fallbackResponse);
+    }
+  }
+
+  /**
+   * Parse markdown-formatted vision response
+   * @param {string} content - Raw markdown content
+   * @returns {Object|null} Parsed object or null if parsing failed
+   * @private
+   */
+  _parseMarkdownResponse(content) {
+    try {
+      // Extract verified status
+      const verifiedMatch = content.match(/\*\*\s*Verified\s*[:\*]*\s*(true|false|Yes|No)/i);
+      if (!verifiedMatch) return null;
+      
+      const verified = verifiedMatch[1].toLowerCase() === 'true' || verifiedMatch[1].toLowerCase() === 'yes';
+      
+      // Extract confidence
+      const confidenceMatch = content.match(/\*\*\s*Confidence\s*[:\*]*\s*(\d+)%?/i);
+      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : 0;
+      
+      // Extract reason
+      const reasonMatch = content.match(/\*\*\s*Reason\s*[:\*]*\s*([^\n*]+)/i);
+      const reason = reasonMatch ? reasonMatch[1].trim() : 'No reason provided';
+      
+      // Extract observed value
+      const observedMatch = content.match(/\*\*\s*(?:Observed|Visual Evidence)\s*[:\*]*\s*([^\n*]+)/i);
+      const observed = observedMatch ? observedMatch[1].trim() : 'No visual details provided';
+      
+      // Extract details
+      const detailsMatch = content.match(/\*\*\s*Details\s*[:\*]*\s*([^\n*]+)/i);
+      const details = detailsMatch ? detailsMatch[1].trim() : 'No additional details';
+      
+      return {
+        verified,
+        confidence,
+        reason,
+        visual_evidence: {
+          observed,
+          matches_criteria: verified,
+          details
+        },
+        _markdown_parsed: true
+      };
+    } catch (error) {
+      this.logger.warn(`[VISION] Markdown parsing failed: ${error.message}`, {
+        category: 'vision-analysis'
+      });
+      return null;
     }
   }
 

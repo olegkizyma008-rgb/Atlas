@@ -15,6 +15,7 @@ import GlobalConfig from '../../config/atlas-config.js';
 import LocalizationService from '../services/localization-service.js';
 import { VisualCaptureService } from '../services/visual-capture-service.js';
 import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
+import { ValidationPipeline } from '../ai/validation/validation-pipeline.js';
 
 /**
  * @typedef {Object} TodoItem
@@ -74,12 +75,13 @@ export class MCPTodoManager {
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.localizationService - Localization Service instance
      */
-  constructor({ logger, wsManager = null, localizationService = null, mcpManager = null, ttsSyncManager = null, atlasReplanProcessor = null }) {
+  constructor({ logger, wsManager = null, localizationService = null, mcpManager = null, ttsSyncManager = null, atlasReplanProcessor = null, llmClient = null }) {
     this.logger = logger;
     this.mcpManager = mcpManager;
     this.wsManager = wsManager;
     this.ttsSyncManager = ttsSyncManager;
     this.atlasReplanProcessor = atlasReplanProcessor;
+    this.llmClient = llmClient;
     this.localizationService = localizationService || new LocalizationService({ logger });
     this.currentTodo = null;
     this.currentSessionId = null;
@@ -92,6 +94,21 @@ export class MCPTodoManager {
 
     // Visual capture service (shared for all items)
     this.visualCapture = null;
+    
+    // ADDED 2025-10-29: ValidationPipeline with self-correction
+    // Implements advanced validation from refactor.md
+    this.validationPipeline = null;
+    if (this.mcpManager && this.llmClient) {
+      try {
+        this.validationPipeline = new ValidationPipeline({
+          mcpManager: this.mcpManager,
+          llmClient: this.llmClient
+        });
+        this.logger.system('mcp-todo', '✅ ValidationPipeline with self-correction enabled');
+      } catch (error) {
+        this.logger.warn('mcp-todo', `Failed to initialize ValidationPipeline: ${error.message}`);
+      }
+    }
   }
 
   /**
@@ -1206,6 +1223,16 @@ Create precise MCP tool execution plan.
           max_tokens: modelConfig.max_tokens
         };
 
+        // ADDED 2025-10-29: Forced Tool Calling (from refactor.md)
+        // Force LLM to use specific tool if required by context
+        if (options.forcedTool) {
+          requestBody.tool_choice = {
+            type: 'function',
+            function: { name: options.forcedTool }
+          };
+          this.logger.system('mcp-todo', `[TODO] ⚡ Forced tool calling: ${options.forcedTool}`);
+        }
+        
         // Add response_format with JSON Schema if tools are available
         if (toolSchema) {
           requestBody.response_format = {
@@ -1340,6 +1367,44 @@ Create precise MCP tool execution plan.
           plan
         });
         throw new Error('No tool calls generated - plan is empty');
+      }
+
+      // ADDED 2025-10-29: Self-correction validation cycle (from refactor.md)
+      // LLM validates its own plan before execution
+      if (this.validationPipeline && plan.tool_calls.length > 0) {
+        this.logger.system('mcp-todo', `[TODO] 🔍 Running self-correction validation...`);
+        
+        try {
+          const validationResult = await this.validationPipeline.validate(
+            plan.tool_calls,
+            {
+              action: item.action,
+              success_criteria: item.success_criteria,
+              availableTools: availableTools,
+              todo: todo,
+              item: item
+            }
+          );
+          
+          if (validationResult.selfCorrection?.success) {
+            // Apply corrected plan
+            plan.tool_calls = validationResult.toolCalls;
+            this.logger.system('mcp-todo', `[TODO] ✅ Self-correction applied (${validationResult.selfCorrection.attempts} attempts)`);
+            
+            if (validationResult.corrections.length > 0) {
+              this.logger.system('mcp-todo', `[TODO] 📝 Corrections: ${validationResult.corrections.map(c => c.message || c).join(', ')}`);
+            }
+          } else if (validationResult.selfCorrection?.validated === false) {
+            // Validation failed after max attempts
+            this.logger.warn('mcp-todo', `[TODO] ⚠️ Self-correction failed after ${validationResult.selfCorrection.attempts} attempts`, {
+              errors: validationResult.selfCorrection.errors
+            });
+            throw new Error(`Plan validation failed: ${validationResult.selfCorrection.errors.join(', ')}`);
+          }
+        } catch (validationError) {
+          this.logger.warn('mcp-todo', `[TODO] Self-correction error: ${validationError.message}`);
+          // Continue with original plan if validation fails
+        }
       }
 
       return plan;

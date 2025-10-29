@@ -8,6 +8,7 @@
 
 import logger from '../../utils/logger.js';
 import { VALIDATION_CONFIG, getEnabledStages, isStageCritical } from '../../../config/validation-config.js';
+import SelfCorrectionValidator from './self-correction-validator.js';
 
 /**
  * Validation Pipeline
@@ -91,13 +92,12 @@ export class ValidationPipeline {
     let selfCorrectionResult = null;
     
     if (this.config.enableSelfCorrection && this.llmClient) {
-      // Lazy initialization to avoid require issues
+      // Initialize self-correction validator
       if (!this.selfCorrectionValidator) {
         try {
-          const SelfCorrectionValidator = require('./self-correction-validator');
           this.selfCorrectionValidator = new SelfCorrectionValidator(logger, this.llmClient);
         } catch (err) {
-          logger.warn('validation-pipeline', 'Failed to load self-correction validator', { error: err.message });
+          logger.warn('validation-pipeline', 'Failed to initialize self-correction validator', { error: err.message });
         }
       }
       

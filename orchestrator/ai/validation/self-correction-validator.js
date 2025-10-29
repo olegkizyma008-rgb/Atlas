@@ -7,7 +7,7 @@
  * @date 2025-10-29
  */
 
-class SelfCorrectionValidator {
+export default class SelfCorrectionValidator {
   constructor(logger, llmClient) {
     this.logger = logger;
     this.llmClient = llmClient;
@@ -383,5 +383,3 @@ Return JSON in this format:
     });
   }
 }
-
-module.exports = SelfCorrectionValidator;

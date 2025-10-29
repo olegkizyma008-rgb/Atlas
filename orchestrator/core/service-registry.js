@@ -382,18 +382,18 @@ export function registerMCPWorkflowServices(container) {
     container.singleton('mcpTodoManager', (c) => {
         return new MCPTodoManager({
             mcpManager: c.resolve('mcpManager'),
-            llmClient: null,  // Will be lazy-loaded when needed
+            llmClient: c.resolve('llmClient'),  // ADDED 2025-10-29 - For ValidationPipeline self-correction
             ttsSyncManager: c.resolve('ttsSyncManager'),
             wsManager: c.resolve('wsManager'),  // ADDED 14.10.2025 - For chat updates
             atlasReplanProcessor: c.resolve('atlasReplanTodoProcessor'),  // ADDED 20.10.2025 - For deep replan
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['mcpManager', 'ttsSyncManager', 'wsManager', 'atlasReplanTodoProcessor', 'logger'],
+        dependencies: ['mcpManager', 'llmClient', 'ttsSyncManager', 'wsManager', 'atlasReplanTodoProcessor', 'logger'],
         metadata: { category: 'workflow', priority: 50 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] MCPTodoManager initialized with replan support');
+                logger.system('startup', '[DI] MCPTodoManager initialized with ValidationPipeline self-correction support');
             }
         }
     });

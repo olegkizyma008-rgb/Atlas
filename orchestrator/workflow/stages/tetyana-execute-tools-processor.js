@@ -66,21 +66,30 @@ export class TetyanaExecuteToolsProcessor {
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP] Item: ${currentItem.id}. ${currentItem.action}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP] Executing ${plan.tool_calls.length} tool call(s)...`);
 
+            // NEW 2025-10-29: Detect if tools can be executed in parallel
+            const canExecuteParallel = this._canExecuteParallel(plan.tool_calls);
+            
             // NEW 2025-10-20: Use TetyanaToolSystem for execution with inspection
             let executionResult;
             
             if (this.tetyanaToolSystem) {
                 this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution');
                 
-                // Execute through new system (includes automatic inspection)
-                executionResult = await this.tetyanaToolSystem.executeToolCalls(
-                    plan.tool_calls,
-                    {
-                        currentItem,
-                        todo,
-                        autoApprove: true // Auto-approve in task mode
-                    }
-                );
+                if (canExecuteParallel) {
+                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] ⚡ PARALLEL execution mode enabled');
+                    executionResult = await this._executeParallel(plan.tool_calls, { currentItem, todo });
+                } else {
+                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 SEQUENTIAL execution mode (dependencies detected)');
+                    // Execute through new system (includes automatic inspection)
+                    executionResult = await this.tetyanaToolSystem.executeToolCalls(
+                        plan.tool_calls,
+                        {
+                            currentItem,
+                            todo,
+                            autoApprove: true // Auto-approve in task mode
+                        }
+                    );
+                }
                 
                 this.logger.system('tetyana-execute-tools', 
                     `[STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: ${executionResult.successful_calls}/${plan.tool_calls.length} successful`);
@@ -272,6 +281,179 @@ export class TetyanaExecuteToolsProcessor {
         }
 
         return keyResults;
+    }
+
+    /**
+     * Check if tool calls can be executed in parallel
+     * NEW 2025-10-29: Intelligent parallelization detection
+     * 
+     * @param {Array} toolCalls - Array of tool calls
+     * @returns {boolean} True if can execute in parallel
+     * @private
+     */
+    _canExecuteParallel(toolCalls) {
+        if (!Array.isArray(toolCalls) || toolCalls.length <= 1) {
+            return false; // Need at least 2 calls for parallelization
+        }
+
+        // Check for dependencies between tool calls
+        const hasFileDependencies = this._hasFileDependencies(toolCalls);
+        const hasStateDependencies = this._hasStateDependencies(toolCalls);
+        
+        // Can parallelize if no dependencies detected
+        return !hasFileDependencies && !hasStateDependencies;
+    }
+
+    /**
+     * Detect file dependencies between tool calls
+     * 
+     * @param {Array} toolCalls - Array of tool calls
+     * @returns {boolean} True if dependencies exist
+     * @private
+     */
+    _hasFileDependencies(toolCalls) {
+        const writtenPaths = new Set();
+        
+        for (const call of toolCalls) {
+            const tool = call.tool || '';
+            const params = call.parameters || {};
+            
+            // Check if this call reads a file that was written earlier
+            if (tool.includes('read') || tool.includes('list')) {
+                const readPath = params.path || params.directory;
+                if (readPath && writtenPaths.has(readPath)) {
+                    return true; // Dependency detected
+                }
+            }
+            
+            // Track written paths
+            if (tool.includes('create') || tool.includes('write') || tool.includes('update')) {
+                const writePath = params.path || params.directory;
+                if (writePath) {
+                    writtenPaths.add(writePath);
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Detect state dependencies between tool calls
+     * 
+     * @param {Array} toolCalls - Array of tool calls
+     * @returns {boolean} True if dependencies exist
+     * @private
+     */
+    _hasStateDependencies(toolCalls) {
+        // Browser navigation must be sequential
+        const hasBrowserNavigation = toolCalls.some(call => 
+            call.tool?.includes('navigate') || call.tool?.includes('goto')
+        );
+        
+        if (hasBrowserNavigation) {
+            return true; // Browser actions must be sequential
+        }
+        
+        // Shell commands that change directory must be sequential
+        const hasDirectoryChange = toolCalls.some(call => 
+            call.parameters?.command?.includes('cd ') ||
+            call.parameters?.workdir
+        );
+        
+        if (hasDirectoryChange) {
+            return true; // Directory-dependent commands must be sequential
+        }
+        
+        return false;
+    }
+
+    /**
+     * Execute tool calls in parallel
+     * NEW 2025-10-29: Parallel execution for independent tools
+     * 
+     * @param {Array} toolCalls - Array of tool calls
+     * @param {Object} context - Execution context
+     * @returns {Promise<Object>} Execution result
+     * @private
+     */
+    async _executeParallel(toolCalls, context) {
+        const startTime = Date.now();
+        
+        this.logger.system('tetyana-execute-tools', 
+            `[PARALLEL] Executing ${toolCalls.length} tools in parallel...`);
+        
+        // Execute all tools in parallel
+        const promises = toolCalls.map((call, index) => 
+            this._executeSingleTool(call, index, context)
+        );
+        
+        const results = await Promise.allSettled(promises);
+        
+        // Process results
+        const processedResults = results.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                return result.value;
+            } else {
+                return {
+                    success: false,
+                    error: result.reason?.message || 'Unknown error',
+                    tool: toolCalls[index]?.tool,
+                    index
+                };
+            }
+        });
+        
+        const successfulCalls = processedResults.filter(r => r.success).length;
+        const failedCalls = processedResults.filter(r => !r.success).length;
+        const executionTime = Date.now() - startTime;
+        
+        this.logger.system('tetyana-execute-tools', 
+            `[PARALLEL] Completed in ${executionTime}ms: ${successfulCalls} success, ${failedCalls} failed`);
+        
+        return {
+            all_successful: failedCalls === 0,
+            successful_calls: successfulCalls,
+            failed_calls: failedCalls,
+            results: processedResults,
+            execution_time_ms: executionTime,
+            execution_mode: 'parallel'
+        };
+    }
+
+    /**
+     * Execute a single tool call
+     * 
+     * @param {Object} call - Tool call
+     * @param {number} index - Call index
+     * @param {Object} context - Execution context
+     * @returns {Promise<Object>} Execution result
+     * @private
+     */
+    async _executeSingleTool(call, index, context) {
+        try {
+            const result = await this.tetyanaToolSystem.executeToolCalls(
+                [call],
+                {
+                    ...context,
+                    autoApprove: true
+                }
+            );
+            
+            return result.results?.[0] || {
+                success: false,
+                error: 'No result returned',
+                tool: call.tool,
+                index
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                tool: call.tool,
+                index
+            };
+        }
     }
 
     /**

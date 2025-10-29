@@ -4,9 +4,9 @@
  */
 
 import { BaseService } from '../core/base-service.js';
-import { API_ENDPOINTS, AUDIO_CONFIG } from '../../core/config.js';
 import { Events } from '../events/event-manager.js';
-import { retry, createAudioConstraints, correctAtlasWord } from '../utils/voice-utils.js';
+import { API_ENDPOINTS } from '../../core/config.js';
+import { isBackgroundPhrase, retry, createAudioConstraints, correctAtlasWord } from '../utils/voice-utils.js';
 
 /**
  * @typedef {Object} TranscriptionOptions
@@ -463,6 +463,23 @@ export class WhisperService extends BaseService {
 
       // Оновлення метрик
       this.updateTranscriptionMetrics(latency, true, result.confidence);
+
+      // FIXED (29.10.2025 - 21:50): Фільтрація фонових фраз ПЕРЕД емісією події
+      if (result.text && isBackgroundPhrase(result.text)) {
+        this.logger.info(`🎬 Background phrase filtered in transcription: "${result.text}"`);
+        
+        // Емітуємо подію з порожнім текстом щоб система знала що транскрипція завершилась
+        await this.emit(Events.WHISPER_TRANSCRIPTION_COMPLETED, {
+          sessionId: transcriptionOptions.sessionId,
+          text: '',  // Порожній текст = фонова фраза
+          result: { ...result, text: '', filtered: true },
+          latency,
+          audioSize: audioBlob.size,
+          confidence: 0  // Нульова впевненість для відфільтрованих фраз
+        });
+        
+        return { ...result, text: '', filtered: true };
+      }
 
       // Емісія події завершення транскрипції
       // FIXED (11.10.2025 - 17:10): Додаємо text на верхній рівень для conversation-mode

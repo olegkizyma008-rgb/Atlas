@@ -90,6 +90,35 @@ export function registerCoreServices(container) {
         }
     });
 
+    // 6. LLM Client - ADDED 2025-10-29 for ValidationPipeline and MCPTodoManager
+    container.singleton('llmClient', async (c) => {
+        const config = c.resolve('config');
+        const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
+        
+        if (!llmConfig) {
+            logger.warn('startup', '[DI] ⚠️ No LLM config found, creating minimal client');
+            // Return minimal client that won't crash
+            return {
+                call: async () => ({ content: '' }),
+                generate: async () => '',
+                generateResponse: async () => ({ content: '' })
+            };
+        }
+
+        const { LLMClient } = await import('../ai/llm-client.js');
+        const client = new LLMClient(llmConfig);
+        await client.initialize();
+        return client;
+    }, {
+        dependencies: ['config', 'logger'],
+        metadata: { category: 'core', priority: 70 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] LLM Client initialized for ValidationPipeline');
+            }
+        }
+    });
+
     return container;
 }
 

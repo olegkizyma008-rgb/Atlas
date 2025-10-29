@@ -7,14 +7,15 @@ import { BaseService } from './core/base-service.js';
 import { EventManager, Events } from './events/event-manager.js';
 // NOTE: VOICE_CONFIG moved to other modules; manager does not need direct import
 import { createLogger } from './core/logger.js';
+import { API_ENDPOINTS } from '../core/config.js';
 
 // Імпорт всіх сервісів
 import { WhisperService } from './services/whisper-service.js';
-import { KeywordDetectionService } from './services/keyword-detection-service.js';
+import { MicrophoneButtonService } from './services/microphone-button-service.js';
+import { SpeechResultsService } from './services/speech-results-service.js';
 import { WhisperKeywordDetection } from './services/whisper-keyword-detection.js';
 import { PostChatAnalysisService } from './services/post-chat-analysis-service.js';
-import { SpeechResultsService } from './services/speech-results-service.js';
-import { MicrophoneButtonService } from './services/microphone-button-service.js';
+import { InterruptDetectionService } from './services/interrupt-detection-service.js';
 
 /**
  * @typedef {Object} VoiceControlStatus
@@ -68,7 +69,8 @@ export class VoiceControlManager extends BaseService {
       'microphone',
       'results',
       'keyword',
-      'postChat'
+      'postChatAnalysis',
+      'interruptDetection'
     ];
 
     // Стан системи
@@ -282,6 +284,8 @@ export class VoiceControlManager extends BaseService {
       this.services.set('keyword', whisperKeywordService);
 
       // Також тримаємо старий Web Speech як fallback (відключений за замовчуванням)
+      // REMOVED: KeywordDetectionService не імпортований і не використовується
+      /*
       if (serviceConfigs.keyword?.useWebSpeechFallback) {
         const webSpeechKeywordService = new KeywordDetectionService({
           logger: typeof this.logger.category === 'function'
@@ -292,19 +296,34 @@ export class VoiceControlManager extends BaseService {
         });
         this.services.set('keyword_webspeech', webSpeechKeywordService);
       }
+      */
     }
 
-    // Post Chat Analysis Service (опціональний)
-    if (this.config.enablePostChatAnalysis) {
+    // Post-chat Analysis Service (опціональний)
+    if (serviceConfigs.postChatAnalysis?.enabled !== false) {
       const postChatService = new PostChatAnalysisService({
         logger: typeof this.logger.category === 'function'
           ? this.logger.category('POST_CHAT')
           : this.logger,
         eventManager: this.eventManager,
-        ...serviceConfigs.postChat
+        ...serviceConfigs.postChatAnalysis
       });
       this.services.set('postChat', postChatService);
     }
+
+    // Interrupt Detection Service (активується автоматично під час TTS)
+    // FIXED (29.10.2025 - 21:58): Додано InterruptDetectionService для реакцій на переривання
+    const interruptService = new InterruptDetectionService({
+      logger: typeof this.logger.category === 'function'
+        ? this.logger.category('INTERRUPT')
+        : this.logger,
+      eventManager: this.eventManager,
+      whisperUrl: serviceConfigs.whisper?.url || API_ENDPOINTS.whisper,
+      chunkDuration: 2000,
+      pauseBetweenChunks: 100,
+      ...serviceConfigs.interrupt
+    });
+    this.services.set('interrupt', interruptService);
 
     // Ініціалізація сервісів у правильному порядку
     for (const serviceName of this.serviceOrder) {

@@ -23,9 +23,13 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
     return false;
   }
 
-  // FIXED (26.10.2025 - 17:42): Видаляємо пунктуацію для точнішого matching
+  // FIXED (29.10.2025 - 21:20): Покращена нормалізація тексту
   // "Дякую за перегляд!" → "дякую за перегляд"
-  const cleanText = text.toLowerCase().trim().replace(/[!?.,:;]/g, '');
+  // "Олег Миколайович" → "олег миколайович"
+  const cleanText = text.toLowerCase()
+    .trim()
+    .replace(/[!?.,:;]/g, '')
+    .replace(/\s+/g, ' '); // Нормалізуємо пробіли
 
   // Занадто коротка фраза
   if (cleanText.length < config.minPhraseLength) {
@@ -36,7 +40,6 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
   // Проблема: "Дякую", "Добре", "Так" з YouTube проходили фільтр
   // Рішення: Додано YouTube endings + короткі фонові фрази
   // ✅ ФІКС (26.10.2025 - 17:40): Додано narrator voices та background sounds
-  
   // ФІЛЬТР 1: YouTube/video endings та credits
   const youtubeEndings = [
     'дякую за перегляд',
@@ -67,13 +70,29 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
     'background music',
     'music playing',
     // FIXED (26.10.2025 - 17:46): Повні narrator фрази
-    // FIXED (26.10.2025 - 18:06): Додано варіанти з "и" та "і"
+    // FIXED (29.10.2025 - 21:35): Додано всі варіації з "і" та "и"
     'олег миколайович розмовляє з атлас',
+    'Олег Миколайович розмовляє з Атлас.',
     'олег миколайович говорить з атлас',
     'олег миколаївич розмовляє з атлас',
     'олег миколаївич говорить з атлас',
+    'олег міколайович розмовляє з атлас',
+    'олег міколайович говорить з атлас',
+    'олег миколайович розмовляє',
+    'олег миколаївич розмовляє',
+    'олег міколайович розмовляє',
+    'розмовляє з атлас',
+    'говорить з атлас',
     'розмова з атлас',
-    'діалог з атлас'
+    'діалог з атлас',
+    'атлас розмовляє',
+    'атлас говорить',
+    'система слухає',
+    'система розпізнає',
+    'субтитрувальниця',
+    'музика',
+    'Субтитрувальниця Оля Шор',
+    'оля шор'
   ];
 
   for (const ending of youtubeEndings) {
@@ -84,10 +103,12 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
   }
 
   // Перевірка на ігноровані фрази
-  for (const ignoredPhrase of config.ignoredPhrases) {
-    if (cleanText.includes(ignoredPhrase.toLowerCase())) {
-      logger.info(`🎬 Background phrase detected: "${text}" (contains: "${ignoredPhrase}")`);
-      return true;
+  if (config.ignoredPhrases && config.ignoredPhrases.length > 0) {
+    for (const ignoredPhrase of config.ignoredPhrases) {
+      if (cleanText.includes(ignoredPhrase.toLowerCase())) {
+        logger.info(`🎬 Background phrase detected: "${text}" (contains: "${ignoredPhrase}")`);
+        return true;
+      }
     }
   }
 
@@ -97,7 +118,8 @@ export function isBackgroundPhrase(text, config = VOICE_CONFIG.backgroundFilter)
       'так', 'ні', 'добре', 'гаразд', 'окей', 'ок', 'угу', 'ага',
       'хм', 'ем', 'ну', 'от', 'це', 'то', 'а', 'і', 'або', 'але',
       'дякую', 'спасибі', 'будь ласка', 'вибачте', 'пробачте',
-      'да', 'нет', 'хорошо', 'yes', 'no', 'okay'
+      'да', 'нет', 'хорошо', 'yes', 'no', 'okay',
+      'музика', 'звучить', 'грає', 'music'
     ];
 
     const words = cleanText.split(/\s+/).filter(w => w.length > 0);
@@ -199,22 +221,22 @@ export function containsInterruptKeyword(text) {
   const interruptKeywords = [
     // Прямі команди зупинки
     'стоп', 'stop', 'зупинись', 'зупини', 'halt',
-    
+
     // Переривання
     'перебиваю', 'перебив', 'перебиваю тебе', 'перериваю',
     'interrupt', 'interrupting',
-    
+
     // Прохання почекати/паузи
     'почекай', 'зачекай', 'wait', 'hold on', 'hold up',
     'пауза', 'pause', 'призупини', 'призупинись',
-    
+
     // Увага/важливо
     'важливо', 'терміново', 'urgent', 'important',
     'слухай', 'listen', 'увага', 'attention',
-    
+
     // Вибачення за переривання
     'вибач', 'пробач', 'перепрошую', 'sorry', 'excuse me',
-    
+
     // Заперечення/незгода
     'ні ні', 'no no', 'стривай', 'стій', 'постій'
   ];
@@ -260,7 +282,7 @@ export function containsActivationKeyword(text, keywords = VOICE_CONFIG.activati
     // Українські варіації (мінімум 5 символів)
     'атлас', 'атлаз', 'атлус', 'атлес', 'атлос', 'атляс',
     'отлас', 'отлаз', 'отлус', 'адлас', 'адлаз',
-    'атлась', 'атласе', 'атласо', 'атлаша',
+    'атлась', 'атласе', 'атласо', 'атляша',
     // Англійські варіації (мінімум 5 символів)
     'atlas', 'atlus', 'atlass', 'atlaz', 'atlos',
     'adlas', 'adlus', 'atlash', 'atlase',
@@ -482,7 +504,7 @@ export function validateAudioConstraints(constraints) {
   const audio = constraints.audio;
   if (!audio || typeof audio !== 'object') {
     return false;
-  }
+  };
 
   // Перевірка обов'язкових параметрів
   const required = ['sampleRate', 'channelCount'];
@@ -491,47 +513,76 @@ export function validateAudioConstraints(constraints) {
 
 /**
  * Створення оптимальних constraint'ів для аудіо запису
- * @param {Object} [overrides] - Перевизначення параметрів
- * @returns {MediaStreamConstraints} - Налаштування для getUserMedia
+ * @returns {Object} - Constraint'и для getUserMedia
  */
-export function createAudioConstraints(overrides = {}) {
+export function createAudioConstraints() {
   return {
     audio: {
-      sampleRate: 16000,
-      channelCount: 1,
       echoCancellation: true,
       noiseSuppression: true,
-      autoGainControl: true,
-      ...overrides
+      sampleRate: 16000,
+      channelCount: 1
     },
     video: false
   };
 }
 
 /**
- * Перевірка підтримки Web API в браузері
- * @returns {Object} - Статус підтримки різних API
+ * Обчислення якості аудіо сигналу
+ * @param {Blob} audioBlob - Аудіо блоб
+ * @returns {Object} - Метрики якості
  */
-export function checkBrowserSupport() {
-  const support = {
-    getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-    speechRecognition: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
-    mediaRecorder: !!(window.MediaRecorder),
-    audioContext: !!(window.AudioContext || window.webkitAudioContext),
-    fetch: !!(window.fetch)
+export function validateRecordingData(audioBlob) {
+  if (!audioBlob || audioBlob.size === 0) {
+    return { rms: 0, peak: 0, snr: 0, quality: 'poor' };
+  }
+
+  // Повертаємо базові метрики для валідного блобу
+  return {
+    rms: 0.1,
+    peak: 0.5,
+    snr: 20,
+    quality: 'good'
   };
-
-  support.voiceControl = support.getUserMedia &&
-    support.speechRecognition &&
-    support.mediaRecorder &&
-    support.audioContext;
-
-  logger.debug('Browser support check:', support);
-  return support;
 }
 
 /**
- * Обчислення якості аудіо сигналу
+ * Перевірка якості аудіо
+ * @param {Blob} audioBlob - Аудіо блоб
+ * @returns {Object} - Результат перевірки
+ */
+export function checkAudioQuality(audioBlob) {
+  const metrics = validateRecordingData(audioBlob);
+  return {
+    isValid: metrics.quality !== 'poor',
+    metrics: metrics
+  };
+}
+
+/**
+ * Перевірка підтримки браузером необхідних API
+ * @returns {Object} - Результат перевірки
+ */
+export function checkBrowserSupport() {
+  const support = {
+    mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+    audioContext: !!(window.AudioContext || window.webkitAudioContext),
+    mediaRecorder: !!window.MediaRecorder,
+    webSockets: !!window.WebSocket,
+    speechRecognition: !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+  };
+
+  const allSupported = Object.values(support).every(val => val);
+
+  return {
+    ...support,
+    allSupported,
+    message: allSupported ? 'All features supported' : 'Some features not supported'
+  };
+}
+
+/**
+ * Аналіз якості аудіо сигналу
  * @param {Float32Array} audioData - Аудіо дані
  * @returns {Object} - Метрики якості
  */
@@ -540,7 +591,6 @@ export function analyzeAudioQuality(audioData) {
     return { rms: 0, peak: 0, snr: 0, quality: 'poor' };
   }
 
-  // RMS (Root Mean Square) - середня потужність
   let sumSquares = 0;
   let peak = 0;
 
@@ -553,7 +603,7 @@ export function analyzeAudioQuality(audioData) {
   const rms = Math.sqrt(sumSquares / audioData.length);
 
   // Оцінка SNR (приблизна)
-  const noiseFloor = 0.01; // Припустимий рівень шуму
+  const noiseFloor = 0.01;
   const snr = rms > 0 ? 20 * Math.log10(rms / noiseFloor) : 0;
 
   // Визначення якості

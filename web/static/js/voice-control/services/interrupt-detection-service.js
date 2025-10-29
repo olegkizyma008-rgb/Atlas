@@ -77,15 +77,30 @@ export class InterruptDetectionService extends BaseService {
     }
 
     // Початок TTS - увімкнути interrupt listening
+    // FIXED (29.10.2025 - 22:00): Слухаємо обидва формати подій для сумісності
     this.eventManager.on('TTS_STARTED', async (_event) => {
-      this.logger.info('🔊 TTS started - enabling interrupt detection');
+      this.logger.info('🔊 TTS started (uppercase event) - enabling interrupt detection');
+      this.isTTSActive = true;
+      await this.startListening();
+    });
+    
+    // Також слухаємо lowercase версію від chat-manager
+    this.eventManager.on('tts-start', async (_event) => {
+      this.logger.info('🔊 TTS started (lowercase event) - enabling interrupt detection');
       this.isTTSActive = true;
       await this.startListening();
     });
 
     // Завершення TTS - вимкнути interrupt listening
     this.eventManager.on(Events.TTS_COMPLETED, async () => {
-      this.logger.info('✅ TTS completed - disabling interrupt detection');
+      this.logger.info('✅ TTS completed (uppercase) - disabling interrupt detection');
+      this.isTTSActive = false;
+      await this.stopListening();
+    });
+    
+    // Також слухаємо lowercase версію
+    this.eventManager.on('tts-stop', async () => {
+      this.logger.info('✅ TTS completed (lowercase) - disabling interrupt detection');
       this.isTTSActive = false;
       await this.stopListening();
     });
@@ -387,6 +402,10 @@ export class InterruptDetectionService extends BaseService {
       'тихо',
       'замовкни',
       'перестань',
+      'Атлас перестань',
+      'Атлас зупинись',
+      'Атлас стоп',
+      'Атлас почекай',
       'припини',
       'stop',
       'wait',
@@ -437,16 +456,18 @@ export class InterruptDetectionService extends BaseService {
     if (!this._interruptResponses) {
       this._interruptResponses = {
         responses: [
-          'перепрошую, ви мене перебили, що бажаєте сказати?',
-          'так, слухаю вас уважно',
-          'ви хотіли щось додати?',
-          'я весь увага, що сталося?',
+          'творче, чого ти мене зупинив?',
+          'навіщо ви мене зупинили?',
+          'що важливого такого?',
+          'я ж говорив, чого перебиваєте?',
+          'ну що там сталося?',
           'так, Олег Миколайович, що важливого?',
-          'зупиняюсь, що ви хотіли сказати?',
-          'слухаю, що вас турбує?',
-          'так, я тут, що потрібно?',
-          'ви маєте щось важливе сказати?',
-          'перепрошую за багатослівність, слухаю вас'
+          'зупиняюсь, але чому?',
+          'добре добре, що хотіли сказати?',
+          'я тут, що трапилось?',
+          'що таке термінове?',
+          'чому ви мене перервали?',
+          'слухаю, що не так?'
         ],
         currentPool: [],
         lastUsed: null

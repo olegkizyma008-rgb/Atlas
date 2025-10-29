@@ -3690,7 +3690,8 @@ Select 1-2 most relevant servers.
           this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.0: Server Selection...');
           const selectionResult = await serverSelectionProcessor.execute({
             currentItem: verificationItem,
-            availableServers: this.mcpManager.getAvailableServers(),
+            // FIXED 2025-10-29: MCPManager doesn't have getAvailableServers method
+            availableServers: Array.from(this.mcpManager.servers.keys()),
             atlasRecommendation: verificationItem.mcp_servers,
             session: session
           });
@@ -3721,7 +3722,12 @@ Select 1-2 most relevant servers.
           session: session
         });
         
-        if (planResult.success && planResult.planned_tools) {
+        if (planResult.success && planResult.plan && planResult.plan.tool_calls) {
+          // FIXED 2025-10-29: Use plan.tool_calls, not planned_tools
+          plannedTools = planResult.plan.tool_calls;
+          this.logger.system('mcp-todo', `[UNIFIED-MCP] Planned ${plannedTools.length} tools`);
+        } else if (planResult.success && planResult.planned_tools) {
+          // Fallback for old format
           plannedTools = planResult.planned_tools;
           this.logger.system('mcp-todo', `[UNIFIED-MCP] Planned ${plannedTools.length} tools`);
         }
@@ -3743,7 +3749,8 @@ Select 1-2 most relevant servers.
         this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.2: Execute Tools...');
         const execResult = await tetyanaExecuteProcessor.execute({
           currentItem: verificationItem,
-          planned_tools: plannedTools,
+          // FIXED 2025-10-29: TetyanaExecuteProcessor expects 'plan' with tool_calls
+          plan: { tool_calls: plannedTools },
           session: session
         });
         

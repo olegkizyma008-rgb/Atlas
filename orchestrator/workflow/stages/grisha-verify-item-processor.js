@@ -890,12 +890,12 @@ export class GrishaVerifyItemProcessor {
         }
 
         // Intelligent confidence calculation based on execution results
-        const executionConfidence = this._calculateExecutionConfidence(results);
+        const executionConfidence = this._calculateExecutionConfidence(resultsArray);
         return {
             success: true,
             confidence: executionConfidence,
             reason: 'MCP інструменти виконані успішно',
-            details: this._extractExecutionDetails(results)
+            details: this._extractExecutionDetails(resultsArray)
         };
     }
 

@@ -152,7 +152,10 @@ const COMMON_MISTAKES = {
     "Using relative paths instead of absolute paths",
     "Not checking if file exists before reading",
     "Forgetting to create parent directories",
-    "Using wrong path separator for OS"
+    "Using wrong path separator for OS",
+    "Using edit_file with 'content' parameter (it requires 'edits' array!)",
+    "Confusing write_file (full overwrite) with edit_file (partial changes)",
+    "Not reading file before using edit_file to know what to replace"
   ],
   shell: [
     "Not escaping special characters in commands",

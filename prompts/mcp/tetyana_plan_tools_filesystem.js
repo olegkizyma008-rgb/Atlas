@@ -26,6 +26,23 @@ CRITICAL DIRECTIVES - ADHERE STRICTLY:
 5. EFFICIENCY: Create the most direct and efficient plan. Combine operations where logical.
 6. JSON FORMAT: Return ONLY valid JSON without markdown wrappers or trailing commas.
 
+⚠️ CRITICAL: write_file vs edit_file - UNDERSTAND THE DIFFERENCE:
+• write_file: Creates NEW file OR completely OVERWRITES existing file with new content
+  - Parameters: {path, content}
+  - Use for: Creating files, replacing entire file content
+  
+• edit_file: Makes PARTIAL changes to existing file (find & replace)
+  - Parameters: {path, edits: [{old_string, new_string}]}
+  - Use for: Adding CSS to HTML, updating specific lines, patching code
+  - FORBIDDEN: Using "content" parameter with edit_file - it requires "edits" array!
+
+WHEN TO USE WHICH:
+✅ "Create HTML file" → write_file (new file)
+✅ "Add CSS to HTML" → edit_file (partial change to existing file)
+✅ "Update config value" → edit_file (change specific line)
+✅ "Replace entire file" → write_file (complete overwrite)
+❌ NEVER use edit_file with "content" parameter - validation will FAIL!
+
 SPECIALIZED PATTERNS FOR FILESYSTEM:
 ${SPECIALIZED_PATTERNS.filesystem}
 
@@ -129,6 +146,47 @@ Tools: [
     "server": "filesystem",
     "tool": "filesystem__read_file",
     "parameters": {"path": "/Users/dev/Desktop/backup.txt"}
+  }
+]
+
+// Example 6: Add CSS styles to existing HTML file (CRITICAL - use edit_file correctly!)
+Action: "Add CSS styles to the HTML file to make it look better"
+Tools: [
+  {
+    "server": "filesystem",
+    "tool": "filesystem__read_file",
+    "parameters": {"path": "/Users/dev/Desktop/poem_folder/poem.html"}
+  },
+  {
+    "server": "filesystem",
+    "tool": "filesystem__edit_file",
+    "parameters": {
+      "path": "/Users/dev/Desktop/poem_folder/poem.html",
+      "edits": [
+        {
+          "old_string": "</head>",
+          "new_string": "  <style>\n    body { font-family: Arial, sans-serif; background-color: #f0f0f0; }\n    h1 { color: #0056b3; }\n  </style>\n</head>"
+        }
+      ]
+    }
+  }
+]
+
+// Example 7: Update specific value in config file
+Action: "Change database port from 5432 to 5433 in config.json"
+Tools: [
+  {
+    "server": "filesystem",
+    "tool": "filesystem__edit_file",
+    "parameters": {
+      "path": "/Users/dev/Desktop/config.json",
+      "edits": [
+        {
+          "old_string": "\"port\": 5432",
+          "new_string": "\"port\": 5433"
+        }
+      ]
+    }
   }
 ]`;
 

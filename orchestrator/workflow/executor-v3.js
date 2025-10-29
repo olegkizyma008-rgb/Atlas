@@ -1230,7 +1230,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               const routerResult = await routerClassifier.execute({
                 action: item.action,
                 context: todo,
-                availableServers: mcpManager.getAvailableServers().map(s => s.name)
+                availableServers: Array.from(mcpManager.servers.keys())
               });
               
               if (routerResult.success && routerResult.selectedServers) {

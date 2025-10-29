@@ -2,8 +2,7 @@
 
 /**
  * MCP Server for Java SDK
- * Provides tools for Java development, compilation, and execution
- * Based on Model Context Protocol SDK
+ * Provides tools for building, testing, packaging, and analyzing Java projects
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -16,14 +15,15 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 
 const execAsync = promisify(exec);
+const MAX_BUFFER = 1024 * 1024 * 20;
 
-// Create MCP server
 const server = new Server(
   {
     name: "java-sdk-server",
-    version: "1.0.0",
+    version: "2.0.0",
   },
   {
     capabilities: {
@@ -32,7 +32,6 @@ const server = new Server(
   }
 );
 
-// Tool definitions
 const TOOLS = [
   {
     name: "compile_java",
@@ -51,6 +50,10 @@ const TOOLS = [
         classpath: {
           type: "string",
           description: "Classpath for compilation (optional)",
+        },
+        options: {
+          type: "string",
+          description: "Additional javac options (optional)",
         },
       },
       required: ["source_file"],
@@ -74,6 +77,10 @@ const TOOLS = [
           type: "array",
           items: { type: "string" },
           description: "Command line arguments (optional)",
+        },
+        jvm_options: {
+          type: "string",
+          description: "Additional JVM options (optional)",
         },
       },
       required: ["class_name"],
@@ -107,6 +114,84 @@ const TOOLS = [
     },
   },
   {
+    name: "create_maven_project",
+    description: "Create a new Maven project using archetype generation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        group_id: {
+          type: "string",
+          description: "Group ID for the project (e.g., com.example)",
+        },
+        artifact_id: {
+          type: "string",
+          description: "Artifact ID for the project (e.g., my-app)",
+        },
+        output_dir: {
+          type: "string",
+          description: "Directory where the project should be generated",
+        },
+        version: {
+          type: "string",
+          description: "Project version (default: 1.0-SNAPSHOT)",
+          default: "1.0-SNAPSHOT",
+        },
+        package_name: {
+          type: "string",
+          description: "Base package for generated sources (defaults to groupId)",
+        },
+        archetype: {
+          type: "string",
+          description: "Maven archetype artifactId (default: maven-archetype-quickstart)",
+          default: "maven-archetype-quickstart",
+        },
+      },
+      required: ["group_id", "artifact_id", "output_dir"],
+    },
+  },
+  {
+    name: "create_gradle_project",
+    description: "Initialize a Gradle project using gradle init",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_dir: {
+          type: "string",
+          description: "Directory where the project should be created",
+        },
+        project_name: {
+          type: "string",
+          description: "Project name (defaults to directory name)",
+        },
+        package_name: {
+          type: "string",
+          description: "Base package for generated sources",
+        },
+        project_type: {
+          type: "string",
+          description: "Gradle project type (default: java-application)",
+          default: "java-application",
+        },
+        dsl: {
+          type: "string",
+          description: "Gradle DSL (groovy or kotlin)",
+          default: "groovy",
+        },
+        test_framework: {
+          type: "string",
+          description: "Test framework (default: junit-jupiter)",
+          default: "junit-jupiter",
+        },
+        wrapper: {
+          type: "string",
+          description: "Gradle executable to use (default: gradle)",
+          default: "gradle",
+        },
+      },
+      required: ["project_dir"],
+    },
+  },
+  {
     name: "run_maven_command",
     description: "Execute Maven command (compile, test, package, etc.)",
     inputSchema: {
@@ -119,6 +204,10 @@ const TOOLS = [
         project_dir: {
           type: "string",
           description: "Project directory containing pom.xml",
+        },
+        options: {
+          type: "string",
+          description: "Additional Maven options (optional)",
         },
       },
       required: ["command", "project_dir"],
@@ -138,148 +227,534 @@ const TOOLS = [
           type: "string",
           description: "Project directory containing build.gradle",
         },
+        wrapper: {
+          type: "string",
+          enum: ["gradlew", "gradlew.bat", "gradle"],
+          description: "Gradle executable to use (default: gradlew)",
+          default: "gradlew",
+        },
       },
       required: ["command", "project_dir"],
     },
   },
+  {
+    name: "add_dependency",
+    description: "Add a dependency declaration to Maven (pom.xml) or Gradle build files",
+    inputSchema: {
+      type: "object",
+      properties: {
+        build_file: {
+          type: "string",
+          description: "Path to pom.xml, build.gradle, or build.gradle.kts",
+        },
+        group_id: {
+          type: "string",
+          description: "Dependency group ID",
+        },
+        artifact_id: {
+          type: "string",
+          description: "Dependency artifact ID",
+        },
+        version: {
+          type: "string",
+          description: "Dependency version (optional for Gradle when using BOMs)",
+        },
+        scope: {
+          type: "string",
+          description: "Dependency scope/configuration (e.g., compile, test, runtime)",
+        },
+      },
+      required: ["build_file", "group_id", "artifact_id"],
+    },
+  },
+  {
+    name: "run_junit_tests",
+    description: "Execute JUnit tests using Maven, Gradle, or the Console Launcher",
+    inputSchema: {
+      type: "object",
+      properties: {
+        test_class: {
+          type: "string",
+          description: "Fully qualified test class name (optional)",
+        },
+        build_tool: {
+          type: "string",
+          enum: ["maven", "gradle", "none"],
+          description: "Build tool to use (default: maven)",
+          default: "maven",
+        },
+        project_dir: {
+          type: "string",
+          description: "Project directory containing build files",
+        },
+        classpath: {
+          type: "string",
+          description: "Classpath to use when build_tool is 'none'",
+        },
+        console_launcher_jar: {
+          type: "string",
+          description: "Path to junit-platform-console-standalone JAR when build_tool is 'none'",
+        },
+      },
+    },
+  },
+  {
+    name: "create_jar",
+    description: "Package compiled classes into a JAR (optionally executable)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        input_dir: {
+          type: "string",
+          description: "Directory containing compiled .class files",
+        },
+        output_jar: {
+          type: "string",
+          description: "Path to output JAR file",
+        },
+        main_class: {
+          type: "string",
+          description: "Main class for executable JAR (optional)",
+        },
+      },
+      required: ["input_dir", "output_jar"],
+    },
+  },
+  {
+    name: "analyze_code",
+    description: "Run static analysis using Maven Checkstyle or SpotBugs plugins",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_dir: {
+          type: "string",
+          description: "Project directory containing pom.xml",
+        },
+        tool: {
+          type: "string",
+          enum: ["checkstyle", "spotbugs"],
+          description: "Analysis tool to invoke (default: checkstyle)",
+          default: "checkstyle",
+        },
+        config_file: {
+          type: "string",
+          description: "Optional configuration file for the analysis tool",
+        },
+      },
+      required: ["project_dir"],
+    },
+  },
 ];
 
-// List tools handler
+function assertString(value, name) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${name} must be a non-empty string`);
+  }
+  return value;
+}
+
+function quote(value) {
+  return String(value).replace(/"/g, '\\"');
+}
+
+async function ensureDirectory(dir) {
+  await fs.mkdir(dir, { recursive: true });
+}
+
+function buildMavenDependencySnippet({ groupId, artifactId, version, scope }) {
+  let snippet = "    <dependency>\n";
+  snippet += `      <groupId>${groupId}</groupId>\n`;
+  snippet += `      <artifactId>${artifactId}</artifactId>\n`;
+  if (version) {
+    snippet += `      <version>${version}</version>\n`;
+  }
+  if (scope) {
+    snippet += `      <scope>${scope}</scope>\n`;
+  }
+  snippet += "    </dependency>";
+  return snippet;
+}
+
+function mapScopeToGradleConfiguration(scope = "implementation") {
+  const normalized = (scope || "").toLowerCase();
+  switch (normalized) {
+    case "test":
+    case "testimplementation":
+      return "testImplementation";
+    case "runtime":
+    case "runtimeonly":
+      return "runtimeOnly";
+    case "compileonly":
+    case "provided":
+      return "compileOnly";
+    case "annotationprocessor":
+      return "annotationProcessor";
+    default:
+      return "implementation";
+  }
+}
+
+function buildGradleDependencyLine({ groupId, artifactId, version, scope }) {
+  const configuration = mapScopeToGradleConfiguration(scope);
+  const coordinates = version
+    ? `${groupId}:${artifactId}:${version}`
+    : `${groupId}:${artifactId}`;
+  return `    ${configuration} "${coordinates}"`;
+}
+
+async function addDependencyToPom(buildFile, dependency) {
+  const content = await fs.readFile(buildFile, "utf8");
+  const snippet = buildMavenDependencySnippet(dependency);
+  if (content.includes(snippet)) {
+    return { changed: false, content, message: "Dependency already present" };
+  }
+
+  if (content.includes("</dependencies>")) {
+    const updated = content.replace(
+      /<\/dependencies>/,
+      `${snippet}\n  </dependencies>`
+    );
+    return { changed: true, content: updated, message: "Dependency added to existing <dependencies> block" };
+  }
+
+  if (!content.includes("<project")) {
+    throw new Error("Invalid pom.xml: missing <project> root element");
+  }
+
+  const dependenciesBlock = `  <dependencies>\n${snippet}\n  </dependencies>\n`;
+  const updated = content.replace(
+    /<\/project>/,
+    `${dependenciesBlock}</project>`
+  );
+  return { changed: true, content: updated, message: "Created new <dependencies> block" };
+}
+
+async function addDependencyToGradle(buildFile, dependency) {
+  const content = await fs.readFile(buildFile, "utf8");
+  const line = buildGradleDependencyLine(dependency);
+  if (content.includes(line.trim())) {
+    return { changed: false, content, message: "Dependency already present" };
+  }
+
+  const dependenciesRegex = /dependencies\s*\{/;
+  if (!dependenciesRegex.test(content)) {
+    const block = `\ndependencies {\n${line}\n}\n`;
+    return {
+      changed: true,
+      content: content + block,
+      message: "Created new dependencies block",
+    };
+  }
+
+  const updated = content.replace(dependenciesRegex, (match) => `${match}\n${line}`);
+  return {
+    changed: true,
+    content: updated,
+    message: "Dependency added to dependencies block",
+  };
+}
+
+const TOOL_HANDLERS = {
+  async compile_java(args) {
+    const { source_file, output_dir, classpath, options } = args;
+    assertString(source_file, "source_file");
+    let cmd = `javac "${quote(source_file)}"`;
+    if (output_dir) cmd += ` -d "${quote(output_dir)}"`;
+    if (classpath) cmd += ` -cp "${quote(classpath)}"`;
+    if (options) cmd += ` ${options}`;
+
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    return {
+      success: true,
+      stdout: stdout || "Compilation successful",
+      stderr: stderr || "",
+    };
+  },
+
+  async run_java(args) {
+    const { class_name, classpath, args: javaArgs, jvm_options } = args;
+    assertString(class_name, "class_name");
+    let cmd = "java";
+    if (jvm_options) cmd += ` ${jvm_options}`;
+    if (classpath) cmd += ` -cp "${quote(classpath)}"`;
+    cmd += ` ${class_name}`;
+    if (javaArgs && Array.isArray(javaArgs) && javaArgs.length > 0) {
+      cmd += ` ${javaArgs.map((arg) => `"${quote(arg)}"`).join(" ")}`;
+    }
+
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async create_java_class(args) {
+    const { package_name, class_name, output_dir, class_type = "class" } = args;
+    assertString(class_name, "class_name");
+    assertString(output_dir, "output_dir");
+    const packagePath = package_name ? package_name.replace(/\./g, "/") : "";
+    const fullDir = path.join(output_dir, packagePath);
+    await ensureDirectory(fullDir);
+
+    let content = "";
+    if (package_name) {
+      content += `package ${package_name};\n\n`;
+    }
+
+    if (class_type === "interface") {
+      content += `public interface ${class_name} {\n    // TODO: Define interface methods\n}\n`;
+    } else if (class_type === "enum") {
+      content += `public enum ${class_name} {\n    // TODO: Define enum constants\n}\n`;
+    } else {
+      content += `public class ${class_name} {\n    public static void main(String[] args) {\n        System.out.println("Hello from ${class_name}");\n    }\n}\n`;
+    }
+
+    const filePath = path.join(fullDir, `${class_name}.java`);
+    await fs.writeFile(filePath, content, "utf8");
+    return {
+      success: true,
+      file_path: filePath,
+      message: `Created ${class_type} ${class_name}`,
+    };
+  },
+
+  async create_maven_project(args) {
+    const {
+      group_id,
+      artifact_id,
+      output_dir,
+      version = "1.0-SNAPSHOT",
+      package_name,
+      archetype = "maven-archetype-quickstart",
+    } = args;
+    assertString(group_id, "group_id");
+    assertString(artifact_id, "artifact_id");
+    assertString(output_dir, "output_dir");
+
+    const workingDir = path.resolve(output_dir);
+    await ensureDirectory(workingDir);
+    const pkg = package_name || group_id;
+    const command = `mvn archetype:generate -DgroupId=${group_id} -DartifactId=${artifact_id} -Dversion=${version} -DarchetypeArtifactId=${archetype} -Dpackage=${pkg} -DinteractiveMode=false`;
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: workingDir,
+      maxBuffer: MAX_BUFFER,
+    });
+
+    return {
+      success: true,
+      project_dir: path.join(workingDir, artifact_id),
+      stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async create_gradle_project(args) {
+    const {
+      project_dir,
+      project_name,
+      package_name,
+      project_type = "java-application",
+      dsl = "groovy",
+      test_framework = "junit-jupiter",
+      wrapper = "gradle",
+    } = args;
+    assertString(project_dir, "project_dir");
+
+    const targetDir = path.resolve(project_dir);
+    await ensureDirectory(targetDir);
+    const name = project_name || path.basename(targetDir);
+    const pkg = package_name || "com.example";
+
+    const command = `${wrapper} init --no-daemon --type ${project_type} --dsl ${dsl} --test-framework ${test_framework} --project-name ${name} --package ${pkg}`;
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: targetDir,
+      maxBuffer: MAX_BUFFER,
+    });
+
+    return {
+      success: true,
+      project_dir: targetDir,
+      stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async run_maven_command(args) {
+    const { command, project_dir, options } = args;
+    assertString(command, "command");
+    assertString(project_dir, "project_dir");
+    const cmd = `mvn ${command}${options ? ` ${options}` : ""}`;
+    const { stdout, stderr } = await execAsync(cmd, {
+      cwd: project_dir,
+      maxBuffer: MAX_BUFFER,
+    });
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async run_gradle_command(args) {
+    const { command, project_dir, wrapper = "gradlew" } = args;
+    assertString(command, "command");
+    assertString(project_dir, "project_dir");
+    const cmd = `${wrapper} ${command}`;
+    const { stdout, stderr } = await execAsync(cmd, {
+      cwd: project_dir,
+      maxBuffer: MAX_BUFFER,
+    });
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async add_dependency(args) {
+    const { build_file, group_id, artifact_id, version, scope } = args;
+    assertString(build_file, "build_file");
+    assertString(group_id, "group_id");
+    assertString(artifact_id, "artifact_id");
+
+    const dependency = {
+      groupId: group_id,
+      artifactId: artifact_id,
+      version,
+      scope,
+    };
+
+    let result;
+    if (build_file.endsWith("pom.xml")) {
+      result = await addDependencyToPom(build_file, dependency);
+    } else if (build_file.endsWith(".gradle") || build_file.endsWith(".gradle.kts")) {
+      result = await addDependencyToGradle(build_file, dependency);
+    } else {
+      throw new Error("Unsupported build file. Provide pom.xml, build.gradle, or build.gradle.kts");
+    }
+
+    if (result.changed) {
+      await fs.writeFile(build_file, result.content, "utf8");
+    }
+
+    return {
+      success: true,
+      message: result.message,
+      updated: result.changed,
+    };
+  },
+
+  async run_junit_tests(args) {
+    const {
+      test_class,
+      build_tool = "maven",
+      project_dir,
+      classpath,
+      console_launcher_jar,
+    } = args;
+
+    let cmd;
+    const options = {
+      cwd: project_dir,
+      maxBuffer: MAX_BUFFER,
+    };
+
+    if (build_tool === "maven") {
+      assertString(project_dir, "project_dir");
+      cmd = test_class ? `mvn -Dtest=${test_class} test` : "mvn test";
+    } else if (build_tool === "gradle") {
+      assertString(project_dir, "project_dir");
+      const gradleCmd = test_class ? `test --tests ${test_class}` : "test";
+      cmd = `./gradlew ${gradleCmd}`;
+    } else {
+      assertString(classpath, "classpath");
+      assertString(console_launcher_jar, "console_launcher_jar");
+      const selection = test_class ? `--select-class ${test_class}` : "--scan-class-path";
+      cmd = `java -jar "${quote(console_launcher_jar)}" --class-path "${quote(classpath)}" ${selection}`;
+      delete options.cwd;
+    }
+
+    const { stdout, stderr } = await execAsync(cmd, options);
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+
+  async create_jar(args) {
+    const { input_dir, output_jar, main_class } = args;
+    assertString(input_dir, "input_dir");
+    assertString(output_jar, "output_jar");
+    const parentDir = path.dirname(output_jar);
+    await ensureDirectory(parentDir);
+    const jarCmd = main_class
+      ? `jar cfe "${quote(output_jar)}" ${main_class} -C "${quote(input_dir)}" .`
+      : `jar cf "${quote(output_jar)}" -C "${quote(input_dir)}" .`;
+    const { stdout, stderr } = await execAsync(jarCmd, { maxBuffer: MAX_BUFFER });
+    return {
+      success: true,
+      stdout,
+      stderr: stderr || "",
+      jar: output_jar,
+    };
+  },
+
+  async analyze_code(args) {
+    const { project_dir, tool = "checkstyle", config_file } = args;
+    assertString(project_dir, "project_dir");
+
+    let cmd;
+    if (tool === "checkstyle") {
+      cmd = "mvn checkstyle:check";
+      if (config_file) {
+        cmd += ` -Dcheckstyle.config.location=${config_file}`;
+      }
+    } else if (tool === "spotbugs") {
+      cmd = "mvn spotbugs:spotbugs";
+    } else {
+      throw new Error(`Unsupported analysis tool: ${tool}`);
+    }
+
+    const { stdout, stderr } = await execAsync(cmd, {
+      cwd: project_dir,
+      maxBuffer: MAX_BUFFER,
+    });
+
+    return {
+      success: true,
+      output: stdout,
+      stderr: stderr || "",
+    };
+  },
+};
+
+async function executeTool(name, args = {}) {
+  const handler = TOOL_HANDLERS[name];
+  if (!handler) {
+    throw new Error(`Unknown tool: ${name}`);
+  }
+  return handler(args);
+}
+
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: TOOLS,
 }));
 
-// Call tool handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-
   try {
-    switch (name) {
-      case "compile_java": {
-        const { source_file, output_dir, classpath } = args;
-        let cmd = `javac "${source_file}"`;
-        if (output_dir) cmd += ` -d "${output_dir}"`;
-        if (classpath) cmd += ` -cp "${classpath}"`;
-
-        const { stdout, stderr } = await execAsync(cmd);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                stdout: stdout || "Compilation successful",
-                stderr: stderr || "",
-              }),
-            },
-          ],
-        };
-      }
-
-      case "run_java": {
-        const { class_name, classpath, args: javaArgs } = args;
-        let cmd = `java`;
-        if (classpath) cmd += ` -cp "${classpath}"`;
-        cmd += ` ${class_name}`;
-        if (javaArgs && javaArgs.length > 0) {
-          cmd += ` ${javaArgs.join(" ")}`;
-        }
-
-        const { stdout, stderr } = await execAsync(cmd);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                output: stdout,
-                stderr: stderr || "",
-              }),
-            },
-          ],
-        };
-      }
-
-      case "create_java_class": {
-        const { package_name, class_name, output_dir, class_type = "class" } = args;
-        
-        // Create package directory structure
-        const packagePath = package_name ? package_name.replace(/\./g, "/") : "";
-        const fullDir = path.join(output_dir, packagePath);
-        await fs.mkdir(fullDir, { recursive: true });
-
-        // Generate class content
-        let content = "";
-        if (package_name) {
-          content += `package ${package_name};\n\n`;
-        }
-        
-        if (class_type === "interface") {
-          content += `public interface ${class_name} {\n    // Interface methods\n}\n`;
-        } else if (class_type === "enum") {
-          content += `public enum ${class_name} {\n    // Enum constants\n}\n`;
-        } else {
-          content += `public class ${class_name} {\n    public static void main(String[] args) {\n        System.out.println("Hello from ${class_name}");\n    }\n}\n`;
-        }
-
-        const filePath = path.join(fullDir, `${class_name}.java`);
-        await fs.writeFile(filePath, content);
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                file_path: filePath,
-                message: `Created ${class_type} ${class_name}`,
-              }),
-            },
-          ],
-        };
-      }
-
-      case "run_maven_command": {
-        const { command, project_dir } = args;
-        const cmd = `cd "${project_dir}" && mvn ${command}`;
-        
-        const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 1024 * 1024 * 10 });
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                output: stdout,
-                stderr: stderr || "",
-              }),
-            },
-          ],
-        };
-      }
-
-      case "run_gradle_command": {
-        const { command, project_dir } = args;
-        const cmd = `cd "${project_dir}" && ./gradlew ${command}`;
-        
-        const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 1024 * 1024 * 10 });
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                output: stdout,
-                stderr: stderr || "",
-              }),
-            },
-          ],
-        };
-      }
-
-      default:
-        throw new Error(`Unknown tool: ${name}`);
-    }
+    const result = await executeTool(name, args ?? {});
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
   } catch (error) {
     return {
       content: [

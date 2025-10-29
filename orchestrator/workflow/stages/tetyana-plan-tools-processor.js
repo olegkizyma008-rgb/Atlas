@@ -106,6 +106,8 @@ export class TetyanaPlanToolsProcessor {
             }
 
             // NEW 29.10.2025: Apply Context-Aware Tool Filter if available
+            // Extract tools from toolsData regardless of which path was taken
+            const availableTools = toolsData.tools || [];
             let filteredTools = availableTools;
             if (context.container) {
                 try {

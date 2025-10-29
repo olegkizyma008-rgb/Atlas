@@ -604,3 +604,94 @@
 2025-10-29 05:48:49 [ERROR] mcp-server {"metadata":{}}
 2025-10-29 05:48:49 [ERROR] mcp-manager {"metadata":{}}
 2025-10-29 05:48:49 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 06:18:04 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 06:18:04 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 06:18:04 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 06:20:14 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:14 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:15 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:15 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:17 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:17 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 06:20:17 [ERROR] Item 2 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 06:20:17 [ERROR] Item 3 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":3}}
+2025-10-29 06:20:17 [ERROR] Item 4 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":4}}
+2025-10-29 06:20:17 [ERROR] Item 5 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":5}}
+2025-10-29 06:20:17 [ERROR] Item 6 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":6}}
+2025-10-29 06:20:17 [ERROR] Item 7 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":7}}
+2025-10-29 06:20:17 [ERROR] Item 8 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":8}}
+2025-10-29 06:20:17 [ERROR] Item 9 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":9}}
+2025-10-29 06:20:17 [ERROR] Item 10 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":10}}
+2025-10-29 06:20:17 [ERROR] Item 11 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":11}}
+2025-10-29 06:20:17 [ERROR] Item 12 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":12}}
+2025-10-29 06:20:17 [ERROR] Item 13 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":13}}
+2025-10-29 06:20:17 [ERROR] Item 14 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":14}}
+2025-10-29 06:20:17 [ERROR] Item 15 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":15}}
+2025-10-29 06:20:17 [ERROR] Item 16 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":16}}
+2025-10-29 06:20:17 [ERROR] Item 17 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":17}}
+2025-10-29 06:20:17 [ERROR] Item 18 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":18}}
+2025-10-29 06:20:17 [ERROR] Item 19 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":19}}
+2025-10-29 06:20:17 [ERROR] Item 20 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":20}}
+2025-10-29 13:00:51 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 13:00:51 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 13:00:51 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 13:01:13 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:13 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:14 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:14 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:16 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:16 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:01:16 [ERROR] Item 2 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 13:15:26 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 13:15:26 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 13:15:26 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 13:16:33 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:33 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:34 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:34 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:37 [ERROR] [STAGE-2.1-MCP] ❌ Tool planning failed: availableTools is not defined {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:37 [ERROR] Stack trace: ReferenceError: availableTools is not defined
+    at TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:109:33)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1300:30)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 13:16:37 [ERROR] Item 2 blocked 10 times - SKIPPING to prevent infinite loop {"metadata":{"sessionId":"default","itemId":2}}
+2025-10-29 13:24:28 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 13:24:28 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 13:24:28 [ERROR] mcp-manager {"metadata":{}}

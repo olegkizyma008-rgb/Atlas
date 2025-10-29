@@ -1,10 +1,10 @@
-2025-10-29 05:54:54,362 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
-2025-10-29 05:54:54,362 [INFO] atlas.frontend: Serving static files and 3D model interface
-2025-10-29 05:54:54,362 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
+2025-10-29 13:28:21,914 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
+2025-10-29 13:28:21,914 [INFO] atlas.frontend: Serving static files and 3D model interface
+2025-10-29 13:28:21,914 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
  * Serving Flask app 'atlas_server'
  * Debug mode: off
-2025-10-29 05:54:54,374 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-10-29 13:28:21,926 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
- * Running on http://10.10.15.89:5001
-2025-10-29 05:54:54,374 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+ * Running on http://10.3.15.38:5001
+2025-10-29 13:28:21,926 [INFO] werkzeug: [33mPress CTRL+C to quit[0m

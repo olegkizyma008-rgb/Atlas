@@ -37,15 +37,8 @@ export class ValidationPipeline {
     this.llmClient = options.llmClient;
     
     // Initialize self-correction validator if llmClient available
-    if (this.llmClient) {
-        const SelfCorrectionValidator = require('./self-correction-validator');
-        this.selfCorrectionValidator = new SelfCorrectionValidator(
-            logger,
-            this.llmClient
-        );
-    } else {
-        this.selfCorrectionValidator = null;
-    }
+    this.selfCorrectionValidator = null;
+    // Will be lazily initialized when needed to avoid require issues
 
     this.validators = new Map();
     this.config = VALIDATION_CONFIG;
@@ -97,13 +90,25 @@ export class ValidationPipeline {
     let correctedToolCalls = [...toolCalls];
     let selfCorrectionResult = null;
     
-    if (this.config.enableSelfCorrection && this.selfCorrectionValidator) {
-      logger.info('validation-pipeline', 'Running self-correction cycle');
-      selfCorrectionResult = await this.selfCorrectionValidator.validate(toolCalls, context);
+    if (this.config.enableSelfCorrection && this.llmClient) {
+      // Lazy initialization to avoid require issues
+      if (!this.selfCorrectionValidator) {
+        try {
+          const SelfCorrectionValidator = require('./self-correction-validator');
+          this.selfCorrectionValidator = new SelfCorrectionValidator(logger, this.llmClient);
+        } catch (err) {
+          logger.warn('validation-pipeline', 'Failed to load self-correction validator', { error: err.message });
+        }
+      }
       
-      if (selfCorrectionResult.success && selfCorrectionResult.correctedPlan) {
-        correctedToolCalls = selfCorrectionResult.correctedPlan;
-        logger.info('validation-pipeline', `Self-correction applied ${selfCorrectionResult.attempts} corrections`);
+      if (this.selfCorrectionValidator) {
+        logger.info('validation-pipeline', 'Running self-correction cycle');
+        selfCorrectionResult = await this.selfCorrectionValidator.validate(toolCalls, context);
+        
+        if (selfCorrectionResult.success && selfCorrectionResult.correctedPlan) {
+          correctedToolCalls = selfCorrectionResult.correctedPlan;
+          logger.info('validation-pipeline', `Self-correction applied ${selfCorrectionResult.attempts} corrections`);
+        }
       }
     }
 

@@ -935,7 +935,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // ===============================================
     // Stage 1-MCP: Atlas TODO Planning
     // ===============================================
-    logger.workflow('stage', 'atlas', 'Stage 1-MCP: TODO Planning', { sessionId: session.id });
+    logger.workflow('stage', 'system', 'Stage 1-MCP: Atlas TODO Planning', { sessionId: session.id });
 
     // Check if we have DEV transition context
     let todoResult;
@@ -1216,6 +1216,32 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         }
 
         try {
+          // NEW: Router Classifier (Optional fast pre-filter)
+          let suggestedServers = null;
+          try {
+            if (container.has('routerClassifier')) {
+              const routerClassifier = container.resolve('routerClassifier');
+              const mcpManager = container.resolve('mcpManager');
+              
+              logger.workflow('stage', 'system', `Router Classifier: Fast filtering for item ${item.id}`, {
+                sessionId: session.id
+              });
+              
+              const routerResult = await routerClassifier.execute({
+                action: item.action,
+                context: todo,
+                availableServers: mcpManager.getAvailableServers().map(s => s.name)
+              });
+              
+              if (routerResult.success && routerResult.selectedServers) {
+                suggestedServers = routerResult.selectedServers;
+                logger.system('executor', `[ROUTER] Pre-filtered to: ${suggestedServers.join(', ')}`);
+              }
+            }
+          } catch (routerError) {
+            logger.warn('Router classifier failed, continuing without pre-filter', { error: routerError.message });
+          }
+
           // Stage 2.0-MCP: Server Selection (NEW 20.10.2025)
           logger.workflow('stage', 'system', `Stage 2.0-MCP: Selecting MCP servers for item ${item.id}`, {
             sessionId: session.id
@@ -1229,7 +1255,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               currentItem: item,
               todo,
               session,
-              res
+              res,
+              suggestedServers // Pass router suggestions
             });
 
             if (selectionResult.success && selectionResult.selected_servers) {

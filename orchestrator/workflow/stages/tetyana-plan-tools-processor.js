@@ -129,6 +129,21 @@ export class TetyanaPlanToolsProcessor {
                 }
             }
 
+            // NEW 29.10.2025: Generate formal JSON Schemas for tools
+            let toolSchemas = null;
+            if (context.container) {
+                try {
+                    const schemaBuilder = context.container.resolve('mcpSchemaBuilder');
+                    if (schemaBuilder) {
+                        toolSchemas = schemaBuilder.buildToolSchemas(filteredTools);
+                        this.logger.system('tetyana-plan-tools', 
+                            `[STAGE-2.1-MCP] 📋 Generated JSON Schemas for ${toolSchemas.length} tools`);
+                    }
+                } catch (err) {
+                    this.logger.debug('tetyana-plan-tools', 'Schema builder not available');
+                }
+            }
+
             // NEW 20.10.2025: Use auto-assigned prompts from server selection stage
             // Prompts are automatically mapped in Stage 2.0 based on selected servers
             let promptOverride = null;

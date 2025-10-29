@@ -479,6 +479,18 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'processors', priority: 40 }
     });
 
+    // MCP Schema Builder - NEW 29.10.2025
+    // Implements Schema-First approach from refactor.md
+    container.singleton('mcpSchemaBuilder', (c) => {
+        const MCPSchemaBuilder = require('../mcp/schema-builder');
+        return new MCPSchemaBuilder(
+            c.resolve('logger')
+        );
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'mcp', priority: 39 }
+    });
+
     // Atlas TODO Planning Processor (Stage 1-MCP)
     container.singleton('atlasTodoPlanningProcessor', (c) => {
         return new AtlasTodoPlanningProcessor({

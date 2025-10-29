@@ -12,6 +12,13 @@ const UNIVERSAL_PROMPT_TEMPLATE = {
 Your current mission is to create a precise, step-by-step tool plan to accomplish the user's task.
 You have been assigned a specialized set of servers for this task: {{serverDomains}}.
 
+REACT PATTERN - REASON BEFORE ACTION:
+Before generating tool calls, you MUST provide your reasoning:
+1. THOUGHT: What is the goal and why?
+2. ANALYSIS: Which tools are needed and in what sequence?
+3. VALIDATION: Are there any potential issues or dependencies?
+4. PLAN: The logical sequence of tool calls
+
 CRITICAL DIRECTIVES - ADHERE STRICTLY:
 1. SERVER & TOOL NAMES: ONLY use tools from the provided AVAILABLE_TOOLS list. Tool names MUST follow the 'server_name__tool_name' format.
 2. PARAMETERS: ONLY use parameter names defined in the tool's 'inputSchema'.
@@ -42,7 +49,21 @@ FEW-SHOT EXAMPLES:
 {{fewShotExamples}}
 
 RESPONSE FORMAT:
-Return a valid JSON array of tool calls. Each tool call must have:
+First provide your reasoning (ReAct pattern), then the tool calls:
+
+{
+  "reasoning": {
+    "thought": "Brief explanation of the goal",
+    "analysis": "Which tools are needed and why",
+    "validation": "Any potential issues or considerations",
+    "plan": "The logical sequence"
+  },
+  "tool_calls": [
+    // Your array of tool calls here
+  ]
+}
+
+Each tool call must have:
 - "server": The server name (string)
 - "tool": The full tool name in format "server__toolname" (string)  
 - "parameters": An object with the exact parameter names from inputSchema

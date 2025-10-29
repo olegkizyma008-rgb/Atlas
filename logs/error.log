@@ -592,3 +592,9 @@
     at async TetyanaPlanToolsProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/tetyana-plan-tools-processor.js:141:26)
     at async executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1198:30)
     at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13 {"metadata":{"category":"tetyana-plan-tools","component":"tetyana-plan-tools"}}
+2025-10-29 05:45:03 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 05:45:03 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 05:45:03 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 05:45:03 [ERROR] mcp-server {"metadata":{}}
+2025-10-29 05:45:03 [ERROR] mcp-manager {"metadata":{}}
+2025-10-29 05:45:03 [ERROR] mcp-manager {"metadata":{}}

@@ -192,7 +192,14 @@ const COMMON_MISTAKES = {
   ]
 };
 
-module.exports = {
+export {
+  UNIVERSAL_PROMPT_TEMPLATE,
+  fillTemplate,
+  SPECIALIZED_PATTERNS,
+  COMMON_MISTAKES
+};
+
+export default {
   UNIVERSAL_PROMPT_TEMPLATE,
   fillTemplate,
   SPECIALIZED_PATTERNS,

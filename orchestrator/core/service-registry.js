@@ -433,20 +433,17 @@ export function registerMCPProcessors(container) {
     });
 
     // Self-Correction Validator - NEW 29.10.2025
+    // Lazy initialization in validation-pipeline.js to avoid require issues
     container.singleton('selfCorrectionValidator', (c) => {
-        const SelfCorrectionValidator = require('../ai/validation/self-correction-validator');
-        return new SelfCorrectionValidator(
-            c.resolve('logger'),
-            c.resolve('llmClient')
-        );
+        return null; // Will be lazily initialized when needed
     }, {
-        dependencies: ['logger', 'llmClient'],
+        dependencies: [],
         metadata: { category: 'validators', priority: 43 }
     });
 
     // Context-Aware Tool Filter - NEW 29.10.2025
-    container.singleton('contextAwareToolFilter', (c) => {
-        const ContextAwareToolFilter = require('../ai/context-aware-tool-filter');
+    container.singleton('contextAwareToolFilter', async (c) => {
+        const { default: ContextAwareToolFilter } = await import('../ai/context-aware-tool-filter.js');
         return new ContextAwareToolFilter(
             c.resolve('logger')
         );
@@ -456,8 +453,8 @@ export function registerMCPProcessors(container) {
     });
 
     // Workflow State Machine - NEW 29.10.2025
-    container.singleton('workflowStateMachine', (c) => {
-        const { StateMachineFactory } = require('../workflow/state-machine');
+    container.singleton('workflowStateMachine', async (c) => {
+        const { StateMachineFactory } = await import('../workflow/state-machine.js');
         return StateMachineFactory.createMCPWorkflow(
             c.resolve('logger')
         );
@@ -468,21 +465,22 @@ export function registerMCPProcessors(container) {
 
     // Router Classifier Processor - NEW 29.10.2025
     // Optional fast pre-filter before server selection
-    container.singleton('routerClassifier', (c) => {
-        const RouterClassifierProcessor = require('../workflow/stages/router-classifier-processor');
+    container.singleton('routerClassifier', async (c) => {
+        const { default: RouterClassifierProcessor } = await import('../workflow/stages/router-classifier-processor.js');
+        // LLMClient will be resolved from tetyanaToolSystem if needed
         return new RouterClassifierProcessor(
             c.resolve('logger'),
-            c.resolve('llmClient')
+            null // LLM client not needed for basic routing
         );
     }, {
-        dependencies: ['logger', 'llmClient'],
+        dependencies: ['logger'],
         metadata: { category: 'processors', priority: 40 }
     });
 
     // MCP Schema Builder - NEW 29.10.2025
     // Implements Schema-First approach from refactor.md
-    container.singleton('mcpSchemaBuilder', (c) => {
-        const MCPSchemaBuilder = require('../mcp/schema-builder');
+    container.singleton('mcpSchemaBuilder', async (c) => {
+        const { default: MCPSchemaBuilder } = await import('../mcp/schema-builder.js');
         return new MCPSchemaBuilder(
             c.resolve('logger')
         );

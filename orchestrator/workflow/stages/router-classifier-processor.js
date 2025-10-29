@@ -310,4 +310,4 @@ Which servers are needed? (comma-separated list, max 2)`;
   }
 }
 
-module.exports = RouterClassifierProcessor;
+export default RouterClassifierProcessor;

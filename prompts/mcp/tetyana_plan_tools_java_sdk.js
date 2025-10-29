@@ -152,3 +152,5 @@ IMPORTANT:
   temperature: 0.1,
   maxTokens: 4000
 };
+
+export default TETYANA_PLAN_TOOLS_JAVA_SDK;

@@ -377,7 +377,4 @@ class StateMachineFactory {
   }
 }
 
-module.exports = {
-  WorkflowStateMachine,
-  StateMachineFactory
-};
+export { WorkflowStateMachine, StateMachineFactory };

@@ -434,4 +434,4 @@ class ContextAwareToolFilter {
   }
 }
 
-module.exports = ContextAwareToolFilter;
+export default ContextAwareToolFilter;

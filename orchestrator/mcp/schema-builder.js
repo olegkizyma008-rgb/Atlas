@@ -292,4 +292,4 @@ class MCPSchemaBuilder {
   }
 }
 
-module.exports = MCPSchemaBuilder;
+export default MCPSchemaBuilder;

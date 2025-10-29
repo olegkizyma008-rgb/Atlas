@@ -859,11 +859,32 @@ export class GrishaVerifyItemProcessor {
      * @private
      */
     _analyzeMcpResults(results, successCriteria) {
-        // Check if all tools succeeded (TetyanaToolSystem structure)
-        const allSuccessful = results.all_successful;
+        // CRITICAL FIX 2025-10-29: Handle both object and array results
+        // TetyanaToolSystem returns {all_successful, results: [...]}
+        // But sometimes results might be passed directly as array
+        
+        let resultsArray;
+        let allSuccessful;
+        
+        if (Array.isArray(results)) {
+            // Direct array of results
+            resultsArray = results;
+            allSuccessful = results.every(r => r.success);
+        } else if (results && typeof results === 'object') {
+            // TetyanaToolSystem structure
+            allSuccessful = results.all_successful;
+            resultsArray = results.results || [];
+        } else {
+            // Invalid structure
+            return {
+                success: false,
+                confidence: 0,
+                reason: 'MCP верифікація: невалідна структура результатів'
+            };
+        }
 
         if (!allSuccessful) {
-            const failedTools = results.results.filter(r => !r.success).map(r => r.tool);
+            const failedTools = resultsArray.filter(r => !r.success).map(r => r.tool || r.metadata?.tool || 'unknown');
             return {
                 success: false,
                 confidence: 0,
@@ -877,7 +898,7 @@ export class GrishaVerifyItemProcessor {
         // Check for file/directory existence verification
         if (criteriaLower.includes('існує') || criteriaLower.includes('знайдено') || criteriaLower.includes('наявний')) {
             // Look for filesystem operations in results
-            const filesystemResults = results.results.filter(r =>
+            const filesystemResults = resultsArray.filter(r =>
                 r.tool && r.tool.includes('filesystem') && r.success && r.data
             );
 

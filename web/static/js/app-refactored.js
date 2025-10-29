@@ -457,6 +457,14 @@ class AtlasApp {
       // Повідомлення GLB Living System
       if (this.managers.glbLivingSystem) {
         this.managers.glbLivingSystem.setEmotion('welcoming', 0.9, 2000);
+        // НОВИНКА (29.10.2025): Жест готовності
+        if (this.managers.glbLivingSystem.gestureAnimator) {
+          setTimeout(() => {
+            this.managers.glbLivingSystem.gestureAnimator.performGesture(
+              this.managers.glbLivingSystem.gestureDetector.detectContextualGesture('', { isReady: true })
+            );
+          }, 500);
+        }
       }
 
       // Вмикаємо keyword detection
@@ -480,12 +488,12 @@ class AtlasApp {
       this.logger.info('🎤 Conversation recording started');
       eventManager.emit('START_RECORDING', {
         mode: 'conversation',
-        maxDuration: 60000
+        maxDuration: 120000
       });
 
-      // Візуальний feedback
+      // НОВИНКА (29.10.2025): Жест прислуховування
       if (this.managers.glbLivingSystem) {
-        this.managers.glbLivingSystem.setEmotion('listening', 0.9, 99999);
+        this.managers.glbLivingSystem.startListening();
       }
     });
 
@@ -496,6 +504,20 @@ class AtlasApp {
           agent: data.agent || 'atlas',
           text: data.text
         });
+
+        // НОВИНКА (29.10.2025): Жести під час TTS
+        if (this.managers.glbLivingSystem && data.text) {
+          const gesture = this.managers.glbLivingSystem.gestureDetector.detectGesture(data.text);
+          if (gesture) {
+            this.logger.info(`🎭 Atlas will perform gesture during TTS: ${gesture.label}`);
+            // Затримка 200ms для природності (починає говорити і потім робить жест)
+            setTimeout(() => {
+              if (this.managers.glbLivingSystem.gestureAnimator) {
+                this.managers.glbLivingSystem.gestureAnimator.performGesture(gesture);
+              }
+            }, 200);
+          }
+        }
       });
 
       this.managers.chat.on('tts-stop', (data) => {
@@ -505,6 +527,13 @@ class AtlasApp {
         const isInConversation = conversationManager?.isConversationActive?.() || false;
         const mode = data?.mode || 'chat';
         const isActivationResponse = data?.isActivationResponse || false;
+
+        // НОВИНКА (29.10.2025): Завершення TTS - повернення до нейтральної позиції
+        if (this.managers.glbLivingSystem && this.managers.glbLivingSystem.gestureAnimator) {
+          setTimeout(() => {
+            this.managers.glbLivingSystem.stopListening();
+          }, 500);
+        }
 
         console.log('[APP] 🔊 Emitting TTS_COMPLETED (Events.TTS_COMPLETED):', {
           mode,

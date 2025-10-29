@@ -15,6 +15,7 @@
  */
 
 import { AtlasEmotionalStateService } from './atlas-emotional-state.js';
+import { GestureAnimator, GestureDetector, AtlasGestures } from './atlas-gestures.js';
 
 export class AtlasGLBLivingSystem {
   constructor(modelViewerSelector, options = {}) {
@@ -141,6 +142,10 @@ export class AtlasGLBLivingSystem {
     this.lastUserMessage = '';
     this.lastAtlasResponse = '';
 
+    // НОВИНКА (29.10.2025): Система природних жестів
+    this.gestureAnimator = null; // Ініціалізується після init
+    this.gestureDetector = new GestureDetector();
+
     this.init();
   }
 
@@ -156,9 +161,13 @@ export class AtlasGLBLivingSystem {
       this.hideInteractionPrompt();
       this.startLivingLoop();
       this.setupEventListeners();
+      
+      // Ініціалізуємо gesture animator після того як система готова
+      this.gestureAnimator = new GestureAnimator(this);
+      
       this.awaken();
 
-      console.log('✨ Atlas helmet is now ALIVE!');
+      console.log('✨ Atlas helmet is now ALIVE with gestures!');
     } catch (error) {
       console.error('❌ Failed to initialize Living System:', error);
     }
@@ -682,6 +691,20 @@ export class AtlasGLBLivingSystem {
 
     // Оновлюємо візуальний стан
     this.updateEmotionalGlow();
+
+    // НОВИНКА (29.10.2025): Детекція жестів з ключових слів
+    if (this.gestureAnimator) {
+      const gesture = this.gestureDetector.detectGesture(userMessage);
+      if (gesture) {
+        console.log(`🎭 Detected gesture from user message: ${gesture.label}`);
+        // Невелика затримка для природності
+        setTimeout(() => {
+          if (!this.livingState.isSpeaking) {
+            this.gestureAnimator.performGesture(gesture);
+          }
+        }, 300);
+      }
+    }
   }
 
   /**
@@ -693,6 +716,42 @@ export class AtlasGLBLivingSystem {
 
     this.lastAtlasResponse = response;
     console.log(`💬 Atlas response recorded: "${response.substring(0, 50)}..."`);
+
+    // НОВИНКА (29.10.2025): Жести в відповідях Atlas
+    if (this.gestureAnimator) {
+      const gesture = this.gestureDetector.detectGesture(response);
+      if (gesture) {
+        console.log(`🎭 Atlas will perform gesture: ${gesture.label}`);
+        // Жест виконується під час TTS
+      }
+    }
+  }
+
+  /**
+   * Обробка події Whisper (слухання)
+   * НОВИНКА v4.1 (29.10.2025)
+   */
+  startListening() {
+    console.log('🎧 Atlas is listening...');
+    this.livingState.isListening = true;
+
+    // Жест прислуховування: наставляє вухо і трохи наближується
+    if (this.gestureAnimator) {
+      this.gestureAnimator.performGesture(AtlasGestures.LISTEN, { holdLast: true });
+    }
+  }
+
+  /**
+   * Завершення слухання
+   */
+  stopListening() {
+    console.log('🔇 Atlas stopped listening');
+    this.livingState.isListening = false;
+
+    // Повертаємось до нормальної позиції
+    if (this.gestureAnimator) {
+      this.gestureAnimator.returnToNeutral();
+    }
   }
 
   /**

@@ -71,29 +71,23 @@ export const MCP_REGISTRY = {
     },
 
     java_sdk: {
-      command: 'npx',
+      command: 'node',
       args: [
-        '-y',
-        '@modelcontextprotocol/server-java'
+        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/java-sdk/index.js'
       ],
-      env: {
-        JAVA_HOME: env.JAVA_HOME || '/usr/libexec/java_home'
-      },
-      description: 'Java development tools and code execution (disabled - package not available)',
-      enabled: false
+      env: {},
+      description: 'Java development tools - compile, run, Maven, Gradle',
+      enabled: true
     },
 
     python_sdk: {
-      command: 'npx',
+      command: 'node',
       args: [
-        '-y',
-        '@modelcontextprotocol/server-python'
+        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/python-sdk/index.js'
       ],
-      env: {
-        PYTHON_ENV: 'production'
-      },
-      description: 'Python development tools and code execution (disabled - package not available)',
-      enabled: false
+      env: {},
+      description: 'Python development tools - run, test, pip, virtualenv',
+      enabled: true
     }
   },
 

@@ -1,0 +1,25 @@
+{
+  "name": "@atlas/mcp-server-java-sdk",
+  "version": "1.0.0",
+  "description": "MCP Server for Java development tools",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "mcp-server-java-sdk": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "java",
+    "sdk",
+    "development"
+  ]
+}

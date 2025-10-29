@@ -68,6 +68,36 @@ export const MCP_REGISTRY = {
       env: {},
       description: 'Persistent memory storage',
       enabled: true
+    },
+
+    java_sdk: {
+      command: 'java',
+      args: [
+        '-jar',
+        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/java-sdk/mcp-java-server.jar'
+      ],
+      env: {
+        JAVA_HOME: env.JAVA_HOME || '/usr/libexec/java_home',
+        CLASSPATH: '/Users/dev/Documents/GitHub/atlas4/mcp-servers/java-sdk/lib/*'
+      },
+      description: 'Java development tools and code execution',
+      enabled: true
+    },
+
+    python_sdk: {
+      command: 'python3',
+      args: [
+        '-m',
+        'mcp_python_server',
+        '--config',
+        '/Users/dev/Documents/GitHub/atlas4/mcp-servers/python-sdk/config.json'
+      ],
+      env: {
+        PYTHONPATH: '/Users/dev/Documents/GitHub/atlas4/mcp-servers/python-sdk',
+        PYTHON_ENV: 'production'
+      },
+      description: 'Python development tools and code execution',
+      enabled: true
     }
   },
 

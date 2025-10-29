@@ -379,7 +379,9 @@ export class ServerSelectionProcessor {
             /["']?filesystem["']?/gi,
             /["']?shell["']?/gi,
             /["']?applescript["']?/gi,
-            /["']?memory["']?/gi
+            /["']?memory["']?/gi,
+            /["']?java_sdk["']?/gi,
+            /["']?python_sdk["']?/gi
         ];
 
         const foundServers = [];

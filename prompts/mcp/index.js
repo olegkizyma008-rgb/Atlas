@@ -32,6 +32,8 @@ import tetyanaPlanToolsFilesystem from './tetyana_plan_tools_filesystem.js';  //
 import tetyanaPlanToolsApplescript from './tetyana_plan_tools_applescript.js';  // NEW 18.10.2025 - AppleScript specialized
 import tetyanaPlanToolsShell from './tetyana_plan_tools_shell.js';  // NEW 18.10.2025 - Shell specialized
 import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.10.2025 - Memory specialized
+import tetyanaPlanToolsJavaSdk from './tetyana_plan_tools_java_sdk.js';  // NEW 29.10.2025 - Java SDK specialized
+import tetyanaPlanToolsPythonSdk from './tetyana_plan_tools_python_sdk.js';  // NEW 29.10.2025 - Python SDK specialized
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
 import visualCaptureModeSelector from './visual_capture_mode_selector.js';  // NEW 22.10.2025 - Screenshot mode selection
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
@@ -63,11 +65,13 @@ export const MCP_PROMPTS = {
     // Use only specialized prompts below:
     
     // Stage 2.1-MCP: MCP-specific prompts (NEW 18.10.2025)
-    TETYANA_PLAN_TOOLS_PLAYWRIGHT: tetyanaPlanToolsPlaywright,
-    TETYANA_PLAN_TOOLS_FILESYSTEM: tetyanaPlanToolsFilesystem,
     TETYANA_PLAN_TOOLS_APPLESCRIPT: tetyanaPlanToolsApplescript,
+    TETYANA_PLAN_TOOLS_FILESYSTEM: tetyanaPlanToolsFilesystem,
+    TETYANA_PLAN_TOOLS_PLAYWRIGHT: tetyanaPlanToolsPlaywright,
     TETYANA_PLAN_TOOLS_SHELL: tetyanaPlanToolsShell,
     TETYANA_PLAN_TOOLS_MEMORY: tetyanaPlanToolsMemory,
+    TETYANA_PLAN_TOOLS_JAVA_SDK: tetyanaPlanToolsJavaSdk,
+    TETYANA_PLAN_TOOLS_PYTHON_SDK: tetyanaPlanToolsPythonSdk,
 
     // Stage 2.1.5-MCP: Tetyana screenshot and adjust (NEW 16.10.2025)
     TETYANA_SCREENSHOT_AND_ADJUST: tetyanaScreenshotAndAdjust,
@@ -103,6 +107,8 @@ export {
     tetyanaPlanToolsApplescript,
     tetyanaPlanToolsShell,
     tetyanaPlanToolsMemory,
+    tetyanaPlanToolsJavaSdk,
+    tetyanaPlanToolsPythonSdk,
     tetyanaScreenshotAndAdjust,
     visualCaptureModeSelector,  // NEW 22.10.2025
     grishaVisualVerifyItem,  // NEW 17.10.2025

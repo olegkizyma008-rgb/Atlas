@@ -407,35 +407,9 @@ export const AI_BACKEND_CONFIG = {
       enabled: true,
       type: 'direct',
       servers: {
-        filesystem: {
-          command: 'npx',
-          args: ['-y', '@modelcontextprotocol/server-filesystem', '/Users/dev/Desktop', '/Users/dev/Documents', '/tmp'],
-          env: {}
-        },
-        playwright: {
-          command: 'npx',
-          args: ['-y', '@executeautomation/playwright-mcp-server'],
-          env: {
-            HEADLESS: 'true'
-          }
-        },
-        shell: {
-          command: 'npx',
-          args: ['-y', 'super-shell-mcp'],
-          env: {
-            SHELL: env.SHELL || '/bin/zsh'
-          }
-        },
-        applescript: {
-          command: 'npx',
-          args: ['-y', '@peakmojo/applescript-mcp'],
-          env: {}
-        },
-        memory: {
-          command: 'npx',
-          args: ['-y', '@modelcontextprotocol/server-memory'],
-          env: {}
-        }
+        // Servers are now managed by MCP_REGISTRY
+        // This section is deprecated and will be removed
+        // See /config/mcp-registry.js for server configurations
       },
       llm: {
         provider: 'atlas',

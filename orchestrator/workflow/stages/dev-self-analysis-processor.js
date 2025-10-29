@@ -981,89 +981,189 @@ export class DevSelfAnalysisProcessor {
             };
         }
         
-        this.logger.info('[DEV-ANALYSIS] 🔧 Initiating REAL code intervention through MCP...', {
+        this.logger.info('[DEV-ANALYSIS] 🔧 Initiating code intervention with TASK mode transition...', {
             category: 'system',
             component: 'dev-analysis'
         });
         
+        // Prepare context for TASK mode
+        const taskContext = {
+            source: 'dev_analysis',
+            analysis: analysisResult,
+            interventionPlan: analysisResult.intervention_plan || this._generateInterventionPlan(analysisResult),
+            timestamp: new Date().toISOString(),
+            password: password,
+            autoExecute: true
+        };
+        
+        // Save context to session for TASK mode
+        session.devAnalysisContext = taskContext;
+        session.transitionToTask = true;
+        
+        // Save to memory MCP for persistence
+        await this._saveInterventionContext(taskContext, session);
+        
+        this.logger.info('[DEV-ANALYSIS] 📋 Context prepared for TASK mode transition', {
+            category: 'system',
+            component: 'dev-analysis',
+            tasksCount: taskContext.interventionPlan?.changes?.length || 0
+        });
+        
+        // Return with transition flag
+        return {
+            success: true,
+            transitionToTask: true,
+            taskContext: {
+                mode: 'task',
+                source: 'dev_intervention',
+                tasks: this._convertToTaskFormat(taskContext.interventionPlan),
+                metadata: {
+                    devAnalysis: analysisResult.summary,
+                    criticalIssues: analysisResult.findings?.critical_issues || [],
+                    autoExecute: true,
+                    requiresRestart: true
+                }
+            },
+            message: `🚀 Переходжу в TASK режим для виконання ${taskContext.interventionPlan?.changes?.length || 0} змін. Система автоматично виконає всі необхідні дії.`,
+            intervention: {
+                planned: true,
+                willExecute: true,
+                tasksCount: taskContext.interventionPlan?.changes?.length || 0,
+                estimatedTime: this._estimateExecutionTime(taskContext.interventionPlan)
+            }
+        };
+    }
+    
+    /**
+     * Generate intervention plan from analysis
+     */
+    _generateInterventionPlan(analysisResult) {
+        const plan = {
+            changes: [],
+            priority: 'high',
+            estimatedImpact: 'medium'
+        };
+        
+        // Convert critical issues to actionable changes
+        if (analysisResult.findings?.critical_issues) {
+            for (const issue of analysisResult.findings.critical_issues) {
+                if (issue.location && issue.fix_suggestion) {
+                    plan.changes.push({
+                        file_path: issue.location,
+                        changes_description: issue.fix_suggestion,
+                        issue_type: issue.type,
+                        severity: issue.severity
+                    });
+                }
+            }
+        }
+        
+        // Add improvements as lower priority changes
+        if (analysisResult.findings?.improvement_suggestions) {
+            for (const suggestion of analysisResult.findings.improvement_suggestions) {
+                if (suggestion.file_path) {
+                    plan.changes.push({
+                        file_path: suggestion.file_path,
+                        changes_description: suggestion.suggestion,
+                        issue_type: 'improvement',
+                        severity: 'low'
+                    });
+                }
+            }
+        }
+        
+        return plan;
+    }
+    
+    /**
+     * Convert intervention plan to TASK format
+     */
+    _convertToTaskFormat(interventionPlan) {
+        const tasks = [];
+        let taskId = 1;
+        
+        for (const change of interventionPlan?.changes || []) {
+            tasks.push({
+                id: String(taskId++),
+                action: `Fix: ${change.changes_description}`,
+                target: change.file_path,
+                type: 'code_modification',
+                priority: change.severity === 'critical' ? 'high' : 'medium',
+                mcp_servers: ['filesystem', 'shell'],
+                success_criteria: `File ${change.file_path} successfully modified`,
+                metadata: {
+                    issue_type: change.issue_type,
+                    severity: change.severity,
+                    auto_execute: true
+                }
+            });
+        }
+        
+        // Add restart task at the end
+        tasks.push({
+            id: String(taskId),
+            action: 'Restart Atlas system to apply changes',
+            type: 'system_restart',
+            priority: 'high',
+            mcp_servers: ['shell'],
+            success_criteria: 'System restarted successfully',
+            dependencies: tasks.map(t => t.id).slice(0, -1) // Depends on all previous tasks
+        });
+        
+        return tasks;
+    }
+    
+    /**
+     * Save intervention context to memory MCP
+     */
+    async _saveInterventionContext(context, session) {
         try {
-            // Get MCP manager for direct filesystem access
             const mcpManager = this.container?.resolve('mcpManager');
-            if (!mcpManager) {
-                throw new Error('MCP Manager not available');
-            }
+            if (!mcpManager) return;
             
-            const filesystemServer = mcpManager.servers?.get('filesystem');
-            if (!filesystemServer || !filesystemServer.ready) {
-                throw new Error('Filesystem server not available or not ready');
-            }
+            const memoryServer = mcpManager.servers?.get('memory');
+            if (!memoryServer || !memoryServer.ready) return;
             
-            const interventionPlan = analysisResult.intervention_plan;
-            const modifiedFiles = [];
-            
-            // Execute each file modification
-            for (const fileChange of interventionPlan.changes || []) {
-                const { file_path, changes_description, new_content } = fileChange;
-                
-                this.logger.info(`[DEV-ANALYSIS] Modifying ${file_path}...`, {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-                
-                // Read current content for backup
-                const readResult = await filesystemServer.call('read_file', {
-                    path: file_path
-                });
-                
-                const originalContent = readResult.content?.[0]?.text || '';
-                
-                // Create backup
-                const backupPath = `${file_path}.backup-${Date.now()}`;
-                await filesystemServer.call('write_file', {
-                    path: backupPath,
-                    content: originalContent
-                });
-                
-                // Write new content
-                await filesystemServer.call('write_file', {
-                    path: file_path,
-                    content: new_content
-                });
-                
-                modifiedFiles.push({
-                    path: file_path,
-                    backup: backupPath,
-                    description: changes_description
-                });
-                
-                this.logger.info(`[DEV-ANALYSIS] ✅ Modified ${file_path} (backup: ${backupPath})`, {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-            }
-            
-            return {
-                success: true,
-                intervention: {
-                    executed: true,
-                    files_modified: modifiedFiles,
-                    rollback_strategy: 'Restore from .backup files',
-                    apply_on_restart: true
-                },
-                message: `Code intervention completed. Modified ${modifiedFiles.length} files. Restart system to apply changes.`
-            };
-            
-        } catch (error) {
-            this.logger.error(`[DEV-ANALYSIS] Intervention failed: ${error.message}`, {
-                category: 'system',
-                component: 'dev-analysis',
-                error: error.message
+            await memoryServer.call('create_entities', {
+                entities: [{
+                    type: 'dev_intervention_context',
+                    name: `DEV_INTERVENTION_${Date.now()}`,
+                    content: JSON.stringify(context),
+                    metadata: {
+                        sessionId: session.id,
+                        timestamp: context.timestamp,
+                        tasksCount: context.interventionPlan?.changes?.length || 0
+                    }
+                }]
             });
             
-            return {
-                success: false,
-                error: `Failed to execute code intervention: ${error.message}`
-            };
+            this.logger.info('[DEV-ANALYSIS] 💾 Intervention context saved to memory', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+        } catch (error) {
+            this.logger.warn(`[DEV-ANALYSIS] Failed to save context to memory: ${error.message}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+        }
+    }
+    
+    /**
+     * Estimate execution time for intervention plan
+     */
+    _estimateExecutionTime(interventionPlan) {
+        const changesCount = interventionPlan?.changes?.length || 0;
+        const baseTimePerChange = 5; // seconds
+        const restartTime = 30; // seconds
+        
+        const totalSeconds = (changesCount * baseTimePerChange) + restartTime;
+        
+        if (totalSeconds < 60) {
+            return `${totalSeconds} секунд`;
+        } else {
+            const minutes = Math.ceil(totalSeconds / 60);
+            return `${minutes} хвилин`;
         }
     }
 

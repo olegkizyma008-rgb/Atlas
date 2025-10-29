@@ -578,7 +578,46 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           criticalIssues: findings?.critical_issues?.length || 0
         });
         
-        return analysisResult;
+        // Check if DEV mode wants to transition to TASK mode
+        if (analysisResult.transitionToTask && analysisResult.taskContext) {
+          logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode', {
+            sessionId: session.id,
+            tasksCount: analysisResult.taskContext.tasks?.length || 0
+          });
+          
+          // Send transition message
+          if (wsManager) {
+            wsManager.broadcastToSubscribers('chat', 'agent_message', {
+              content: analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...',
+              agent: 'atlas',
+              sessionId: session.id,
+              timestamp: new Date().toISOString(),
+              ttsContent: 'Переходжу в режим виконання завдань',
+              mode: 'task_transition'
+            });
+          }
+          
+          // Update session for TASK mode
+          session.mode = 'task';
+          session.devTransitionContext = analysisResult.taskContext;
+          session.autoExecuteTasks = true;
+          
+          // Continue to TASK mode processing
+          mode = 'task';
+          userMessage = analysisResult.taskContext.tasks
+            .map(t => t.action)
+            .join('; ');
+          
+          logger.system('executor', '[DEV→TASK] Session updated for TASK mode execution', {
+            sessionId: session.id,
+            mode: 'task',
+            autoExecute: true
+          });
+          
+          // Don't return here - continue to TASK mode processing below
+        } else {
+          return analysisResult;
+        }
         
       } catch (error) {
         logger.error(`[DEV-MODE] Self-analysis failed: ${error.message}`);
@@ -898,11 +937,41 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // ===============================================
     logger.workflow('stage', 'atlas', 'Stage 1-MCP: TODO Planning', { sessionId: session.id });
 
-    const todoResult = await todoProcessor.execute({
-      userMessage,
-      session,
-      res
-    });
+    // Check if we have DEV transition context
+    let todoResult;
+    if (session.devTransitionContext) {
+      logger.system('executor', '[TASK-FROM-DEV] Using DEV transition context', {
+        sessionId: session.id,
+        tasksCount: session.devTransitionContext.tasks?.length || 0
+      });
+      
+      // Create TODO from DEV context
+      todoResult = {
+        success: true,
+        todo: {
+          mode: 'task',
+          items: session.devTransitionContext.tasks.map(task => ({
+            ...task,
+            status: 'pending',
+            max_attempts: 3,
+            attempt: 0
+          })),
+          user_message: userMessage,
+          metadata: session.devTransitionContext.metadata
+        },
+        summary: `Виконую ${session.devTransitionContext.tasks?.length || 0} завдань з DEV аналізу`
+      };
+      
+      // Clear transition context after use
+      delete session.devTransitionContext;
+    } else {
+      // Normal TODO planning
+      todoResult = await todoProcessor.execute({
+        userMessage,
+        session,
+        res
+      });
+    }
 
     // ✅ PHASE 4 TASK 3: Validate TODO result structure
     if (!todoResult.success) {

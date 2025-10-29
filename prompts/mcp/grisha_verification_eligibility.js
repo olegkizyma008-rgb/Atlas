@@ -44,7 +44,7 @@ Analysis steps:
   "additional_checks": [                     // max 3 additional checks
     {
       "description": "string",               // in Ukrainian for user
-      "server": "filesystem" | "shell" | "applescript" | "memory" | "playwright",
+      "server": "filesystem" | "shell" | "applescript" | "memory" | "playwright" | "java_sdk" | "python_sdk",
       "tool": "server__tool",              // double underscore format (e.g., filesystem__read_file)
       "parameters": Object,                 // valid JSON parameters
       "expected_evidence": "string"        // what to look for in results (Ukrainian)

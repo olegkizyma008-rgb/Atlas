@@ -175,7 +175,15 @@ export class PermissionInspector extends ToolInspector {
             'memory__get',
             'memory__memory__get',
             'memory__list',
-            'memory__memory__list'
+            'memory__memory__list',
+            'java_sdk__get_project_info',
+            'java_sdk__java_sdk__get_project_info',
+            'java_sdk__list_dependencies',
+            'java_sdk__java_sdk__list_dependencies',
+            'python_sdk__get_project_info',
+            'python_sdk__python_sdk__get_project_info',
+            'python_sdk__list_packages',
+            'python_sdk__python_sdk__list_packages'
         ]);
 
         // Tools requiring approval in chat mode - support both formats
@@ -193,7 +201,23 @@ export class PermissionInspector extends ToolInspector {
             'playwright__click',
             'playwright__playwright__click',
             'playwright__fill_form',
-            'playwright__playwright__fill'
+            'playwright__playwright__fill',
+            'java_sdk__create_project',
+            'java_sdk__java_sdk__create_project',
+            'java_sdk__create_class',
+            'java_sdk__java_sdk__create_class',
+            'java_sdk__build',
+            'java_sdk__java_sdk__build',
+            'java_sdk__run_tests',
+            'java_sdk__java_sdk__run_tests',
+            'python_sdk__create_project',
+            'python_sdk__python_sdk__create_project',
+            'python_sdk__create_module',
+            'python_sdk__python_sdk__create_module',
+            'python_sdk__install_packages',
+            'python_sdk__python_sdk__install_packages',
+            'python_sdk__run_tests',
+            'python_sdk__python_sdk__run_tests'
         ]);
     }
 

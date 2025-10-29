@@ -525,6 +525,35 @@ export class VisualCaptureService {
     }
 
     /**
+     * Normalize app name for cross-language compatibility
+     * @private
+     */
+    _normalizeAppName(appName) {
+        // Capitalize first letter of each word
+        return appName.split(/\s+/).map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+    }
+    
+    /**
+     * Intelligent app activation - tries multiple approaches
+     * @private
+     */
+    async _intelligentAppActivation(appName) {
+        try {
+            // Try to activate the app
+            await execAsync(`osascript -e 'tell application "${appName}" to activate'`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return appName;
+        } catch (error) {
+            this.logger.warn(`[VISUAL] Could not activate ${appName}: ${error.message}`, {
+                category: 'visual-capture'
+            });
+            return null;
+        }
+    }
+
+    /**
      * Cleanup and shutdown
      */
     async destroy() {

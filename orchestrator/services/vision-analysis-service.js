@@ -778,7 +778,7 @@ export class VisionAnalysisService {
         max_tokens: visionConfig.max_tokens || 1000,
         temperature: visionConfig.temperature
       }, {
-        timeout: 30000,  // FIXED 2025-10-22: 30s timeout to prevent hanging (was: 0 = infinite)
+        timeout: 60000,  // FIXED 2025-10-29: 60s timeout for vision models (llama-90b needs more time)
         headers
       });
 

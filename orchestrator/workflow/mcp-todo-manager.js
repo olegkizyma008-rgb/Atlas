@@ -771,19 +771,22 @@ export class MCPTodoManager {
         });
         // Store plan for Atlas replan
         item.last_plan = plan;
-        await this._safeTTSSpeak(plan.tts_phrase, { mode: 'quick', duration: 150, agent: 'tetyana' });
+        
+        // FIXED 2025-10-30: Remove duplicate TTS - executor-v3.js already speaks item.action
+        // await this._safeTTSSpeak(plan.tts_phrase, { mode: 'quick', duration: 150, agent: 'tetyana' });
 
         // Stage 2.1.5: Screenshot and Adjust (NEW 16.10.2025 - Tetyana)
         // Take screenshot and optionally adjust plan based on current state
         const screenshotResult = await this.screenshotAndAdjust(plan, item);
         const finalPlan = screenshotResult.plan;
 
+        // FIXED 2025-10-30: Remove duplicate TTS - executor-v3.js already handles TTS
         // TTS feedback about screenshot/adjustment
-        await this._safeTTSSpeak(finalPlan.tts_phrase || 'Скрін готовий', {
-          mode: 'quick',
-          duration: screenshotResult.adjusted ? 200 : 100,
-          agent: 'tetyana'
-        });
+        // await this._safeTTSSpeak(finalPlan.tts_phrase || 'Скрін готовий', {
+        //   mode: 'quick',
+        //   duration: screenshotResult.adjusted ? 200 : 100,
+        //   agent: 'tetyana'
+        // });
 
         if (screenshotResult.adjusted) {
           this.logger.system('mcp-todo', `[TODO] 🔧 Plan adjusted: ${screenshotResult.reason}`);

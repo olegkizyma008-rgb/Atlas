@@ -1328,8 +1328,8 @@ Create precise MCP tool execution plan.
             
             // Special handling for rate limits - longer delay
             const isRateLimit = retryError.message === 'RATE_LIMIT_EXCEEDED';
-            const baseDelay = isRateLimit ? 5000 : 1000; // Increased from 3000 to 5000ms
-            const maxDelay = isRateLimit ? 30000 : 10000; // Increased max for rate limits
+            const baseDelay = isRateLimit ? 10000 : 1000; // FIXED 2025-10-30: 10s for rate limit
+            const maxDelay = isRateLimit ? 60000 : 10000; // FIXED 2025-10-30: 60s max for rate limits
             const delay = Math.min(baseDelay * Math.pow(2, retryCount - 1), maxDelay);
             
             this.logger.warn(`[MCP-TODO] ${isRateLimit ? 'Rate limit hit' : 'Retry'} ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
@@ -1342,6 +1342,11 @@ Create precise MCP tool execution plan.
         }
 
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
+        
+        // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
+        // This gives the API server time to process and prevents burst requests
+        const postSuccessDelay = 2000; // 2 seconds between successful LLM calls
+        await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
 
       } catch (apiError) {
         this.logger.error(`[MCP-TODO] LLM API call failed after ${maxRetries} attempts: ${apiError.message}`, {

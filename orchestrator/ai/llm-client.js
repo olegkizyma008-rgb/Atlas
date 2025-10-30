@@ -137,6 +137,63 @@ export class LLMClient {
   }
 
   /**
+   * Chat - викликає LLM API для генерації відповіді (OpenAI-compatible format)
+   * @param {Object} options - Chat completion options
+   * @returns {Promise<Object>} Full API response with choices
+   */
+  async chat(options) {
+    const {
+      model = this.model,
+      messages,
+      temperature = this.temperature,
+      max_tokens = 1000,
+      response_format = null
+    } = options;
+
+    try {
+      const requestBody = {
+        model,
+        messages,
+        temperature,
+        max_tokens
+      };
+
+      // Add response_format if specified (for JSON mode)
+      if (response_format) {
+        requestBody.response_format = response_format;
+      }
+
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid LLM API response format');
+      }
+
+      // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
+      const postSuccessDelay = 2000; // 2 seconds between LLM calls
+      await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
+
+      return data; // Return full response for compatibility
+
+    } catch (error) {
+      logger.error('llm-client', `[LLM Client] Chat failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Complete - викликає LLM API для генерації відповіді
    * @param {Array} messages - Масив повідомлень для LLM
    * @param {Object} options - Додаткові опції
@@ -170,6 +227,10 @@ export class LLMClient {
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('Invalid LLM API response format');
       }
+
+      // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
+      const postSuccessDelay = 2000; // 2 seconds between LLM calls
+      await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
 
       return data.choices[0].message.content;
 

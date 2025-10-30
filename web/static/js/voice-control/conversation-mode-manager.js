@@ -849,14 +849,24 @@ export class ConversationModeManager {
     this.ui?.showIdleMode();
 
     // FIXED (12.10.2025 - 17:00): Відправка pending message якщо є
-    // FIXED (12.10.2025 - 15:30): НЕ чекаємо TTS після pending - запускаємо continuous listening
+    // FIXED (30.10.2025): Відправляємо pending message якщо воно НЕ було відправлено
     if (this.pendingMessage) {
-      this.logger.info(`📤 Sending pending message: "${this.pendingMessage.text}"`);
-      this.logger.info(`⚠️ Pending message is DUPLICATE - Atlas TTS already played, starting continuous listening`);
-      this.pendingMessage = null; // Очищуємо pending БЕЗ відправки
+      this.logger.info(`📤 Processing pending message: "${this.pendingMessage.text}"`);
 
-      // КРИТИЧНО: Запускаємо continuous listening БЕЗ очікування нового TTS
-      // Бо pending message - це ДУБЛІКАТ, Atlas вже відповів!
+      // Перевіряємо чи повідомлення вже було відправлено в чат
+      // Якщо isStreaming тепер false, можемо відправити
+      if (this.chatManager && !this.chatManager.isStreaming) {
+        this.logger.info(`✅ Chat is ready, sending pending message now`);
+        const message = this.pendingMessage;
+        this.pendingMessage = null; // Очищуємо ПЕРЕД відправкою
+
+        // Відправляємо повідомлення
+        this.sendToChat(message.text, message.metadata);
+      } else {
+        this.logger.warn(`⚠️ Chat still streaming, keeping message in queue`);
+      }
+
+      // Запускаємо continuous listening
       setTimeout(() => {
         if (this.state.isInConversation()) {
           this.startContinuousListening();

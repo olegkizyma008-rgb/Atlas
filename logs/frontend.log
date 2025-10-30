@@ -1,68 +1,66 @@
-2025-10-29 19:44:39,023 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
-2025-10-29 19:44:39,023 [INFO] atlas.frontend: Serving static files and 3D model interface
-2025-10-29 19:44:39,023 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
+2025-10-30 02:27:05,135 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
+2025-10-30 02:27:05,135 [INFO] atlas.frontend: Serving static files and 3D model interface
+2025-10-30 02:27:05,135 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
  * Serving Flask app 'atlas_server'
  * Debug mode: off
-2025-10-29 19:44:39,036 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-10-30 02:27:05,148 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
- * Running on http://10.4.15.87:5001
-2025-10-29 19:44:39,036 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
-2025-10-29 19:44:50,999 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:50] "GET / HTTP/1.1" 200 -
-2025-10-29 19:44:51,014 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/css/dev-password-dialog.css HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,014 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/css/dev-password-form.css HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,015 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "GET /static/js/app-refactored.js?v=1761759890 HTTP/1.1" 200 -
-2025-10-29 19:44:51,015 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/css/main.css HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,040 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/assets/DamagedHelmet.glb HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,076 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/core/logger.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,077 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/core/config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,078 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/core/api-client.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,078 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/core/websocket-client.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,079 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/modules/chat-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,080 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/atlas-voice-integration.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,081 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation-mode-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,082 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/ui/atlas-advanced-ui.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,082 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/logging/animated-logging.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,083 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/tts/atlas-tts-visualization.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,083 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/events/event-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,085 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/model3d/atlas-glb-living-system.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,087 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/atlas-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,087 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/model3d/atlas-interactive-personality.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,087 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/model3d/atlas-living-behavior-enhanced.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,088 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/modules/dev-password-handler.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,090 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/modules/tts-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,091 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/web-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,092 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/voice-control-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,094 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/core/logger.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,094 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/monitoring/voice-control-monitoring.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,095 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation/constants.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,097 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation/state-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,097 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation/filters.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,097 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation/event-handlers.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,098 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/conversation/ui-controller.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,099 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/system-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,100 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/agents-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,101 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/workflow-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,102 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/api-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,103 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/models-config.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,104 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/components/dev-password-dialog.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,105 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/whisper-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,106 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/core/base-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,106 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /config/mcp-registry.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/keyword-detection-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/whisper-keyword-detection.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,109 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/post-chat-analysis-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,110 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/speech-results-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,111 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/microphone-button-service.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,112 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/utils/voice-utils.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,114 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/microphone/media-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,114 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/microphone/button-state-manager.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,115 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/microphone/button-animation-controller.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,116 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/js/voice-control/services/microphone/simple-vad.js HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,126 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/assets/favicon.ico HTTP/1.1[0m" 304 -
-2025-10-29 19:44:51,285 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "[36mGET /static/assets/atlas-icon.svg HTTP/1.1[0m" 304 -
-2025-10-29 19:45:07,611 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:45:07] "[36mGET /static/assets/favicon.ico HTTP/1.1[0m" 304 -
-2025-10-29 20:19:19,285 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:19] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
-2025-10-29 20:19:19,292 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:19] "[36mGET /static/css/main.css HTTP/1.1[0m" 304 -
-2025-10-29 20:19:19,292 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:19] "[36mGET /static/css/dev-password-dialog.css HTTP/1.1[0m" 304 -
-2025-10-29 20:19:19,293 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:19] "[36mGET /static/css/dev-password-form.css HTTP/1.1[0m" 304 -
+ * Running on http://10.7.15.248:5001
+2025-10-30 02:27:05,148 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2025-10-30 02:28:09,395 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "GET / HTTP/1.1" 200 -
+2025-10-30 02:28:09,419 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-10-30 02:28:09,425 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/css/dev-password-dialog.css HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,427 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/css/main.css HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,427 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "GET /static/js/app-refactored.js?v=1761784089 HTTP/1.1" 200 -
+2025-10-30 02:28:09,428 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/css/dev-password-form.css HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,433 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/core/logger.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,433 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/core/config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,433 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/core/websocket-client.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,435 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/core/api-client.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,438 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "GET /static/js/modules/chat-manager.js HTTP/1.1" 200 -
+2025-10-30 02:28:09,438 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation-mode-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,439 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/atlas-voice-integration.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,439 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/logging/animated-logging.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,439 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/ui/atlas-advanced-ui.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,439 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/events/event-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,442 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/tts/atlas-tts-visualization.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,445 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/model3d/atlas-glb-living-system.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,445 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/model3d/atlas-interactive-personality.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,446 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/model3d/atlas-living-behavior-enhanced.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,447 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/modules/dev-password-handler.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,448 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/atlas-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,450 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/core/logger.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,451 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation/constants.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,451 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/web-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,453 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation/filters.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,453 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation/state-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,455 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation/ui-controller.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,455 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/conversation/event-handlers.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,456 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/modules/tts-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,457 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/monitoring/voice-control-monitoring.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,458 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/voice-control-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,460 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/model3d/atlas-emotional-state.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,461 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/model3d/atlas-gestures.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,462 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/components/dev-password-dialog.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,463 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/system-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,464 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/workflow-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,465 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/agents-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,466 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/models-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,467 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/api-config.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,467 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /config/mcp-registry.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,469 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/core/base-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,469 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/utils/voice-utils.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,470 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/whisper-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,471 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/microphone-button-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,473 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/speech-results-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,473 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/post-chat-analysis-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,474 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/whisper-keyword-detection.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,476 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/interrupt-detection-service.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,476 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/microphone/media-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,477 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/microphone/button-state-manager.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,478 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/microphone/button-animation-controller.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,479 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/js/voice-control/services/microphone/simple-vad.js HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,571 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/assets/DamagedHelmet.glb HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,648 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/assets/favicon.ico HTTP/1.1[0m" 304 -
+2025-10-30 02:28:09,742 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "[36mGET /static/assets/atlas-icon.svg HTTP/1.1[0m" 304 -

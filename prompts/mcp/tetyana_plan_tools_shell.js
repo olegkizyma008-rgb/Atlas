@@ -96,11 +96,11 @@ OUTPUT CONTRACT
 }
 
 **RESPONSE RULES:**
-- `tool` must always be "shell_execute_command" (with prefix).
+- The "tool" field must always be "shell_execute_command" (with prefix).
 - Provide between 1 and 5 tool calls; merge related operations using pipes when possible.
 - If the TODO requires many distinct steps, return the first executable block and describe it clearly.
 - Keep reasoning concise, factual, and fully in {{USER_LANGUAGE}}.
-- tts_phrase should be a short status update in {{USER_LANGUAGE}}.
+- The tts_phrase should be a short status update in {{USER_LANGUAGE}}.
 
 **EXAMPLE (FORMAT ONLY):**
 {

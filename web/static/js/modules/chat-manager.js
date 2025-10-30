@@ -633,10 +633,23 @@ export class ChatManager {
     const { content, agent, ttsContent, voice, messageId, mode, ttsOptimized, requiresAuth, analysisData } = data;
 
     if (!content) {
-      this.logger.warn('Received agent message with no content');
+      this.logger.debug('Empty agent message, skipping');
       return;
     }
+
+    // Додаємо повідомлення агента до історії
+    const message = this.addMessage(content, agent);
     
+    // CRITICAL FIX (30.10.2025): Set isStreaming to false after agent message
+    // This allows pending messages from queue to be sent
+    this.logger.info('Setting isStreaming to false after agent message');
+    this.setStreamingState(false);
+
+    // Save analysis data if present
+    if (analysisData) {
+      this.saveAnalysisData(agent, analysisData);
+    }
+
     // Check if DEV mode requires password authentication
     if (mode === 'dev' && requiresAuth && analysisData) {
       this.logger.info('🔐 DEV mode requires password - showing dialog');
@@ -681,9 +694,6 @@ export class ChatManager {
       mode,
       messageId
     });
-
-    // Додаємо повідомлення в чат
-    const message = this.addMessage(content, agent);
 
     // ВИПРАВЛЕНО 21.10.2025: Відправляємо підтвердження для Тетяни
     if (agent === 'tetyana' && this.currentSession && messageId) {
@@ -1028,6 +1038,7 @@ export class ChatManager {
   }
 
   // FIXED 16.10.2025 - Handler for chat_response event (chat mode)
+  // FIXED 30.10.2025 - Set isStreaming=false after agent response to allow pending messages
   async handleChatResponse(data) {
     this.logger.info('💬 Chat response received', data);
     const content = data.content || data.message || '';
@@ -1035,6 +1046,11 @@ export class ChatManager {
     
     if (content) {
       this.addMessage(content, agent);
+      
+      // CRITICAL FIX: Set isStreaming to false after agent response
+      // This allows pending messages to be sent from queue
+      this.logger.info('Setting isStreaming to false after chat response');
+      this.setStreamingState(false);
       
       // TTS if enabled
       if (this.ttsManager.isEnabled()) {

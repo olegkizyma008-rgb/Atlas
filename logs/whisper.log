@@ -1,250 +1,52 @@
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: 🚀 Initializing ATLAS Whisper.cpp Service (Metal-ready) ...
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: Port: 3002
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: Binary: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: Binary type: whisper-cli (GPU by default)
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: Model:  /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin
-2025-10-29 19:44:38,965 [INFO] atlas.whispercpp: Device: metal (whisper-cli uses GPU by default, use --no-gpu to disable)
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: 🚀 Initializing ATLAS Whisper.cpp Service (Metal-ready) ...
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: Port: 3002
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: Binary: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: Binary type: whisper-cli (GPU by default)
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: Model:  /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin
+2025-10-30 02:27:05,088 [INFO] atlas.whispercpp: Device: metal (whisper-cli uses GPU by default, use --no-gpu to disable)
  * Serving Flask app 'whispercpp_service'
  * Debug mode: off
-2025-10-29 19:44:38,978 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-10-30 02:27:05,110 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:3002
- * Running on http://10.4.15.87:3002
-2025-10-29 19:44:38,978 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
-2025-10-29 19:44:51,129 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:44:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:45:21,134 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:45:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:45:21,287 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:45:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:45:51,131 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:45:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:45:51,291 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:45:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:46:21,129 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:46:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:46:21,288 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:46:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:46:51,128 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:46:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:46:51,289 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:46:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:47:21,127 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:47:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:47:21,285 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:47:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:47:51,127 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:47:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:47:51,289 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:47:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:48:21,128 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:48:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:48:21,285 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:48:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:48:51,128 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:48:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:48:51,288 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:48:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:49:21,127 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:49:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:49:21,284 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:49:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:49:51,127 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:49:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:49:51,283 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:49:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:50:21,126 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:50:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:50:21,283 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:50:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:50:51,124 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:50:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:50:51,283 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:50:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:51:21,124 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:51:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:51:21,283 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:51:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:51:51,125 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:51:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:51:51,282 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:51:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:52:21,123 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:52:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:52:21,282 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:52:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:52:51,124 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:52:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:52:51,280 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:52:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:53:21,123 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:53:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:53:21,281 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:53:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:53:51,125 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:53:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:53:51,280 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:53:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:54:21,121 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:54:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:54:21,286 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:54:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:54:51,124 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:54:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:54:51,279 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:54:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:55:21,120 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:55:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:55:21,279 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:55:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:55:51,127 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:55:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:55:51,278 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:55:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:56:21,120 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:56:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:56:21,281 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:56:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:56:51,119 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:56:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:56:51,276 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:56:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:57:21,119 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:57:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:57:21,278 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:57:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:57:51,118 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:57:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:57:51,276 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:57:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:58:21,117 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:58:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:58:21,276 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:58:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:58:51,119 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:58:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:58:51,276 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:58:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:59:21,118 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:59:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:59:21,277 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:59:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:59:51,117 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:59:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 19:59:51,274 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 19:59:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:00:21,118 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:00:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:00:21,274 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:00:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:00:51,116 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:00:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:00:51,274 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:00:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:01:21,115 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:01:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:01:21,273 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:01:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:01:51,118 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:01:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:01:51,274 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:01:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:02:21,115 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:02:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:02:21,272 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:02:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:02:51,115 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:02:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:02:51,273 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:02:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:03:21,114 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:03:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:03:21,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:03:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:03:51,115 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:03:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:03:51,271 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:03:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:04:21,113 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:04:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:04:21,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:04:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:04:51,113 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:04:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:04:51,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:04:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:05:21,119 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:05:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:05:21,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:05:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:05:51,112 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:05:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:05:51,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:05:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:06:21,112 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:06:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:06:21,269 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:06:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:06:51,111 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:06:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:06:51,270 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:06:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:07:21,116 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:07:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:07:21,285 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:07:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:07:51,111 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:07:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:07:51,269 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:07:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:08:21,112 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:08:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:08:21,267 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:08:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:08:51,110 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:08:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:08:51,273 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:08:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:09:21,114 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:09:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:09:21,266 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:09:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:09:51,109 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:09:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:09:51,268 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:09:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:10:21,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:10:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:10:21,265 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:10:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:10:51,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:10:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:10:51,265 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:10:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:11:21,110 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:11:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:11:21,265 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:11:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:11:51,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:11:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:11:51,269 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:11:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:12:21,108 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:12:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:12:21,264 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:12:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:12:51,107 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:12:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:12:51,267 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:12:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:13:21,107 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:13:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:13:21,265 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:13:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:13:51,106 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:13:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:13:51,263 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:13:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:14:21,106 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:14:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:14:21,263 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:14:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:14:51,229 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:14:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:14:51,386 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:14:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:15:21,228 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:15:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:15:21,386 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:15:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:15:51,231 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:15:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:15:51,385 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:15:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:16:21,230 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:16:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:16:21,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:16:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:16:51,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:16:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:16:51,386 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:16:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:17:21,230 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:17:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:17:21,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:17:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:17:51,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:17:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:17:51,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:17:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:18:21,230 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:18:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:18:21,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:18:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:18:51,236 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:18:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:18:51,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:18:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:19:18,594 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp3mkxgrfd/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpz8b2c7rs.wav
-2025-10-29 20:19:21,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:19:21,388 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:19:22,653 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:22] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:19:40,072 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp5zmrxtxn/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpg9db2ghu.wav
-2025-10-29 20:19:42,506 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:42] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:19:51,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:19:51,389 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:19:53,303 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp514bbg17/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpg23bp771.wav
-2025-10-29 20:19:55,762 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:19:55] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:19:59,442 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmphygs17ty/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpeblqmv7l.wav
-2025-10-29 20:20:01,773 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:01] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:05,461 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpkj7uw2q3/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpy51bocf0.wav
-2025-10-29 20:20:06,945 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp5j0tdsza/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp7vlf9eh3.wav
-2025-10-29 20:20:07,811 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:07] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:09,869 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:09] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:11,497 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp5li8a0im/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpqo04b1xi.wav
-2025-10-29 20:20:13,751 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:13] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:17,445 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp_pkqar3s/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpd1jz1g4f.wav
-2025-10-29 20:20:19,656 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:19] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:21,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:20:21,391 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:20:23,332 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpzrhs1je4/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpfk543t4j.wav
-2025-10-29 20:20:25,698 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:25] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:28,898 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpwwlz7bot/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmprmio608s.wav
-2025-10-29 20:20:29,378 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpzuknpkn2/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpgqqw55pv.wav
-2025-10-29 20:20:34,759 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:34] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:35,259 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:35] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:38,942 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmppq1dngzf/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpoyknjue2.wav
-2025-10-29 20:20:41,288 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:41] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:44,968 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp3gfw0q2a/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmprzqqd5w0.wav
-2025-10-29 20:20:47,230 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:47] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:47,653 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpg7lcrtes/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmphe6hfx7_.wav
-2025-10-29 20:20:49,890 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:49] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:50,909 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpsnm5xsrv/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmplnt6rb61.wav
-2025-10-29 20:20:51,236 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:20:51,389 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:20:53,300 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:53] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:20:56,978 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpek_q7leb/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp2ksefipa.wav
-2025-10-29 20:20:59,176 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:20:59] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:21:02,855 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpq19phs6x/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpisd68tql.wav
-2025-10-29 20:21:05,090 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:05] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:21:07,506 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpxg04kmu5/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp50ohbewh.wav
-2025-10-29 20:21:08,770 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmpro9w49m6/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmplvfjosql.wav
-2025-10-29 20:21:09,893 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:09] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:21:11,402 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:11] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:21:21,232 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:21:21,391 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:21:22,739 [INFO] atlas.whispercpp: Running whisper.cpp: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli -m /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin -l uk -t 10 -oj -of /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp2l4gayix/out -tp 0.0 -bo 5 -bs 5 --prompt Це українська мова з правильною орфографією, граматикою та пунктуацією. Олег Миколайович розмовляє з Атласом. /var/folders/4w/9xm5jfnj5n59yj02w6rxqs440000gn/T/tmp7rwd52la.wav
-2025-10-29 20:21:24,963 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:24] "POST /transcribe HTTP/1.1" 200 -
-2025-10-29 20:21:51,234 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:21:51,390 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:21:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:22:21,233 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:22:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:22:21,390 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:22:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:22:51,235 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:22:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:22:51,391 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:22:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:23:21,234 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:23:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:23:21,392 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:23:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:23:51,237 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:23:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:23:51,392 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:23:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:24:21,234 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:24:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:24:21,392 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:24:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:24:51,235 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:24:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:24:51,394 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:24:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:25:21,235 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:25:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:25:21,393 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:25:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:25:51,236 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:25:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:25:51,395 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:25:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:26:21,236 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:26:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:26:21,394 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:26:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:26:51,238 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:26:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:26:51,394 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:26:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:27:21,237 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:27:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:27:21,395 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:27:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:27:51,239 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:27:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:27:51,397 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:27:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:28:21,237 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:28:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:28:21,395 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:28:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:28:51,238 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:28:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:28:51,398 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:28:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:29:21,238 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:29:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:29:21,396 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:29:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:29:51,240 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:29:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:29:51,396 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:29:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:30:21,239 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:30:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:30:21,396 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:30:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:30:51,240 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:30:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:30:51,399 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:30:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:31:21,258 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:31:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:31:21,407 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:31:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:31:51,271 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:31:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:31:51,427 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:31:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:32:21,273 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:32:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:32:21,430 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:32:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:32:51,275 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:32:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:32:51,433 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:32:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:33:21,274 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:33:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:33:21,434 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:33:21] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:33:51,276 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:33:51] "GET /health HTTP/1.1" 200 -
-2025-10-29 20:33:51,436 [INFO] werkzeug: 127.0.0.1 - - [29/Oct/2025 20:33:51] "GET /health HTTP/1.1" 200 -
+ * Running on http://10.7.15.248:3002
+2025-10-30 02:27:05,110 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2025-10-30 02:27:11,031 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:27:11] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:27:11,050 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:27:11] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:27:41,036 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:27:41] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:27:41,052 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:27:41] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:28:09,653 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:28:39,652 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:28:39,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:28:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:29:09,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:29:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:29:09,685 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:29:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:29:39,653 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:29:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:29:39,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:29:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:30:09,657 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:30:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:30:09,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:30:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:30:39,653 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:30:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:30:39,689 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:30:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:31:09,657 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:31:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:31:09,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:31:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:31:39,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:31:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:31:39,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:31:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:32:09,658 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:32:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:32:09,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:32:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:32:39,658 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:32:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:32:39,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:32:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:33:09,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:33:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:33:09,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:33:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:33:39,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:33:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:33:39,686 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:33:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:34:09,655 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:34:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:34:09,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:34:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:34:39,659 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:34:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:34:39,689 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:34:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:35:09,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:35:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:35:09,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:35:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:35:39,658 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:35:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:35:39,690 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:35:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:36:09,658 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:36:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:36:09,687 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:36:09] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:36:39,654 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:36:39] "GET /health HTTP/1.1" 200 -
+2025-10-30 02:36:39,688 [INFO] werkzeug: 127.0.0.1 - - [30/Oct/2025 02:36:39] "GET /health HTTP/1.1" 200 -

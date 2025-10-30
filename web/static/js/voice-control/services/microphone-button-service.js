@@ -1242,10 +1242,29 @@ export class MicrophoneButtonService extends BaseService {
       // Оновлення статистики
       this.updateStatistics(this.currentSession, true);
 
+      // CRITICAL: Зберігаємо дані сесії перед resetToIdle
+      // resetToIdle обнуляє currentSession, тому зберігаємо потрібні дані
+      const sessionData = {
+        sessionId: this.currentSession.id,
+        mode: this.currentSession.mode,
+        trigger: this.currentSession.trigger
+      };
+
       // Повернення в режим очікування
       await this.resetToIdle('Transcription complete');
 
       this.logger.info(`Transcription completed: "${result.text}"`);
+
+      // CRITICAL: Емісія події для ConversationModeManager
+      // Без цього транскрипція не потрапляє в чат!
+      // Використовуємо збережені дані сесії замість this.currentSession
+      this.emit(Events.WHISPER_TRANSCRIPTION_COMPLETED, {
+        sessionId: sessionData.sessionId,
+        text: result.text,
+        result: result,
+        mode: sessionData.mode,
+        trigger: sessionData.trigger
+      });
 
     } catch (error) {
       this.logger.error('Error handling transcription completion', null, error);

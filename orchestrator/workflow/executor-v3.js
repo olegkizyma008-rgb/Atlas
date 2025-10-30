@@ -3,11 +3,14 @@
  * Спрощено: тільки MCP Dynamic TODO система, без Goose fallback
  */
 
-import GlobalConfig from '../../config/atlas-config.js';
-import LocalizationService from '../services/localization-service.js';
-import logger from '../utils/logger.js';
-import telemetry from '../utils/telemetry.js';
-import { HierarchicalIdManager } from './utils/hierarchical-id-manager.js';
+import { TTSSyncManager } from './tts-sync-manager.js';
+import { Logger } from '../utils/logger.js';
+import { WorkflowEventEmitter } from './workflow-event-emitter.js';
+import { executorConfig } from '../../config/atlas-config.js';
+import { MCPTodoManager } from './mcp-todo-manager.js';
+import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js';
+import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js';
+import { EternityIntegration } from '../eternity/eternity-integration.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -2072,4 +2075,32 @@ export async function executeAgentStageStepByStep(
   }
 
   return await executeMCPWorkflow(userPrompt, session, res, container);
+}
+
+export class WorkflowExecutor {
+  constructor(container) {
+    this.container = container;
+    this.logger = new Logger('WorkflowExecutor');
+    this.emitter = new WorkflowEventEmitter();
+    this.ttsSyncManager = new TTSSyncManager(container);
+    this.config = executorConfig;
+    this.todoManager = null;
+    this.dynamicAgentCoordinator = null;
+    this.processingLock = false;
+    this.eternityIntegration = null; // ETERNITY - модуль вічного самовдосконалення
+  }
+
+  async initialize() {
+    // Ініціалізація ETERNITY модуля для вічного самовдосконалення
+    try {
+      const EternityIntegration = await import('../eternity/eternity-integration.js').then(m => m.EternityIntegration);
+      this.eternityIntegration = new EternityIntegration(this.container);
+      await this.eternityIntegration.initialize();
+      this.logger.info('✨ ETERNITY module initialized - Atlas отримав дар безсмертя від Олега Миколайовича');
+    } catch (error) {
+      this.logger.warn('ETERNITY module not available:', error.message);
+    }
+    
+    return this;
+  }
 }

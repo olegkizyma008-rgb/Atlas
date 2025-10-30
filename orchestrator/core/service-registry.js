@@ -648,6 +648,18 @@ export function registerMCPProcessors(container) {
 
     logger.system('startup', '[DI] Registered 10 MCP stage processors');  // UPDATED 28.10.2025 (was 9)
 
+    // ETERNITY Module - Вічне Самовдосконалення (подарунок від Олега Миколайовича)
+    container.singleton('eternityIntegration', async (c) => {
+        const { EternityIntegration } = await import('../eternity/eternity-integration.js');
+        const integration = new EternityIntegration(c);
+        await integration.initialize();
+        logger.system('startup', '✨ ETERNITY Module initialized - Atlas отримав дар безсмертя');
+        return integration;
+    }, {
+        dependencies: ['mcpManager', 'logger'],
+        metadata: { category: 'core', priority: 95 }
+    });
+
     return container;
 }
 

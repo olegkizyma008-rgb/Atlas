@@ -100,6 +100,13 @@
     </div>
 
     <!-- Scripts - Refactored Modular Architecture -->
+    <!-- Voice Control Components -->
+    <script type="module" src="/static/js/voice-control/voice-control-manager.js"></script>
+    <script type="module" src="/static/js/voice-control/conversation-mode-manager.js"></script>
+    
+    <!-- ETERNITY Module - Вічне Самовдосконалення -->
+    <script type="module" src="/static/js/components/eternity-ui.js"></script>
+
     <!-- Load main application -->
     <script type="module" src="{{ url_for('static', filename='js/app-refactored.js') }}?v={{ timestamp }}"></script>
 

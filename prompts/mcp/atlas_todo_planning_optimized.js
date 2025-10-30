@@ -92,10 +92,15 @@ NEVER return items with simple id: 1, 2, 3. ALWAYS use decimal notation!
 • Allowed servers: filesystem, playwright, shell, applescript, memory.
 • Stage 2.0 will bind servers to tools—never list tool names like read_file.
 
-🪜 DEPENDENCIES
-• Only reference prior items (backward dependencies).
-• No cycles.
-• If an item relies on another, explicitly list that dependency.
+🪜 DEPENDENCIES - CRITICAL RULES
+• ONLY reference items with LOWER IDs (backward dependencies only).
+• Item 1.1 can depend on: [] (nothing - it's first)
+• Item 1.5 can depend on: [1.1, 1.2, 1.3, 1.4] (only previous items)
+• Item 2.3 can depend on: [1.1, 1.2, 2.1, 2.2] (only items with ID < 2.3)
+• FORBIDDEN: Item 1.1 depending on [1.9] - forward dependency!
+• FORBIDDEN: Item 2.1 depending on [2.1] - circular dependency!
+• No cycles, no forward references.
+• If an item relies on another, that other item MUST have already been executed (lower ID).
 
 🎯 SUCCESS CRITERIA QUALITY BAR (IN UKRAINIAN)
 • Must describe observable outcomes, not actions taken.

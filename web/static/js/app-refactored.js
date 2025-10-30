@@ -509,9 +509,6 @@ class AtlasApp {
         if (this.managers.glbLivingSystem && data.text) {
           const gesture = this.managers.glbLivingSystem.gestureDetector.detectGesture(data.text);
           if (gesture) {
-            this.logger.info(`🎭 Atlas will perform gesture during TTS: ${gesture.label}`);
-            // Затримка 200ms для природності (починає говорити і потім робить жест)
-            setTimeout(() => {
               if (this.managers.glbLivingSystem.gestureAnimator) {
                 this.managers.glbLivingSystem.gestureAnimator.performGesture(gesture);
               }

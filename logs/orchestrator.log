@@ -268,21 +268,14 @@
 2025-10-30 15:55:24 [[31MERROR[39M] executor {"metadata":{}}
 2025-10-30 15:55:24 [[31MERROR[39M] MCP workflow failed: timeout of 60000ms exceeded {"metadata":{"sessionId":"default","error":"timeout of 60000ms exceeded","stack":"AxiosError: timeout of 60000ms exceeded\n    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)\n    at RedirectableRequest.emit (node:events:519:28)\n    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)\n    at Axios.request..."}}
 2025-10-30 15:55:24 [[31MERROR[39M] Step-by-step workflow failed {"metadata":{"error":"timeout of 60000ms exceeded","sessionId":"session_1761832462724_vsojai0cc","stack":"AxiosError: timeout of 60000ms exceeded\n    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)\n    at RedirectableRequest.emit (node:events:519:28)\n    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)\n    at Axios.request..."}}
-in history: 1 {"metadata":{"category":"system","component":"executor"}}
-2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [CHAT-CONTEXT] History: [
-  {
-    "role": "user",
-    "content": "Привіт"
-  }
-] {"metadata":{"category":"system","component":"executor"}}
-2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [CHAT-CONTEXT] Sending 1 messages to LLM {"metadata":{"category":"system","component":"executor"}}
-2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [CHAT-CONTEXT] Context for LLM: [
-  {
-    "role": "user",
-    "preview": "Привіт"
-  }
-] {"metadata":{"category":"system","component":"executor"}}
-2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [CHAT-MEMORY] 🧠 Checking if long-term memory is needed... {"metadata":{"category":"system","component":"executor"}}
+2025-10-30 15:59:08 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-10-30 15:59:08 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-10-30 15:59:08 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-10-30 15:59:08 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-10-30 15:59:08 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-10-30 15:59:08 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-10-30 15:59:08 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.1 {"metadata":{}}
+{"category":"system","component":"executor"}}
 2025-10-30 15:55:05 [WARN] executor {"metadata":{}}
 2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [DIAGNOSTIC] GlobalConfig exists: true {"metadata":{"category":"system","component":"executor"}}
 2025-10-30 15:55:05 [INFO] [SYSTEM] executor: [DIAGNOSTIC] AI_MODEL_CONFIG exists: true {"metadata":{"category":"system","component":"executor"}}
@@ -311,3 +304,10 @@ in history: 1 {"metadata":{"category":"system","component":"executor"}}
 2025-10-30 15:55:24 [ERROR] executor {"metadata":{}}
 2025-10-30 15:55:24 [ERROR] MCP workflow failed: timeout of 60000ms exceeded {"metadata":{"sessionId":"default","error":"timeout of 60000ms exceeded","stack":"AxiosError: timeout of 60000ms exceeded\n    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)\n    at RedirectableRequest.emit (node:events:519:28)\n    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)\n    at Axios.request..."}}
 2025-10-30 15:55:24 [ERROR] Step-by-step workflow failed {"metadata":{"error":"timeout of 60000ms exceeded","sessionId":"session_1761832462724_vsojai0cc","stack":"AxiosError: timeout of 60000ms exceeded\n    at RedirectableRequest.handleRequestTimeout (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/axios/lib/adapters/http.js:675:16)\n    at RedirectableRequest.emit (node:events:519:28)\n    at Timeout.<anonymous> (/Users/dev/Documents/GitHub/atlas4/orchestrator/node_modules/follow-redirects/index.js:221:12)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)\n    at Axios.request..."}}
+2025-10-30 15:59:08 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-10-30 15:59:08 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-10-30 15:59:08 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-10-30 15:59:08 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-10-30 15:59:08 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-10-30 15:59:08 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-10-30 15:59:08 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.1 {"metadata":{}}

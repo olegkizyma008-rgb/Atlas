@@ -492,7 +492,25 @@ export class MCPManager {
       }
 
       // Check if tool exists on server
-      if (!Array.isArray(server.tools) || !server.tools.some(t => t.name === toolName)) {
+      // FIXED 2025-10-31: Support multiple tool name formats
+      // MCP tools may have: applescript_execute (single _) or applescript__execute (double __)
+      let toolExists = Array.isArray(server.tools) && server.tools.some(t => t.name === toolName);
+      let actualToolName = toolName;
+      
+      // If not found with double __, try with single _
+      if (!toolExists && toolName.includes('__')) {
+        const parts = toolName.split('__');
+        if (parts.length === 2) {
+          // applescript__execute → try applescript_execute
+          const singleUnderscoreName = `${parts[0]}_${parts[1]}`;
+          if (server.tools.some(t => t.name === singleUnderscoreName)) {
+            toolExists = true;
+            actualToolName = singleUnderscoreName;
+          }
+        }
+      }
+      
+      if (!toolExists) {
         // FIXED 14.10.2025 - Better error message with list of available tools
         const availableTools = Array.isArray(server.tools)
           ? server.tools.map(t => t.name).join(', ')
@@ -501,14 +519,15 @@ export class MCPManager {
       }
 
       // OPTIMIZED: Validate parameters before calling
-      const tool = server.tools.find(t => t.name === toolName);
+      // Use actualToolName which may be converted from double __ to single _
+      const tool = server.tools.find(t => t.name === actualToolName);
       if (tool && tool.inputSchema) {
         this._validateParameters(tool, parameters);
       }
 
-      logger.debug('mcp-manager', `[MCP Manager] Executing ${toolName} on ${serverName}`);
+      logger.debug('mcp-manager', `[MCP Manager] Executing ${actualToolName} on ${serverName}`);
 
-      const result = await server.call(toolName, parameters);
+      const result = await server.call(actualToolName, parameters);
 
       // Update stats
       const duration = Date.now() - startTime;

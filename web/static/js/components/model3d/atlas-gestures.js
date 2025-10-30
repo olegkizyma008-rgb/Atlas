@@ -286,9 +286,15 @@ export class GestureAnimator {
       const animate = () => {
         // CRITICAL FIX (30.10.2025): Перевіряємо canvas перед кожним кадром анімації
         if (!this.livingSystem.isCanvasReady()) {
-          // Canvas не готовий - припиняємо анімацію негайно
-          console.log('⚠️ Canvas lost size during animation, stopping keyframes');
-          resolve();
+          // Canvas не готовий - відкладаємо анімацію
+          console.log('⚠️ Canvas not ready, deferring animation frame');
+          setTimeout(() => {
+            if (this.livingSystem.isCanvasReady()) {
+              this.animationFrame = requestAnimationFrame(animate);
+            } else {
+              resolve(); // Завершуємо якщо canvas все ще не готовий
+            }
+          }, 50);
           return;
         }
 

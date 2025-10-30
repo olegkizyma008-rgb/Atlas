@@ -746,18 +746,21 @@ export class AtlasGLBLivingSystem {
   /**
    * Оновлення кольору ореолу на основі емоційного стану
    * НОВИНКА v4.1 (29.10.2025)
-   * ВИПРАВЛЕНО: Не змінюємо filter динамічно - це викликає WebGL framebuffer 0x0
+   * ОНОВЛЕНО (30.10.2025): Безпечне застосування filter з перевіркою canvas
    */
   updateEmotionalGlow() {
     const state = this.emotionalState.getCurrentState();
-    // const css = this.emotionalState.getTransitionCSS();
+    const css = this.emotionalState.getTransitionCSS();
 
-    // ВИПРАВЛЕНО: НЕ застосовуємо filter динамічно - це ламає WebGL framebuffer
-    // Динамічна зміна CSS filter викликає перерендеринг і втрату розміру canvas
-    // this.modelViewer.style.filter = css.filter;
-    // this.modelViewer.style.transition = css.transition;
-
-    console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - filter disabled to prevent WebGL issues`);
+    // Перевіряємо, чи безпечно застосовувати filter
+    if (this.isCanvasReady() && !this.livingState.isSpeaking) {
+      // Застосовуємо filter тільки коли canvas готовий і не під час TTS
+      this.modelViewer.style.filter = css.filter;
+      this.modelViewer.style.transition = css.transition;
+      console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - glow applied`);
+    } else {
+      console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - glow deferred (canvas not ready or speaking)`);
+    }
   }
 
   /**

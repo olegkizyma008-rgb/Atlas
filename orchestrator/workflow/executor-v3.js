@@ -6,7 +6,7 @@
 import { TTSSyncManager } from './tts-sync-manager.js';
 import logger from '../utils/logger.js';
 import { WorkflowEventEmitter } from './workflow-event-emitter.js';
-// import { executorConfig } from '../../config/atlas-config.js'; // Not used, commented out
+import GlobalConfig from '../../config/atlas-config.js';
 import { MCPTodoManager } from './mcp-todo-manager.js';
 // import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js'; // Not used, commented out
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
@@ -2083,7 +2083,6 @@ export class WorkflowExecutor {
     this.logger = logger;
     this.emitter = new WorkflowEventEmitter();
     this.ttsSyncManager = new TTSSyncManager(container);
-    // this.config = executorConfig; // executorConfig not defined, commented out
     this.todoManager = null;
     this.dynamicAgentCoordinator = null;
     this.processingLock = false;

@@ -3028,10 +3028,18 @@ Context: ${JSON.stringify(context, null, 2)}
     }
 
     // FIXED 2025-10-23: Extract tool names WITH server prefix (server__tool format)
+    // FIXED 2025-10-30: Remove server prefix from name if already present to avoid double prefix
     // This matches the validation expectation and prompt examples
     const validToolNames = availableTools
       .filter(t => t && typeof t === 'object' && t.name && t.server)
-      .map(t => `${t.server}__${t.name}`);
+      .map(t => {
+        // If tool name already starts with server prefix, remove it
+        let toolName = t.name;
+        if (toolName.startsWith(`${t.server}_`)) {
+          toolName = toolName.slice(t.server.length + 1);
+        }
+        return `${t.server}__${toolName}`;
+      });
     
     // Extract valid server names
     const validServerNames = [...new Set(availableTools

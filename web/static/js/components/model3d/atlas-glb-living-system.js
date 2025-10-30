@@ -25,6 +25,9 @@ export class AtlasGLBLivingSystem {
       throw new Error(`Model viewer not found: ${modelViewerSelector}`);
     }
 
+    // FIXED (30.10.2025): Horizontal flip щоб модель дивилась вправо
+    this.modelViewer.style.transform = 'scaleX(-1)';
+
     // Конфігурація
     this.config = {
       // Живі функції
@@ -94,6 +97,7 @@ export class AtlasGLBLivingSystem {
       isSpeaking: false,
       speechIntensity: 0,
       isListening: false,
+      isTyping: false, // ADDED 2025-10-30: Відстеження друку для запобігання смиканню
 
       // Пам'ять і навчання
       interactionHistory: [],
@@ -393,7 +397,7 @@ export class AtlasGLBLivingSystem {
       }
 
       // Idle анімації
-      this.updateIdleBehavior(timestamp);
+      this.updateIdleAnimations(timestamp);
 
       // Застосовуємо всі обчислені трансформації
       this.applyTransformations();
@@ -451,15 +455,16 @@ export class AtlasGLBLivingSystem {
   /**
      * Відстеження очима (поворот шолома за мишкою)
      * ОНОВЛЕНО: Додано природні обмеження та ease-функції
-     * FIXED (29.10.2025): Вимкнено під час жестів, TTS та слухання
+     * FIXED (29.10.2025): Вимкнено під час жестів, TTS, слухання або друку
      */
   updateEyeTracking() {
     if (!this.config.enableEyeTracking || !this.livingState.isUserPresent) return;
 
-    // КРИТИЧНО: НЕ відстежуємо під час жестів, TTS або слухання
-    if (this.livingState.isGestureActive || 
-        this.livingState.isSpeaking || 
+    // КРИТИЧНО: НЕ відстежуємо під час жестів, TTS, слухання або друку
+    if (this.livingState.isGestureActive ||
+        this.livingState.isSpeaking ||
         this.livingState.isListening ||
+        this.livingState.isTyping ||
         !this.livingState.eyeTrackingEnabled) {
       return;
     }
@@ -467,7 +472,8 @@ export class AtlasGLBLivingSystem {
     const { x, y } = this.livingState.mousePosition;
 
     // Перетворення позиції мишки на обертання
-    const targetY = x * this.config.maxRotationY;
+    // FIXED 2025-10-30: Інвертовано X для правильного напрямку
+    const targetY = -x * this.config.maxRotationY;
     const targetX = -y * this.config.maxRotationX;
 
     // Обмеження обертання
@@ -503,11 +509,12 @@ export class AtlasGLBLivingSystem {
      * ОНОВЛЕНО: Додано виглядання за межі екрану як жива істота
      * FIXED (29.10.2025): Вимкнено під час активних анімацій
      */
-  updateIdleBehavior(timestamp) {
-    // КРИТИЧНО: НЕ виконуємо idle behavior під час жестів, TTS, слухання
-    if (this.livingState.isGestureActive || 
-        this.livingState.isSpeaking || 
-        this.livingState.isListening) {
+  updateIdleAnimations(timestamp) {
+    // КРИТИЧНО: НЕ виконуємо idle анімації під час жестів, TTS, слухання або друку
+    if (this.livingState.isGestureActive ||
+        this.livingState.isSpeaking ||
+        this.livingState.isListening ||
+        this.livingState.isTyping) {
       return;
     }
 
@@ -522,8 +529,8 @@ export class AtlasGLBLivingSystem {
       this.livingState.targetRotation.y += idleRotationY * 0.02;
       this.livingState.targetRotation.x += idleRotationX * 0.02;
 
-      // НОВА ПОВЕДІНКА: Виглядання за межі екрану (кожні 8-12 секунд)
-      if (timeSinceLastActivity > 8000 && Math.random() < 0.0015) {
+      // ОНОВЛЕНО (30.10.2025): Виглядання за межі екрану (природній діапазон до 8 секунд)
+      if (timeSinceLastActivity > 8000 && Math.random() < 0.002) {
         this.performCuriousLook(timestamp);
       }
     }
@@ -671,6 +678,18 @@ export class AtlasGLBLivingSystem {
       this.livingState.isUserPresent = true;
       this.livingState.lastMouseMove = Date.now();
     });
+
+    // ADDED 2025-10-30: Відстеження друку для запобігання конфлікту з mouse tracking
+    const chatInput = document.querySelector('#user-input, textarea, input[type="text"]');
+    if (chatInput) {
+      chatInput.addEventListener('focus', () => {
+        this.livingState.isTyping = true;
+      });
+
+      chatInput.addEventListener('blur', () => {
+        this.livingState.isTyping = false;
+      });
+    }
 
     // Користувач залишив сторінку
     document.addEventListener('mouseleave', () => {
@@ -845,12 +864,35 @@ export class AtlasGLBLivingSystem {
 
     console.log('✅ Canvas ready, performing gesture animation');
 
-    // TEMPORARY FIX (30.10.2025): Відключаємо анімацію returnToNeutral щоб уникнути WebGL помилок
-    // TODO: Виправити анімаційну систему щоб вона була безпечною
-    console.log('🚫 Temporarily skipping returnToNeutral animation to prevent WebGL errors');
+    // TEMPORARY FIX (30.10.2025 v3): Повністю відключаємо gesture анімації до виправлення WebGL проблеми
+    // Проблема: Canvas стає невалідним між перевірками, що спричинює WebGL помилки
+    // TODO: Дослідити чому model-viewer canvas змінює розмір під час анімацій
+    console.log('⚠️ Gesture animations temporarily disabled to prevent WebGL errors');
 
-    // Повертаємось до нормальної позиції БЕЗ анімації
-    // this.gestureAnimator.returnToNeutral();
+    // Просто встановлюємо нейтральні значення без анімації
+    this.livingState.targetRotation.x = 0;
+    this.livingState.targetRotation.y = 0;
+    this.livingState.targetRotation.z = 0;
+    this.livingState.currentRotation.x = 0;
+    this.livingState.currentRotation.y = 0;
+    this.livingState.currentRotation.z = 0;
+    /* DISABLED CODE - Will be re-enabled after fixing canvas resize issue
+    if (this.gestureAnimator) {
+      setTimeout(() => {
+        if (this.isCanvasReady()) {
+          this.gestureAnimator.returnToNeutral();
+        } else {
+          console.log('⚠️ Canvas became invalid after delay, skipping animation');
+          this.livingState.targetRotation.x = 0;
+          this.livingState.targetRotation.y = 0;
+          this.livingState.targetRotation.z = 0;
+          this.livingState.currentRotation.x = 0;
+          this.livingState.currentRotation.y = 0;
+          this.livingState.currentRotation.z = 0;
+        }
+      }, 100);
+    }
+    */
   }
 
   /**
@@ -863,15 +905,17 @@ export class AtlasGLBLivingSystem {
     }
 
     // Емоційні рухи
+    // FIXED 2025-10-30: Інвертовано Y для правильного напрямку (як у mouse tracking)
     const emotionMovements = {
-      'joy': { x: 0, y: 5, z: 0 },
+      'joy': { x: 0, y: -5, z: 0 },
       'curious': { x: -5, y: 0, z: 2 },
       'focused': { x: -3, y: 0, z: 0 },
       'alert': { x: -8, y: 0, z: 1 },
-      'excited': { x: 0, y: 8, z: 2 },
-      'thinking': { x: -4, y: -3, z: 1 },
-      'welcoming': { x: 0, y: 3, z: -1 },
-      'satisfied': { x: 2, y: 2, z: 0 }
+      'excited': { x: 0, y: -8, z: 2 },
+      'thinking': { x: -4, y: 3, z: 1 },
+      'welcoming': { x: 0, y: -3, z: -1 },
+      'satisfied': { x: 2, y: -2, z: 0 },
+      'listening': { x: 0, y: 0, z: 0 }
     };
 
     const movement = emotionMovements[emotion] || { x: 0, y: 0, z: 0 };
@@ -897,9 +941,10 @@ export class AtlasGLBLivingSystem {
      * Початок мовлення (TTS)
      * FIXED (29.10.2025): Блокує eye tracking під час мовлення
      * FIXED (30.10.2025): Призупиняє рендеринг для запобігання WebGL framebuffer 0x0
+     * FIXED (30.10.2025): Тригер тільки при реальному відтворенні аудіо
      */
   startSpeaking(agent = 'atlas', intensity = 0.8) {
-    console.log(`🎤 ${agent} started speaking`);
+    console.log(`🎤 ${agent} started speaking (audio playback)`);
 
     // CRITICAL FIX: Призупиняємо рендеринг model-viewer на 100ms
     // Це дає час DOM оновитися без конфлікту з WebGL
@@ -934,14 +979,15 @@ export class AtlasGLBLivingSystem {
     const agentData = this.agentEmotions[agent] || this.agentEmotions['atlas'];
     let speechPhase = 0;
 
-    // Природні коливання під час мовлення
-    this.speechAnimationInterval = setInterval(() => {
+      // FIXED (30.10.2025): Природніші рухи з випадковою затримкою 1-8 секунд
+    const scheduleNextMove = () => {
       if (!this.livingState.isSpeaking) return;
 
       speechPhase += 0.1;
       const amplitude = this.config.ttsRotationAmplitude;
       
       // Синусоїдальні рухи замість випадкових для більшої природності
+      // FIXED 2025-10-30: Інвертовано horizontalMove для консистентності з mouse tracking
       const horizontalMove = Math.sin(speechPhase) * amplitude * 0.8;
       const verticalMove = Math.cos(speechPhase * 0.7) * amplitude * 0.4;
       const tiltMove = Math.sin(speechPhase * 1.3) * amplitude * 0.2;
@@ -952,7 +998,14 @@ export class AtlasGLBLivingSystem {
       this.livingState.targetRotation.y = horizontalMove + randomFactor;
       this.livingState.targetRotation.x = verticalMove + randomFactor * 0.5;
       this.livingState.targetRotation.z = tiltMove;
-    }, this.config.ttsAnimationInterval);
+
+      // Випадкова затримка від 1 до 8 секунд для природності
+      const randomDelay = 1000 + Math.random() * 7000; // 1000-8000ms
+      this.speechAnimationTimeout = setTimeout(scheduleNextMove, randomDelay);
+    };
+
+    // Запускаємо перший рух
+    scheduleNextMove();
   }
 
   /**
@@ -960,19 +1013,24 @@ export class AtlasGLBLivingSystem {
    * FIXED (29.10.2025): Розблоковує eye tracking після TTS
    */
   stopSpeaking() {
-    console.log('🔇 Stopped speaking');
-
+    console.log('🔇 Atlas stopped speaking');
     this.livingState.isSpeaking = false;
-    this.livingState.speechIntensity = 0;
-    this.livingState.currentAgent = null;
-    this.livingState.animationMode = 'idle';
     this.livingState.eyeTrackingEnabled = true;
 
-    // Зупиняємо анімацію мовлення
+    // Очищаємо timeout анімації
+    if (this.speechAnimationTimeout) {
+      clearTimeout(this.speechAnimationTimeout);
+      this.speechAnimationTimeout = null;
+    }
     if (this.speechAnimationInterval) {
       clearInterval(this.speechAnimationInterval);
       this.speechAnimationInterval = null;
     }
+
+    // Зупиняємо анімацію мовлення
+    this.livingState.speechIntensity = 0;
+    this.livingState.currentAgent = null;
+    this.livingState.animationMode = 'idle';
 
     // Повертаємося до нейтрального стану
     this.setEmotion('neutral', 0.5, 1000);
@@ -992,7 +1050,11 @@ export class AtlasGLBLivingSystem {
     console.log(`⚡ Reacting to event: ${eventType}`, data);
 
     const reactions = {
-      'message-sent': () => this.setEmotion('listening', 0.7, 1500),
+      'message-sent': () => {
+        // FIXED 2025-10-30: Не застосовуємо емоційний рух при відправці повідомлення
+        // Тільки змінюємо колір ореолу через emotional state
+        // this.setEmotion('listening', 0.7, 1500);
+      },
       'agent-thinking': () => this.setEmotion('thinking', 0.8, 2000),
       'agent-response': () => this.setEmotion('excited', 0.75, 1200),
       'error': () => this.setEmotion('alert', 1.0, 800),

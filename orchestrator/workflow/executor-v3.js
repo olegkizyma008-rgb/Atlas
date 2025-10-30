@@ -61,6 +61,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   try {
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
+    const contextEnrichmentProcessor = container.resolve('atlasContextEnrichmentProcessor');
     const todoProcessor = container.resolve('atlasTodoPlanningProcessor');
     const planProcessor = container.resolve('tetyanaPlanToolsProcessor');
     const executeProcessor = container.resolve('tetyanaExecuteToolsProcessor');
@@ -982,6 +983,37 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     }
 
     // ===============================================
+    // Stage 0.5-MCP: Context Enrichment (NEW 30.10.2025)
+    // ===============================================
+    logger.workflow('stage', 'atlas', 'Stage 0.5-MCP: Context Enrichment', { sessionId: session.id });
+
+    let enrichedMessage = userMessage;
+    let enrichmentMetadata = null;
+
+    try {
+      const enrichmentResult = await contextEnrichmentProcessor.execute({
+        userMessage,
+        session
+      });
+
+      if (enrichmentResult.success && enrichmentResult.enriched_message) {
+        enrichedMessage = enrichmentResult.enriched_message;
+        enrichmentMetadata = enrichmentResult.metadata;
+        
+        logger.system('executor', `[STAGE-0.5-MCP] ✅ Context enriched`);
+        logger.system('executor', `[STAGE-0.5-MCP]    Original: "${userMessage}"`);
+        logger.system('executor', `[STAGE-0.5-MCP]    Enriched: "${enrichedMessage}"`);
+        logger.system('executor', `[STAGE-0.5-MCP]    Complexity: ${enrichmentMetadata.complexity}/10`);
+      } else {
+        logger.warn(`[STAGE-0.5-MCP] Context enrichment failed, using original message: ${enrichmentResult.error}`);
+      }
+    } catch (enrichmentError) {
+      logger.error(`[STAGE-0.5-MCP] Context enrichment error: ${enrichmentError.message}`);
+      logger.error(`[STAGE-0.5-MCP] Stack: ${enrichmentError.stack}`);
+      // Continue with original message on error
+    }
+
+    // ===============================================
     // Stage 1-MCP: Atlas TODO Planning
     // ===============================================
     logger.workflow('stage', 'system', 'Stage 1-MCP: Atlas TODO Planning', { sessionId: session.id });
@@ -1014,11 +1046,12 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       // Clear transition context after use
       delete session.devTransitionContext;
     } else {
-      // Normal TODO planning
+      // Normal TODO planning with enriched message
       todoResult = await todoProcessor.execute({
-        userMessage,
+        userMessage: enrichedMessage,  // Use enriched message instead of original
         session,
-        res
+        res,
+        enrichmentMetadata  // Pass enrichment metadata for context
       });
     }
 

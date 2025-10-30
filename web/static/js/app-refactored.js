@@ -457,7 +457,9 @@ class AtlasApp {
       // Повідомлення GLB Living System
       if (this.managers.glbLivingSystem) {
         this.managers.glbLivingSystem.setEmotion('welcoming', 0.9, 2000);
-        // НОВИНКА (29.10.2025): Жест готовності
+        // TEMPORARY FIX (30.10.2025): Жест готовності відключений через WebGL помилки
+        // TODO: Увімкнути після виправлення canvas resize issue
+        /*
         if (this.managers.glbLivingSystem.gestureAnimator) {
           setTimeout(() => {
             this.managers.glbLivingSystem.gestureAnimator.performGesture(
@@ -465,6 +467,7 @@ class AtlasApp {
             );
           }, 500);
         }
+        */
       }
 
       // Вмикаємо keyword detection
@@ -505,7 +508,9 @@ class AtlasApp {
           text: data.text
         });
 
-        // НОВИНКА (29.10.2025): Жести під час TTS
+        // TEMPORARY FIX (30.10.2025): Жести під час TTS відключені через WebGL помилки
+        // TODO: Увімкнути після виправлення canvas resize issue
+        /*
         if (this.managers.glbLivingSystem && data.text) {
           setTimeout(() => {
             const gesture = this.managers.glbLivingSystem.gestureDetector.detectGesture(data.text);
@@ -516,6 +521,7 @@ class AtlasApp {
             }
           }, 200);
         }
+        */
       });
 
       this.managers.chat.on('tts-stop', (data) => {
@@ -526,12 +532,15 @@ class AtlasApp {
         const mode = data?.mode || 'chat';
         const isActivationResponse = data?.isActivationResponse || false;
 
-        // НОВИНКА (29.10.2025): Завершення TTS - повернення до нейтральної позиції
+        // TEMPORARY FIX (30.10.2025): Завершення TTS - жести відключені через WebGL помилки
+        // TODO: Увімкнути після виправлення canvas resize issue
+        /*
         if (this.managers.glbLivingSystem && this.managers.glbLivingSystem.gestureAnimator) {
           setTimeout(() => {
             this.managers.glbLivingSystem.stopListening();
           }, 500);
         }
+        */
 
         console.log('[APP] 🔊 Emitting TTS_COMPLETED (Events.TTS_COMPLETED):', {
           mode,
@@ -582,29 +591,31 @@ class AtlasApp {
   integrateComponents() {
     // Інтеграція чату з TTS та живою системою
     if (this.managers.chat && this.managers.ttsVisualization) {
-      // Коли починається TTS, інтегруємо з живою системою
-      this.managers.chat.on('tts-start', (data) => {
+      // FIXED (30.10.2025): Тригер анімації при РЕАЛЬНОМУ відтворенні аудіо (не при генерації)
+      // Слухаємо 'atlas-tts-started' замість 'tts-start'
+      window.addEventListener('atlas-tts-started', (event) => {
+        const data = event.detail || {};
         // Інтегруємо з живою системою Атласа
         if (this.managers.livingBehavior && typeof this.managers.livingBehavior.startSpeaking === 'function') {
-          // FIXED: startSpeaking приймає (agent, intensity), НЕ (text, audioElement)
-          const agent = data.agent || data.detail?.agent || 'atlas';
+          const agent = data.agent || 'atlas';
           this.managers.livingBehavior.startSpeaking(agent, 0.8);
         }
+        // GLB Living System
+        if (this.managers.glbLivingSystem) {
+          const agent = data.agent || 'atlas';
+          this.managers.glbLivingSystem.startSpeaking(agent, 0.8);
+        }
+      });
 
+      // Залишаємо tts-start для інших систем (візуалізація, інше)
+      this.managers.chat.on('tts-start', (data) => {
         // Відправляємо на сервер через WebSocket з правильним voice
         this.managers.webSocket.startTTSVisualization(data.text, {
           agent: data.agent || 'atlas',
-          voice: data.voice || 'mykyta', // Додаємо voice
+          voice: data.voice || 'mykyta',
           emotion: data.emotion || 'neutral',
           speed: data.speed || 1.0
         });
-
-        // TEMPORARY FIX (30.10.2025): Відключаємо виконання жестів під час TTS щоб уникнути WebGL помилок
-        // Жести спричинюють WebGL помилки "Framebuffer has zero size"
-        console.log('🎭 TTS gestures temporarily disabled to prevent WebGL errors');
-
-        // TODO: Виправити анімаційну систему щоб вона була безпечною
-        // this.managers.webSocket.performGestureDuringTTS(data.agent || 'atlas', data.text);
       });
 
       this.managers.chat.on('tts-stop', () => {

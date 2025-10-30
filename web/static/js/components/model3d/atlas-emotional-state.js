@@ -146,23 +146,32 @@ export class AtlasEmotionalStateService {
     this.stateHistory = [];
     this.maxHistorySize = 10;
     
-    // Плавність переходів
-    this.transitionDuration = 800; // мс
+    // Плавність переходів - ОНОВЛЕНО (30.10.2025): збільшено для плавнішого переливання
+    this.transitionDuration = 3000; // мс - плавне переливання як у людини
     this.isTransitioning = false;
+    
+    // НОВИНКА (30.10.2025): Утримання емоційного стану як у людини
+    this.emotionRetentionTime = 15000; // 15 секунд - емоції не зникають миттєво
+    this.lastEmotionChange = Date.now();
+    this.emotionDecayRate = 0.1; // Швидкість згасання емоції (10% за секунду)
     
     // Аналіз тону
     this.sentimentScore = 0; // -1 (негативний) до 1 (позитивний)
     this.intensityLevel = 0.5; // 0 до 1
+    this.contextualDepth = 0; // Глибина розуміння контексту (0-1)
   }
 
   /**
    * Аналіз тексту користувача для визначення емоційного стану
+   * ОНОВЛЕНО (30.10.2025): Глибоке розуміння контексту + утримання емоцій
    * @param {string} userMessage - Повідомлення користувача
    * @param {string} atlasResponse - Відповідь Atlas (опціонально)
    * @returns {Object} - Новий емоційний стан
    */
   analyzeEmotion(userMessage, atlasResponse = '') {
     if (!userMessage || !userMessage.trim()) {
+      // Перевіряємо чи потрібно згасити поточну емоцію
+      this._applyEmotionDecay();
       return this.currentState;
     }
 
@@ -170,7 +179,7 @@ export class AtlasEmotionalStateService {
     let bestMatch = EmotionalStates.NEUTRAL;
     let highestScore = 0;
 
-    // Аналізуємо кожен емоційний стан
+    // Аналізуємо кожен емоційний стан з контекстом
     for (const [key, state] of Object.entries(EmotionalStates)) {
       const score = this._calculateStateScore(text, state);
       
@@ -180,9 +189,9 @@ export class AtlasEmotionalStateService {
       }
     }
 
-    // Якщо знайдено чіткий емоційний маркер
+    // Якщо знайдено чіткий емоційний маркер (переломний момент)
     if (highestScore > 0) {
-      this._updateState(bestMatch);
+      this._updateState(bestMatch, true); // Різка зміна
       return bestMatch;
     }
 
@@ -190,7 +199,11 @@ export class AtlasEmotionalStateService {
     const sentiment = this._analyzeSentiment(text);
     const emotionFromSentiment = this._getEmotionFromSentiment(sentiment);
     
-    this._updateState(emotionFromSentiment);
+    // Глибокий аналіз контексту (не просто ключові слова)
+    this.contextualDepth = this._analyzeContextualDepth(text, atlasResponse);
+    
+    // Плавна зміна емоції (якщо не переломний момент)
+    this._updateState(emotionFromSentiment, false);
     return emotionFromSentiment;
   }
 
@@ -248,13 +261,25 @@ export class AtlasEmotionalStateService {
 
   /**
    * Оновлення поточного стану
+   * ОНОВЛЕНО (30.10.2025): Утримання емоцій + плавні/різкі переходи
+   * @param {Object} newState - Новий емоційний стан
+   * @param {boolean} isBreakingPoint - Чи це переломний момент (різка зміна)
    */
-  _updateState(newState) {
+  _updateState(newState, isBreakingPoint = false) {
+    const timeSinceLastChange = Date.now() - this.lastEmotionChange;
+    
+    // Якщо емоція змінюється занадто швидко і це не переломний момент
+    if (timeSinceLastChange < this.emotionRetentionTime && !isBreakingPoint) {
+      // Утримуємо поточну емоцію (як у людини - емоції не зникають миттєво)
+      return;
+    }
+    
     if (this.currentState.name !== newState.name) {
       // Зберігаємо історію
       this.stateHistory.push({
         state: this.currentState,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        isBreakingPoint
       });
       
       // Обмежуємо розмір історії
@@ -263,6 +288,14 @@ export class AtlasEmotionalStateService {
       }
       
       this.currentState = newState;
+      this.lastEmotionChange = Date.now();
+      
+      // Налаштовуємо швидкість переходу
+      if (isBreakingPoint) {
+        this.transitionDuration = 800; // Швидкий перехід при переломному моменті
+      } else {
+        this.transitionDuration = 3000; // Плавний перехід
+      }
     }
   }
 
@@ -302,11 +335,54 @@ export class AtlasEmotionalStateService {
   }
 
   /**
+   * Згасання емоції з часом (як у людини)
+   * НОВИНКА (30.10.2025)
+   */
+  _applyEmotionDecay() {
+    const timeSinceLastChange = Date.now() - this.lastEmotionChange;
+    
+    // Після 15 секунд емоція починає згасати
+    if (timeSinceLastChange > this.emotionRetentionTime) {
+      const decayTime = timeSinceLastChange - this.emotionRetentionTime;
+      const decayFactor = Math.min(1, decayTime / 10000); // Повне згасання за 10 секунд
+      
+      // Плавно повертаємось до нейтрального стану
+      if (decayFactor > 0.8 && this.currentState.name !== 'neutral') {
+        this._updateState(EmotionalStates.NEUTRAL, false);
+      }
+    }
+  }
+  
+  /**
+   * Глибокий аналіз контексту (не просто ключові слова)
+   * НОВИНКА (30.10.2025)
+   */
+  _analyzeContextualDepth(text, response) {
+    let depth = 0;
+    
+    // Довжина повідомлення (більше тексту = більше контексту)
+    if (text.length > 50) depth += 0.2;
+    if (text.length > 100) depth += 0.2;
+    
+    // Наявність питань (залученість)
+    if (text.includes('?')) depth += 0.2;
+    
+    // Складність речення (кома, крапка з комою)
+    if (text.includes(',') || text.includes(';')) depth += 0.2;
+    
+    // Контекст з попередньої історії
+    if (this.stateHistory.length > 3) depth += 0.2;
+    
+    return Math.min(1, depth);
+  }
+
+  /**
    * Скидання до нейтрального стану
    */
   reset() {
-    this._updateState(EmotionalStates.NEUTRAL);
+    this._updateState(EmotionalStates.NEUTRAL, false);
     this.sentimentScore = 0;
     this.intensityLevel = 0.5;
+    this.contextualDepth = 0;
   }
 }

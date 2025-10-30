@@ -62,6 +62,18 @@ export class ChatMemoryCoordinator {
         this.logger.system('chat-memory', '[CHAT-MEMORY] 🧠 Processing message with memory integration...');
 
         try {
+            // CRITICAL FIX 30.10.2025: Check if processor is initialized
+            if (!this.memoryEligibilityProcessor || typeof this.memoryEligibilityProcessor.execute !== 'function') {
+                this.logger.warn('[CHAT-MEMORY] ⚠️ Memory eligibility processor not initialized - skipping memory');
+                return {
+                    success: true,
+                    memoryUsed: false,
+                    memoryContext: null,
+                    reasoning: 'Memory processor not initialized',
+                    processingTime: Date.now() - startTime
+                };
+            }
+            
             // STEP 1: Check if memory is needed (fast)
             const eligibilityResult = await this.memoryEligibilityProcessor.execute({
                 userMessage,

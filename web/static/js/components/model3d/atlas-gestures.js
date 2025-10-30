@@ -228,8 +228,15 @@ export class GestureAnimator {
   /**
    * Виконання жесту
    * FIXED (29.10.2025): Блокує eye tracking під час виконання
+   * TEMPORARY FIX (30.10.2025): HARD DISABLED - запобігає WebGL помилкам
    */
-  async performGesture(gesture, options = {}) {
+  async performGesture(gesture, _options = {}) {
+    // CRITICAL: Повністю відключаємо gesture анімації до виправлення WebGL проблеми
+    // Проблема: Canvas стає невалідним під час анімацій, спричинюючи framebuffer errors
+    console.log('⚠️ Gesture animation disabled (WebGL protection):', gesture?.label);
+    return;
+
+    /* DISABLED CODE - Will be re-enabled after fixing canvas resize issue
     if (!gesture || this.isAnimating) {
       // Додаємо в чергу якщо вже виконується інша анімація
       if (gesture && !options.skipQueue) {
@@ -273,6 +280,7 @@ export class GestureAnimator {
       const next = this.gestureQueue.shift();
       await this.performGesture(next.gesture, next.options);
     }
+    */
   }
 
   /**
@@ -325,6 +333,13 @@ export class GestureAnimator {
 
         const easedProgress = this.easeInOutCubic(frameProgress);
 
+        // CRITICAL FIX (30.10.2025 v3): Перевіряємо canvas перед кожною операцією зміни
+        if (!this.livingSystem.isCanvasReady()) {
+          console.log('⚠️ Canvas became invalid during animation, aborting frame');
+          resolve(); // Завершуємо анімацію безпечно
+          return;
+        }
+
         // Застосовуємо ротацію
         this.livingSystem.livingState.targetRotation.x =
           this.lerp(currentFrame.rotation.x, nextFrame.rotation.x, easedProgress);
@@ -336,7 +351,10 @@ export class GestureAnimator {
         // Якщо є scale - застосовуємо
         if (currentFrame.scale !== undefined && nextFrame.scale !== undefined) {
           const scale = this.lerp(currentFrame.scale, nextFrame.scale, easedProgress);
-          this.livingSystem.modelViewer.scale = `${scale} ${scale} ${scale}`;
+          // Перевіряємо canvas перед зміною scale
+          if (this.livingSystem.isCanvasReady()) {
+            this.livingSystem.modelViewer.scale = `${scale} ${scale} ${scale}`;
+          }
         }
 
         if (progress < 1) {
@@ -353,8 +371,22 @@ export class GestureAnimator {
   /**
    * Повернення до нейтральної позиції
    * FIXED (29.10.2025): Плавний перехід з ease-out
+   * FIXED (30.10.2025): Додано перевірку canvas перед анімацією
    */
   async returnToNeutral() {
+    // CRITICAL: Перевіряємо canvas перед початком анімації
+    if (!this.livingSystem.isCanvasReady()) {
+      console.log('⚠️ Canvas not ready for returnToNeutral animation, skipping');
+      // Просто встановлюємо нейтральні значення без анімації
+      this.livingSystem.livingState.targetRotation.x = 0;
+      this.livingSystem.livingState.targetRotation.y = 0;
+      this.livingSystem.livingState.targetRotation.z = 0;
+      this.livingSystem.livingState.currentRotation.x = 0;
+      this.livingSystem.livingState.currentRotation.y = 0;
+      this.livingSystem.livingState.currentRotation.z = 0;
+      return;
+    }
+
     const currentRotation = {
       x: this.livingSystem.livingState.currentRotation.x,
       y: this.livingSystem.livingState.currentRotation.y,

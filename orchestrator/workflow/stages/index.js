@@ -7,6 +7,7 @@
  */
 
 import { ModeSelectionProcessor } from './mode-selection-processor.js';
+import { AtlasContextEnrichmentProcessor } from './atlas-context-enrichment-processor.js';
 import { AtlasTodoPlanningProcessor } from './atlas-todo-planning-processor.js';
 import { ServerSelectionProcessor } from './server-selection-processor.js';
 import { TetyanaPlanToolsProcessor } from './tetyana-plan-tools-processor.js';
@@ -19,6 +20,7 @@ import { McpFinalSummaryProcessor } from './mcp-final-summary-processor.js';
 // Re-export individual classes
 export {
     ModeSelectionProcessor,
+    AtlasContextEnrichmentProcessor,
     AtlasTodoPlanningProcessor,
     ServerSelectionProcessor,
     TetyanaPlanToolsProcessor,
@@ -37,6 +39,9 @@ export {
 export const MCP_PROCESSORS = {
     // Stage 0-MCP - Mode Selection (NEW 16.10.2025)
     MODE_SELECTION: ModeSelectionProcessor,
+
+    // Stage 0.5-MCP - Context Enrichment (NEW 30.10.2025)
+    ATLAS_CONTEXT_ENRICHMENT: AtlasContextEnrichmentProcessor,
 
     // Stage 1-MCP - Atlas TODO Planning
     ATLAS_TODO_PLANNING: AtlasTodoPlanningProcessor,

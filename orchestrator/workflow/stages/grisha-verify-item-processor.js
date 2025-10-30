@@ -868,7 +868,15 @@ export class GrishaVerifyItemProcessor {
         const criteriaLower = successCriteria.toLowerCase();
 
         // Check for file/directory existence verification
-        if (criteriaLower.includes('існує') || criteriaLower.includes('знайдено') || criteriaLower.includes('наявний')) {
+        // CRITICAL FIX 30.10.2025: Only check filesystem if criteria explicitly mentions files/folders
+        const isFileSystemCriteria = criteriaLower.includes('файл') || 
+                                      criteriaLower.includes('папк') || 
+                                      criteriaLower.includes('директорі') ||
+                                      criteriaLower.includes('file') ||
+                                      criteriaLower.includes('folder') ||
+                                      criteriaLower.includes('directory');
+        
+        if (isFileSystemCriteria && (criteriaLower.includes('існує') || criteriaLower.includes('знайдено') || criteriaLower.includes('наявний'))) {
             // Look for filesystem operations in results
             const filesystemResults = resultsArray.filter(r =>
                 r.tool && r.tool.includes('filesystem') && r.success && r.data

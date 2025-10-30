@@ -21,6 +21,7 @@ import AccessibilityChecker from '../utils/accessibility-checker.js';
 import LocalizationService from '../services/localization-service.js';
 import {
     ModeSelectionProcessor,
+    AtlasContextEnrichmentProcessor,
     AtlasTodoPlanningProcessor,
     ServerSelectionProcessor,
     TetyanaPlanToolsProcessor,
@@ -459,6 +460,17 @@ export function registerMCPProcessors(container) {
     }, {
         dependencies: ['logger'],
         metadata: { category: 'processors', priority: 44 }
+    });
+
+    // Atlas Context Enrichment Processor (Stage 0.5-MCP) - NEW 30.10.2025
+    container.singleton('atlasContextEnrichmentProcessor', (c) => {
+        return new AtlasContextEnrichmentProcessor({
+            llmClient: c.resolve('llmClient'),
+            logger: c.resolve('logger')
+        });
+    }, {
+        dependencies: ['llmClient', 'logger'],
+        metadata: { category: 'processors', priority: 43 }
     });
 
     // Self-Correction Validator - NEW 29.10.2025

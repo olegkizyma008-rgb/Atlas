@@ -1088,11 +1088,26 @@ export class VisionAnalysisService {
         }
       }
       
-      // Try markdown parsing before fallback
+      // FIXED 2025-10-30: Improved markdown parsing with detailed logging
+      this.logger.system('vision-analysis', '[VISION] 🔍 Attempting markdown parsing...');
       const markdownParsed = this._parseMarkdownResponse(content);
-      if (markdownParsed && markdownParsed.verified !== undefined) {
-        this.logger.system('vision-analysis', '[VISION] ✅ Successfully parsed markdown response');
-        return this._normalizeVisionPayload(markdownParsed);
+      
+      if (markdownParsed) {
+        this.logger.system('vision-analysis', `[VISION] ✅ Markdown parser returned: verified=${markdownParsed.verified}, confidence=${markdownParsed.confidence}%`);
+        
+        if (markdownParsed.verified !== undefined) {
+          return this._normalizeVisionPayload(markdownParsed);
+        } else {
+          this.logger.warn('[VISION] ⚠️ Markdown parser returned object but verified field is undefined', {
+            category: 'vision-analysis',
+            parsed: JSON.stringify(markdownParsed).substring(0, 200)
+          });
+        }
+      } else {
+        this.logger.warn('[VISION] ⚠️ Markdown parser returned null - no patterns matched', {
+          category: 'vision-analysis',
+          contentPreview: content.substring(0, 300)
+        });
       }
 
       // FALLBACK: Parse text response and create JSON structure
@@ -1147,11 +1162,39 @@ export class VisionAnalysisService {
    */
   _parseMarkdownResponse(content) {
     try {
-      // Extract verified status
-      const verifiedMatch = content.match(/\*\*\s*Verified\s*[:\*]*\s*(true|false|Yes|No)/i);
+      // FIXED 2025-10-30: More aggressive pattern matching for various text formats
+      // Try multiple verification patterns
+      let verifiedMatch = content.match(/\*\*\s*Verified\s*[:\*]*\s*(true|false|Yes|No)/i);
+      
+      // Try alternative markdown patterns
+      if (!verifiedMatch) {
+        verifiedMatch = content.match(/\*\s*Answer\s*\*\s*:\s*(verified|not verified|true|false|yes|no)/i);
+      }
+      if (!verifiedMatch) {
+        verifiedMatch = content.match(/Answer\s*:\s*(verified|not verified|true|false|yes|no)/i);
+      }
+      if (!verifiedMatch) {
+        verifiedMatch = content.match(/Result\s*:\s*(verified|not verified|true|false|yes|no)/i);
+      }
+      
+      // Try plain text patterns (no markdown)
+      if (!verifiedMatch) {
+        verifiedMatch = content.match(/(?:is\s+|are\s+)?(verified|not verified|true|false|yes|no)(?:[\s.,;]|$)/i);
+      }
+      
+      // Try detecting verification in natural language
+      if (!verifiedMatch) {
+        if (/calculator\s+is\s+open|application\s+is\s+(?:open|visible|running)/i.test(content)) {
+          verifiedMatch = ['', 'Yes'];
+        } else if (/not\s+(?:open|visible|found)|cannot\s+verify/i.test(content)) {
+          verifiedMatch = ['', 'No'];
+        }
+      }
+      
       if (!verifiedMatch) return null;
       
-      const verified = verifiedMatch[1].toLowerCase() === 'true' || verifiedMatch[1].toLowerCase() === 'yes';
+      const verifiedValue = verifiedMatch[1].toLowerCase();
+      const verified = verifiedValue === 'true' || verifiedValue === 'yes' || verifiedValue === 'verified';
       
       // Extract confidence
       const confidenceMatch = content.match(/\*\*\s*Confidence\s*[:\*]*\s*(\d+)%?/i);

@@ -176,6 +176,16 @@ export const MCP_MODEL_CONFIG = {
       max_tokens: 50,
       description: 'Keyword routing - точність (deprecated)'
     },
+    context_enrichment: {
+      get model() {
+        return env.MCP_MODEL_CONTEXT_ENRICHMENT || 'atlas-gpt-4o';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_CONTEXT_ENRICHMENT || '0.3');
+      },
+      max_tokens: 1500,
+      description: 'Atlas Context Enrichment - розширення контексту перед TODO (GPT-4o - deep understanding)'
+    },
     todo_planning: {
       get model() {
         return env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-medium-2505';

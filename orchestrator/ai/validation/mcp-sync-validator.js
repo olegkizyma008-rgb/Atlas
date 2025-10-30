@@ -75,14 +75,24 @@ export class MCPSyncValidator {
         continue;
       }
 
-      // FIXED 2025-10-23: Check tool existence with flexible name matching
-      // MCP tools may have full name (server__tool) or short name (tool)
+      // FIXED 2025-10-31: Check tool existence with flexible name matching
+      // MCP tools may have different formats:
+      // 1. applescript_execute (server_tool with single _)
+      // 2. applescript__execute (server__tool with double __)
+      // 3. execute (just tool name)
       let toolExists = serverTools.some(t => t.name === call.tool);
       
-      // If not found, try without server prefix
+      // If not found, try without server prefix (after double __)
       if (!toolExists && call.tool.includes('__')) {
         const toolNameWithoutPrefix = call.tool.split('__')[1];
         toolExists = serverTools.some(t => t.name === toolNameWithoutPrefix);
+        
+        // CRITICAL FIX: Also try server_tool format (single underscore)
+        // applescript__execute → look for applescript_execute
+        if (!toolExists) {
+          const serverToolFormat = `${call.server}_${toolNameWithoutPrefix}`;
+          toolExists = serverTools.some(t => t.name === serverToolFormat);
+        }
       }
       
       // If still not found, try with server prefix

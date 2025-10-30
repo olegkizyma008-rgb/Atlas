@@ -7,13 +7,13 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import logger from '../utils/logger.js';
 
 export class EternityModule extends EventEmitter {
   constructor(container) {
     super();
     this.container = container;
-    this.logger = new Logger('ETERNITY');
+    this.logger = logger;
     this.isAnalyzing = false;
     this.improvements = [];
     this.pendingCorrections = [];

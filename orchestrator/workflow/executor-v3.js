@@ -4,12 +4,12 @@
  */
 
 import { TTSSyncManager } from './tts-sync-manager.js';
-import { Logger } from '../utils/logger.js';
+import logger from '../utils/logger.js';
 import { WorkflowEventEmitter } from './workflow-event-emitter.js';
-import { executorConfig } from '../../config/atlas-config.js';
+// import { executorConfig } from '../../config/atlas-config.js'; // Not used, commented out
 import { MCPTodoManager } from './mcp-todo-manager.js';
-import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js';
-import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js';
+// import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js'; // Not used, commented out
+// import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
@@ -2080,10 +2080,10 @@ export async function executeAgentStageStepByStep(
 export class WorkflowExecutor {
   constructor(container) {
     this.container = container;
-    this.logger = new Logger('WorkflowExecutor');
+    this.logger = logger;
     this.emitter = new WorkflowEventEmitter();
     this.ttsSyncManager = new TTSSyncManager(container);
-    this.config = executorConfig;
+    // this.config = executorConfig; // executorConfig not defined, commented out
     this.todoManager = null;
     this.dynamicAgentCoordinator = null;
     this.processingLock = false;

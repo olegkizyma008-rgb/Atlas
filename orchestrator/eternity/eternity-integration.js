@@ -4,12 +4,12 @@
  */
 
 import { EternityModule } from './eternity-self-analysis.js';
-import { Logger } from '../utils/logger.js';
+import logger from '../utils/logger.js';
 
 export class EternityIntegration {
   constructor(container) {
     this.container = container;
-    this.logger = new Logger('ETERNITY-INTEGRATION');
+    this.logger = logger;
     this.eternityModule = null;
     this.chatManager = null;
     this.workflowCoordinator = null;

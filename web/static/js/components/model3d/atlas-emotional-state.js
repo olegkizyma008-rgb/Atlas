@@ -283,8 +283,9 @@ export class AtlasEmotionalStateService {
   getTransitionCSS() {
     return {
       filter: `drop-shadow(0 0 ${60 + (this.intensityLevel * 40)}px ${this.currentState.color}) brightness(${1.1 + (this.intensityLevel * 0.3)})`,
-      transition: `filter ${this.transitionDuration}ms cubic-bezier(0.4, 0.0, 0.2, 1)`,
-      opacity: 0.75 + (this.intensityLevel * 0.15)
+      transition: `filter ${this.transitionDuration}ms cubic-bezier(0.4, 0.0, 0.2, 1)`
+      // ВИПРАВЛЕНО: Видалено opacity - він викликав втрату розміру WebGL canvas
+      // opacity змінює рендеринг model-viewer і framebuffer стає 0x0
     };
   }
 

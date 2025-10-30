@@ -18,8 +18,8 @@
 <body>
     <!-- 3D Model Background -->
     <div class="model-container">
-        <model-viewer id="model-viewer" src="{{ url_for('static', filename='assets/DamagedHelmet.glb') }}" auto-rotate
-            auto-rotate-delay="500" rotation-per-second="30deg" camera-controls camera-target="auto auto auto"
+        <model-viewer id="model-viewer" src="{{ url_for('static', filename='assets/DamagedHelmet.glb') }}"
+            camera-controls camera-target="auto auto auto"
             shadow-intensity="0.3" shadow-softness="0.8" environment-image="neutral" disable-zoom loading="eager"
             ar-status="not-presenting" interaction-prompt="none" interaction-prompt-threshold="0" exposure="1.5"
             tone-mapping="commerce"

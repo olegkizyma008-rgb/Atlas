@@ -359,6 +359,22 @@ class AtlasApp {
     });
 
     this.managers.webSocket.on('tts-start', (data) => {
+      // CRITICAL FIX (30.10.2025): Повністю видаляємо model-viewer з layout на 150ms
+      // Це єдиний спосіб запобігти WebGL framebuffer 0x0 помилці
+      const modelViewer = document.getElementById('model-viewer');
+      console.log('[FIX] tts-start event received, modelViewer:', modelViewer);
+      if (modelViewer) {
+        const originalDisplay = modelViewer.style.display;
+        modelViewer.style.display = 'none';
+        console.log('[FIX] model-viewer hidden, will restore in 150ms');
+        setTimeout(() => {
+          modelViewer.style.display = originalDisplay || 'block';
+          console.log('[FIX] model-viewer restored');
+        }, 150);
+      } else {
+        console.error('[FIX] model-viewer element not found!');
+      }
+
       // НЕ запускаємо мімічні процеси тут - вони запустяться при реальному відтворенні аудіо
       // Зберігаємо текст для майбутнього використання
       if (this.managers.ttsVisualization) {
@@ -507,13 +523,14 @@ class AtlasApp {
 
         // НОВИНКА (29.10.2025): Жести під час TTS
         if (this.managers.glbLivingSystem && data.text) {
-          const gesture = this.managers.glbLivingSystem.gestureDetector.detectGesture(data.text);
-          if (gesture) {
+          setTimeout(() => {
+            const gesture = this.managers.glbLivingSystem.gestureDetector.detectGesture(data.text);
+            if (gesture) {
               if (this.managers.glbLivingSystem.gestureAnimator) {
                 this.managers.glbLivingSystem.gestureAnimator.performGesture(gesture);
               }
-            }, 200);
-          }
+            }
+          }, 200);
         }
       });
 

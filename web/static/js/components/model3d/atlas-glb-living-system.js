@@ -33,6 +33,7 @@ export class AtlasGLBLivingSystem {
       enableEmotions: options.enableEmotions !== false,
       enableTTSSync: options.enableTTSSync !== false,
       enableIntelligence: options.enableIntelligence !== false,
+      enableGestures: options.enableGestures === true,
 
       // Параметри анімації
       breathingSpeed: options.breathingSpeed || 4000, // мс на цикл
@@ -149,7 +150,7 @@ export class AtlasGLBLivingSystem {
     this.lastAtlasResponse = '';
 
     // НОВИНКА (29.10.2025): Система природних жестів
-    this.gestureAnimator = null; // Ініціалізується після init
+    this.gestureAnimator = null; // Ініціалізується після init, якщо дозволено
     this.gestureDetector = new GestureDetector();
 
     this.init();
@@ -179,8 +180,10 @@ export class AtlasGLBLivingSystem {
       this.startLivingLoop();
       this.setupEventListeners();
       
-      // Ініціалізуємо gesture animator після того як система готова
-      this.gestureAnimator = new GestureAnimator(this);
+      // Ініціалізуємо gesture animator після того як система готова (за потреби)
+      if (this.config.enableGestures) {
+        this.gestureAnimator = new GestureAnimator(this);
+      }
       
       this.awaken();
 
@@ -743,17 +746,18 @@ export class AtlasGLBLivingSystem {
   /**
    * Оновлення кольору ореолу на основі емоційного стану
    * НОВИНКА v4.1 (29.10.2025)
+   * ВИПРАВЛЕНО: Не змінюємо filter динамічно - це викликає WebGL framebuffer 0x0
    */
   updateEmotionalGlow() {
     const state = this.emotionalState.getCurrentState();
-    const css = this.emotionalState.getTransitionCSS();
+    // const css = this.emotionalState.getTransitionCSS();
 
-    // Застосовуємо плавні CSS переходи
-    this.modelViewer.style.filter = css.filter;
-    this.modelViewer.style.transition = css.transition;
-    this.modelViewer.style.opacity = css.opacity;
+    // ВИПРАВЛЕНО: НЕ застосовуємо filter динамічно - це ламає WebGL framebuffer
+    // Динамічна зміна CSS filter викликає перерендеринг і втрату розміру canvas
+    // this.modelViewer.style.filter = css.filter;
+    // this.modelViewer.style.transition = css.transition;
 
-    console.log(`🎨 Emotional glow updated: ${state.label} (intensity: ${state.intensity.toFixed(2)})`);
+    console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - filter disabled to prevent WebGL issues`);
   }
 
   /**
@@ -889,14 +893,26 @@ export class AtlasGLBLivingSystem {
   /**
      * Початок мовлення (TTS)
      * FIXED (29.10.2025): Блокує eye tracking під час мовлення
+     * FIXED (30.10.2025): Призупиняє рендеринг для запобігання WebGL framebuffer 0x0
      */
   startSpeaking(agent = 'atlas', intensity = 0.8) {
     console.log(`🎤 ${agent} started speaking`);
 
+    // CRITICAL FIX: Призупиняємо рендеринг model-viewer на 100ms
+    // Це дає час DOM оновитися без конфлікту з WebGL
+    if (this.modelViewer && this.modelViewer.pause) {
+      this.modelViewer.pause();
+      setTimeout(() => {
+        if (this.modelViewer && this.modelViewer.play) {
+          this.modelViewer.play();
+        }
+      }, 100);
+    }
+
     this.livingState.isSpeaking = true;
     this.livingState.speechIntensity = intensity;
     this.livingState.currentAgent = agent;
-    this.livingState.animationMode = 'speaking';
+    // FIXED (29.10.2025): Блокуємо eye tracking під час мовлення
     this.livingState.eyeTrackingEnabled = false;
 
     // Емоція для агента

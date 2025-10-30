@@ -329,8 +329,8 @@ export class AtlasLivingBehaviorEnhanced {
     this.state.isSpeaking = true;
     this.state.lastActivityTime = Date.now();
 
-    // Додаємо клас .speaking для зеленого свічення
-    this.modelViewer.classList.add('speaking');
+    // ВИПРАВЛЕНО: Не додаємо клас .speaking - він має opacity що ламає WebGL
+    // this.modelViewer.classList.add('speaking');
 
     // Вимикаємо відстеження очима під час мовлення
     this.livingSystem.config.enableEyeTracking = false;
@@ -366,8 +366,8 @@ export class AtlasLivingBehaviorEnhanced {
     this.state.isSpeaking = false;
     this.state.lastActivityTime = Date.now();
 
-    // Видаляємо клас .speaking
-    this.modelViewer.classList.remove('speaking');
+    // ВИПРАВЛЕНО: Не видаляємо клас .speaking - він не додається
+    // this.modelViewer.classList.remove('speaking');
 
     // Вмикаємо відстеження очима назад
     this.livingSystem.config.enableEyeTracking = true;

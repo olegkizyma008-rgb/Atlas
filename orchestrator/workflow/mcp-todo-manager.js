@@ -113,6 +113,7 @@ export class MCPTodoManager {
 
   /**
    * Normalize tool name by ensuring it has exactly one `server__tool` prefix
+   * FIXED 2025-10-30: Prevent double prefix for tools already in correct format
    * @private
    */
   _normalizeToolName(server, tool) {
@@ -122,21 +123,42 @@ export class MCPTodoManager {
 
     const prefix = `${server}__`;
 
+    // If tool already has correct prefix format, return as-is
     if (tool.startsWith(prefix)) {
       const withoutPrefix = tool.slice(prefix.length);
-      if (withoutPrefix.startsWith(prefix)) {
-        return prefix + withoutPrefix.slice(prefix.length);
+      
+      // Check for double prefix (e.g., playwright__playwright__navigate)
+      if (withoutPrefix.startsWith(server)) {
+        // Remove duplicate prefix
+        const cleaned = withoutPrefix.slice(server.length);
+        if (cleaned.startsWith('__')) {
+          return prefix + cleaned.slice(2);
+        }
+        if (cleaned.startsWith('_')) {
+          return prefix + cleaned.slice(1);
+        }
       }
+      
+      // Tool is already in correct format
       return tool;
     }
 
+    // If tool has double underscore but wrong server prefix
     if (tool.includes('__')) {
-      const [, rest] = tool.split(/__/);
-      if (rest) {
-        return prefix + rest;
+      const parts = tool.split('__');
+      if (parts.length >= 2) {
+        // Take everything after first __
+        return prefix + parts.slice(1).join('__');
       }
     }
 
+    // If tool has single underscore with server name, remove it
+    if (tool.startsWith(`${server}_`)) {
+      const withoutSinglePrefix = tool.slice(server.length + 1);
+      return prefix + withoutSinglePrefix;
+    }
+
+    // Tool has no prefix, add it
     return prefix + tool;
   }
 

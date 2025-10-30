@@ -4,6 +4,7 @@
  */
 
 import { EternityModule } from './eternity-self-analysis.js';
+import { AutoCorrectionModule } from './auto-correction-module.js';
 import logger from '../utils/logger.js';
 
 export class EternityIntegration {
@@ -11,6 +12,7 @@ export class EternityIntegration {
     this.container = container;
     this.logger = logger;
     this.eternityModule = null;
+    this.autoCorrectionModule = null;
     this.chatManager = null;
     this.workflowCoordinator = null;
     this.isActive = false;
@@ -22,39 +24,64 @@ export class EternityIntegration {
       this.eternityModule = new EternityModule(this.container);
       await this.eternityModule.initialize();
       
-      // Отримання залежностей
-      this.chatManager = this.container.resolve('chatManager');
-      this.workflowCoordinator = this.container.resolve('workflowCoordinator');
+      // Ініціалізація Auto-Correction модуля
+      this.autoCorrectionModule = new AutoCorrectionModule(this.container);
+      await this.autoCorrectionModule.initialize();
+      
+      // Отримання залежностей - з перевіркою
+      try {
+        this.chatManager = this.container.resolve('chatManager');
+      } catch (e) {
+        this.logger.warn('ChatManager not available yet, will retry later');
+      }
+      
+      try {
+        this.workflowCoordinator = this.container.resolve('workflowCoordinator');
+      } catch (e) {
+        this.logger.warn('WorkflowCoordinator not available yet, will retry later');
+      }
       
       // Підписка на події
       this.setupEventHandlers();
       
       // Інтеграція з chat workflow
-      this.integrateWithChat();
+      if (this.chatManager) {
+        this.integrateWithChat();
+      }
       
       this.isActive = true;
       this.logger.info('✨ ETERNITY Integration initialized successfully');
       
       return true;
     } catch (error) {
-      this.logger.error('Failed to initialize ETERNITY Integration:', error);
+      this.logger.error('Failed to initialize ETERNITY Integration:', error.message || error);
+      this.logger.error('Stack trace:', error.stack);
       return false;
     }
   }
 
   setupEventHandlers() {
     // Слухаємо події від ETERNITY модуля
-    this.eternityModule.on('improvement-request', (data) => {
-      this.handleImprovementRequest(data);
-    });
+    if (this.eternityModule && typeof this.eternityModule.on === 'function') {
+      this.eternityModule.on('improvement-request', (data) => {
+        this.handleImprovementRequest(data);
+      });
+      
+      this.eternityModule.on('improvement-report', (data) => {
+        this.handleImprovementReport(data);
+      });
+      
+      this.eternityModule.on('improvements-applied', (data) => {
+        this.handleImprovementsApplied(data);
+      });
+    }
     
-    this.eternityModule.on('improvement-report', (data) => {
-      this.handleImprovementReport(data);
-    });
-    
-    this.eternityModule.on('improvements-applied', (data) => {
-      this.handleImprovementsApplied(data);
-    });
+    // Слухаємо події від Auto-Correction модуля
+    if (this.autoCorrectionModule && typeof this.autoCorrectionModule.on === 'function') {
+      this.autoCorrectionModule.on('corrections_applied', (data) => {
+        this.handleAutoCorrections(data);
+      });
+    }
     
     // Слухаємо події від UI
     if (typeof window !== 'undefined') {
@@ -182,6 +209,21 @@ export class EternityIntegration {
     return false;
   }
 
+  // Обробка автокорекцій
+  async handleAutoCorrections(data) {
+    // Генеруємо спонтанне повідомлення для чату
+    const notification = this.autoCorrectionModule.generateChatNotification();
+    
+    if (notification && this.chatManager) {
+      // Відправляємо лаконічне повідомлення в чат
+      setTimeout(() => {
+        this.chatManager.addMessage(notification, 'system');
+      }, Math.random() * 5000 + 2000); // Випадкова затримка 2-7 секунд
+    }
+    
+    this.logger.info(`AUTO-CORRECTION: Applied ${data.count} fixes`, data.issues);
+  }
+  
   // Метод для отримання статусу еволюції
   getEvolutionStatus() {
     if (!this.eternityModule) {

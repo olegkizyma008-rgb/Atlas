@@ -78,17 +78,32 @@ export class InterruptDetectionService extends BaseService {
 
     // Початок TTS - увімкнути interrupt listening
     // FIXED (29.10.2025 - 22:00): Слухаємо обидва формати подій для сумісності
-    this.eventManager.on('TTS_STARTED', async (_event) => {
-      this.logger.info('🔊 TTS started (uppercase event) - enabling interrupt detection');
-      this.isTTSActive = true;
-      await this.startListening();
+    // CRITICAL (30.10.2025): Перевіряємо режим - interrupt працює тільки в task/dev modes
+    this.eventManager.on('TTS_STARTED', async (event) => {
+      const mode = event?.payload?.mode || event?.mode || 'chat';
+      
+      // Interrupt detection працює ТІЛЬКИ в task/dev режимах
+      if (mode === 'task' || mode === 'dev') {
+        this.logger.info(`🔊 TTS started in ${mode} mode - enabling interrupt detection`);
+        this.isTTSActive = true;
+        await this.startListening();
+      } else {
+        this.logger.info(`💬 TTS in chat mode - interrupt detection disabled`);
+      }
     });
     
     // Також слухаємо lowercase версію від chat-manager
-    this.eventManager.on('tts-start', async (_event) => {
-      this.logger.info('🔊 TTS started (lowercase event) - enabling interrupt detection');
-      this.isTTSActive = true;
-      await this.startListening();
+    this.eventManager.on('tts-start', async (event) => {
+      const mode = event?.payload?.mode || event?.mode || 'chat';
+      
+      // Interrupt detection працює ТІЛЬКИ в task/dev режимах
+      if (mode === 'task' || mode === 'dev') {
+        this.logger.info(`🔊 TTS started in ${mode} mode - enabling interrupt detection`);
+        this.isTTSActive = true;
+        await this.startListening();
+      } else {
+        this.logger.info(`💬 TTS in chat mode - interrupt detection disabled`);
+      }
     });
 
     // Завершення TTS - вимкнути interrupt listening

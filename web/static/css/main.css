@@ -398,6 +398,8 @@ model-viewer {
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
+    min-width: 100px !important;
+    min-height: 100px !important;
     opacity: 0.75;
     filter: drop-shadow(0 0 60px rgba(0, 255, 127, 0.5)) brightness(1.1);
     --poster-color: transparent;

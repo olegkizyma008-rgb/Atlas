@@ -235,7 +235,7 @@ export class ServerSelectionProcessor {
             temperature: modelConfig.temperature,
             max_tokens: modelConfig.max_tokens
         }, {
-            timeout: 30000 // 30s timeout
+            timeout: 60000 // 60s timeout
         });
 
         const rawResponse = apiResponse.data.choices[0].message.content;

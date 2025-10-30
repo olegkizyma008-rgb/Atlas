@@ -145,38 +145,71 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       
       // Password provided - execute intervention
       const devProcessor = container.resolve('devSelfAnalysisProcessor');
+      
+      // Extract actual password from message if it's a password submission
+      const actualPassword = isPasswordProvided ? userMessage.trim() : 'mykola';
+      
       const analysisResult = await devProcessor.execute({
-        userMessage: session.devOriginalMessage || 'Проаналізуй себе',
+        userMessage: session.devOriginalMessage || session.lastDevAnalysisMessage || 'Виправ себе',
         session,
         requiresIntervention: true,
-        password: 'mykola',
+        password: actualPassword,
         container
       });
       
-      // Clear password state
-      session.awaitingDevPassword = false;
-      session.devAnalysisResult = null;
-      session.devOriginalMessage = null;
-      session.lastDevAnalysis = null;
-      session.lastDevAnalysisMessage = null;
-      
-      // Send intervention result
-      const interventionMessage = analysisResult.intervention?.message || 'Втручання виконано успішно!';
-      const localizedMessage = localizationService.translateToUser(interventionMessage);
-      
-      if (wsManager) {
-        wsManager.broadcastToSubscribers('chat', 'agent_message', {
-          content: localizedMessage,
-          agent: 'atlas',
-          sessionId: session.id,
-          timestamp: new Date().toISOString(),
-          ttsContent: interventionMessage,
-          mode: 'dev',
-          interventionComplete: true
-        });
+      // Clear password state only after successful intervention
+      if (analysisResult.success || analysisResult.transitionToTask) {
+        session.awaitingDevPassword = false;
+        session.devAnalysisResult = null;
+        session.devOriginalMessage = null;
+        // Keep lastDevAnalysis for context
       }
       
-      return analysisResult;
+      // Check if transitioning to TASK mode
+      if (analysisResult.transitionToTask && analysisResult.taskContext) {
+        logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode after password', {
+          sessionId: session.id,
+          tasksCount: analysisResult.taskContext.tasks?.length || 0
+        });
+        
+        // Store transition context
+        session.devTransitionContext = analysisResult.taskContext;
+        
+        // Send transition message
+        const transitionMessage = analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...';
+        if (wsManager) {
+          wsManager.broadcastToSubscribers('chat', 'agent_message', {
+            content: transitionMessage,
+            agent: 'atlas',
+            sessionId: session.id,
+            timestamp: new Date().toISOString(),
+            ttsContent: 'Переходжу в режим виконання завдань',
+            mode: 'task',
+            transitionFromDev: true
+          });
+        }
+        
+        // Continue to TASK mode execution below
+        mode = 'task';
+      } else {
+        // Send intervention result
+        const interventionMessage = analysisResult.intervention?.message || analysisResult.message || 'Аналіз завершено!';
+        const localizedMessage = localizationService.translateToUser(interventionMessage);
+        
+        if (wsManager) {
+          wsManager.broadcastToSubscribers('chat', 'agent_message', {
+            content: localizedMessage,
+            agent: 'atlas',
+            sessionId: session.id,
+            timestamp: new Date().toISOString(),
+            ttsContent: interventionMessage,
+            mode: 'dev',
+            interventionComplete: true
+          });
+        }
+        
+        return analysisResult;
+      }
     }
 
     const modeResult = await modeProcessor.execute({
@@ -244,20 +277,30 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         // Resolve DEV self-analysis processor
         const devProcessor = container.resolve('devSelfAnalysisProcessor');
         
-        // Check if password is needed for intervention
-        const requiresIntervention = userMessage.toLowerCase().includes('виправ') || 
-                                    userMessage.toLowerCase().includes('fix') ||
-                                    userMessage.toLowerCase().includes('покращ') ||
-                                    userMessage.toLowerCase().includes('improve') ||
-                                    userMessage.toLowerCase().includes('глибше') ||
-                                    userMessage.toLowerCase().includes('deeper');
+        // Check if user is providing password for pending DEV intervention
+        const isPasswordProvided = session.awaitingDevPassword && 
+                                  (userMessage.toLowerCase() === 'mykola' || 
+                                   userMessage.toLowerCase() === 'микола' ||
+                                   userMessage.toLowerCase().trim() === 'mykola' ||
+                                   userMessage.toLowerCase().trim() === 'микола');
+        
+        // Check if user is requesting intervention after analysis
+        const isInterventionRequest = session.lastDevAnalysis && 
+                                      (userMessage.toLowerCase().includes('виправ') ||
+                                       userMessage.toLowerCase().includes('внеси зміни') ||
+                                       userMessage.toLowerCase().includes('fix') ||
+                                       userMessage.toLowerCase().includes('make changes'));
+        
+        // Check if password is included in intervention request
+        const passwordInMessage = userMessage.toLowerCase().includes('mykola') || 
+                                 userMessage.toLowerCase().includes('микола');
         
         // Execute self-analysis with container for MCP access
         const analysisResult = await devProcessor.execute({
           userMessage,
           session,
-          requiresIntervention,
-          password: null, // Will prompt for password if needed
+          requiresIntervention: isInterventionRequest,
+          password: isPasswordProvided ? userMessage.trim() : null, // Will prompt for password if needed
           container // Pass container for MCP filesystem access
         });
         
@@ -813,7 +856,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             max_tokens: modelConfig.max_tokens
           }, {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 30000
+            timeout: 60000
           });
           chatResponse = response;
 
@@ -842,7 +885,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 max_tokens: modelConfig.max_tokens
               }, {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 30000
+                timeout: 60000
               });
               logger.system('executor', `✅ Chat API fallback succeeded`);
 

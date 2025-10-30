@@ -1827,7 +1827,7 @@ Attempt: ${attempt}/${item.max_attempts}
         max_tokens: modelConfig.max_tokens
       }, {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 30000  // FIXED 14.10.2025 - Збільшено з 15s до 30s для adjustment
+        timeout: 60000  // FIXED 30.10.2025 - Збільшено до 60s для стабільності
       });
 
       const response = apiResponse.data.choices[0].message.content;
@@ -3455,7 +3455,7 @@ Select 1-2 most relevant servers.
         max_tokens: modelConfig.max_tokens
       }, {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 30000
+        timeout: 60000
       });
 
       const response = apiResponse.data.choices[0].message.content;
@@ -3556,7 +3556,7 @@ Select 1-2 most relevant servers.
               'X-Title': 'Atlas MCP'
             })
           },
-          timeout: 30000,
+          timeout: 60000,
           validateStatus: (status) => status < 600 // Accept all responses
         });
         

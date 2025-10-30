@@ -600,6 +600,13 @@ class AtlasApp {
           emotion: data.emotion || 'neutral',
           speed: data.speed || 1.0
         });
+
+        // TEMPORARY FIX (30.10.2025): Відключаємо виконання жестів під час TTS щоб уникнути WebGL помилок
+        // Жести спричинюють WebGL помилки "Framebuffer has zero size"
+        console.log('🎭 TTS gestures temporarily disabled to prevent WebGL errors');
+
+        // TODO: Виправити анімаційну систему щоб вона була безпечною
+        // this.managers.webSocket.performGestureDuringTTS(data.agent || 'atlas', data.text);
       });
 
       this.managers.chat.on('tts-stop', () => {

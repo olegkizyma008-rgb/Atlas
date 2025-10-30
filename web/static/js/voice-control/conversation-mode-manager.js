@@ -831,9 +831,12 @@ export class ConversationModeManager {
       return; // Не запускаємо continuous listening після interrupt response
     }
 
-    // Ігноруємо якщо це task mode - conversation loop тільки для chat!
-    if (mode === 'task') {
-      this.logger.info('📋 Task mode detected - NOT starting conversation loop');
+    // CRITICAL FIX (30.10.2025): Правильна логіка детекції для різних режимів
+    // Task/Dev mode - НЕ запускаємо детекцію "Атлас", тільки "стоп" працює під час TTS
+    // Chat mode - запускаємо детекцію "Атлас" після завершення діалогу
+    if (mode === 'task' || mode === 'dev') {
+      this.logger.info(`📋 ${mode.toUpperCase()} mode detected - NOT starting keyword detection`);
+      this.logger.info('💡 In task/dev mode only "stop" interrupt works during TTS');
       return;
     }
 

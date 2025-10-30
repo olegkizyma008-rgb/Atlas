@@ -156,6 +156,17 @@ export class AtlasGLBLivingSystem {
   }
 
   /**
+   * CRITICAL FIX (30.10.2025): Глобальна перевірка canvas
+   * Використовується для захисту від WebGL помилок
+   * Мінімальний розмір: 100x100px
+   */
+  isCanvasReady() {
+    const canvas = this.modelViewer?.shadowRoot?.querySelector('canvas');
+    const minSize = 100;
+    return canvas && canvas.width >= minSize && canvas.height >= minSize;
+  }
+
+  /**
      * Ініціалізація системи
      */
   async init() {
@@ -333,8 +344,34 @@ export class AtlasGLBLivingSystem {
      * Головний цикл живої поведінки
      */
   startLivingLoop() {
+    let canvasErrorLogged = false; // Щоб не спамити консоль
+    
     const animate = (timestamp) => {
       if (!this.livingState.isAlive) return;
+
+      // CRITICAL FIX (30.10.2025): Перевіряємо розмір canvas перед рендерингом
+      // Уникаємо WebGL помилки "Framebuffer has zero size" під час переходів між режимами
+      if (!this.isCanvasReady()) {
+        // Canvas має нульовий розмір - пропускаємо цей кадр
+        if (!canvasErrorLogged) {
+          const canvas = this.modelViewer?.shadowRoot?.querySelector('canvas');
+          console.warn('⚠️ Canvas check failed:', { 
+            canvas: !!canvas, 
+            width: canvas?.width, 
+            height: canvas?.height,
+            modelViewer: !!this.modelViewer,
+            shadowRoot: !!this.modelViewer?.shadowRoot
+          });
+          canvasErrorLogged = true;
+        }
+        // Важливо: продовжуємо loop щоб анімація відновилась коли canvas буде готовий
+        this.animationFrameId = requestAnimationFrame(animate);
+        return;
+      } else if (canvasErrorLogged) {
+        const canvas = this.modelViewer.shadowRoot.querySelector('canvas');
+        console.log('✅ Canvas restored:', { width: canvas.width, height: canvas.height });
+        canvasErrorLogged = false;
+      }
 
       const deltaTime = timestamp - (this.lastTimestamp || timestamp);
       this.lastTimestamp = timestamp;
@@ -570,12 +607,18 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Застосування всіх трансформацій до моделі
-     * ОНОВЛЕНО: Покращена інтерполяція з природними обмеженнями
+     * ОНОВЛЕНО: Покращена інтерполяція з ease-функціями
      */
   applyTransformations() {
+    // CRITICAL FIX (30.10.2025): Перевіряємо чи canvas має валідний розмір
+    // Уникаємо WebGL помилок під час оновлення camera коли canvas має нульовий розмір
+    if (!this.isCanvasReady()) {
+      return;
+    }
+
     const smoothness = this.config.rotationSmoothness;
 
-    // Обчислюємо цільові значення
+    // Обчислення цільового обертання
     let targetX = this.livingState.targetRotation.x + this.livingState.baseRotation.x;
     let targetY = this.livingState.targetRotation.y + this.livingState.baseRotation.y;
     let targetZ = this.livingState.targetRotation.z + this.livingState.baseRotation.z;
@@ -645,6 +688,13 @@ export class AtlasGLBLivingSystem {
      */
   setEmotion(emotion, intensity = 0.7, duration = 1000) {
     if (!this.config.enableEmotions) return;
+
+    // CRITICAL FIX (30.10.2025): Перевіряємо canvas перед емоційними змінами
+    if (!this.isCanvasReady()) {
+      // Зберігаємо емоцію для застосування пізніше
+      this.livingState.currentEmotion = emotion;
+      return;
+    }
 
     // Запам'ятовуємо емоцію
     this.livingState.currentEmotion = emotion;
@@ -777,16 +827,34 @@ export class AtlasGLBLivingSystem {
     console.log('🔇 Atlas stopped listening');
     this.livingState.isListening = false;
 
-    // Повертаємось до нормальної позиції
-    if (this.gestureAnimator) {
-      this.gestureAnimator.returnToNeutral();
+    // CRITICAL FIX (30.10.2025): Перевіряємо canvas перед анімацією
+    const canvasReady = this.isCanvasReady();
+    console.log('🔍 Canvas ready check:', canvasReady);
+
+    if (!canvasReady) {
+      console.log('⚠️ Canvas is not ready, skipping gesture animation');
+      return;
     }
+
+    console.log('✅ Canvas ready, performing gesture animation');
+
+    // TEMPORARY FIX (30.10.2025): Відключаємо анімацію returnToNeutral щоб уникнути WebGL помилок
+    // TODO: Виправити анімаційну систему щоб вона була безпечною
+    console.log('🚫 Temporarily skipping returnToNeutral animation to prevent WebGL errors');
+
+    // Повертаємось до нормальної позиції БЕЗ анімації
+    // this.gestureAnimator.returnToNeutral();
   }
 
   /**
      * Анімація емоції
      */
   animateEmotion(emotion, intensity, duration) {
+    // CRITICAL FIX (30.10.2025): Перевіряємо canvas перед анімацією емоції
+    if (!this.isCanvasReady()) {
+      return; // Пропускаємо анімацію якщо canvas має нульовий розмір
+    }
+
     // Емоційні рухи
     const emotionMovements = {
       'joy': { x: 0, y: 5, z: 0 },

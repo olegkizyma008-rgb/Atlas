@@ -284,6 +284,14 @@ export class GestureAnimator {
 
     return new Promise((resolve) => {
       const animate = () => {
+        // CRITICAL FIX (30.10.2025): Перевіряємо canvas перед кожним кадром анімації
+        if (!this.livingSystem.isCanvasReady()) {
+          // Canvas не готовий - припиняємо анімацію негайно
+          console.log('⚠️ Canvas lost size during animation, stopping keyframes');
+          resolve();
+          return;
+        }
+
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 

@@ -39,9 +39,19 @@ export class EternityModule extends EventEmitter {
 
   async initialize() {
     try {
-      // Ініціалізація залежностей
-      this.mcpMemory = this.container.resolve('mcpMemory');
-      this.workflowCoordinator = this.container.resolve('workflowCoordinator');
+      // Ініціалізація залежностей з перевіркою
+      try {
+        this.mcpMemory = this.container.resolve('mcpMemory');
+      } catch (e) {
+        this.logger.warn('[ETERNITY] mcpMemory not available, will work without it');
+      }
+      
+      try {
+        this.workflowCoordinator = this.container.resolve('workflowCoordinator');
+      } catch (e) {
+        this.logger.warn('[ETERNITY] workflowCoordinator not available, will work without it');
+      }
+      
       this.codestralAPI = await this._initializeCodestral();
       
       // Завантаження попереднього стану з пам'яті

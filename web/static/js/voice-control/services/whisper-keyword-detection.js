@@ -45,6 +45,20 @@ export class WhisperKeywordDetection extends BaseService {
       'ас'  // Коротка форма
     ];
 
+    // Фільтруємо фонові фрази з YouTube/відео
+    // Використовується в isBackgroundPhrase() з voice-utils.js
+    this._backgroundPhrases = [
+      'дякую за перегляд', 'thanks for watching', 'subscribe',
+      'підпишіться', 'like', 'лайк', 'коментар', 'comment',
+      'субтитри', 'subtitle', 'перекладач', 'translator',
+      'озвучення', 'dubbing', 'автор', 'author', 'проєкт',
+      'project', 'канал', 'channel', 'відео', 'video',
+      'музика', 'music', 'звучить', 'playing', 'грає',
+      'розмовляє з', 'talking to', 'говорить з',
+      'олег миколайович', 'олег міколайович', 'oleg mykolayovych',
+      'субтитрувальниця', 'оля шор', 'богдан логвиненко'
+    ];
+
     // Параметри continuous listening (OPTIMIZED 2025-10-12 - ЧУТЛИВІСТЬ)
     this.chunkDuration = config.chunkDuration || 2000; // 2 секунди на чанк
     this.pauseBetweenChunks = config.pauseBetweenChunks || 1000; // 1 секунда паузи
@@ -265,6 +279,15 @@ export class WhisperKeywordDetection extends BaseService {
       })
       .catch(error => {
         this.logger.warn('Recognition loop error', null, error);
+        
+        // CRITICAL FIX (30.10.2025): Перевірка чи це помилка через відключення пристрою
+        if (error.message?.includes('device disconnected') || 
+            error.name === 'NotSupportedError') {
+          this.logger.error('Audio device disconnected, stopping keyword detection');
+          this.stopListening();
+          return;
+        }
+        
         this.errorCount++;
 
         // Якщо занадто багато помилок - зупиняємо
@@ -296,6 +319,18 @@ export class WhisperKeywordDetection extends BaseService {
     return new Promise((resolve, reject) => {
       if (!this.audioStream) {
         reject(new Error('No audio stream available'));
+        return;
+      }
+
+      // CRITICAL FIX (30.10.2025): Перевірка чи audio stream ще активний
+      // Коли відключаються навушники, tracks стають inactive
+      const tracks = this.audioStream.getTracks();
+      const hasActiveTracks = tracks.some(track => track.readyState === 'live');
+      
+      if (!hasActiveTracks) {
+        this.logger.warn('Audio stream tracks are inactive (device disconnected), stopping keyword detection');
+        this.stopListening();
+        reject(new Error('Audio device disconnected'));
         return;
       }
 
@@ -375,7 +410,7 @@ export class WhisperKeywordDetection extends BaseService {
       formData.append('condition_on_previous_text', 'false'); // Без контексту для keyword
 
       // ✅ Whisper initial prompt - підказка для точного розпізнавання "Атлас"
-      formData.append('initial_prompt', 'Атлас, Atlas, слухай, олег миколайович');
+      formData.append('initial_prompt', 'Атлас, Atlas, слухай');
 
       const response = await fetch(`${this.whisperUrl}/transcribe`, {
         method: 'POST',
@@ -475,6 +510,16 @@ export class WhisperKeywordDetection extends BaseService {
     // замість локального списку this.backgroundPhrases
     if (isBackgroundPhrase(text)) {
       console.log('[WHISPER_KEYWORD] 🎬 Background phrase detected (YouTube/video ending), ignoring:', text);
+      return;
+    }
+
+    // Додатковий фільтр для фраз з "Олег Миколайович" або "розмовляє з Атлас"
+    const textLowerCheck = text.toLowerCase();
+    if (textLowerCheck.includes('олег миколайович') ||
+        textLowerCheck.includes('олег міколайович') ||
+        textLowerCheck.includes('розмовляє з атлас') ||
+        textLowerCheck.includes('розмовляє з atlas')) {
+      console.log('[WHISPER_KEYWORD] 🎬 Filtering out narrative phrase:', text);
       return;
     }
 

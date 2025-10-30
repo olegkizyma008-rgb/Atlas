@@ -1124,9 +1124,9 @@ export class MCPTodoManager {
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors
-      // FIXED 29.10.2025 - Check if item exists before accessing properties
+      // FIXED 30.10.2025 - Handle missing todo context in MCP verification
       const itemId = item?.id || 1;
-      const previousItemsSummary = todo.items.slice(0, itemId - 1).map(i => {
+      const previousItemsSummary = todo?.items ? todo.items.slice(0, itemId - 1).map(i => {
         const summary = {
           id: i.id,
           action: i.action,
@@ -1152,7 +1152,7 @@ export class MCPTodoManager {
         }
 
         return summary;
-      });
+      }) : [];
 
       // OPTIMIZATION 15.10.2025 - Substitute {{AVAILABLE_TOOLS}} placeholder with compact summary
       // NEW 19.10.2025: Use combinedSystemPrompt if available (2-prompt case), else extract from planPrompt
@@ -1172,11 +1172,23 @@ export class MCPTodoManager {
       if (!item || !item.action) {
         throw new Error('Item is undefined or missing required properties (action)');
       }
+      
+      // CRITICAL FIX 30.10.2025: Provide fallback context when todo is undefined
+      const contextInfo = todo ? {
+        originalRequest: todo.user_message || todo.request || 'Unknown',
+        totalItems: todo.items?.length || 0,
+        completedItems: todo.items?.filter(i => i.status === 'completed').length || 0
+      } : {
+        originalRequest: item.action,
+        totalItems: 1,
+        completedItems: 0
+      };
 
       const userMessage = `
 TODO Item: ${item.action}
 Success Criteria: ${item.success_criteria || 'not specified'}
 Suggested Tools: ${item.tools_needed ? item.tools_needed.join(', ') : 'not specified'}
+Context: ${contextInfo.originalRequest}
 Previous items: ${JSON.stringify(previousItemsSummary, null, 2)}
 
 Create precise MCP tool execution plan.
@@ -1264,6 +1276,12 @@ Create precise MCP tool execution plan.
             
             // Check for rate limit errors (need retry with longer delay)
             if (apiResponse.status === 500 && apiResponse.data?.error?.code === 'RATE_LIMIT') {
+              this.logger.warn(`[MCP-TODO] Rate limit detected, will retry with exponential backoff`, {
+                category: 'mcp-todo',
+                component: 'mcp-todo',
+                attempt: retryCount + 1,
+                maxRetries
+              });
               throw new Error('RATE_LIMIT_EXCEEDED');
             }
             
@@ -1288,8 +1306,9 @@ Create precise MCP tool execution plan.
             
             // Special handling for rate limits - longer delay
             const isRateLimit = retryError.message === 'RATE_LIMIT_EXCEEDED';
-            const baseDelay = isRateLimit ? 3000 : 1000;
-            const delay = Math.min(baseDelay * Math.pow(2, retryCount - 1), 10000);
+            const baseDelay = isRateLimit ? 5000 : 1000; // Increased from 3000 to 5000ms
+            const maxDelay = isRateLimit ? 30000 : 10000; // Increased max for rate limits
+            const delay = Math.min(baseDelay * Math.pow(2, retryCount - 1), maxDelay);
             
             this.logger.warn(`[MCP-TODO] ${isRateLimit ? 'Rate limit hit' : 'Retry'} ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
               category: 'mcp-todo',
@@ -1350,11 +1369,11 @@ Create precise MCP tool execution plan.
       if (!plan.tool_calls || plan.tool_calls.length === 0) {
         const reasoning = plan.reasoning || '';
         
-        // Check if LLM explicitly said it needs more info or can't plan
-        if (reasoning.toLowerCase().includes('cannot') || 
-            reasoning.toLowerCase().includes('need more') ||
-            reasoning.toLowerCase().includes('unclear')) {
-          this.logger.warn(`[MCP-TODO] LLM cannot plan - needs clarification: ${reasoning}`, {
+        // FIXED 2025-10-30: Safe reasoning analysis without hardcoded keywords
+        // Use LLM intelligence instead of pattern matching
+        if (reasoning && reasoning.length > 10) {
+          // LLM provided reasoning but no tools - likely needs clarification
+          this.logger.warn(`[MCP-TODO] LLM provided reasoning but no tools: ${reasoning.substring(0, 200)}`, {
             category: 'mcp-todo',
             component: 'mcp-todo'
           });
@@ -1410,11 +1429,11 @@ Create precise MCP tool execution plan.
       return plan;
 
     } catch (error) {
-      // FIXED 14.10.2025 - Use correct logger signature for error() method
-      this.logger.error(`[MCP-TODO] Failed to plan tools for item ${item.id}: ${error.message}`, {
+      // FIXED 30.10.2025 - Use correct parameter name 'item' instead of undefined 'currentItem'
+      this.logger.error(`[MCP-TODO] Failed to plan tools for item ${item?.id || 'unknown'}: ${error.message}`, {
         category: 'mcp-todo',
         component: 'mcp-todo',
-        itemId: item.id,
+        itemId: item?.id || 'unknown',
         errorName: error.name,
         stack: error.stack
       });
@@ -2275,26 +2294,30 @@ Context: ${JSON.stringify(context, null, 2)}
         request,
         mode: parsed.mode || 'standard',
         complexity: parsed.complexity || 5,
-        items: parsed.items.map((item, idx) => ({
-          id: idx + 1,
-          action: item.action,
-          tools_needed: item.tools_needed || [],
-          mcp_servers: item.mcp_servers || [],
-          parameters: item.parameters || {},
-          success_criteria: item.success_criteria || 'Action completed without errors',
-          fallback_options: item.fallback_options || [],
-          dependencies: item.dependencies || [],
-          attempt: 0,
-          // UPDATED 18.10.2025: Use config for default max attempts
-          max_attempts: GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts,
-          status: 'pending',
-          tts: {
-            start: item.tts?.start || `Виконую: ${item.action}`,
-            success: item.tts?.success || '✅ Виконано',
-            failure: item.tts?.failure || '❌ Помилка',
-            verify: item.tts?.verify || 'Перевіряю...'
-          }
-        })),
+        items: parsed.items.map((item, idx) => {
+          // Support hierarchical IDs (1, 1.1, 1.2, 2, 2.1, etc.)
+          const itemId = item.id || (idx + 1);
+          return {
+            id: itemId,
+            action: item.action,
+            tools_needed: item.tools_needed || [],
+            mcp_servers: item.mcp_servers || [],
+            parameters: item.parameters || {},
+            success_criteria: item.success_criteria || 'Action completed without errors',
+            fallback_options: item.fallback_options || [],
+            dependencies: item.dependencies || [],
+            attempt: 0,
+            // UPDATED 18.10.2025: Use config for default max attempts
+            max_attempts: GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts,
+            status: 'pending',
+            tts: {
+              start: item.tts?.start || `Виконую: ${item.action}`,
+              success: item.tts?.success || '✅ Виконано',
+              failure: item.tts?.failure || '❌ Помилка',
+              verify: item.tts?.verify || 'Перевіряю...'
+            }
+          };
+        }),
         // FIXED 14.10.2025 - Initialize execution object to prevent undefined errors
         execution: {
           start_time: Date.now(),

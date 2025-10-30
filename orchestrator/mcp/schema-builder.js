@@ -57,13 +57,25 @@ class MCPSchemaBuilder {
   _generateToolName(tool) {
     // Handle different naming formats from MCP servers
     if (tool.name && tool.name.includes('__')) {
+      // Already has double underscore - check for duplicates
+      const prefix = `${tool.server}__`;
+      if (tool.name.startsWith(prefix)) {
+        // Remove any duplicate prefixes
+        let cleaned = tool.name;
+        while (cleaned.startsWith(prefix + tool.server)) {
+          cleaned = prefix + cleaned.slice(prefix.length + tool.server.length + 2);
+        }
+        return cleaned;
+      }
       return tool.name;
     }
     
     if (tool.server && tool.name) {
       // If tool name already has server prefix with single underscore
       if (tool.name.startsWith(`${tool.server}_`)) {
-        return tool.name.replace(`${tool.server}_`, `${tool.server}__`);
+        // Remove server prefix and add with double underscore
+        const withoutPrefix = tool.name.slice(tool.server.length + 1);
+        return `${tool.server}__${withoutPrefix}`;
       }
       // Add server prefix with double underscore
       return `${tool.server}__${tool.name}`;

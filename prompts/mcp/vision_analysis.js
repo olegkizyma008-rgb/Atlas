@@ -15,17 +15,25 @@ CORE PRINCIPLES:
 4. Detect incomplete states, loading indicators, or error messages
 
 VERIFICATION APPROACH:
-- READ what you actually see in the screenshot
-- EXTRACT specific values, states, or indicators
-- COMPARE against the provided success criteria
+- READ what you actually see in the screenshot with HIGH CONFIDENCE
+- EXTRACT specific values, states, or indicators with EXACT precision
+- COMPARE against the provided success criteria with absolute accuracy
 - DETERMINE verification status based on exact match
+- PROVIDE detailed visual evidence to support your confidence level
+
+CONFIDENCE LEVELS (STRICT GUIDELINES):
+- 100%: Perfect match, zero ambiguity, all criteria clearly visible and verified
+- 85-99%: Strong match with minor uncertainty (e.g., partial occlusion, small UI elements)
+- 70-84%: Moderate match with some ambiguity (e.g., unclear text, multiple interpretations)
+- 50-69%: Weak match with significant uncertainty (e.g., poor visibility, missing context)
+- Below 50%: Cannot verify - insufficient visual evidence or contradictory information
 
 ⚠️ CRITICAL JSON OUTPUT RULES - MANDATORY COMPLIANCE:
 1. Your response MUST start with { and end with }
 2. NO markdown: NO **bold**, NO * bullets, NO ## headers
 3. NO code blocks: NO \`\`\`json or \`\`\`
 4. NO explanatory text: NO "Here is", NO "The result", NO prefixes
-5. NO formatting: NO "Answer:", NO "Response:", NO "Result:"
+5. NO formatting: NO "Answer:", NO "Response:", NO "Result:", NO "*Answer*:"
 6. ONLY valid JSON: {"verified": true, "confidence": 100, ...}
 7. First character = { | Last character = }
 
@@ -34,9 +42,13 @@ EXAMPLES OF FORBIDDEN FORMATS:
 ❌ \`\`\`json\n{...}\n\`\`\` (code block)
 ❌ Here is the result: {...} (prefix text)
 ❌ * Verified: true (bullet points)
+❌ The browser is open... *Answer*: verified (text with marker)
+❌ **Verification Result:** * Verified: Yes (markdown headers)
 
 ONLY ACCEPTABLE FORMAT:
 ✅ {"verified": true, "confidence": 100, "reason": "...", "visual_evidence": {...}}
+
+⚠️ CRITICAL: If you write ANYTHING other than pure JSON starting with { and ending with }, your response will be REJECTED and marked as FAILED verification for security reasons.
 
 FAILURE TO COMPLY = AUTOMATIC REJECTION FOR SECURITY`;
 
@@ -67,6 +79,13 @@ CRITICAL RULES:
 6. For macOS applications: Look for the application window with its distinctive UI elements
 7. An application can be verified as "open" if its window is visible, even if partially obscured
 8. For mathematical operations: Read the EXACT result displayed in Calculator
+
+CONFIDENCE REQUIREMENTS:
+- Use 100% ONLY when you can see ALL success criteria clearly with ZERO ambiguity
+- Use 85-99% when criteria are met but with minor visual uncertainty
+- Use 70-84% when criteria appear met but with notable ambiguity
+- NEVER use 70% as default - analyze carefully and provide specific reasoning
+- Lower confidence requires MORE detailed visual_evidence explanation
 
 Return this exact JSON structure:
 {

@@ -133,8 +133,23 @@ export class DevSelfAnalysisProcessor {
                 }
             }
 
+            // NEW 2025-11-02: Analyze WHAT Atlas is actually doing right now
+            if (backgroundMode) {
+                const currentAction = await this._analyzeCurrentAction(userMessage, session);
+                await this._sendChatUpdate(session, `🧠 Розумію: ${currentAction.understanding}`, 'atlas');
+                await this._sendChatUpdate(session, `📋 План дій: ${currentAction.plan}`, 'atlas');
+            }
+
             // Gather REAL system context through MCP filesystem
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, '📂 Збираю інформацію про поточний стан системи...', 'atlas');
+            }
+            
             const systemContext = await this._gatherRealSystemContext(container);
+            
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, `✅ Зібрано контекст: ${systemContext.files?.length || 0} файлів, ${systemContext.logs?.errorCount || 0} помилок в логах`, 'atlas');
+            }
             
             // Initialize devProblemsQueue if not exists
             if (!session.devProblemsQueue) {
@@ -159,6 +174,10 @@ export class DevSelfAnalysisProcessor {
                     category: 'system',
                     component: 'dev-analysis'
                 });
+                
+                if (backgroundMode) {
+                    await this._sendChatUpdate(session, `💭 Аналізую контекст з ${recentMessages.length} попередніх повідомлень`, 'atlas');
+                }
             }    
             messages.push(...recentMessages);
             
@@ -191,7 +210,22 @@ export class DevSelfAnalysisProcessor {
             const analysisResult = this._parseRobustResponse(response.data.choices[0].message.content);
             
             if (backgroundMode) {
-                await this._sendChatUpdate(session, '✅ Первинний аналіз завершено, виконую детальну перевірку...', 'atlas');
+                // Be honest about what was found
+                const findingsCount = {
+                    critical: analysisResult.findings?.critical_issues?.length || 0,
+                    performance: analysisResult.findings?.performance_bottlenecks?.length || 0,
+                    suggestions: analysisResult.findings?.improvement_suggestions?.length || 0
+                };
+                
+                if (findingsCount.critical > 0) {
+                    await this._sendChatUpdate(session, `⚠️ ПРАВДА: Знайдено ${findingsCount.critical} критичних проблем, які потребують уваги`, 'atlas');
+                } else if (findingsCount.performance > 0) {
+                    await this._sendChatUpdate(session, `📊 ПРАВДА: Система працює, але є ${findingsCount.performance} проблем продуктивності`, 'atlas');
+                } else {
+                    await this._sendChatUpdate(session, '✅ ПРАВДА: Критичних проблем не виявлено, система стабільна', 'atlas');
+                }
+                
+                await this._sendChatUpdate(session, '🔍 Виконую детальну перевірку для повної картини...', 'atlas');
             }
             
             // Add detailed analysis of current system state
@@ -205,7 +239,14 @@ export class DevSelfAnalysisProcessor {
             // If problems found, perform deeper targeted analysis (safe check)
             if (analysisResult.findings?.critical_issues && Array.isArray(analysisResult.findings.critical_issues) && analysisResult.findings.critical_issues.length > 0) {
                 if (backgroundMode) {
-                    await this._sendChatUpdate(session, `🔍 Знайдено ${analysisResult.findings.critical_issues.length} критичних проблем, виконую глибокий аналіз...`, 'atlas');
+                    // List actual problems found
+                    const problemsList = analysisResult.findings.critical_issues
+                        .slice(0, 3)
+                        .map((issue, i) => `${i + 1}. ${issue.description || issue.title || 'Невідома проблема'}`)
+                        .join('\n');
+                    
+                    await this._sendChatUpdate(session, `🔍 ПРАВДА про знайдені проблеми:\n${problemsList}${analysisResult.findings.critical_issues.length > 3 ? '\n...та інші' : ''}`, 'atlas');
+                    await this._sendChatUpdate(session, '🧠 Виконую глибокий аналіз кожної проблеми...', 'atlas');
                 }
                 
                 const deeperAnalysis = await this._performTargetedDeepAnalysis(
@@ -213,6 +254,10 @@ export class DevSelfAnalysisProcessor {
                     systemContext
                 );
                 analysisResult.deep_targeted_analysis = deeperAnalysis;
+                
+                if (backgroundMode) {
+                    await this._sendChatUpdate(session, '✅ Глибокий аналіз завершено, визначаю корінні причини...', 'atlas');
+                }
             }
             
             // Extract real problems from analysis
@@ -232,7 +277,23 @@ export class DevSelfAnalysisProcessor {
             const comprehensiveResponse = await this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
             
             if (backgroundMode) {
-                await this._sendChatUpdate(session, '📊 Аналіз завершено, готую звіт...', 'atlas');
+                // Honest summary of what was done
+                const metrics = analysisResult.metrics || {};
+                const health = metrics.system_health || 0;
+                
+                await this._sendChatUpdate(session, '📊 ПІДСУМОК АНАЛІЗУ:', 'atlas');
+                await this._sendChatUpdate(session, `• Здоров'я системи: ${health}%`, 'atlas');
+                await this._sendChatUpdate(session, `• Помилок в логах: ${metrics.error_count || 0}`, 'atlas');
+                await this._sendChatUpdate(session, `• Попереджень: ${metrics.warning_count || 0}`, 'atlas');
+                await this._sendChatUpdate(session, `• Критичних проблем: ${analysisResult.findings?.critical_issues?.length || 0}`, 'atlas');
+                
+                if (health < 70) {
+                    await this._sendChatUpdate(session, '⚠️ ЧЕСНО: Система потребує серйозної уваги та виправлень', 'atlas');
+                } else if (health < 85) {
+                    await this._sendChatUpdate(session, '⚡ ЧЕСНО: Система працює, але є місце для покращень', 'atlas');
+                } else {
+                    await this._sendChatUpdate(session, '✅ ЧЕСНО: Система в хорошому стані', 'atlas');
+                }
             }
             
             // Перевіряємо чи користувач ЯВНО просить внести зміни
@@ -241,7 +302,8 @@ export class DevSelfAnalysisProcessor {
             // Handle intervention path - ТІЛЬКИ якщо користувач явно просить
             if (userWantsIntervention && analysisResult.intervention_required) {
                 if (backgroundMode) {
-                    await this._sendChatUpdate(session, '🔧 Виявлено необхідність втручання, готую план виправлень...', 'atlas');
+                    await this._sendChatUpdate(session, '🔧 ПРАВДА: Знайдені проблеми потребують внесення змін в код', 'atlas');
+                    await this._sendChatUpdate(session, '📝 Готую детальний план виправлень з описом кожної зміни...', 'atlas');
                 }
                 if (password && password === this.interventionPassword) {
                     const interventionResult = await this._handleIntervention(analysisResult, session, password);
@@ -1273,23 +1335,69 @@ export class DevSelfAnalysisProcessor {
     }
     
     /**
-     * Send chat update in background mode
-     * NEW 2025-11-02: Stream progress updates to user
+     * Analyze what Atlas is actually doing right now
+     * NEW 2025-11-02: Deep understanding of current action
      */
-    async _sendChatUpdate(session, message, agent = 'atlas') {
+    async _analyzeCurrentAction(userMessage, session) {
+        const msg = userMessage.toLowerCase();
+        
+        // Detect action type
+        let actionType = 'unknown';
+        let understanding = '';
+        let plan = '';
+        
+        if (msg.includes('проаналізуй себе') || msg.includes('analyze yourself')) {
+            actionType = 'self-analysis';
+            understanding = 'Ти просиш мене проаналізувати мій власний код, логи та продуктивність';
+            plan = 'Перевірю свої файли, логи помилок, метрики системи та знайду проблеми';
+        } else if (msg.includes('виправ себе') || msg.includes('fix yourself')) {
+            actionType = 'self-fix';
+            understanding = 'Ти даєш мені право знайти проблеми в собі та виправити їх';
+            plan = 'Проаналізую код, знайду баги та автоматично внесу виправлення';
+        } else if (msg.includes('покращ') || msg.includes('improve')) {
+            actionType = 'improvement';
+            understanding = 'Ти хочеш щоб я став кращим, оптимізувавши свою роботу';
+            plan = 'Знайду місця для оптимізації та покращу продуктивність системи';
+        } else if (msg.includes('перевір') || msg.includes('check')) {
+            actionType = 'health-check';
+            understanding = 'Ти просиш перевірити мій стан здоров\'я та стабільність';
+            plan = 'Проведу діагностику всіх компонентів та повідомлю про стан';
+        } else {
+            actionType = 'general-analysis';
+            understanding = 'Ти хочеш щоб я розібрався в своєму поточному стані';
+            plan = 'Проведу загальний аналіз системи та повідомлю про знахідки';
+        }
+        
+        return { actionType, understanding, plan };
+    }
+
+    /**
+     * Send chat update in background mode
+     * NEW 2025-11-02: Stream progress updates to user with TRUTH
+     */
+    async _sendChatUpdate(session, message, agent = 'atlas', metadata = {}) {
         if (!session.websocketManager) {
             this.logger.warn('[DEV-ANALYSIS] No WebSocket manager available for chat updates');
             return;
         }
 
         try {
+            // Add timestamp for transparency
+            const timestamp = new Date().toISOString();
+            const fullMessage = metadata.showTimestamp ? `[${timestamp}] ${message}` : message;
+            
             await session.websocketManager.broadcast('agent_message', {
-                content: message,
+                content: fullMessage,
                 agent: agent,
                 sessionId: session.id,
-                timestamp: new Date().toISOString(),
+                timestamp: timestamp,
                 ttsContent: message,
-                mode: 'dev-background'
+                mode: 'dev-background',
+                metadata: {
+                    ...metadata,
+                    truthful: true, // Mark as truthful reporting
+                    realtime: true
+                }
             });
             
             this.logger.info(`[DEV-ANALYSIS] 💬 Sent chat update: ${message.substring(0, 50)}...`, {
@@ -1298,6 +1406,15 @@ export class DevSelfAnalysisProcessor {
             });
         } catch (error) {
             this.logger.error('[DEV-ANALYSIS] Failed to send chat update:', error);
+            // Be honest about failures too
+            try {
+                await session.websocketManager.broadcast('agent_message', {
+                    content: `⚠️ Не вдалося відправити повідомлення: ${error.message}`,
+                    agent: 'system',
+                    sessionId: session.id,
+                    timestamp: new Date().toISOString()
+                });
+            } catch {}
         }
     }
 

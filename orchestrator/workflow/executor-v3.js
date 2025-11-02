@@ -12,6 +12,7 @@ import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 // import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js'; // Not used, commented out
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';
+import { CascadeMessageInterceptor } from './cascade-message-interceptor.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -60,6 +61,24 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   const workflowStart = Date.now();
 
   try {
+    // NEW 2025-11-02: Перевірка чи це повідомлення для Cascade
+    const cascadeInterceptor = new CascadeMessageInterceptor(container);
+    await cascadeInterceptor.initialize();
+    
+    if (cascadeInterceptor.shouldIntercept(userMessage)) {
+      logger.info('[EXECUTOR] Message intercepted by Cascade');
+      
+      const result = await cascadeInterceptor.processMessage(userMessage, session);
+      
+      logger.workflow('complete', 'cascade', 'Cascade processing completed', {
+        success: result.success,
+        command: result.command
+      });
+      
+      return result;
+    }
+    
+    // Якщо не для Cascade - продовжуємо стандартний workflow
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
     const contextEnrichmentProcessor = container.resolve('atlasContextEnrichmentProcessor');

@@ -173,16 +173,21 @@
 2025-11-02 21:52:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
 2025-11-02 21:52:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 21:52:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.5 {"metadata":{}}
-ool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 96 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 96 tools from 7 servers (java_sdk, python_sdk, shell, memory, filesystem, applescript, playwright) {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [DI] All services initialized {"metadata":{}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-11-02 21:57:56 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:57:56 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:57:56 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:57:56 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:57:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:57:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:57:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.6 {"metadata":{}}
+2025-11-02 22:02:56 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 22:02:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 22:02:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.7 {"metadata":{}}
+2025-11-02 22:02:56 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 22:02:56 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 22:02:56 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 22:02:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+iguration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
 2025-11-02 21:27:58 [INFO] [DI] Starting services... {"metadata":{}}
 2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
 2025-11-02 21:27:58 [INFO] [DI] All services started {"metadata":{}}
@@ -234,3 +239,17 @@ ool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"meta
 2025-11-02 21:52:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
 2025-11-02 21:52:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 21:52:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.5 {"metadata":{}}
+2025-11-02 21:57:56 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:57:56 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:57:56 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:57:56 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:57:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:57:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:57:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.6 {"metadata":{}}
+2025-11-02 22:02:56 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 22:02:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 22:02:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.7 {"metadata":{}}
+2025-11-02 22:02:56 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 22:02:56 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 22:02:56 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 22:02:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}

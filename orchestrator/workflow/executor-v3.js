@@ -12,7 +12,7 @@ import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 // import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js'; // Not used, commented out
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';
-import { CascadeMessageInterceptor } from './cascade-message-interceptor.js';
+import { NexusContextActivator } from '../eternity/nexus-context-activator.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -61,24 +61,46 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   const workflowStart = Date.now();
 
   try {
-    // NEW 2025-11-02: Перевірка чи це повідомлення для Cascade
-    const cascadeInterceptor = new CascadeMessageInterceptor(container);
-    await cascadeInterceptor.initialize();
+    // NEW 2025-11-02: NEXUS Context-Aware Activation
+    const nexusActivator = new NexusContextActivator(container);
+    await nexusActivator.initialize();
     
-    if (cascadeInterceptor.shouldIntercept(userMessage)) {
-      logger.info('[EXECUTOR] Message intercepted by Cascade');
-      
-      const result = await cascadeInterceptor.processMessage(userMessage, session);
-      
-      logger.workflow('complete', 'cascade', 'Cascade processing completed', {
-        success: result.success,
-        command: result.command
+    // Аналізуємо чи потрібен Nexus (на основі контексту, не ключових слів)
+    const nexusAnalysis = await nexusActivator.analyzeIfNexusNeeded(userMessage, session);
+    
+    if (nexusAnalysis.shouldUseNexus) {
+      logger.info('[EXECUTOR] Nexus activated', {
+        strategy: nexusAnalysis.strategy,
+        reasoning: nexusAnalysis.reasoning,
+        models: nexusAnalysis.models
       });
+      
+      const result = await nexusActivator.executeWithNexus(userMessage, session, nexusAnalysis);
+      
+      logger.workflow('complete', 'nexus', 'Nexus processing completed', {
+        success: result.success,
+        strategy: nexusAnalysis.strategy
+      });
+      
+      // Send result via WebSocket
+      if (wsManager && result.content) {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: result.content,
+          agent: 'atlas',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            nexusUsed: true,
+            models: nexusAnalysis.models,
+            strategy: nexusAnalysis.strategy
+          }
+        });
+      }
       
       return result;
     }
     
-    // Якщо не для Cascade - продовжуємо стандартний workflow
+    // Якщо Nexus не потрібен - продовжуємо стандартний workflow
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
     const contextEnrichmentProcessor = container.resolve('atlasContextEnrichmentProcessor');

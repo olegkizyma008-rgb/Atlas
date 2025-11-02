@@ -28,11 +28,13 @@ const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
 export class DevSelfAnalysisProcessor {
     constructor(logger, container) {
         this.logger = logger;
+        this.container = container;
         // Initialize recursive analysis engine (will be created inline if needed)
         this.recursiveEngine = null;
         
-        // NEW 2025-11-02: Dynamic Prompt Injector - Система надінтелекту
+        // NEW 2025-11-02: NEXUS Integration - Multi-Model System
         this.dynamicPromptInjector = new DynamicPromptInjector(container);
+        this.multiModelOrchestrator = null; // Will be resolved from container
         
         // Configuration paths
         this.config = {
@@ -87,6 +89,22 @@ export class DevSelfAnalysisProcessor {
                 category: 'system',
                 component: 'dev-analysis'
             });
+        }
+        
+        // NEW 2025-11-02: Initialize Nexus Multi-Model Orchestrator for DEV mode
+        if (!this.multiModelOrchestrator && this.container) {
+            try {
+                this.multiModelOrchestrator = this.container.resolve('multiModelOrchestrator');
+                this.logger.info('[DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+            } catch (e) {
+                this.logger.warn('[DEV-ANALYSIS] Nexus not available, using standard mode', {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+            }
         }
     }
 

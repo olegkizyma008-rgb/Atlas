@@ -26,6 +26,10 @@ export class TTSManager {
     /** @type {Map<string, Set<Function>>} */
     this._eventHandlers = new Map();
 
+    // FIXED 2025-11-02: Initialize queue array
+    this.queue = [];
+    this.isProcessing = false;
+
     // НОВИНКА 2025-11-02: Pre-loading system для безшовного відтворення
     /** @type {Map<number, Blob>} */
     this.preloadedSegments = new Map(); // Кеш готових audio blobs
@@ -47,6 +51,9 @@ export class TTSManager {
     this._initPromise = (async () => {
       try {
         this.logger.debug('Initializing TTSManager...');
+
+        // FIXED 2025-11-02: Load runtime config FIRST before health check
+        await this.loadRuntimeConfig();
 
         // Додаємо лог у веб-інтерфейс
         if (window.atlasLogger) {
@@ -619,7 +626,7 @@ export class TTSManager {
     // FIXED 2025-11-02: Use runtime config from backend (reads .env)
     const chunkSize = this.runtimeConfig.maxChunkSize || TTS_CONFIG.chunking?.maxChunkSize || 800;
     const actualMaxLength = maxLength || chunkSize;
-    
+
     if (!text || text.length <= actualMaxLength) {
       return [text];
     }

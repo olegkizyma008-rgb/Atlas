@@ -12,6 +12,7 @@ import logger from '../utils/logger.js';
 import { CASCADE_API_CONFIG } from '../../config/cascade-api-config.js';
 import { DynamicPromptInjector } from './dynamic-prompt-injector.js';
 import { SelfImprovementEngine } from './self-improvement-engine.js';
+import { MultiModelOrchestrator } from './multi-model-orchestrator.js';
 import axios from 'axios';
 
 export class CascadeController {
@@ -26,6 +27,7 @@ export class CascadeController {
         this.dynamicPromptInjector = null;
         this.selfImprovementEngine = null;
         this.eternityModule = null;
+        this.multiModelOrchestrator = null;
         
         // Стан контролю
         this.controlState = {
@@ -71,6 +73,8 @@ export class CascadeController {
             // 2. Підключення до підсистем
             this.dynamicPromptInjector = new DynamicPromptInjector(this.container);
             this.selfImprovementEngine = new SelfImprovementEngine(this.container);
+            this.multiModelOrchestrator = new MultiModelOrchestrator(this.container);
+            await this.multiModelOrchestrator.initialize();
             
             // 3. Отримання Eternity Module
             try {

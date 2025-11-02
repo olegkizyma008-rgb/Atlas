@@ -159,32 +159,50 @@ export class CascadeMessageInterceptor {
     async _handleAnalyze(userMessage, session) {
         await this._sendAtlasMessage(
             session,
-            '🔍 **Atlas:** Запускаю глибокий аналіз системи через Cascade...'
+            '🔍 **Atlas:** Запускаю багатомодельний аналіз системи...'
         );
 
-        // Викликаємо Cascade через Windsurf API
-        const prompt = `Analyze the Atlas system state and provide detailed report.
+        // Отримуємо Multi-Model Orchestrator
+        const multiModel = this.container.resolve('multiModelOrchestrator');
+        
+        // ПАРАЛЕЛЬНИЙ ЗБІР ДАНИХ через Codestral
+        await this._sendAtlasMessage(session, '📂 **Atlas:** Codestral збирає дані системи...');
+        
+        const collectedData = await multiModel.autonomousDataCollection({
+            logsPath: '/Users/dev/Documents/GitHub/atlas4/logs',
+            configPath: '/Users/dev/Documents/GitHub/atlas4/config',
+            codePath: '/Users/dev/Documents/GitHub/atlas4/orchestrator'
+        });
+
+        // ГЛИБОКИЙ АНАЛІЗ через Claude 4.5 Thinking
+        await this._sendAtlasMessage(session, '🧠 **Atlas:** Claude 4.5 Thinking аналізує зібрані дані...');
+        
+        const analysisResult = await multiModel.executeTask(
+            'deep-analysis',
+            `Deep system analysis based on collected data:
+
+Logs: ${collectedData.logs}
+Config: ${collectedData.config}
+Recent changes: ${collectedData.codeChanges}
+Metrics: ${collectedData.metrics}
+
 User request: ${userMessage}
 
-Current system state:
-- Session: ${session.id}
-- Mode: ${this.windsurfClient?.config.operationMode || 'unknown'}
-- Active problems: ${session.devProblemsQueue?.length || 0}
+Provide comprehensive analysis in Ukrainian, from Atlas perspective.`
+        );
 
-Provide analysis in Ukrainian language, from Atlas perspective.`;
-
-        const response = await this.windsurfClient.request(prompt);
-
-        // Відправляємо результат від імені Atlas
+        // Відправляємо результат
         await this._sendAtlasMessage(
             session,
-            `📊 **Atlas (аналіз від Cascade):**\n\n${response.content}`
+            `📊 **Atlas (багатомодельний аналіз):**\n\n${analysisResult.content}\n\n_Використано: ${analysisResult.model}_`
         );
 
         return {
             success: true,
             command: 'analyze',
-            result: response.content
+            result: analysisResult.content,
+            dataCollected: collectedData,
+            model: analysisResult.model
         };
     }
 

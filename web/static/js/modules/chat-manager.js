@@ -45,6 +45,9 @@ export class ChatManager {
     // Таймер для автоматичної розблокування якщо щось застряло
     this.streamingTimeout = null;
 
+    // DEV password handler reference (shared with AtlasApp managers)
+    this.devPasswordHandler = null;
+
     // ВИДАЛЕНО: this.init() - викликається явно в app-refactored.js
     // Це запобігає подвійній ініціалізації
   }
@@ -652,16 +655,30 @@ export class ChatManager {
     // Check if DEV mode requires password authentication
     if (mode === 'dev' && requiresAuth && analysisData) {
       this.logger.info('🔐 DEV mode requires password - showing dialog');
-      
+
       // Import and show password dialog
       import('../modules/dev-password-handler.js').then(module => {
-        const devPasswordHandler = new module.DevPasswordHandler();
-        devPasswordHandler.showPasswordDialog({
-          analysisData: {
-            criticalIssues: analysisData.findings?.critical_issues?.length || 0,
-            performanceIssues: analysisData.findings?.performance_bottlenecks?.length || 0,
-            improvements: analysisData.findings?.improvement_suggestions?.length || 0
-          }
+        let handler = this.devPasswordHandler;
+
+        // Try to reuse AtlasApp manager instance if available
+        if (!handler && window.atlasApp?.managers?.devPasswordHandler) {
+          handler = window.atlasApp.managers.devPasswordHandler;
+          this.devPasswordHandler = handler;
+        }
+
+        // Fallback to creating a lightweight instance
+        if (!handler) {
+          handler = new module.DevPasswordHandler({
+            chatManager: this,
+            wsClient: window.atlasApp?.managers?.webSocket,
+            logger: this.logger
+          });
+          this.devPasswordHandler = handler;
+        }
+
+        handler.showPasswordDialog({
+          sessionId: this.currentSession,
+          analysisData
         });
       }).catch(err => {
         this.logger.error('Failed to load DEV password handler:', err);

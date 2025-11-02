@@ -224,19 +224,22 @@ export class TetyanaToolSystem {
                 errors: ['tool_calls must be a non-empty array']
             };
         } // STEP 1: Run repetition inspection
+        // FIXED 2025-11-02: inspectTools now returns categorized object, not array
         const inspectionResults = await this.inspectionManager.inspectTools(toolCalls, context);
-        const processedResults = this.inspectionManager.processResults(inspectionResults);
 
         // Handle denied tools from repetition inspector
-        if (processedResults.denied.length > 0) {
+        if (inspectionResults.denied && inspectionResults.denied.length > 0) {
             logger.warn('tetyana-tool-system', 
-                `⛔ ${processedResults.denied.length} tool(s) denied by repetition inspector`);
+                `⛔ ${inspectionResults.denied.length} tool(s) denied by repetition inspector`);
             
-            const deniedResults = processedResults.denied.map(d => ({
+            const deniedResults = inspectionResults.denied.map(call => ({
                 success: false,
-                error: d.results[0].reason,
-                inspector: d.results[0].inspector,
-                metadata: d.results[0].metadata
+                error: 'Denied by security inspection',
+                metadata: {
+                    server: call.server,
+                    tool: call.tool,
+                    inspectionResults: call.inspectionResults
+                }
             }));
 
             return {
@@ -245,7 +248,7 @@ export class TetyanaToolSystem {
                 successful_calls: 0,
                 failed_calls: deniedResults.length,
                 inspection: {
-                    repetition: { denied: processedResults.denied.length },
+                    repetition: { denied: inspectionResults.denied.length },
                     llmValidation: { skipped: true }
                 }
             };
@@ -311,11 +314,12 @@ export class TetyanaToolSystem {
         const result = await this.dispatcher.dispatchToolCalls(toolCalls, context);
 
         // Add inspection metadata to result
+        // FIXED 2025-11-02: Use inspectionResults directly (already categorized)
         result.inspection = {
             repetition: {
-                denied: processedResults.denied.length,
-                requireApproval: processedResults.requireApproval.length,
-                allowed: processedResults.allowed.length
+                denied: inspectionResults.denied?.length || 0,
+                requireApproval: inspectionResults.needsApproval?.length || 0,
+                allowed: inspectionResults.approved?.length || 0
             },
             llmValidation: {
                 executed: this.llmValidator !== null,
@@ -363,19 +367,22 @@ export class TetyanaToolSystem {
         context.mode = this.mode;
 
         // STEP 1: Run repetition inspection
+        // FIXED 2025-11-02: inspectTools now returns categorized object, not array
         const inspectionResults = await this.inspectionManager.inspectTools(toolCalls, context);
-        const processedResults = this.inspectionManager.processResults(inspectionResults);
 
         // Handle denied tools from repetition inspector
-        if (processedResults.denied.length > 0) {
+        if (inspectionResults.denied && inspectionResults.denied.length > 0) {
             logger.warn('tetyana-tool-system', 
-                `⛔ ${processedResults.denied.length} tool(s) denied by repetition inspector`);
+                `⛔ ${inspectionResults.denied.length} tool(s) denied by repetition inspector`);
             
-            const deniedResults = processedResults.denied.map(d => ({
+            const deniedResults = inspectionResults.denied.map(call => ({
                 success: false,
-                error: d.results[0].reason,
-                inspector: d.results[0].inspector,
-                metadata: d.results[0].metadata
+                error: 'Denied by security inspection',
+                metadata: {
+                    server: call.server,
+                    tool: call.tool,
+                    inspectionResults: call.inspectionResults
+                }
             }));
 
             return {
@@ -384,7 +391,7 @@ export class TetyanaToolSystem {
                 successful_calls: 0,
                 failed_calls: deniedResults.length,
                 inspection: {
-                    repetition: { denied: processedResults.denied.length },
+                    repetition: { denied: inspectionResults.denied.length },
                     llmValidation: { skipped: true }
                 }
             };
@@ -450,11 +457,12 @@ export class TetyanaToolSystem {
         const result = await this.dispatcher.dispatchToolCalls(toolCalls, context);
 
         // Add inspection metadata to result
+        // FIXED 2025-11-02: Use inspectionResults directly (already categorized)
         result.inspection = {
             repetition: {
-                denied: processedResults.denied.length,
-                requireApproval: processedResults.requireApproval.length,
-                allowed: processedResults.allowed.length
+                denied: inspectionResults.denied?.length || 0,
+                requireApproval: inspectionResults.needsApproval?.length || 0,
+                allowed: inspectionResults.approved?.length || 0
             },
             llmValidation: {
                 executed: this.llmValidator !== null,

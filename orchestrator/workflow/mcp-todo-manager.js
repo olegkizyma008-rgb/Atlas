@@ -1238,7 +1238,9 @@ Create precise MCP tool execution plan.
         await this._waitForRateLimit();
 
         // FIXED 2025-10-22 - Optimized timeout configuration
-        const isReasoningModel = modelConfig.model.includes('reasoning') || modelConfig.model.includes('phi-4');
+        // FIXED 2025-11-02 - Add safety check for undefined modelConfig.model
+        const modelName = modelConfig?.model || '';
+        const isReasoningModel = modelName.includes('reasoning') || modelName.includes('phi-4');
         const timeoutMs = isReasoningModel ? 90000 : 30000;  // 90s for reasoning, 30s for fast models
 
         // NEW 2025-10-22: Build JSON Schema for tool_calls to enforce valid tool names (Goose-style)
@@ -2794,6 +2796,14 @@ Context: ${JSON.stringify(context, null, 2)}
       .replace(/\uFEFF/g, '')
       .replace(/['‛'`´]/g, '\'')
       .replace(/[""]/g, '"');
+
+    // FIXED 2025-11-02: Remove repeated "reasoning: " patterns that break JSON
+    // LLM sometimes generates: }}, "reasoning: ","reasoning: ","reasoning: "...
+    sanitized = sanitized.replace(/,\s*"reasoning:\s*"\s*(,\s*"reasoning:\s*"\s*)*/g, '');
+
+    // FIXED 2025-11-02: Fix missing closing bracket for tool_calls array
+    // Pattern: {"tool_calls": [{...}}, "reasoning" should be {"tool_calls": [{...}], "reasoning"
+    sanitized = sanitized.replace(/(\{"tool_calls":\s*\[[^\]]*)\}\s*,\s*"reasoning/g, '$1}], "reasoning');
 
     // Quote property names that are missing double quotes.
     sanitized = sanitized.replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":');

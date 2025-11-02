@@ -16,6 +16,7 @@ export class DevPasswordHandler {
     this.wsClient = options.wsClient;
     this.currentSessionId = null;
     this.currentAnalysisData = null;
+    this.currentAnalysisSummary = null;
 
     this.setupPasswordDialog();
   }
@@ -38,11 +39,30 @@ export class DevPasswordHandler {
   async handlePasswordRequest(data) {
     this.logger.info('DEV password request received', data);
 
-    this.currentSessionId = data.sessionId;
-    this.currentAnalysisData = data.analysisData;
+    this.currentSessionId = data.sessionId || this.currentSessionId || null;
+    this.currentAnalysisData = data.analysisData || this.currentAnalysisData || {};
+    this.currentAnalysisSummary = this._buildAnalysisSummary(this.currentAnalysisData);
 
-    // Show fullscreen hacker dialog
-    devPasswordDialog.show(data);
+    this._displayDialog();
+  }
+
+  /**
+   * Public helper used by chat-manager to display the dialog immediately
+   * @param {Object} data
+   * @param {string} [data.sessionId]
+   * @param {Object} [data.analysisData]
+   */
+  showPasswordDialog(data = {}) {
+    const normalized = {
+      sessionId: data.sessionId || this.currentSessionId || null,
+      analysisData: data.analysisData || this.currentAnalysisData || {}
+    };
+
+    this.currentSessionId = normalized.sessionId;
+    this.currentAnalysisData = normalized.analysisData;
+    this.currentAnalysisSummary = this._buildAnalysisSummary(this.currentAnalysisData);
+
+    this._displayDialog();
   }
 
   async submitPassword(password) {
@@ -60,9 +80,25 @@ export class DevPasswordHandler {
         await this.chatManager.sendMessage(trimmedPassword);
       } else {
         // Fallback: direct HTTP call via orchestrator client
+        this.logger.warn('Chat manager unavailable, sending DEV password via orchestrator API');
+
         const { orchestratorClient } = await import('../core/api-client.js');
-        await orchestratorClient.sendMessage(trimmedPassword, {
-          sessionId: this.currentSessionId
+
+        await new Promise((resolve, reject) => {
+          orchestratorClient.stream(
+            '/chat/stream',
+            {
+              message: trimmedPassword,
+              sessionId: this.currentSessionId || `session_dev_${Date.now()}`,
+              enableTTS: false,
+              metadata: {
+                source: 'dev-password-handler'
+              }
+            },
+            () => {},
+            (error) => reject(error),
+            () => resolve()
+          );
         });
       }
 
@@ -92,6 +128,50 @@ export class DevPasswordHandler {
   init() {
     this.setupWebSocketListener();
     this.logger.info('DEV Password Handler initialized');
+  }
+
+  _displayDialog() {
+    devPasswordDialog.show({
+      sessionId: this.currentSessionId,
+      analysisData: this.currentAnalysisSummary || this._buildAnalysisSummary()
+    });
+  }
+
+  _buildAnalysisSummary(rawData = {}) {
+    const pickCount = (...candidates) => {
+      for (const candidate of candidates) {
+        if (typeof candidate === 'number' && !Number.isNaN(candidate)) {
+          return candidate;
+        }
+        if (Array.isArray(candidate)) {
+          return candidate.length;
+        }
+      }
+      return 0;
+    };
+
+    const findings = rawData?.findings || {};
+
+    return {
+      criticalIssues: pickCount(
+        rawData?.criticalIssues,
+        rawData?.critical_issues,
+        rawData?.stats?.criticalIssues,
+        findings?.critical_issues
+      ),
+      performanceIssues: pickCount(
+        rawData?.performanceIssues,
+        rawData?.performance_bottlenecks,
+        rawData?.stats?.performanceIssues,
+        findings?.performance_bottlenecks
+      ),
+      improvements: pickCount(
+        rawData?.improvements,
+        rawData?.improvement_suggestions,
+        rawData?.stats?.improvements,
+        findings?.improvement_suggestions
+      )
+    };
   }
 }
 

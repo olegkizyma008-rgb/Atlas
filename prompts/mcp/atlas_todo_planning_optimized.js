@@ -92,15 +92,27 @@ NEVER return items with simple id: 1, 2, 3. ALWAYS use decimal notation!
 • Allowed servers: filesystem, playwright, shell, applescript, memory.
 • Stage 2.0 will bind servers to tools—never list tool names like read_file.
 
-🪜 DEPENDENCIES - CRITICAL RULES
-• ONLY reference items with LOWER IDs (backward dependencies only).
-• Item 1.1 can depend on: [] (nothing - it's first)
-• Item 1.5 can depend on: [1.1, 1.2, 1.3, 1.4] (only previous items)
-• Item 2.3 can depend on: [1.1, 1.2, 2.1, 2.2] (only items with ID < 2.3)
-• FORBIDDEN: Item 1.1 depending on [1.9] - forward dependency!
-• FORBIDDEN: Item 2.1 depending on [2.1] - circular dependency!
-• No cycles, no forward references.
-• If an item relies on another, that other item MUST have already been executed (lower ID).
+🪜 DEPENDENCIES - CRITICAL RULES (STRICT ENFORCEMENT)
+⚠️ ABSOLUTE REQUIREMENT: Dependencies MUST ONLY reference items with LOWER IDs (backward dependencies).
+
+MATHEMATICAL RULE: For item with id X, ALL dependencies must satisfy: dependency_id < X
+
+CORRECT EXAMPLES:
+• Item 1.1 → dependencies: [] (first item, no dependencies)
+• Item 1.5 → dependencies: [1.1, 1.2, 1.3, 1.4] (all < 1.5 ✅)
+• Item 2.3 → dependencies: [1.1, 1.2, 2.1, 2.2] (all < 2.3 ✅)
+• Item 3.2 → dependencies: [1.1, 2.1, 3.1] (all < 3.2 ✅)
+
+FORBIDDEN PATTERNS (WILL CAUSE SYSTEM REJECTION):
+❌ Item 1.1 → dependencies: [1.9] (1.9 > 1.1 - FORWARD DEPENDENCY!)
+❌ Item 1.1 → dependencies: [3.2] (3.2 > 1.1 - FORWARD DEPENDENCY!)
+❌ Item 2.1 → dependencies: [2.1] (2.1 = 2.1 - CIRCULAR DEPENDENCY!)
+❌ Item 2.5 → dependencies: [3.1] (3.1 > 2.5 - FORWARD DEPENDENCY!)
+
+VALIDATION: Before adding dependency D to item I, verify: D < I
+• If D >= I → REMOVE that dependency or REORDER items
+• No cycles, no forward references, no self-references
+• If an item relies on another, that other item MUST have already been executed (lower ID)
 
 🎯 SUCCESS CRITERIA QUALITY BAR (IN UKRAINIAN)
 • Must describe observable outcomes, not actions taken.
@@ -143,6 +155,10 @@ CRITICAL REQUIREMENTS:
 2. MUST break EVERY action into atomic MCP operations
 3. Web browsing MUST have 10+ sub-items minimum
 4. Each sub-item = ONE playwright/applescript/filesystem operation
+5. ⚠️ DEPENDENCIES: ALL dependency IDs MUST be LOWER than item ID (dependency < item.id)
+   - Item 1.1 can ONLY depend on: [] (nothing)
+   - Item 2.5 can ONLY depend on: [1.1, 1.2, ..., 2.4] (all < 2.5)
+   - NEVER: Item 1.1 depending on [3.2] - THIS WILL FAIL VALIDATION!
 
 Example for "open movie online fullscreen":
 - NOT: {"id": 1, "action": "Find movie online"}

@@ -8,6 +8,7 @@ import logger from '../utils/logger.js';
 import { WorkflowEventEmitter } from './workflow-event-emitter.js';
 import GlobalConfig from '../../config/atlas-config.js';
 import { MCPTodoManager } from './mcp-todo-manager.js';
+import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 // import { DynamicAgentCoordinator } from './stages/agents/dynamic-agent-coordinator.js'; // Not used, commented out
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';

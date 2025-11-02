@@ -116,12 +116,13 @@ export const TTS_CONFIG = {
   retryDelay: 1000,
   timeout: 30000,
 
-  // НОВІ НАЛАШТУВАННЯ ДЛЯ БЕЗПЕРЕРВНОГО ОЗВУЧЕННЯ
+  // НАЛАШТУВАННЯ ДЛЯ БЕЗПЕРЕРВНОГО ОЗВУЧЕННЯ ВЕЛИКИХ ТЕКСТІВ
   chunking: {
     enabled: true,
-    maxChunkSize: 500,        // Максимальний розмір частини в символах
+    maxChunkSize: parseInt(env.ATLAS_TTS_MAX_CHUNK_SIZE || '800', 10), // Читається з .env (2025-11-02)
     minChunkSize: 100,        // Мінімальний розмір частини
     sentenceSplit: true,      // Розділяти по реченнях
+    paragraphSplit: true,     // Розділяти по абзацах (пріоритет)
     overlap: 20,              // Перекриття між частинами в символах
     preserveWords: true,      // Не розділяти слова
     continuousPlayback: true  // Безперервне відтворення частин
@@ -147,13 +148,13 @@ export const TTS_CONFIG = {
       quality: 'medium',
       timeout: 15000,
       cache: true,
-      chunking: { maxChunkSize: 300 }
+      chunking: { maxChunkSize: 500 }
     },
     standard: {
       quality: 'high',
       timeout: 30000,
       cache: true,
-      chunking: { maxChunkSize: 500 }
+      chunking: { maxChunkSize: 800 }  // Збільшено для великих абзаців
     },
     premium: {
       quality: 'highest',

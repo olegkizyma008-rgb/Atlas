@@ -425,14 +425,22 @@ export class MCPExtensionManager {
         }
 
         // STEP 2: Validate tool exists (use actualToolName without prefix)
-        const toolExists = extension.tools.some(t => t.name === actualToolName);
-        if (!toolExists) {
-            throw new Error(`Tool not found: ${server}__${actualToolName}`);
+        // FIXED 2025-11-02: MCP servers return tools with single underscore (applescript_execute)
+        // but we may have double underscore (applescript__execute) after prefix removal
+        const toolExistsDouble = extension.tools.some(t => t.name === actualToolName);
+        const toolExistsSingle = extension.tools.some(t => t.name === actualToolName.replace(/__/g, '_'));
+        
+        if (!toolExistsDouble && !toolExistsSingle) {
+            const availableTools = extension.tools.map(t => t.name).join(', ');
+            throw new Error(`Tool not found: ${server}__${actualToolName}. Available: ${availableTools}`);
         }
+        
+        // Use the format that actually exists in MCP server
+        const mcpToolName = toolExistsSingle ? actualToolName.replace(/__/g, '_') : actualToolName;
 
-        // STEP 3: Execute tool through MCP server (use actualToolName without prefix)
+        // STEP 3: Execute tool through MCP server (use mcpToolName with correct format)
         try {
-            const result = await extension.server.call(actualToolName, parameters);
+            const result = await extension.server.call(mcpToolName, parameters);
             
             logger.debug('mcp-extension-manager', 
                 `✅ Tool executed: ${server}__${actualToolName}`);

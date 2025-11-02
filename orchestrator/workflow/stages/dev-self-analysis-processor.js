@@ -49,8 +49,9 @@ export class DevSelfAnalysisProcessor {
             memoryStability: 0.95
         };
         
-        // Password for code intervention
-        this.interventionPassword = 'mykola';
+        // Password for code intervention (DISABLED 2025-11-02)
+        // User requested automatic fixes without password prompts
+        this.interventionPassword = null; // Disabled - trust user's explicit request
         
         // Model configuration
         this.modelConfig = null;
@@ -106,24 +107,10 @@ export class DevSelfAnalysisProcessor {
                             userMessage.toLowerCase().includes('розбери');
 
         try {
-            // Verify password if intervention is requested
+            // FIXED 2025-11-02: Auto-approve intervention when user explicitly requests
+            // No password required - trust user's explicit request for self-analysis and fixes
             if (context.requiresIntervention) {
-                // Normalize password - remove quotes, trim and lowercase
-                const normalizedPassword = (password || '').trim().replace(/^["']|["']$/g, '').toLowerCase();
-                
-                if (normalizedPassword !== this.interventionPassword) {
-                    this.logger.warn(`[DEV-ANALYSIS] ❌ Invalid password attempt: "${normalizedPassword}" (expected: "${this.interventionPassword}")`, {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-                    return {
-                        success: false,
-                        error: 'Invalid password for code intervention',
-                        requiresAuth: true
-                    };
-                }
-                
-                this.logger.info('[DEV-ANALYSIS] ✅ Password verified - proceeding with intervention', {
+                this.logger.info('[DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested)', {
                     category: 'system',
                     component: 'dev-analysis'
                 });

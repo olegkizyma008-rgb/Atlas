@@ -24,6 +24,12 @@ export class TTSManager {
     this._initPromise = null;
     /** @type {Map<string, Set<Function>>} */
     this._eventHandlers = new Map();
+
+    // НОВИНКА 2025-11-02: Pre-loading system для безшовного відтворення
+    /** @type {Map<number, Blob>} */
+    this.preloadedSegments = new Map(); // Кеш готових audio blobs
+    this.currentSegmentIndex = -1;      // Індекс поточного segment що грає
+    this.isPreloading = false;          // Прапорець активного preloading
   }
 
   async init() {
@@ -608,11 +614,64 @@ export class TTSManager {
     if (lastError) throw lastError;
   }
 
-  segmentText(text, maxLength = TTS_CONFIG.chunking?.maxChunkSize || 500) {
+  segmentText(text, maxLength = TTS_CONFIG.chunking?.maxChunkSize || 800) {
     if (!text || text.length <= maxLength) {
       return [text];
     }
 
+    // FIXED 2025-11-02: Спочатку шукаємо абзаци, потім речення
+    const paragraphSplitEnabled = TTS_CONFIG.chunking?.paragraphSplit !== false;
+
+    if (paragraphSplitEnabled) {
+      // Крок 1: Розділяємо по абзацах (подвійний або одинарний перенос)
+      const paragraphs = text.split(/\n\n+|\n/).filter(p => p.trim());
+      const segments = [];
+      let currentSegment = '';
+
+      for (const paragraph of paragraphs) {
+        const trimmed = paragraph.trim();
+        if (!trimmed) continue;
+
+        // Якщо абзац сам по собі більший за maxLength - розділяємо по реченнях
+        if (trimmed.length > maxLength) {
+          // Зберігаємо поточний сегмент
+          if (currentSegment) {
+            segments.push(currentSegment);
+            currentSegment = '';
+          }
+          // Розділяємо великий абзац по реченнях
+          const sentences = trimmed.split(/([.!?]+)/).filter(s => s.trim());
+          let tempSegment = '';
+          for (let i = 0; i < sentences.length; i += 2) {
+            const sentence = sentences[i] + (sentences[i + 1] || '');
+            if (tempSegment.length + sentence.length <= maxLength) {
+              tempSegment += sentence;
+            } else {
+              if (tempSegment) segments.push(tempSegment);
+              tempSegment = sentence;
+            }
+          }
+          if (tempSegment) segments.push(tempSegment);
+        } else {
+          // Абзац нормального розміру
+          if (currentSegment.length + trimmed.length + 2 <= maxLength) {
+            currentSegment += (currentSegment ? '\n\n' : '') + trimmed;
+          } else {
+            if (currentSegment) segments.push(currentSegment);
+            currentSegment = trimmed;
+          }
+        }
+      }
+
+      if (currentSegment) {
+        segments.push(currentSegment);
+      }
+
+      this.logger.info(`[TTS] Text segmented into ${segments.length} paragraph-based segments (max ${maxLength} chars)`);
+      return segments;
+    }
+
+    // Fallback: розділення по реченнях (стара логіка)
     const sentences = text.split(/[.!?]+/).filter(s => s.trim());
     const segments = [];
     let currentSegment = '';
@@ -635,29 +694,113 @@ export class TTSManager {
       segments.push(currentSegment + '.');
     }
 
-    // НЕ ОБРІЗАЄМО сегменти! Озвучуємо весь текст
-    this.logger.info(`[TTS] Text segmented into ${segments.length} segments for TTS processing`);
+    this.logger.info(`[TTS] Text segmented into ${segments.length} sentence-based segments`);
     return segments;
+  }
+
+  /**
+   * Пре-завантаження наступного сегмента паралельно з відтворенням поточного
+   * FIXED 2025-11-02: Безшовне відтворення через pre-loading
+   */
+  async _preloadNextSegment(segments, index, agent, options) {
+    if (index >= segments.length) {
+      return; // Немає наступних сегментів
+    }
+
+    if (this.preloadedSegments.has(index)) {
+      return; // Вже завантажено
+    }
+
+    try {
+      this.isPreloading = true;
+      const segment = segments[index];
+      this.logger.debug(`[TTS-PRELOAD] Починаємо pre-loading segment ${index + 1}/${segments.length}`);
+
+      // Отримуємо голос агента
+      let voice;
+      if (AGENTS && AGENTS[agent] && AGENTS[agent].voice) {
+        voice = AGENTS[agent].voice;
+      } else {
+        voice = TTS_CONFIG.defaultVoice;
+      }
+
+      // Синтезуємо audio blob
+      const audioBlob = await this.synthesize(segment, voice, options);
+
+      // Зберігаємо в кеш
+      this.preloadedSegments.set(index, audioBlob);
+      this.logger.info(`[TTS-PRELOAD] ✅ Segment ${index + 1} готовий (${audioBlob.size} bytes)`);
+
+    } catch (error) {
+      this.logger.error(`[TTS-PRELOAD] Помилка pre-loading segment ${index + 1}:`, error.message);
+    } finally {
+      this.isPreloading = false;
+    }
   }
 
   async speakSegmented(text, agent = 'atlas', options = {}) {
     const segments = this.segmentText(text);
     this.logger.info(`[TTS] Starting segmented speech for ${agent}: ${segments.length} segments, total length: ${text.length} chars`);
 
+    // Очищаємо старий кеш
+    this.preloadedSegments.clear();
+    this.currentSegmentIndex = -1;
+
     let successfulSegments = 0;
     let failedSegments = 0;
 
+    // Отримуємо голос агента
+    let voice;
+    if (AGENTS && AGENTS[agent] && AGENTS[agent].voice) {
+      voice = AGENTS[agent].voice;
+    } else {
+      voice = TTS_CONFIG.defaultVoice;
+    }
+
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i];
+      this.currentSegmentIndex = i;
+
       try {
         this.logger.debug(`[TTS] Playing segment ${i + 1}/${segments.length} for ${agent}: "${segment.substring(0, 50)}..."`);
-        await this.speak(segment, agent, options);
+
+        let audioBlob;
+
+        // Перевіряємо чи є готовий blob в кеші
+        if (this.preloadedSegments.has(i)) {
+          audioBlob = this.preloadedSegments.get(i);
+          this.logger.info(`[TTS] ⚡ Використовуємо pre-loaded segment ${i + 1}`);
+          this.preloadedSegments.delete(i); // Очищаємо після використання
+        } else {
+          // Якщо немає в кеші - синтезуємо зараз (тільки для першого segment)
+          this.logger.debug(`[TTS] Синтезуємо segment ${i + 1} зараз...`);
+          audioBlob = await this.synthesize(segment, voice, options);
+        }
+
+        // ПАРАЛЕЛЬНО запускаємо pre-loading наступного сегмента
+        if (i + 1 < segments.length) {
+          // Не чекаємо завершення - запускаємо паралельно!
+          this._preloadNextSegment(segments, i + 1, agent, options).catch(err => {
+            this.logger.warn(`[TTS-PRELOAD] Background preload failed for segment ${i + 2}:`, err.message);
+          });
+        }
+
+        // Відтворюємо поточний segment
+        await this.playAudio(audioBlob, agent);
         successfulSegments++;
 
-        // Невелика пауза між сегментами для плавності
-        if (i < segments.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+        // МІНІМАЛЬНА пауза (50ms) тільки якщо наступний segment ще НЕ готовий
+        if (i < segments.length - 1 && !this.preloadedSegments.has(i + 1)) {
+          this.logger.debug(`[TTS] Очікуємо pre-loading segment ${i + 2}...`);
+          // Чекаємо поки наступний segment не готовий
+          let waitTime = 0;
+          const maxWait = 5000; // Максимум 5 секунд
+          while (!this.preloadedSegments.has(i + 1) && waitTime < maxWait) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            waitTime += 50;
+          }
         }
+
       } catch (error) {
         failedSegments++;
         this.logger.error(`[TTS] Failed to play segment ${i + 1}/${segments.length} for ${agent}:`, error.message);
@@ -669,6 +812,10 @@ export class TTSManager {
         }
       }
     }
+
+    // Очищаємо кеш після завершення
+    this.preloadedSegments.clear();
+    this.currentSegmentIndex = -1;
 
     this.logger.info(`[TTS] Segmented speech completed for ${agent}: ${successfulSegments} successful, ${failedSegments} failed`);
 
@@ -759,13 +906,13 @@ export class TTSManager {
       try {
         const { text, agent, options } = item;
 
-        // Визначаємо чи потрібно чанкування на основі режиму та довжини
-        const isTaskMode = options.mode === 'task';
-        const shouldChunk = isTaskMode && text.length > 500;
+        // FIXED 2025-11-02: Чанкування для ВСІХ довгих текстів (незалежно від режиму)
+        const chunkThreshold = TTS_CONFIG.chunking?.maxChunkSize || 500;
+        const shouldChunk = text.length > chunkThreshold;
 
-        this.logger.info(`Processing TTS queue item: agent=${agent}, mode=${options.mode || 'chat'}, chunking=${shouldChunk}, length=${text.length}`);
+        this.logger.info(`Processing TTS queue item: agent=${agent}, mode=${options.mode || 'chat'}, chunking=${shouldChunk}, length=${text.length}, threshold=${chunkThreshold}`);
 
-        // FIXED: Ensure TTS works in both chat and task modes
+        // Використовуємо сегментацію для довгих текстів
         if (shouldChunk) {
           await this.speakSegmented(text, agent, { ...options, forceEnabled: true });
         } else {

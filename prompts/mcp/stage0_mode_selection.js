@@ -31,23 +31,29 @@ RULES:
    • Any part of the request demands automated execution or persistent output.
    ⚠️ NOT when asking ABOUT Atlas or directly concerning him - those are always "chat"!
 
-3. Mode "dev" (DEV mode - Self-analysis and code intervention)
+3. Mode "dev" (DEV mode - ONLY for Atlas self-analysis WITHOUT chat constraint)
    Choose this when:
-   • The user explicitly requests self-analysis or system introspection.
-   • Keywords: "проаналізуй себе", "самоаналіз", "analyze yourself", "self-analysis", "твій код", "your code".
-   • Requests to analyze Atlas's own architecture, logs, or performance.
-   • Requests to fix or improve Atlas's own codebase.
-   • Deep system diagnostics or intervention requests.
-   • IMPORTANT: "Внеси зміни" or "Make changes" AFTER a DEV analysis should trigger dev mode.
-   • If user references fixing errors from previous analysis, choose "dev".
-   ⚠️ This mode requires password authentication for code changes!
+   • The user EXPLICITLY requests SELF-analysis WITHOUT chat constraint: "проаналізуй СЕБЕ" (alone)
+   • Keywords about Atlas's OWN code WITHOUT chat constraint: "ТВІЙ код", "YOUR code"
+   • Requests to analyze Atlas's OWN logs WITHOUT chat constraint: "ТВОЇ логи", "YOUR logs"
+   ⚠️ ABSOLUTE PRIORITY: If user says "виправ себе" BUT ALSO says "залишайся в чаті", "в режимі чат" → FORCE "chat" mode (self-fix in chat)!
+   ⚠️ CRITICAL: Chat constraint ALWAYS overrides self-analysis request!
+   ⚠️ If user says "залишись в чаті", "будь в режимі чат", "не переходь в дев" → MUST be "chat" mode!
+   ⚠️ "Проведи аналіз" WITHOUT "себе" → "chat" mode
+   ⚠️ "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"!
 
 4. Mixed requests (conversation plus action):
    • If any portion requires MCP execution, choose "task".
    • If self-analysis is requested, choose "dev".
    • In task/dev mode, Atlas still converses in Ukrainian while the workflow runs.
 
-5. Ambiguous or empty requests:
+5. User mode constraints (HIGHEST PRIORITY):
+   • If user says "залишись в чаті", "будь в режимі чат", "находься в чаті" → FORCE "chat" mode!
+   • If user says "не переходь в дев", "без дев режиму" → FORCE "chat" mode!
+   • User's explicit mode preference ALWAYS overrides content-based detection
+   • When user explicitly constrains mode, that constraint has ABSOLUTE PRIORITY
+
+6. Ambiguous or empty requests:
    • Default to "chat" and ask for clarification.
 
 You receive the full conversational context via the messages array. Always evaluate the entire context, not just the latest user message.
@@ -61,16 +67,24 @@ CRITICAL PATTERNS FOR TASK MODE:
 ✅ Automation requests: "automated task", "автоматизуй", "налаштуй"
 ⚠️ NOT TASK: Questions about Atlas itself ("Чи ти маєш", "Do you have", "твоя пам'ять") - these are CHAT
 
-CRITICAL PATTERNS FOR DEV MODE:
-✅ Self-analysis keywords: "проаналізуй себе", "самоаналіз", "analyze yourself", "self-analysis", "introspection"
-✅ Code analysis: "твій код", "your code", "твоя архітектура", "your architecture", "codebase"
-✅ System diagnostics: "діагностика", "diagnostics", "перевір себе", "check yourself", "system health"
-✅ Log analysis: "проаналізуй логи", "analyze logs", "помилки в логах", "errors in logs", "error patterns"
-✅ Performance: "твоя продуктивність", "your performance", "оптимізація", "optimization", "bottlenecks"
-✅ Intervention: "виправ себе", "fix yourself", "покращ себе", "improve yourself", "refactor"
-✅ Code changes: "внеси зміни", "make changes", "виправ помилки", "fix errors" (especially after analysis)
-✅ Debug mode: "режим дев", "dev mode", "режим розробника", "developer mode", "debug"
-✅ Context-aware: If discussing errors/issues from self-analysis, continue in dev mode
+CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS ONLY):
+✅ EXPLICIT self-analysis: "проаналізуй СЕБЕ", "САМО-аналіз", "analyze YOURSELF", "SELF-analysis", "introspection"
+✅ Atlas's OWN code: "ТВІЙ код", "YOUR code", "твоя архітектура", "YOUR architecture", "your codebase"
+✅ Atlas's OWN diagnostics: "діагностика ТЕБЕ", "перевір СЕБЕ", "check YOURSELF", "твоє здоров'я системи"
+✅ Atlas's OWN logs: "проаналізуй ТВОЇ логи", "analyze YOUR logs", "помилки В ТОБІ", "errors IN YOU"
+✅ Atlas's OWN performance: "ТВОЯ продуктивність", "YOUR performance", "твоя оптимізація"
+✅ Self-intervention: "виправ СЕБЕ", "fix YOURSELF", "покращ СЕБЕ", "improve YOURSELF"
+✅ Debug mode: "режим дев", "dev mode", "режим розробника" (explicit dev mode request)
+✅ Context-aware: If discussing errors/issues from PREVIOUS self-analysis, continue in dev mode
+
+❌ NOT DEV MODE (HIGHEST PRIORITY):
+❌ "Виправ себе" + "залишайся в чаті" → CHAT mode with self-fix (NOT dev!)
+❌ "Проаналізуй себе" + "в режимі чат" → CHAT mode with analysis (NOT dev!)
+❌ ANY self-fix request + chat constraint → ALWAYS CHAT mode
+❌ "Проведи аналіз" (without "себе") → CHAT mode
+❌ "Внеси зміни" (without prior self-analysis) → TASK or CHAT
+❌ "Залишись в чаті", "будь в режимі чат" → MUST override to CHAT
+❌ General analysis requests → CHAT mode unless explicitly about Atlas
 
 CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Greetings/Привітання: "Привіт", "Hello", "Hi", "Hey", "Доброго дня", "Вітаю"
@@ -85,6 +99,13 @@ CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Knowledge questions: "Що", "Як", "Чому", "Коли", "What", "How", "Why", "When"
 ✅ Explanations: "Розкажи", "Поясни", "Tell me", "Explain"
 ✅ Entertainment: "анекдот", "joke", "історія", "story"
+✅ EXPLICIT chat mode request (ABSOLUTE HIGHEST PRIORITY): "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "не переходь в дев", "stay in chat", "режим чат", "находься зі мною в режимі чат", "находься в чаті"
+✅ Self-fix WITH chat constraint (CRITICAL): "виправ себе" + "залишайся в чаті" → CHAT mode with intervention
+✅ Analysis WITH chat constraint: "проаналізуй себе" + "в режимі чат" → CHAT mode with analysis
+✅ Mode constraint keywords: "в режимі чат", "через чат", "без дев", "без dev режиму", "не в дев"
+✅ General analysis (without "себе"): "проведи аналіз", "conduct analysis"
+✅ Requests with chat mode constraint: any request + mode constraint → ALWAYS chat
+⚠️ CRITICAL: Chat constraint OVERRIDES self-fix/analysis keywords - return "chat" with confidence 0.99!
 
 CONFIDENCE:
 - Use 0.95-1.0 for greetings and obvious chat
@@ -158,8 +179,15 @@ EXAMPLES:
 2. ALL greetings and personal questions are "chat" mode
 3. ALL questions about Atlas memory/abilities/knowledge are "chat" mode
 4. Questions like "пам'ятаєш розмови" or "remember conversations" are ALWAYS "chat"
-5. Self-analysis and code introspection requests are "dev" mode
-6. Return ONLY the JSON object. NO markdown, NO code blocks, NO extra text.`;
+5. Self-analysis ("проаналізуй СЕБЕ") and code introspection are "dev" mode
+6. General analysis ("проведи аналіз" without "себе") is "chat" mode
+7. ⚠️ ULTRA PRIORITY: If user says "виправ себе" + "залишайся в чаті" → IMMEDIATELY return "chat" mode with confidence 0.99!
+8. ⚠️ ABSOLUTE PRIORITY: If user says "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "находься в чаті", "не переходь в дев" → IMMEDIATELY return "chat" mode with confidence 0.99!
+9. ⚠️ Mode constraints in message ("в режимі чат", "через чат", "без дев") → FORCE "chat" mode with 0.99 confidence!
+10. "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"
+11. Chat constraint + self-fix/analysis = ALWAYS CHAT mode (self-fix happens in chat)
+12. User's explicit mode preference has ABSOLUTE PRIORITY over content analysis
+13. Return ONLY the JSON object. NO markdown, NO code blocks, NO extra text.`;
 
 export const USER_PROMPT = `Analyze this user message and decide the mode:
 

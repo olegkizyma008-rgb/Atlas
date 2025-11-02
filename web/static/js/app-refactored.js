@@ -221,6 +221,7 @@ class AtlasApp {
       wsClient: this.managers.webSocket
     });
     this.managers.devPasswordHandler.init();
+    this.managers.chat.devPasswordHandler = this.managers.devPasswordHandler;
 
     // 8. Ініціалізуємо систему голосового управління
     this.logger.info('🎤 Initializing Voice Control System...');

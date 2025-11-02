@@ -123,7 +123,8 @@ export class ToolDispatcher {
             `${denied} denied`);
 
         // STEP 2: Handle denied tools
-        const deniedResults = inspectionResult.denied.map(call => ({
+        // FIXED 2025-11-02: Add safety check for undefined denied array
+        const deniedResults = (inspectionResult.denied || []).map(call => ({
             requestId: call.id || `${call.server}__${call.tool}`,
             success: false,
             result: null,
@@ -137,17 +138,19 @@ export class ToolDispatcher {
         }));
 
         // STEP 3: Execute approved tools
+        // FIXED 2025-11-02: Add safety check for undefined approved array
         const approvedResults = await this._executeApprovedTools(
-            inspectionResult.approved,
+            inspectionResult.approved || [],
             context
         );
 
         // STEP 4: Handle tools needing approval
         // In automated mode, we'll execute them anyway (can be changed)
         // In interactive mode, this would wait for user confirmation
+        // FIXED 2025-11-02: Add safety check for undefined needsApproval array
         const approvalResults = context.autoApprove 
-            ? await this._executeApprovedTools(inspectionResult.needsApproval, context)
-            : inspectionResult.needsApproval.map(call => ({
+            ? await this._executeApprovedTools(inspectionResult.needsApproval || [], context)
+            : (inspectionResult.needsApproval || []).map(call => ({
                 requestId: call.id || `${call.server}__${call.tool}`,
                 success: false,
                 result: null,

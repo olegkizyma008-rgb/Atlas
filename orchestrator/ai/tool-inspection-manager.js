@@ -49,10 +49,11 @@ export class ToolInspectionManager {
 
     /**
      * Inspect tool calls through all registered inspectors
+     * FIXED 2025-11-02: Return categorized object instead of array
      * 
      * @param {Array<Object>} toolCalls - Tool calls to inspect
      * @param {Object} context - Execution context
-     * @returns {Promise<Array<Object>>} Combined inspection results
+     * @returns {Promise<Object>} Categorized inspection results {approved, denied, needsApproval}
      */
     async inspectTools(toolCalls, context = {}) {
         const allResults = [];
@@ -84,16 +85,17 @@ export class ToolInspectionManager {
             }
         }
 
-        // Log summary
-        if (allResults.length > 0) {
-            const denied = allResults.filter(r => r.action === 'DENY').length;
-            const requireApproval = allResults.filter(r => r.action === 'REQUIRE_APPROVAL').length;
-            
-            logger.system('tool-inspection', 
-                `Inspection complete: ${denied} denied, ${requireApproval} need approval`);
-        }
+        // FIXED 2025-11-02: Categorize results before returning
+        // tool-dispatcher.js expects {approved, denied, needsApproval}
+        const categorized = this._categorizeResults(toolCalls, allResults);
 
-        return allResults;
+        // Log summary
+        logger.system('tool-inspection', 
+            `Categorized: ${categorized.approved.length} approved, ` +
+            `${categorized.needsApproval.length} need approval, ` +
+            `${categorized.denied.length} denied`);
+
+        return categorized;
     }
 
     /**
@@ -191,6 +193,70 @@ export class ToolInspectionManager {
         }
 
         return processed;
+    }
+
+    /**
+     * Categorize inspection results by tool call
+     * FIXED 2025-11-02: New method to categorize results for tool-dispatcher
+     * 
+     * @param {Array<Object>} toolCalls - Original tool calls
+     * @param {Array<Object>} results - Inspection results
+     * @returns {Object} Categorized results {approved, denied, needsApproval}
+     * @private
+     */
+    _categorizeResults(toolCalls, results) {
+        const categorized = {
+            approved: [],
+            denied: [],
+            needsApproval: []
+        };
+
+        // If no inspectors or no results, approve all tools
+        if (results.length === 0) {
+            categorized.approved = toolCalls.map(call => ({
+                ...call,
+                inspectionResults: []
+            }));
+            return categorized;
+        }
+
+        // Group results by tool call
+        const resultsByTool = new Map();
+        
+        for (const result of results) {
+            const toolKey = result.toolCall ? this._getToolKey(result.toolCall) : null;
+            if (!toolKey) continue;
+            
+            if (!resultsByTool.has(toolKey)) {
+                resultsByTool.set(toolKey, []);
+            }
+            resultsByTool.get(toolKey).push(result);
+        }
+
+        // Categorize each tool call
+        for (const toolCall of toolCalls) {
+            const toolKey = this._getToolKey(toolCall);
+            const toolResults = resultsByTool.get(toolKey) || [];
+
+            // DENY takes precedence, then REQUIRE_APPROVAL, then ALLOW
+            const hasDeny = toolResults.some(r => r.action === 'DENY');
+            const hasRequireApproval = toolResults.some(r => r.action === 'REQUIRE_APPROVAL');
+
+            const enhancedCall = {
+                ...toolCall,
+                inspectionResults: toolResults
+            };
+
+            if (hasDeny) {
+                categorized.denied.push(enhancedCall);
+            } else if (hasRequireApproval) {
+                categorized.needsApproval.push(enhancedCall);
+            } else {
+                categorized.approved.push(enhancedCall);
+            }
+        }
+
+        return categorized;
     }
 
     /**

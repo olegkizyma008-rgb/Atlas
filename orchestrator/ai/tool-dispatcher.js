@@ -36,6 +36,7 @@ export class ToolDispatcher {
             'applescript': 60,
             'memory': 50
         };
+    }
 
     /**
      * Dispatch single tool call

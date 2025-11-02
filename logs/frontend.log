@@ -1,67 +1,10 @@
-2025-11-02 21:27:56,435 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
-2025-11-02 21:27:56,435 [INFO] atlas.frontend: Serving static files and 3D model interface
-2025-11-02 21:27:56,435 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
+2025-11-02 22:50:37,884 [INFO] atlas.frontend: Starting ATLAS Minimal Frontend Server on port 5001
+2025-11-02 22:50:37,884 [INFO] atlas.frontend: Serving static files and 3D model interface
+2025-11-02 22:50:37,884 [INFO] atlas.frontend: All API logic handled by orchestrator on port 5101
  * Serving Flask app 'atlas_server'
  * Debug mode: off
-2025-11-02 21:27:56,466 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-11-02 22:50:37,901 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
  * Running on http://10.8.15.142:5001
-2025-11-02 21:27:56,466 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
-2025-11-02 21:31:17,980 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:17] "GET / HTTP/1.1" 200 -
-2025-11-02 21:31:18,001 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/css/dev-password-dialog.css HTTP/1.1" 200 -
-2025-11-02 21:31:18,002 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/css/dev-password-form.css HTTP/1.1" 200 -
-2025-11-02 21:31:18,002 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation-mode-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,002 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/voice-control-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,002 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/eternity-ui.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,003 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/css/main.css HTTP/1.1" 200 -
-2025-11-02 21:31:18,004 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/app-refactored.js?v=1762111877 HTTP/1.1" 200 -
-2025-11-02 21:31:18,009 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/events/event-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,009 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/core/base-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,010 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/core/config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,010 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/core/logger.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,010 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/whisper-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,011 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/microphone-button-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,013 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/speech-results-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,014 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/whisper-keyword-detection.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,015 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/post-chat-analysis-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,016 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/interrupt-detection-service.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,016 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation/constants.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,017 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation/state-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,018 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation/filters.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,019 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation/event-handlers.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,019 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/conversation/ui-controller.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,025 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/core/logger.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,026 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/core/api-client.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,026 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/core/websocket-client.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,026 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/modules/chat-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,027 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/ui/atlas-advanced-ui.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,027 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/atlas-voice-integration.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,029 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/logging/animated-logging.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,030 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/model3d/atlas-glb-living-system.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,030 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/tts/atlas-tts-visualization.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,031 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/model3d/atlas-living-behavior-enhanced.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,032 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/modules/dev-password-handler.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,033 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/atlas-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,033 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/model3d/atlas-interactive-personality.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,035 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/utils/voice-utils.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,035 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/web-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,037 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/microphone/button-state-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,037 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/microphone/media-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,038 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/microphone/button-animation-controller.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,038 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/monitoring/voice-control-monitoring.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,040 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/modules/tts-manager.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,040 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/model3d/atlas-emotional-state.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,041 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/model3d/atlas-gestures.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,042 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/system-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,042 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/components/dev-password-dialog.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,043 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/agents-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,044 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/workflow-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,044 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/api-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,044 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/models-config.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,046 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /static/js/voice-control/services/microphone/simple-vad.js HTTP/1.1" 200 -
-2025-11-02 21:31:18,046 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:18] "GET /config/mcp-registry.js HTTP/1.1" 200 -
-2025-11-02 21:31:19,019 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:19] "GET /static/assets/DamagedHelmet.glb HTTP/1.1" 200 -
-2025-11-02 21:31:19,182 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:19] "GET /api/config/tts HTTP/1.1" 200 -
-2025-11-02 21:31:19,249 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:19] "GET /static/assets/favicon.ico HTTP/1.1" 200 -
-2025-11-02 21:31:19,257 [INFO] werkzeug: 127.0.0.1 - - [02/Nov/2025 21:31:19] "GET /static/assets/atlas-icon.svg HTTP/1.1" 200 -
+2025-11-02 22:50:37,901 [INFO] werkzeug: [33mPress CTRL+C to quit[0m

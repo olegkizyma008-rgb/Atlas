@@ -2269,3 +2269,16 @@ rect (-1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
 2025-11-02 21:52:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 21:57:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 22:02:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 22:07:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 22:12:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 22:16:16 [ERROR] mcp-server {"metadata":{}}
+2025-11-02 22:16:16 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:16:16 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:18:37 [ERROR] MCP workflow failed: [DI] Failed to resolve service "multiModelOrchestrator": require is not defined {"metadata":{"sessionId":"default","error":"[DI] Failed to resolve service \"multiModelOrchestrator\": require is not defined","stack":"Error: [DI] Failed to resolve service \"multiModelOrchestrator\": require is not defined\n    at DIContainer.resolve (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/di-container.js:167:19)\n    at NexusContextActivator.executeWithNexus (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/nexus-context-activator.js:256:43)\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:78:43)\n    at process.processTicksAndRejections (..."}}
+2025-11-02 22:18:37 [ERROR] Step-by-step workflow failed {"metadata":{"error":"[DI] Failed to resolve service \"multiModelOrchestrator\": require is not defined","sessionId":"session_1762114609207_awy9dpihi","stack":"Error: [DI] Failed to resolve service \"multiModelOrchestrator\": require is not defined\n    at DIContainer.resolve (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/di-container.js:167:19)\n    at NexusContextActivator.executeWithNexus (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/nexus-context-activator.js:256:43)\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:78:43)\n    at process.processTicksAndRejections (..."}}
+2025-11-02 22:19:46 [ERROR] mcp-server {"metadata":{}}
+2025-11-02 22:19:46 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:19:46 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:50:52 [ERROR] mcp-server {"metadata":{}}
+2025-11-02 22:50:52 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:50:52 [ERROR] mcp-manager {"metadata":{}}

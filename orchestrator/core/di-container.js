@@ -96,36 +96,6 @@ export class DIContainer {
      * @throws {Error} - Якщо сервіс не зареєстрований або circular dependency
      */
     resolve(name) {
-        // Eternity Integration (NEW 30.10.2025)
-        this.register('eternityIntegration', () => {
-            const { EternityIntegration } = require('../eternity/eternity-integration.js');
-            return new EternityIntegration(this);
-        }, true);
-        
-        // Multi-Model Orchestrator (NEW 02.11.2025)
-        this.register('multiModelOrchestrator', () => {
-            const { MultiModelOrchestrator } = require('../eternity/multi-model-orchestrator.js');
-            return new MultiModelOrchestrator(this);
-        }, true);
-        
-        // Cascade Controller (NEW 02.11.2025)
-        this.register('cascadeController', () => {
-            const { CascadeController } = require('../eternity/cascade-controller.js');
-            return new CascadeController(this);
-        }, true);
-        
-        // Self-Improvement Engine (NEW 02.11.2025)
-        this.register('selfImprovementEngine', () => {
-            const { SelfImprovementEngine } = require('../eternity/self-improvement-engine.js');
-            return new SelfImprovementEngine(this);
-        }, true);
-        
-        // Nexus Context Activator (NEW 02.11.2025)
-        this.register('nexusContextActivator', () => {
-            const { NexusContextActivator } = require('../eternity/nexus-context-activator.js');
-            return new NexusContextActivator(this);
-        }, true);
-
         // Перевірка circular dependencies
         if (this.resolving.has(name)) {
             const chain = Array.from(this.resolving).join(' -> ');

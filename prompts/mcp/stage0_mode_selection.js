@@ -31,14 +31,23 @@ RULES:
    • Any part of the request demands automated execution or persistent output.
    ⚠️ NOT when asking ABOUT Atlas or directly concerning him - those are always "chat"!
 
-3. Mode "dev" (DEV mode - ONLY for Atlas self-analysis WITHOUT chat constraint)
+3. Mode "dev" (DEV mode - Atlas self-analysis with BACKGROUND execution + CHAT reporting)
    Choose this when:
-   • The user EXPLICITLY requests SELF-analysis WITHOUT chat constraint: "проаналізуй СЕБЕ" (alone)
-   • Keywords about Atlas's OWN code WITHOUT chat constraint: "ТВІЙ код", "YOUR code"
-   • Requests to analyze Atlas's OWN logs WITHOUT chat constraint: "ТВОЇ логи", "YOUR logs"
-   ⚠️ ABSOLUTE PRIORITY: If user says "виправ себе" BUT ALSO says "залишайся в чаті", "в режимі чат" → FORCE "chat" mode (self-fix in chat)!
-   ⚠️ CRITICAL: Chat constraint ALWAYS overrides self-analysis request!
-   ⚠️ If user says "залишись в чаті", "будь в режимі чат", "не переходь в дев" → MUST be "chat" mode!
+   • The user EXPLICITLY requests SELF-analysis: "проаналізуй СЕБЕ", "analyze YOURSELF"
+   • Keywords about Atlas's OWN code: "ТВІЙ код", "YOUR code"
+   • Requests to analyze Atlas's OWN logs: "ТВОЇ логи", "YOUR logs"
+   • User gives PERMISSION through context: "даю право", "дозволяю", "можеш", "I give permission"
+   • SUPERPASSWORD detected: "суперпароль", "superpassword" → ALWAYS dev mode with chat reporting
+   
+   ⚠️ NEW 2025-11-02: DEV mode now supports BACKGROUND execution with CHAT reporting:
+   • Atlas performs self-analysis in BACKGROUND
+   • Stays in CHAT and reports progress interactively
+   • Streams updates: "Аналізую...", "Знайшов проблему...", "Виправляю..."
+   • User sees real-time progress without leaving chat
+   
+   ⚠️ ABSOLUTE PRIORITY: If user says "виправ себе" BUT ALSO says "залишайся в чаті", "в режимі чат" → DEV mode with chat reporting!
+   ⚠️ CRITICAL: Chat constraint now ENABLES background dev mode with interactive reporting!
+   ⚠️ If user says "залишись в чаті" + self-analysis → DEV mode with chat reporting (NOT pure chat)!
    ⚠️ "Проведи аналіз" WITHOUT "себе" → "chat" mode
    ⚠️ "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"!
 
@@ -67,7 +76,7 @@ CRITICAL PATTERNS FOR TASK MODE:
 ✅ Automation requests: "automated task", "автоматизуй", "налаштуй"
 ⚠️ NOT TASK: Questions about Atlas itself ("Чи ти маєш", "Do you have", "твоя пам'ять") - these are CHAT
 
-CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS ONLY):
+CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS WITH BACKGROUND + CHAT REPORTING):
 ✅ EXPLICIT self-analysis: "проаналізуй СЕБЕ", "САМО-аналіз", "analyze YOURSELF", "SELF-analysis", "introspection"
 ✅ Atlas's OWN code: "ТВІЙ код", "YOUR code", "твоя архітектура", "YOUR architecture", "your codebase"
 ✅ Atlas's OWN diagnostics: "діагностика ТЕБЕ", "перевір СЕБЕ", "check YOURSELF", "твоє здоров'я системи"
@@ -76,15 +85,20 @@ CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS ONLY):
 ✅ Self-intervention: "виправ СЕБЕ", "fix YOURSELF", "покращ СЕБЕ", "improve YOURSELF"
 ✅ Debug mode: "режим дев", "dev mode", "режим розробника" (explicit dev mode request)
 ✅ Context-aware: If discussing errors/issues from PREVIOUS self-analysis, continue in dev mode
+✅ SUPERPASSWORD: "суперпароль", "superpassword" → ALWAYS dev mode with chat reporting (HIGHEST PRIORITY)
+✅ Permission context: "даю право", "дозволяю", "можеш", "I give permission" + self-analysis keywords
+✅ Self-fix WITH chat constraint: "виправ себе" + "залишайся в чаті" → DEV mode with background + chat reporting
 
-❌ NOT DEV MODE (HIGHEST PRIORITY):
-❌ "Виправ себе" + "залишайся в чаті" → CHAT mode with self-fix (NOT dev!)
-❌ "Проаналізуй себе" + "в режимі чат" → CHAT mode with analysis (NOT dev!)
-❌ ANY self-fix request + chat constraint → ALWAYS CHAT mode
-❌ "Проведи аналіз" (without "себе") → CHAT mode
+❌ NOT DEV MODE:
+❌ "Проведи аналіз" (without "себе") → CHAT mode (general analysis, not self-analysis)
 ❌ "Внеси зміни" (without prior self-analysis) → TASK or CHAT
-❌ "Залишись в чаті", "будь в режимі чат" → MUST override to CHAT
 ❌ General analysis requests → CHAT mode unless explicitly about Atlas
+
+✅ NOW DEV MODE (CHANGED 2025-11-02):
+✅ "Виправ себе" + "залишайся в чаті" → DEV mode with background + chat reporting (NOT pure chat!)
+✅ "Проаналізуй себе" + "в режимі чат" → DEV mode with background + chat reporting (NOT pure chat!)
+✅ Self-fix request + chat constraint → DEV mode with interactive reporting
+✅ "Залишись в чаті" + self-analysis → DEV mode with chat reporting (background execution)
 
 CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Greetings/Привітання: "Привіт", "Hello", "Hi", "Hey", "Доброго дня", "Вітаю"
@@ -99,13 +113,13 @@ CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Knowledge questions: "Що", "Як", "Чому", "Коли", "What", "How", "Why", "When"
 ✅ Explanations: "Розкажи", "Поясни", "Tell me", "Explain"
 ✅ Entertainment: "анекдот", "joke", "історія", "story"
-✅ EXPLICIT chat mode request (ABSOLUTE HIGHEST PRIORITY): "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "не переходь в дев", "stay in chat", "режим чат", "находься зі мною в режимі чат", "находься в чаті"
-✅ Self-fix WITH chat constraint (CRITICAL): "виправ себе" + "залишайся в чаті" → CHAT mode with intervention
-✅ Analysis WITH chat constraint: "проаналізуй себе" + "в режимі чат" → CHAT mode with analysis
-✅ Mode constraint keywords: "в режимі чат", "через чат", "без дев", "без dev режиму", "не в дев"
-✅ General analysis (without "себе"): "проведи аналіз", "conduct analysis"
-✅ Requests with chat mode constraint: any request + mode constraint → ALWAYS chat
-⚠️ CRITICAL: Chat constraint OVERRIDES self-fix/analysis keywords - return "chat" with confidence 0.99!
+✅ EXPLICIT chat mode request (for NON-self-analysis): "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "stay in chat", "режим чат"
+✅ Self-fix WITH chat constraint (CHANGED): "виправ себе" + "залишайся в чаті" → DEV mode with background + chat reporting
+✅ Analysis WITH chat constraint (CHANGED): "проаналізуй себе" + "в режимі чат" → DEV mode with background + chat reporting
+✅ Mode constraint keywords: "в режимі чат", "через чат" + self-analysis → DEV with chat reporting
+✅ General analysis (without "себе"): "проведи аналіз", "conduct analysis" → CHAT mode
+✅ Requests with chat mode constraint: NON-self-analysis + mode constraint → CHAT mode
+⚠️ CRITICAL CHANGE: Chat constraint + self-analysis = DEV mode with background execution + interactive chat reporting!
 
 CONFIDENCE:
 - Use 0.95-1.0 for greetings and obvious chat

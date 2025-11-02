@@ -88,6 +88,7 @@ export class DevSelfAnalysisProcessor {
 
     /**
      * Execute self-analysis with real code and log analysis
+     * NEW 2025-11-02: Supports BACKGROUND mode with CHAT reporting
      */
     async execute(context) {
         this._ensureConfig();
@@ -96,17 +97,29 @@ export class DevSelfAnalysisProcessor {
             component: 'dev-analysis'
         });
 
-        const { userMessage, session, password, ttsSettings = {}, container } = context;
+        const { userMessage, session, password, ttsSettings = {}, container, chatMode = false } = context;
         this.container = container; // Store container for MCP access
+        
+        // NEW 2025-11-02: Detect background mode with chat reporting
+        const backgroundMode = chatMode || 
+                              userMessage.toLowerCase().includes('залишайся в чаті') ||
+                              userMessage.toLowerCase().includes('в режимі чат') ||
+                              userMessage.toLowerCase().includes('находься в чаті');
         
         // Parse analysis depth and focus from user message
         const analysisDepth = this._determineAnalysisDepth(userMessage);
         const focusArea = this._extractFocusArea(userMessage);
-        const isInteractive = userMessage.toLowerCase().includes('діалог') || 
+        const isInteractive = backgroundMode || 
+                            userMessage.toLowerCase().includes('діалог') || 
                             userMessage.toLowerCase().includes('інтерактивно') ||
                             userMessage.toLowerCase().includes('розбери');
 
         try {
+            // NEW 2025-11-02: Send initial status to chat if in background mode
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, '🔍 Починаю самоаналіз у фоновому режимі...', 'atlas');
+            }
+
             // FIXED 2025-11-02: Auto-approve intervention when user explicitly requests
             // No password required - trust user's explicit request for self-analysis and fixes
             if (context.requiresIntervention) {
@@ -114,6 +127,10 @@ export class DevSelfAnalysisProcessor {
                     category: 'system',
                     component: 'dev-analysis'
                 });
+                
+                if (backgroundMode) {
+                    await this._sendChatUpdate(session, '✅ Дозвіл на внесення змін отримано автоматично', 'atlas');
+                }
             }
 
             // Gather REAL system context through MCP filesystem
@@ -157,6 +174,10 @@ export class DevSelfAnalysisProcessor {
                 component: 'dev-analysis'
             });
             
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, '🧠 Аналізую систему через LLM...', 'atlas');
+            }
+            
             const response = await axios.post(this.apiEndpoint, {
                 model: this.modelConfig.model,
                 messages,
@@ -169,6 +190,10 @@ export class DevSelfAnalysisProcessor {
 
             const analysisResult = this._parseRobustResponse(response.data.choices[0].message.content);
             
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, '✅ Первинний аналіз завершено, виконую детальну перевірку...', 'atlas');
+            }
+            
             // Add detailed analysis of current system state
             const detailedAnalysis = await this._performDetailedAnalysis(systemContext, analysisResult, {
                 depth: analysisDepth,
@@ -179,6 +204,10 @@ export class DevSelfAnalysisProcessor {
             
             // If problems found, perform deeper targeted analysis (safe check)
             if (analysisResult.findings?.critical_issues && Array.isArray(analysisResult.findings.critical_issues) && analysisResult.findings.critical_issues.length > 0) {
+                if (backgroundMode) {
+                    await this._sendChatUpdate(session, `🔍 Знайдено ${analysisResult.findings.critical_issues.length} критичних проблем, виконую глибокий аналіз...`, 'atlas');
+                }
+                
                 const deeperAnalysis = await this._performTargetedDeepAnalysis(
                     analysisResult.findings.critical_issues,
                     systemContext
@@ -202,11 +231,18 @@ export class DevSelfAnalysisProcessor {
             // Build comprehensive response with all findings
             const comprehensiveResponse = await this._buildComprehensiveResponse(analysisResult, detailedAnalysis);
             
+            if (backgroundMode) {
+                await this._sendChatUpdate(session, '📊 Аналіз завершено, готую звіт...', 'atlas');
+            }
+            
             // Перевіряємо чи користувач ЯВНО просить внести зміни
             const userWantsIntervention = this._detectInterventionRequest(userMessage);
             
             // Handle intervention path - ТІЛЬКИ якщо користувач явно просить
             if (userWantsIntervention && analysisResult.intervention_required) {
+                if (backgroundMode) {
+                    await this._sendChatUpdate(session, '🔧 Виявлено необхідність втручання, готую план виправлень...', 'atlas');
+                }
                 if (password && password === this.interventionPassword) {
                     const interventionResult = await this._handleIntervention(analysisResult, session, password);
                     return {
@@ -1237,14 +1273,43 @@ export class DevSelfAnalysisProcessor {
     }
     
     /**
+     * Send chat update in background mode
+     * NEW 2025-11-02: Stream progress updates to user
+     */
+    async _sendChatUpdate(session, message, agent = 'atlas') {
+        if (!session.websocketManager) {
+            this.logger.warn('[DEV-ANALYSIS] No WebSocket manager available for chat updates');
+            return;
+        }
+
+        try {
+            await session.websocketManager.broadcast('agent_message', {
+                content: message,
+                agent: agent,
+                sessionId: session.id,
+                timestamp: new Date().toISOString(),
+                ttsContent: message,
+                mode: 'dev-background'
+            });
+            
+            this.logger.info(`[DEV-ANALYSIS] 💬 Sent chat update: ${message.substring(0, 50)}...`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+        } catch (error) {
+            this.logger.error('[DEV-ANALYSIS] Failed to send chat update:', error);
+        }
+    }
+
+    /**
      * Determine analysis depth from user message
      */
-    _determineAnalysisDepth(userMessage) {
-        const msg = userMessage.toLowerCase();
-        if (msg.includes('глибок') || msg.includes('детальн') || msg.includes('повн')) {
+    _determineAnalysisDepth(message) {
+        const lowerMessage = message.toLowerCase();
+        if (lowerMessage.includes('глибокий') || lowerMessage.includes('детальний')) {
             return 'deep';
         }
-        if (msg.includes('швидк') || msg.includes('коротк')) {
+        if (lowerMessage.includes('швидкий') || lowerMessage.includes('поверхневий')) {
             return 'quick';
         }
         return 'standard';

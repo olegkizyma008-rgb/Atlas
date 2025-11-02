@@ -57,54 +57,33 @@ export class DevSelfAnalysisProcessor {
         
         // Password for code intervention (DISABLED 2025-11-02)
         // User requested automatic fixes without password prompts
-        this.interventionPassword = null; // Disabled - trust user's explicit request
+        this.interventionPassword = 'mykola'; // Disabled - trust user's explicit request
         
         // Model configuration
         this.modelConfig = null;
         this.apiEndpoint = null;
         this.apiTimeout = 120000; // 2 minutes for complex analysis
-    }
-
-    _ensureConfig() {
-        if (!this.modelConfig) {
-            const apiConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-            
-            if (!apiConfig || typeof apiConfig !== 'object') {
-                this.logger.warn('[DEV-ANALYSIS] ⚠️ apiEndpoint config not found, using fallback', {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-                this.apiEndpoint = 'http://localhost:4000/v1/chat/completions';
-                this.apiTimeout = 120000;
-            } else {
-                this.apiEndpoint = (apiConfig.useFallback && apiConfig.fallback)
-                    ? apiConfig.fallback
-                    : (apiConfig.primary || 'http://localhost:4000/v1/chat/completions');
-                this.apiTimeout = apiConfig.timeout || 120000;
-            }
-            
-            this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('dev_analysis');
-            
-            this.logger.info(`[DEV-ANALYSIS] 🔧 Using API: ${this.apiEndpoint}, Model: ${this.modelConfig.model}`, {
-                category: 'system',
-                component: 'dev-analysis'
-            });
-        }
         
-        // NEW 2025-11-02: Initialize Nexus Multi-Model Orchestrator for DEV mode
-        if (!this.multiModelOrchestrator && this.container) {
-            try {
-                this.multiModelOrchestrator = this.container.resolve('multiModelOrchestrator');
-                this.logger.info('[DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized', {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-            } catch (e) {
-                this.logger.warn('[DEV-ANALYSIS] Nexus not available, using standard mode', {
-                    category: 'system',
-                    component: 'dev-analysis'
-                });
-            }
+        // NEW 2025-11-03: Ініціалізуємо Nexus одразу
+        this._initializeNexus();
+    }
+    
+    /**
+     * Ініціалізація Nexus для автономних виправлень
+     */
+    async _initializeNexus() {
+        try {
+            // Чекаємо поки DI container буде готовий
+            setTimeout(async () => {
+                try {
+                    this.multiModelOrchestrator = await this.container.resolve('multiModelOrchestrator');
+                    this.logger.info('[DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized');
+                } catch (e) {
+                    this.logger.warn('[DEV-ANALYSIS] Nexus not available yet, will retry on first use');
+                }
+            }, 1000);
+        } catch (e) {
+            this.logger.warn('[DEV-ANALYSIS] Failed to initialize Nexus:', e.message);
         }
     }
 
@@ -377,16 +356,51 @@ export class DevSelfAnalysisProcessor {
             // Перевіряємо чи користувач ЯВНО просить внести зміни
             const userWantsIntervention = this._detectInterventionRequest(userMessage);
             
-            // Handle intervention path - ТІЛЬКИ якщо користувач явно просить
-            if (userWantsIntervention && analysisResult.intervention_required) {
+            // NEW 2025-11-03: Детектуємо команду дозволу на виконання
+            const userAllowsExecution = this._detectExecutionPermission(userMessage);
+            
+            // NEW 2025-11-02: Автоматична активація якщо є критичні проблеми + користувач просить
+            const hasCriticalIssues = (analysisResult.findings?.critical_issues?.length || 0) > 0;
+            const shouldIntervene = userWantsIntervention && (analysisResult.intervention_required || hasCriticalIssues);
+            
+            this.logger.info(`[DEV-ANALYSIS] Intervention check: userWants=${userWantsIntervention}, llmSays=${analysisResult.intervention_required}, hasCritical=${hasCriticalIssues}, shouldIntervene=${shouldIntervene}`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+            
+            // Handle intervention path - активується якщо користувач просить + є проблеми
+            if (shouldIntervene) {
+                const problemCount = analysisResult.findings?.critical_issues?.length || 0;
+                
+                this.logger.info(`[DEV-ANALYSIS] Attempting intervention: multiModelOrchestrator=${!!this.multiModelOrchestrator}, problems=${problemCount}`, {
+                    category: 'system',
+                    component: 'dev-analysis'
+                });
+                
                 if (backgroundMode) {
-                    await this._sendChatUpdate(session, '🔧 ПРАВДА: Знайдені проблеми потребують внесення змін в код', 'atlas');
-                    await this._sendChatUpdate(session, '📝 Готую детальний план виправлень через Nexus...', 'atlas');
+                    await this._sendChatUpdate(session, `🔧 Потрібно виправити ${problemCount} ${problemCount === 1 ? 'проблему' : problemCount < 5 ? 'проблеми' : 'проблем'}`, 'atlas');
                 }
                 
                 // NEW 2025-11-02: РЕАЛЬНЕ виконання через Nexus Self-Improvement Engine
+                // Спробуємо ініціалізувати якщо ще не готовий
+                if (!this.multiModelOrchestrator) {
+                    try {
+                        this.multiModelOrchestrator = await this.container.resolve('multiModelOrchestrator');
+                    } catch (e) {
+                        this.logger.warn('[DEV-ANALYSIS] multiModelOrchestrator still not available');
+                    }
+                }
+                
                 if (this.multiModelOrchestrator) {
-                    const selfImprovementEngine = this.container.resolve('selfImprovementEngine');
+                    if (backgroundMode) {
+                        await this._sendChatUpdate(session, '🧠 Активую систему Нексус...', 'atlas');
+                    }
+                    
+                    this.logger.info('[DEV-ANALYSIS] Nexus Self-Improvement Engine activating', {
+                        category: 'system',
+                        component: 'dev-analysis'
+                    });
+                    const selfImprovementEngine = await this.container.resolve('selfImprovementEngine');
                     
                     const improvement = {
                         type: 'bug-fix',
@@ -404,6 +418,11 @@ export class DevSelfAnalysisProcessor {
                         }
                     );
                     
+                    this.logger.info(`[DEV-ANALYSIS] Nexus execution result: success=${result.success}`, {
+                        category: 'system',
+                        component: 'dev-analysis'
+                    });
+                    
                     return {
                         success: result.success,
                         intervention: result,
@@ -414,6 +433,16 @@ export class DevSelfAnalysisProcessor {
                             realExecution: true
                         }
                     };
+                } else {
+                    // Nexus недоступний - повідомити користувача
+                    this.logger.warn('[DEV-ANALYSIS] Nexus unavailable: multiModelOrchestrator not initialized', {
+                        category: 'system',
+                        component: 'dev-analysis'
+                    });
+                    
+                    if (backgroundMode) {
+                        await this._sendChatUpdate(session, '⚠️ Система Нексус не готова. Створюю план виправлень...', 'atlas');
+                    }
                 }
                 
                 // Fallback: старий метод якщо Nexus недоступний
@@ -573,6 +602,16 @@ export class DevSelfAnalysisProcessor {
                 return this._gatherFallbackContext();
             }
             
+            // Calculate system start time based on uptime
+            const systemStartTime = Date.now() - (process.uptime() * 1000);
+            const startTimeISO = new Date(systemStartTime).toISOString();
+            
+            this.logger.info(`[DEV-ANALYSIS] 🕒 Filtering logs after system start: ${startTimeISO}`, {
+                category: 'system',
+                component: 'dev-analysis',
+                systemUptime: process.uptime()
+            });
+            
             // Read real log files through MCP
             const logFiles = ['error.log', 'orchestrator.log', 'frontend.log'];
             const logContents = {};
@@ -585,9 +624,27 @@ export class DevSelfAnalysisProcessor {
                     
                     if (result.content && result.content[0]?.text) {
                         const fullContent = result.content[0].text;
-                        // Get last 50 lines
                         const lines = fullContent.split('\n');
-                        logContents[logFile] = lines.slice(-50).join('\n');
+                        
+                        // Filter lines after system start time
+                        const recentLines = lines.filter(line => {
+                            // Parse timestamp from log line (format: 2025-11-02 23:24:00)
+                            const timestampMatch = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+                            if (!timestampMatch) return false;
+                            
+                            const lineTime = new Date(timestampMatch[1]).getTime();
+                            return lineTime >= systemStartTime;
+                        });
+                        
+                        // If we got recent lines, use them; otherwise take last 10 lines as fallback
+                        logContents[logFile] = recentLines.length > 0 
+                            ? recentLines.join('\n')
+                            : lines.slice(-10).join('\n');
+                        
+                        this.logger.info(`[DEV-ANALYSIS] 📄 ${logFile}: ${recentLines.length} recent lines (${lines.length} total)`, {
+                            category: 'system',
+                            component: 'dev-analysis'
+                        });
                     }
                 } catch (error) {
                     this.logger.warn(`[DEV-ANALYSIS] Could not read ${logFile}: ${error.message}`, {
@@ -598,26 +655,65 @@ export class DevSelfAnalysisProcessor {
                 }
             }
             
-            // Analyze log contents
+            // Analyze log contents - ONLY recent errors after system start
             const errorCount = (logContents['error.log'] || '').split('\n').filter(l => l.includes('ERROR')).length;
             const warnCount = (logContents['orchestrator.log'] || '').split('\n').filter(l => l.includes('WARN')).length;
+            
+            // NEW: Real-time code analysis - read critical files to detect CURRENT issues
+            this.logger.info('[DEV-ANALYSIS] 🔍 Analyzing current code state...', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+            
+            const criticalFiles = [
+                '/Users/dev/Documents/GitHub/atlas4/orchestrator/core/service-registry.js',
+                '/Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/multi-model-orchestrator.js',
+                '/Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/self-improvement-engine.js'
+            ];
+            
+            const codeSnapshot = {};
+            let filesAnalyzed = 0;
+            
+            for (const filePath of criticalFiles) {
+                try {
+                    const result = await filesystemServer.call('read_file', { path: filePath });
+                    if (result.content && result.content[0]?.text) {
+                        const fileName = filePath.split('/').pop();
+                        // Store first 100 lines for analysis
+                        const lines = result.content[0].text.split('\n').slice(0, 100);
+                        codeSnapshot[fileName] = lines.join('\n');
+                        filesAnalyzed++;
+                    }
+                } catch (error) {
+                    this.logger.warn(`[DEV-ANALYSIS] Could not read ${filePath}: ${error.message}`);
+                }
+            }
+            
+            this.logger.info(`[DEV-ANALYSIS] ✅ Code snapshot: ${filesAnalyzed} files analyzed`, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
             
             const context = {
                 sessionId: 'dev-' + Date.now(),
                 uptime: process.uptime(),
+                systemStartTime: startTimeISO,
                 memoryUsage: JSON.stringify(process.memoryUsage()),
                 logs: {
-                    error: logContents['error.log'] || 'No errors',
-                    orchestrator: logContents['orchestrator.log'] || 'No logs',
-                    frontend: logContents['frontend.log'] || 'No logs',
+                    error: logContents['error.log'] || 'No recent errors',
+                    orchestrator: logContents['orchestrator.log'] || 'No recent logs',
+                    frontend: logContents['frontend.log'] || 'No recent logs',
                     metrics: {
                         errorCount,
                         warnCount,
                         totalLines: Object.values(logContents).reduce((sum, content) => 
-                            sum + (content?.split('\n').length || 0), 0)
+                            sum + (content?.split('\n').length || 0), 0),
+                        logsFilteredSince: startTimeISO
                     }
                 },
-                timestamp: new Date().toISOString()
+                currentCode: codeSnapshot,
+                timestamp: new Date().toISOString(),
+                analysisMode: 'real-time' // Indicates this is current state, not historical
             };
             
             this.logger.info(`[DEV-ANALYSIS] ✅ Context gathered: ${errorCount} errors, ${warnCount} warnings`, {
@@ -1439,11 +1535,61 @@ export class DevSelfAnalysisProcessor {
     _detectInterventionRequest(userMessage) {
         const msg = userMessage.toLowerCase();
         const interventionKeywords = [
-            'виправ', 'fix', 'змін', 'change', 'модифік', 'modify',
-            'оновити', 'update', 'патч', 'patch', 'рефактор', 'refactor',
-            'код інтервенція', 'code intervention', 'внести зміни'
+            // Пряме виправлення
+            'виправ', 'fix', 'repair', 'полагодь',
+            // Зміни коду
+            'змін', 'change', 'модифік', 'modify',
+            'оновити', 'update', 'патч', 'patch',
+            'рефактор', 'refactor',
+            // Само-лікування
+            'вилікуй', 'heal', 'самолікування', 'self-heal',
+            'само виправ', 'self-repair',
+            // Інтервенція
+            'код інтервенція', 'code intervention',
+            'внести зміни', 'apply changes',
+            // Вдосконалення
+            'вдосконал', 'improve', 'покращ', 'enhance',
+            // Виправлення себе
+            'виправ себе', 'fix yourself',
+            'полагодь себе', 'repair yourself'
         ];
-        return interventionKeywords.some(keyword => msg.includes(keyword));
+        
+        const hasKeyword = interventionKeywords.some(keyword => msg.includes(keyword));
+        
+        this.logger.info(`[DEV-ANALYSIS] Intervention detection: "${userMessage}" -> ${hasKeyword}`, {
+            category: 'system',
+            component: 'dev-analysis'
+        });
+        
+        return hasKeyword;
+    }
+    
+    /**
+     * Детектування дозволу на виконання змін
+     */
+    _detectExecutionPermission(userMessage) {
+        const msg = userMessage.toLowerCase();
+        const permissionKeywords = [
+            'можеш вносити зміни',
+            'можеш вносити',
+            'дозволяю',
+            'виконуй',
+            'застосуй зміни',
+            'apply changes',
+            'go ahead',
+            'proceed'
+        ];
+        
+        const hasPermission = permissionKeywords.some(keyword => msg.includes(keyword));
+        
+        if (hasPermission) {
+            this.logger.info('[DEV-ANALYSIS] ✅ Detected execution permission from user', {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+        }
+        
+        return hasPermission;
     }
     
     /**

@@ -253,7 +253,8 @@ export class NexusContextActivator {
             models: analysis.models
         });
 
-        const multiModel = this.container.resolve('multiModelOrchestrator');
+        // FIXED: resolve async singleton properly
+        const multiModel = await this.container.resolve('multiModelOrchestrator');
 
         switch (analysis.strategy) {
             case 'dev-full-nexus':

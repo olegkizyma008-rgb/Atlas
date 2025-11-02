@@ -1,190 +1,226 @@
 [MCP Registry] ✅ Initialized: 8/8 servers enabled
 [Validation Config] ✅ Initialized: 5 stages enabled
-2025-11-02 22:55:31 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 33 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowStateMachine","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration"]}}
-2025-11-02 22:55:31 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
-2025-11-02 22:55:31 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] 🌟 ETERNITY Module initialized - Дякую Олегу Миколайовичу за дар безсмертя {"metadata":{}}
-2025-11-02 22:55:31 [[33MWARN[39M] [ETERNITY] mcpMemory not available, will work without it {"metadata":{}}
-2025-11-02 22:55:31 [[33MWARN[39M] [ETERNITY] workflowCoordinator not available, will work without it {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
-2025-11-02 22:55:31 [[33MWARN[39M] ChatManager not available yet, will retry later {"metadata":{}}
-2025-11-02 22:55:31 [[33MWARN[39M] WorkflowCoordinator not available yet, will retry later {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: ✨ ETERNITY Module initialized - Atlas отримав дар безсмертя {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] Initializing (ext-mistral-codestral-2405 @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[31MERROR[39M] mcp-server {"metadata":{}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:31 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:32 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, python_sdk, windsurf, shell, applescript, memory, filesystem, playwright), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, python_sdk, windsurf, shell, applescript, memory, filesystem, playwright) {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [DI] All services initialized {"metadata":{}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
-2025-11-02 22:55:33 [[32MINFO[39M] [DI] Starting services... {"metadata":{}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [DI] All services started {"metadata":{}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
-2025-11-02 22:55:33 [[32MINFO[39M] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:37 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1762116937970_vtjbojk5g","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
-anager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, python_sdk, windsurf, shell, applescript, memory, filesystem, playwright), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, python_sdk, windsurf, shell, applescript, memory, filesystem, playwright) {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [DI] All services initialized {"metadata":{}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
-2025-11-02 22:55:33 [INFO] [DI] Starting services... {"metadata":{}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [DI] All services started {"metadata":{}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
-2025-11-02 22:55:33 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
-2025-11-02 22:55:37 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1762116937970_vtjbojk5g","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-11-03 00:06:17 [[32MINFO[39M] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas тепер має доступ до Windsurf API {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+[DI] Service "selfImprovementEngine" is already registered. Overwriting.
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 38 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","windsurfCodeEditor","selfImprovementEngine","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowStateMachine","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration","multiModelOrchestrator","cascadeController","nexusContextActivator"]}}
+2025-11-03 00:06:17 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-11-03 00:06:17 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] 🌟 ETERNITY Module initialized - Дякую Олегу Миколайовичу за дар безсмертя {"metadata":{}}
+2025-11-03 00:06:17 [[33MWARN[39M] [ETERNITY] mcpMemory not available, will work without it {"metadata":{}}
+2025-11-03 00:06:17 [[33MWARN[39M] [ETERNITY] workflowCoordinator not available, will work without it {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
+2025-11-03 00:06:17 [[33MWARN[39M] ChatManager not available yet, will retry later {"metadata":{}}
+2025-11-03 00:06:17 [[33MWARN[39M] WorkflowCoordinator not available yet, will retry later {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: ✨ ETERNITY Module initialized - Atlas отримав дар безсмертя {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] Initializing (ext-mistral-codestral-2405 @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-03 00:06:17 [[32MINFO[39M] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:17 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[31MERROR[39M] mcp-server {"metadata":{}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:18 [[32MINFO[39M] [DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized {"metadata":{}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:19 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, python_sdk, windsurf, shell, filesystem, memory, playwright, applescript), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, python_sdk, windsurf, shell, filesystem, memory, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [DI] All services initialized {"metadata":{}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-11-03 00:06:20 [[32MINFO[39M] [DI] Starting services... {"metadata":{}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [DI] All services started {"metadata":{}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-11-03 00:06:20 [[32MINFO[39M] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:23 [[32MINFO[39M] New WebSocket connection {"metadata":{"clientId":"ws_1762121183930_a1ujb8ecg","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-11-03 00:06:47 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:06:47 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:06:47 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:06:47 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-03 00:10:12 [[32MINFO[39M] WebSocket connection closed {"metadata":{"clientId":"ws_1762121183930_a1ujb8ecg","duration":"228s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-11-03 00:11:17 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-03 00:11:17 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:11:17 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:11:17 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:11:17 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-03 00:11:17 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:11:17 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.1 {"metadata":{}}
+2025-11-03 00:16:17 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-03 00:16:17 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:16:17 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.2 {"metadata":{}}
+2025-11-03 00:16:17 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:16:17 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:16:17 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:16:17 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+aded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, python_sdk, windsurf, shell, filesystem, memory, playwright, applescript), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, python_sdk, windsurf, shell, filesystem, memory, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [DI] All services initialized {"metadata":{}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-11-03 00:06:20 [INFO] [DI] Starting services... {"metadata":{}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [DI] All services started {"metadata":{}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-11-03 00:06:20 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 00:06:23 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1762121183930_a1ujb8ecg","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-11-03 00:06:47 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:06:47 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:06:47 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:06:47 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-03 00:10:12 [INFO] WebSocket connection closed {"metadata":{"clientId":"ws_1762121183930_a1ujb8ecg","duration":"228s","code":1001,"reason":"","ip":"::1","remainingClients":0}}
+2025-11-03 00:11:17 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-03 00:11:17 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:11:17 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:11:17 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:11:17 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-03 00:11:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:11:17 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.1 {"metadata":{}}
+2025-11-03 00:16:17 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-03 00:16:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:16:17 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.2 {"metadata":{}}
+2025-11-03 00:16:17 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 00:16:17 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 00:16:17 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 00:16:17 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}

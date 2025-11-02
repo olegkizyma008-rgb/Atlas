@@ -31,6 +31,8 @@ import {
     McpFinalSummaryProcessor
 } from '../workflow/stages/index.js';
 import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor.js';
+import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
+import { windsurfCodeEditor } from '../eternity/windsurf-code-editor.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -449,6 +451,30 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'processors', priority: 45 }
     });
 
+    // Windsurf Code Editor - NEW 03.11.2025 - Реальні зміни коду
+    container.singleton('windsurfCodeEditor', () => windsurfCodeEditor, {
+        metadata: { category: 'eternity', priority: 75 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API');
+            }
+        }
+    });
+
+    // Self-Improvement Engine - NEW 03.11.2025 - Автономна еволюція
+    container.singleton('selfImprovementEngine', (c) => {
+        const instance = new SelfImprovementEngine(c);
+        return instance;
+    }, {
+        dependencies: ['logger', 'windsurfCodeEditor'],
+        metadata: { category: 'eternity', priority: 74 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції');
+            }
+        }
+    });
+
     // DEV Self-Analysis Processor (Stage 0-DEV) - NEW 28.10.2025
     container.singleton('devSelfAnalysisProcessor', (c) => {
         const instance = new DevSelfAnalysisProcessor(
@@ -670,6 +696,42 @@ export function registerMCPProcessors(container) {
     }, {
         dependencies: ['mcpManager', 'logger'],
         metadata: { category: 'core', priority: 95 }
+    });
+
+    // NEXUS Module - Multi-Model Orchestrator (NEW 02.11.2025)
+    container.singleton('multiModelOrchestrator', async (c) => {
+        const { MultiModelOrchestrator } = await import('../eternity/multi-model-orchestrator.js');
+        return new MultiModelOrchestrator(c);
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'nexus', priority: 94 }
+    });
+
+    // Cascade Controller (NEW 02.11.2025)
+    container.singleton('cascadeController', async (c) => {
+        const { CascadeController } = await import('../eternity/cascade-controller.js');
+        return new CascadeController(c);
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'nexus', priority: 93 }
+    });
+
+    // Self-Improvement Engine (NEW 02.11.2025)
+    container.singleton('selfImprovementEngine', async (c) => {
+        const { SelfImprovementEngine } = await import('../eternity/self-improvement-engine.js');
+        return new SelfImprovementEngine(c);
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'nexus', priority: 92 }
+    });
+
+    // Nexus Context Activator (NEW 02.11.2025)
+    container.singleton('nexusContextActivator', async (c) => {
+        const { NexusContextActivator } = await import('../eternity/nexus-context-activator.js');
+        return new NexusContextActivator(c);
+    }, {
+        dependencies: ['logger', 'multiModelOrchestrator'],
+        metadata: { category: 'nexus', priority: 91 }
     });
 
     return container;

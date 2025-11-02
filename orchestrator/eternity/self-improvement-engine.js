@@ -12,6 +12,7 @@
 import logger from '../utils/logger.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { windsurfCodeEditor } from './windsurf-code-editor.js';
 
 export class SelfImprovementEngine {
     constructor(container) {
@@ -243,37 +244,41 @@ export class SelfImprovementEngine {
                 });
             }
             
-            // КРОК 3: РЕАЛЬНО застосувати зміни через MCP filesystem
-            await reportCallback('💾 Застосовую зміни до файлів через MCP...');
+            // КРОК 3: РЕАЛЬНО застосувати зміни через Windsurf Code Editor API
+            await reportCallback('💾 Застосовую зміни через Windsurf API...');
             
-            const mcpManager = this.container.resolve('mcpManager');
-            const filesystemServer = mcpManager.servers.get('filesystem');
-            
-            if (filesystemServer) {
-                for (const fix of fixes) {
-                    if (fix.file) {
-                        try {
-                            // Читаємо поточний вміст
-                            const currentContent = await filesystemServer.call('read_file', {
-                                path: fix.file
-                            });
-                            
-                            // Застосовуємо патч (тут має бути логіка патчінгу)
-                            const newContent = this._applyPatch(currentContent, fix.fix);
-                            
-                            // Записуємо змінений файл
-                            await filesystemServer.call('write_file', {
-                                path: fix.file,
-                                content: newContent
-                            });
-                            
-                            await reportCallback(`  ✅ Файл ${fix.file} оновлено`);
-                            fix.applied = true;
-                        } catch (e) {
-                            await reportCallback(`  ❌ Помилка при оновленні ${fix.file}: ${e.message}`);
+            for (const fix of fixes) {
+                if (fix.file && fix.fix) {
+                    try {
+                        // Парсимо зміни з LLM відповіді
+                        const changes = this._parseCodeChanges(fix.fix);
+                        
+                        if (changes.length === 0) {
+                            await reportCallback(`  ⚠️ Не вдалося розпарсити зміни для ${fix.file}`);
                             fix.applied = false;
-                            fix.error = e.message;
+                            continue;
                         }
+                        
+                        // Застосовуємо через Windsurf API
+                        const result = await windsurfCodeEditor.replaceFileContent(
+                            fix.file,
+                            changes,
+                            `Fix: ${fix.problem}`
+                        );
+                        
+                        if (result.success) {
+                            await reportCallback(`  ✅ Файл ${fix.file} оновлено (${result.replacements} змін)`);
+                            fix.applied = true;
+                            fix.replacements = result.replacements;
+                        } else {
+                            await reportCallback(`  ❌ Помилка: ${result.error}`);
+                            fix.applied = false;
+                            fix.error = result.error;
+                        }
+                    } catch (e) {
+                        await reportCallback(`  ❌ Помилка при оновленні ${fix.file}: ${e.message}`);
+                        fix.applied = false;
+                        fix.error = e.message;
                     }
                 }
             }
@@ -298,12 +303,43 @@ export class SelfImprovementEngine {
     }
     
     /**
-     * Застосування патчу до коду
+     * Парсинг змін коду з LLM відповіді
+     * Витягує targetContent та replacementContent для Windsurf API
      */
-    _applyPatch(currentContent, patchDescription) {
-        // TODO: Реалізувати розумне патчування
-        // Поки що повертаємо оригінальний вміст з коментарем
-        return currentContent + `\n\n// NEXUS FIX: ${patchDescription}\n`;
+    _parseCodeChanges(llmResponse) {
+        const changes = [];
+        
+        try {
+            // LLM має повертати структуровані зміни
+            // Формат: ```REPLACE\n[target]\n---\n[replacement]\n```
+            
+            const replaceBlocks = llmResponse.match(/```REPLACE\n([\s\S]*?)\n---\n([\s\S]*?)\n```/g) || [];
+            
+            for (const block of replaceBlocks) {
+                const parts = block.match(/```REPLACE\n([\s\S]*?)\n---\n([\s\S]*?)\n```/);
+                
+                if (parts && parts.length >= 3) {
+                    changes.push({
+                        targetContent: parts[1],
+                        replacementContent: parts[2],
+                        allowMultiple: false
+                    });
+                }
+            }
+            
+            // Fallback: якщо немає структурованого формату, створюємо додавання
+            if (changes.length === 0 && llmResponse.length > 0) {
+                this.logger.warn('[SELF-IMPROVEMENT] LLM response not in REPLACE format, using append');
+                // Не можемо надійно застосувати - потрібно повідомити
+                return [];
+            }
+            
+            return changes;
+            
+        } catch (error) {
+            this.logger.error('[SELF-IMPROVEMENT] Failed to parse code changes:', error);
+            return [];
+        }
     }
 
     /**

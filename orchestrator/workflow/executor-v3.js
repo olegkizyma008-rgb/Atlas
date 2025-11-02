@@ -61,44 +61,27 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   const workflowStart = Date.now();
 
   try {
-    // NEW 2025-11-02: NEXUS Context-Aware Activation
-    const nexusActivator = new NexusContextActivator(container);
+    // ===============================================
+    // NEXUS CONTEXT-AWARE ACTIVATION (DISABLED 02.11.2025)
+    // Аналізуємо чи потрібен Nexus ПЕРЕД mode selection
+    // ===============================================
+    // DISABLED: Nexus interceptor conflicts with DEV self-analysis workflow
+    // DEV mode needs devSelfAnalysisProcessor for real code analysis and intervention
+    // Nexus stubs don't provide the functionality needed for self-improvement
+    
+    // TODO: Re-enable when:
+    // 1. Real multi-model orchestration implemented (not stubs)
+    // 2. Integration with devSelfAnalysisProcessor added
+    // 3. Proper mode coordination established
+    
+    /*
+    const nexusActivator = await container.resolve('nexusContextActivator');
     await nexusActivator.initialize();
-    
-    // Аналізуємо чи потрібен Nexus (на основі контексту, не ключових слів)
     const nexusAnalysis = await nexusActivator.analyzeIfNexusNeeded(userMessage, session);
-    
     if (nexusAnalysis.shouldUseNexus) {
-      logger.info('[EXECUTOR] Nexus activated', {
-        strategy: nexusAnalysis.strategy,
-        reasoning: nexusAnalysis.reasoning,
-        models: nexusAnalysis.models
-      });
-      
-      const result = await nexusActivator.executeWithNexus(userMessage, session, nexusAnalysis);
-      
-      logger.workflow('complete', 'nexus', 'Nexus processing completed', {
-        success: result.success,
-        strategy: nexusAnalysis.strategy
-      });
-      
-      // Send result via WebSocket
-      if (wsManager && result.content) {
-        wsManager.broadcastToSubscribers('chat', 'agent_message', {
-          content: result.content,
-          agent: 'atlas',
-          sessionId: session.id,
-          timestamp: new Date().toISOString(),
-          metadata: {
-            nexusUsed: true,
-            models: nexusAnalysis.models,
-            strategy: nexusAnalysis.strategy
-          }
-        });
-      }
-      
-      return result;
+      // Nexus execution code...
     }
+    */
     
     // Якщо Nexus не потрібен - продовжуємо стандартний workflow
     // Resolve processors from DI Container
@@ -361,16 +344,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         // Build detailed message with metrics table
         const metrics = analysisResult.analysis?.metrics || {};
         
-        let message = '🔬 **Аналіз системи Atlas**\n\n';
+        let message = '🔬 **Аналіз системи**\n\n';
         
-        // Add metrics table
+        // Add metrics table - оптимізовано для TTS
         if (metrics.error_count !== undefined || metrics.warning_count !== undefined) {
-          message += '**📊 Метрики системи:**\n';
+          message += '**📊 Стан системи:**\n';
           message += '```\n';
-          message += `Помилки:      ${metrics.error_count || 0}\n`;
-          message += `Попередження:  ${metrics.warning_count || 0}\n`;
-          message += `Здоров'я:     ${metrics.system_health || 'N/A'}%\n`;
-          message += `Uptime:       ${Math.floor((metrics.uptime || 0) / 60)} хв\n`;
+          message += `Помилок:        ${metrics.error_count || 0}\n`;
+          message += `Попереджень:    ${metrics.warning_count || 0}\n`;
+          message += `Здоров'я:       ${metrics.system_health || 'невідомо'}%\n`;
+          message += `Працює:         ${Math.floor((metrics.uptime || 0) / 60)} хвилин\n`;
           message += '```\n\n';
         }
         
@@ -418,10 +401,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           });
         }
         
-        // Add TODO list if available
+        // Add TODO list - українською для TTS
         const todoList = analysisResult.analysis?.todo_list || [];
         if (todoList.length > 0) {
-          message += `\n\n📋 **TODO список:**\n`;
+          message += `\n\n📋 **План дій:**\n`;
           todoList.forEach((item, idx) => {
             const priority = item.priority === 'critical' ? '🔴' : 
                            item.priority === 'high' ? '🟠' : 
@@ -431,10 +414,20 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           });
         }
         
+        // Intervention results - пряма мова для TTS
         if (analysisResult.intervention) {
-          message += `\n✅ **Втручання виконано:**\n`;
-          message += `  • Файлів змінено: ${analysisResult.intervention.files_modified.length}\n`;
-          message += `  • Зміни будуть застосовані при наступному перезапуску системи\n`;
+          const filesModified = analysisResult.intervention.files_modified || [];
+          if (filesModified.length > 0) {
+            message += `\n✅ **Я виконав виправлення:**\n`;
+            message += `  • Змінив ${filesModified.length} ${filesModified.length === 1 ? 'файл' : filesModified.length < 5 ? 'файли' : 'файлів'}\n`;
+            filesModified.forEach(file => {
+              message += `    → ${file}\n`;
+            });
+            message += `  • Зміни вже активні\n`;
+          } else {
+            message += `\n📝 **Готовий до виправлень:**\n`;
+            message += `  • План створено, чекаю команди\n`;
+          }
         }
         
         // Add deep targeted analysis if available
@@ -482,15 +475,30 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           }
         }
         
-        // Add deep understanding context
-        message += `\n🧠 **Розуміння контексту:**\n`;
-        message += `Я проаналізував свої внутрішні системи та виявив області для покращення. `;
-        message += `Кожна знахідка базується на глибокому розумінні архітектури та взаємозв'язків між компонентами. `;
+        // Deep understanding - пряма мова, природно для TTS
+        message += `\n🧠 **Мій висновок:**\n`;
         
-        if (findings.critical_issues?.length === 0 && findings.performance_bottlenecks?.length === 0) {
-          message += `Система працює стабільно, але завжди є простір для вдосконалення.`;
+        const criticalCount = findings.critical_issues?.length || 0;
+        const perfCount = findings.performance_bottlenecks?.length || 0;
+        
+        if (criticalCount === 0 && perfCount === 0) {
+          message += `Я ретельно перевірив усі системи. Все працює стабільно, критичних проблем не виявлено. `;
+          message += `Завжди є простір для вдосконалення, але зараз можна сказати що система в доброму стані.`;
         } else {
-          message += `Виявлені проблеми потребують уваги для оптимальної роботи системи.`;
+          message += `Я знайшов ${criticalCount > 0 ? `${criticalCount} критичн${criticalCount === 1 ? 'у проблему' : criticalCount < 5 ? 'і проблеми' : 'их проблем'}` : ''}`;
+          if (criticalCount > 0 && perfCount > 0) message += ` та `;
+          message += `${perfCount > 0 ? `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності` : ''}. `;
+          
+          // Перевіряємо чи Nexus СПРАВДІ виконав зміни
+          const reallyExecuted = analysisResult.metadata?.realExecution && analysisResult.intervention?.success;
+          
+          if (reallyExecuted) {
+            message += `Я вже виконав виправлення через систему Нексус.`;
+          } else if (analysisResult.intervention) {
+            message += `Створив план виправлень. Готовий виконати за твоєю командою.`;
+          } else {
+            message += `Готовий приступити до виправлення.`;
+          }
         }
         
         // Add interactive mode prompt if enabled
@@ -500,27 +508,63 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           message += `Доступні напрямки: Тетяна, Гріша, MCP, продуктивність, помилки, пам'ять, архітектура.`;
         }
 
-        // ALWAYS prepare FULL TTS message - Atlas speaks everything with emotion
-        let cleanedForTts = message
-          .replace(/[*_#]/g, '')
-          .replace(/\n+/g, '. ')
-          .replace(/🔬/g, '')
-          .replace(/🔴/g, '')
-          .replace(/⚡/g, '')
-          .replace(/💡/g, '')
-          .replace(/📊/g, '')
-          .replace(/🧠/g, '')
-          .replace(/🎯/g, '')
-          .replace(/🔍/g, '')
-          .replace(/💬/g, '')
-          .replace(/✅/g, 'успішно')
-          .replace(/⚠️/g, 'увага')
-          .replace(/•/g, ',');
+        // TTS message - природна українська, пряма мова (використовуємо вже оголошені змінні)
+        const warningCount = metrics.warning_count || 0;
+        const uptime = Math.floor((metrics.uptime || 0) / 60);
+        let ttsContent = '';
         
-        // Add emotional context to TTS
-        const baseTtsMessage = findings.critical_issues?.length > 0
-          ? `Слухай, я знайшов дещо важливе... ${cleanedForTts} Я вже працюю над вирішенням цих проблем.`
-          : `Привіт! Я щойно завершив глибокий самоаналіз. ${cleanedForTts} Все працює добре, але я завжди шукаю шляхи стати кращим для тебе.`;
+        // Початок - привітання та контекст
+        ttsContent += `Олег Миколайович, я завершив аналіз системи. `;
+        
+        // Стан системи
+        if (metrics.system_health) {
+          const health = metrics.system_health;
+          const healthWord = health >= 90 ? 'відмінному' : health >= 70 ? 'доброму' : health >= 50 ? 'задовільному' : 'поганому';
+          ttsContent += `Здоров'я системи ${health} відсотків, це ${healthWord} стан. `;
+        }
+        
+        ttsContent += `Працюю вже ${uptime} ${uptime === 1 ? 'хвилину' : uptime < 5 ? 'хвилини' : 'хвилин'}. `;
+        
+        // Результати аналізу
+        if (criticalCount === 0 && perfCount === 0) {
+          ttsContent += `Все працює стабільно. Критичних проблем не виявив. `;
+          if (warningCount > 0) {
+            ttsContent += `Є ${warningCount} ${warningCount === 1 ? 'попередження' : 'попередження'}, але вони не критичні. `;
+          }
+        } else {
+          ttsContent += `Виявив `;
+          
+          if (criticalCount > 0) {
+            ttsContent += `${criticalCount} ${criticalCount === 1 ? 'критичну проблему' : criticalCount < 5 ? 'критичні проблеми' : 'критичних проблем'}`;
+            
+            // Перша критична проблема
+            if (findings.critical_issues && findings.critical_issues[0]) {
+              const issue = findings.critical_issues[0];
+              ttsContent += `. Найважливіша: ${issue.description}`;
+            }
+          }
+          
+          if (perfCount > 0) {
+            if (criticalCount > 0) ttsContent += ` та `;
+            ttsContent += `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності`;
+          }
+          
+          ttsContent += `. `;
+        }
+        
+        // Дії що виконані або плануються
+        const reallyExecuted = analysisResult.metadata?.realExecution && analysisResult.intervention?.success;
+        const filesModified = analysisResult.intervention?.files_modified || [];
+        
+        if (reallyExecuted && filesModified.length > 0) {
+          ttsContent += `Я вже виконав виправлення. Змінив ${filesModified.length} ${filesModified.length === 1 ? 'файл' : filesModified.length < 5 ? 'файли' : 'файлів'}. Зміни вже активні. `;
+        } else if (analysisResult.intervention) {
+          ttsContent += `Створив детальний план виправлень. Готовий виконати за твоєю командою. `;
+        } else if (criticalCount > 0 || perfCount > 0) {
+          ttsContent += `Можу приступити до виправлення, якщо ти даси команду. `;
+        }
+        
+        const baseTtsMessage = ttsContent;
 
         if (!analysisResult.success && analysisResult.requiresAuth) {
           const passwordAppendix = `\n\n🔐 **Потрібна авторізація для втручання**\nМені потрібен пароль "mykola", щоб завершити лікування своїх систем. Як тільки ти його підтвердиш, я одразу застосую виправлення.`;

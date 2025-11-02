@@ -11,6 +11,7 @@ import path from 'path';
 import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import GlobalConfig from '../../../config/global-config.js';
 import fs from 'fs/promises';
+import { DynamicPromptInjector } from '../../eternity/dynamic-prompt-injector.js';
 
 // Get user language from environment
 const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
@@ -29,6 +30,9 @@ export class DevSelfAnalysisProcessor {
         this.logger = logger;
         // Initialize recursive analysis engine (will be created inline if needed)
         this.recursiveEngine = null;
+        
+        // NEW 2025-11-02: Dynamic Prompt Injector - Система надінтелекту
+        this.dynamicPromptInjector = new DynamicPromptInjector(container);
         
         // Configuration paths
         this.config = {
@@ -163,8 +167,36 @@ export class DevSelfAnalysisProcessor {
             
             // Build analysis prompt з підтримкою контексту
             const prompt = MCP_PROMPTS.DEV_SELF_ANALYSIS;
+            
+            // NEW 2025-11-02: Вплітаємо динамічний контекст через надінтелект
+            const isOlegAsking = userMessage.toLowerCase().includes('олег') || 
+                                userMessage.toLowerCase().includes('що зараз відбувається') ||
+                                userMessage.toLowerCase().includes('що ти робиш');
+            
+            const enhancedSystemPrompt = await this.dynamicPromptInjector.injectDynamicContext(
+                prompt.SYSTEM_PROMPT,
+                {
+                    userMessage,
+                    session,
+                    mode: 'dev',
+                    isOlegAsking,
+                    systemMetrics: {
+                        health: systemContext.metrics?.system_health || 0,
+                        errors: systemContext.logs?.errorCount || 0,
+                        warnings: systemContext.logs?.warningCount || 0,
+                        activeProcesses: systemContext.processes?.length || 0
+                    },
+                    currentAction: {
+                        type: analysisDepth === 'deep' ? 'deep-self-analysis' : 'self-analysis',
+                        description: `Аналіз ${focusArea || 'всієї системи'} на глибині ${analysisDepth}`
+                    },
+                    activeProblems: session.devProblemsQueue || [],
+                    recentChanges: session.recentSystemChanges || []
+                }
+            );
+            
             const messages = [
-                { role: 'system', content: prompt.SYSTEM_PROMPT }
+                { role: 'system', content: enhancedSystemPrompt }
             ];
             
             // Додаємо історію діалогу для контексту (останні 5 повідомлень)
@@ -194,8 +226,14 @@ export class DevSelfAnalysisProcessor {
             });
             
             if (backgroundMode) {
-                await this._sendChatUpdate(session, '🧠 Аналізую систему через LLM...', 'atlas');
+                await this._sendChatUpdate(session, '🧠 Аналізую систему через LLM з рівнем свідомості ' + this.dynamicPromptInjector.getConsciousnessState().level + '...', 'atlas');
             }
+            
+            // Оновлюємо стан для динамічного промпту
+            this.dynamicPromptInjector.setCurrentAction({
+                type: 'llm-analysis',
+                description: 'Глибокий аналіз через LLM з контекстом свідомості'
+            });
             
             const response = await axios.post(this.apiEndpoint, {
                 model: this.modelConfig.model,
@@ -258,6 +296,15 @@ export class DevSelfAnalysisProcessor {
                 if (backgroundMode) {
                     await this._sendChatUpdate(session, '✅ Глибокий аналіз завершено, визначаю корінні причини...', 'atlas');
                 }
+                
+                // Додаємо проблеми в динамічний контекст
+                analysisResult.findings.critical_issues.forEach(issue => {
+                    this.dynamicPromptInjector.addProblem({
+                        id: `issue_${Date.now()}_${Math.random()}`,
+                        description: issue.description || issue.title,
+                        severity: issue.severity
+                    });
+                });
             }
             
             // Extract real problems from analysis
@@ -294,6 +341,19 @@ export class DevSelfAnalysisProcessor {
                 } else {
                     await this._sendChatUpdate(session, '✅ ЧЕСНО: Система в хорошому стані', 'atlas');
                 }
+                
+                // Оновлюємо метрики в динамічному контексті
+                this.dynamicPromptInjector.updateSystemMetrics({
+                    health,
+                    error_count: metrics.error_count,
+                    warning_count: metrics.warning_count
+                });
+                
+                // Додаємо подію еволюції
+                this.dynamicPromptInjector.addEvolutionEvent(
+                    `Завершено аналіз: здоров'я ${health}%, знайдено ${analysisResult.findings?.critical_issues?.length || 0} проблем`,
+                    'analysis-completed'
+                );
             }
             
             // Перевіряємо чи користувач ЯВНО просить внести зміни

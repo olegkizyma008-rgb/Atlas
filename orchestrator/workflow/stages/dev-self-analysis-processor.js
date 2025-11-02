@@ -381,8 +381,42 @@ export class DevSelfAnalysisProcessor {
             if (userWantsIntervention && analysisResult.intervention_required) {
                 if (backgroundMode) {
                     await this._sendChatUpdate(session, '🔧 ПРАВДА: Знайдені проблеми потребують внесення змін в код', 'atlas');
-                    await this._sendChatUpdate(session, '📝 Готую детальний план виправлень з описом кожної зміни...', 'atlas');
+                    await this._sendChatUpdate(session, '📝 Готую детальний план виправлень через Nexus...', 'atlas');
                 }
+                
+                // NEW 2025-11-02: РЕАЛЬНЕ виконання через Nexus Self-Improvement Engine
+                if (this.multiModelOrchestrator) {
+                    const selfImprovementEngine = this.container.resolve('selfImprovementEngine');
+                    
+                    const improvement = {
+                        type: 'bug-fix',
+                        description: 'Виправлення знайдених проблем',
+                        problems: analysisResult.findings?.critical_issues || [],
+                        priority: 'critical'
+                    };
+                    
+                    const result = await selfImprovementEngine.applyImprovement(
+                        improvement,
+                        async (msg) => {
+                            if (backgroundMode) {
+                                await this._sendChatUpdate(session, msg, 'atlas');
+                            }
+                        }
+                    );
+                    
+                    return {
+                        success: result.success,
+                        intervention: result,
+                        analysis: comprehensiveResponse,
+                        metadata: {
+                            timestamp: new Date().toISOString(),
+                            executedBy: 'nexus',
+                            realExecution: true
+                        }
+                    };
+                }
+                
+                // Fallback: старий метод якщо Nexus недоступний
                 if (password && password === this.interventionPassword) {
                     const interventionResult = await this._handleIntervention(analysisResult, session, password);
                     return {

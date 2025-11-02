@@ -18,8 +18,23 @@ const env = typeof process !== 'undefined' ? process.env : {};
 export const MCP_REGISTRY = {
   /**
    * Конфігурація всіх MCP серверів
+   * NEXUS: Windsurf має найвищий пріоритет (100)
    */
   servers: {
+    windsurf: {
+      command: 'node',
+      args: [
+        '/Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/windsurf-mcp-adapter.js'
+      ],
+      env: {
+        WINDSURF_API_KEY: env.WINDSURF_API_KEY || '',
+        WINDSURF_API_ENDPOINT: env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1'
+      },
+      description: 'Windsurf AI - Primary tool for code analysis and improvements (PRIORITY: 100)',
+      enabled: true,
+      priority: 100,  // NEXUS: HIGHEST PRIORITY
+      capabilities: ['code-analysis', 'deep-thinking', 'error-recovery']
+    },
     filesystem: {
       command: 'npx',
       args: [

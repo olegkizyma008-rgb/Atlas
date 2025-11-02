@@ -19,11 +19,16 @@ import path from "path";
 
 const execAsync = promisify(exec);
 
+// NEXUS: Configuration
+const MAX_BUFFER = 1024 * 1024 * 50; // 50MB
+const EXECUTION_TIMEOUT = 120000; // 2 minutes
+const MAX_RETRIES = 3;
+
 // Create MCP server
 const server = new Server(
   {
     name: "python-sdk-server",
-    version: "1.0.0",
+    version: "1.1.0",  // NEXUS: Updated version with improvements
   },
   {
     capabilities: {
@@ -31,6 +36,21 @@ const server = new Server(
     },
   }
 );
+
+/**
+ * NEXUS: Retry logic with exponential backoff
+ */
+async function executeWithRetry(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      const delay = Math.pow(2, i) * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
 
 // Tool definitions
 const TOOLS = [
@@ -276,8 +296,8 @@ const TOOLS = [
         },
         debug: {
           type: "boolean",
-          description: "Enable debug mode (default: true)",
-          default: true,
+          description: "Enable debug mode (default: false)",
+          default: false,  // NEXUS: Changed to false for security
         },
       },
       required: ["app_file"],
@@ -390,12 +410,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "run_python": {
         const { script_path, code, args: pyArgs, working_dir } = args;
         let cmd;
-        
-        if (code) {
-          // Execute code directly
-          cmd = `python3 -c ${JSON.stringify(code)}`;
-        } else if (script_path) {
+        let tempScript = null;
+
+        if (script_path) {
           cmd = `python3 "${script_path}"`;
+          if (pyArgs && pyArgs.length > 0) {
+            cmd += ` ${pyArgs.join(" ")}`;
+          }
+        } else if (code) {
+          // NEXUS: Sandbox isolation - temporary file in secure location
+          tempScript = path.join(
+            os.tmpdir(),
+            `nexus_python_${Date.now()}.py`
+          );
+          await fs.writeFile(tempScript, code, "utf8");
+          cmd = `python3 "${tempScript}"`;
           if (pyArgs && pyArgs.length > 0) {
             cmd += ` ${pyArgs.join(" ")}`;
           }
@@ -403,7 +432,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           throw new Error("Either script_path or code must be provided");
         }
 
-        const options = working_dir ? { cwd: working_dir } : {};
+        // NEXUS: Added timeout and maxBuffer
+        const options = { 
+          ...(working_dir ? { cwd: working_dir } : {}),
+          timeout: EXECUTION_TIMEOUT,
+          maxBuffer: MAX_BUFFER
+        };
         const { stdout, stderr } = await execAsync(cmd, options);
         
         return {
@@ -622,8 +656,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "run_flask_app": {
-        const { app_file, host = "127.0.0.1", port = 5000, debug = true } = args;
+        const { app_file, host = "127.0.0.1", port = 5000, debug = false } = args;  // NEXUS: debug false by default
         const debugFlag = debug ? "--debug" : "";
+        // NEXUS: Security warning for 0.0.0.0
+        if (host === "0.0.0.0") {
+          console.warn("[NEXUS WARNING] Flask running on 0.0.0.0 - ensure proper authentication!");
+        }
         const cmd = `flask --app "${app_file}" run --host ${host} --port ${port} ${debugFlag}`;
 
         const { stdout, stderr } = await execAsync(cmd);

@@ -23,7 +23,7 @@ const MAX_BUFFER = 1024 * 1024 * 20;
 const server = new Server(
   {
     name: "java-sdk-server",
-    version: "2.0.0",
+    version: "2.1.0",  // NEXUS: Updated version with improvements
   },
   {
     capabilities: {
@@ -31,6 +31,21 @@ const server = new Server(
     },
   }
 );
+
+/**
+ * NEXUS: Retry logic with exponential backoff
+ */
+async function executeWithRetry(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
 
 const TOOLS = [
   {
@@ -587,15 +602,24 @@ const TOOL_HANDLERS = {
   async compile_java(args) {
     const { source_file, output_dir, classpath, options } = args;
     assertString(source_file, "source_file");
-    let cmd = `javac "${quote(source_file)}"`;
-    if (output_dir) cmd += ` -d "${quote(output_dir)}"`;
-    if (classpath) cmd += ` -cp "${quote(classpath)}"`;
+
+    let cmd = `javac "${source_file}"`;
+    if (output_dir) cmd += ` -d "${output_dir}"`;
+    if (classpath) cmd += ` -cp "${classpath}"`;
     if (options) cmd += ` ${options}`;
 
-    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
+    // NEXUS: Retry logic with timeout
+    const { stdout, stderr } = await executeWithRetry(async () => {
+      return await execAsync(cmd, { 
+        maxBuffer: MAX_BUFFER,
+        timeout: COMPILATION_TIMEOUT  // NEXUS: Added timeout
+      });
+    });
+    
     return {
       success: true,
-      stdout: stdout || "Compilation successful",
+      message: "Compilation successful",
+      output: stdout,
       stderr: stderr || "",
     };
   },

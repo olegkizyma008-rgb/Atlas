@@ -159,15 +159,21 @@
 2025-11-02 21:42:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
 2025-11-02 21:42:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 21:42:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.3 {"metadata":{}}
-02 21:27:58 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
-2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-02 21:47:56 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:47:56 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:47:56 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:47:56 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:47:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:47:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:47:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.4 {"metadata":{}}
+2025-11-02 21:52:56 [[32MINFO[39M] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:52:56 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:52:56 [[33MWARN[39M] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:52:56 [[33MWARN[39M] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:52:56 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:52:56 [[31MERROR[39M] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:52:56 [[32MINFO[39M] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.5 {"metadata":{}}
+ool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
 2025-11-02 21:27:58 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 96 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
 2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 96 tools from 7 servers (java_sdk, python_sdk, shell, memory, filesystem, applescript, playwright) {"metadata":{"category":"system","component":"startup"}}
 2025-11-02 21:27:58 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
@@ -214,3 +220,17 @@
 2025-11-02 21:42:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
 2025-11-02 21:42:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-02 21:42:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.3 {"metadata":{}}
+2025-11-02 21:47:56 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:47:56 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:47:56 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:47:56 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:47:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:47:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:47:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.4 {"metadata":{}}
+2025-11-02 21:52:56 [INFO] 🔍 ETERNITY: Починаю самоаналіз... {"metadata":{}}
+2025-11-02 21:52:56 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-02 21:52:56 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-02 21:52:56 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-02 21:52:56 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-02 21:52:56 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-02 21:52:56 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.5 {"metadata":{}}

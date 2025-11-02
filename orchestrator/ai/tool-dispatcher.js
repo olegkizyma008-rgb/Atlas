@@ -19,10 +19,23 @@ import logger from '../utils/logger.js';
  * Routes and executes tool calls with validation
  */
 export class ToolDispatcher {
-    constructor(extensionManager, inspectionManager) {
-        this.extensionManager = extensionManager;
+    constructor(mcpManager, inspectionManager, logger) {
+        this.mcpManager = mcpManager;
         this.inspectionManager = inspectionManager;
-    }
+        this.logger = logger;
+        
+        // NEXUS: Tool priority mapping
+        this.toolPriority = {
+            'windsurf': 100,           // HIGHEST - Windsurf AI
+            'nexus': 90,               // Nexus orchestrator
+            'java_sdk': 80,            // Enhanced SDKs
+            'python_sdk': 80,
+            'filesystem': 70,
+            'playwright': 70,
+            'shell': 60,
+            'applescript': 60,
+            'memory': 50
+        };
 
     /**
      * Dispatch single tool call

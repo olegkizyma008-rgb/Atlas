@@ -2282,3 +2282,7 @@ rect (-1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
 2025-11-02 22:50:52 [ERROR] mcp-server {"metadata":{}}
 2025-11-02 22:50:52 [ERROR] mcp-manager {"metadata":{}}
 2025-11-02 22:50:52 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:54:51 [ERROR] mcp-server {"metadata":{}}
+2025-11-02 22:54:51 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:54:51 [ERROR] mcp-manager {"metadata":{}}
+2025-11-02 22:55:31 [ERROR] mcp-server {"metadata":{}}

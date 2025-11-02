@@ -31,7 +31,7 @@ export const MCP_REGISTRY = {
         WINDSURF_API_ENDPOINT: env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1'
       },
       description: 'Windsurf AI - Primary tool for code analysis and improvements (PRIORITY: 100)',
-      enabled: false,  // DISABLED: No API key configured yet
+      enabled: true,  // ENABLED: API key configured
       priority: 100,  // NEXUS: HIGHEST PRIORITY
       capabilities: ['code-analysis', 'deep-thinking', 'error-recovery']
     },

@@ -24,6 +24,7 @@
     "lint:watch": "eslint . --watch"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2",
     "axios": "^1.12.2",
     "sharp": "^0.34.4"
   },

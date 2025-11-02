@@ -14,7 +14,6 @@
  */
 
 import { MCPExtensionManager } from './mcp-extension-manager.js';
-import { createDefaultInspectionManager } from './tool-inspectors.js';
 import { ToolDispatcher } from './tool-dispatcher.js';
 import { ToolHistoryManager } from './tool-history-manager.js';
 import { ToolInspectionManager } from './tool-inspection-manager.js';
@@ -36,8 +35,7 @@ export class TetyanaToolSystem {
         this.mcpManager = mcpManager;
         this.llmClient = llmClient;
         this.extensionManager = null;
-        this.inspectionManager = null;  // Legacy inspector
-        this.newInspectionManager = null;  // NEW: Enhanced inspection system
+        this.inspectionManager = null;  // Enhanced inspection system
         this.dispatcher = null;
         this.historyManager = null;  // NEW: Tool history tracking
         this.llmValidator = null;  // NEW: LLM-based validation (ALWAYS ACTIVE)
@@ -62,19 +60,16 @@ export class TetyanaToolSystem {
             this.extensionManager = new MCPExtensionManager(this.mcpManager);
             await this.extensionManager.initialize();
 
-            // STEP 2: Initialize Inspection Manager (Legacy)
-            this.inspectionManager = createDefaultInspectionManager(this.mode);
-
-            // STEP 3: Initialize NEW Inspection Manager with RepetitionInspector
-            this.newInspectionManager = new ToolInspectionManager();
+            // STEP 2: Initialize Enhanced Inspection Manager with RepetitionInspector
+            this.inspectionManager = new ToolInspectionManager();
             const repetitionInspector = new RepetitionInspector({
                 maxConsecutiveRepetitions: 3,
                 maxTotalCalls: 10
             });
-            this.newInspectionManager.addInspector(repetitionInspector);
+            this.inspectionManager.addInspector(repetitionInspector);
             logger.system('tetyana-tool-system', '🔍 Enhanced Inspection Manager initialized');
 
-            // STEP 4: Initialize Tool History Manager
+            // STEP 3: Initialize Tool History Manager
             this.historyManager = new ToolHistoryManager({
                 maxSize: 1000,
                 antiRepetitionWindow: 100,
@@ -82,7 +77,7 @@ export class TetyanaToolSystem {
             });
             logger.system('tetyana-tool-system', '📊 Tool History Manager initialized (v2.0 with labels)');
 
-            // STEP 4.5: Initialize LLM Tool Validator (ALWAYS ACTIVE if LLM client available)
+            // STEP 4: Initialize LLM Tool Validator (ALWAYS ACTIVE if LLM client available)
             if (this.llmClient) {
                 this.llmValidator = new LLMToolValidator(this.llmClient);
                 logger.system('tetyana-tool-system', '🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE)');
@@ -90,7 +85,7 @@ export class TetyanaToolSystem {
                 logger.warn('tetyana-tool-system', '⚠️ LLM client not provided, LLM validation disabled');
             }
 
-            // STEP 4.6: Initialize Validation Pipeline (NEW 2025-10-23)
+            // STEP 5: Initialize Validation Pipeline (NEW 2025-10-23)
             this.validationPipeline = new ValidationPipeline({
                 mcpManager: this.mcpManager,
                 historyManager: this.historyManager,
@@ -105,7 +100,7 @@ export class TetyanaToolSystem {
             
             logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized (4 validators registered)');
 
-            // STEP 5: Initialize Dispatcher
+            // STEP 6: Initialize Dispatcher
             this.dispatcher = new ToolDispatcher(
                 this.extensionManager,
                 this.inspectionManager
@@ -229,8 +224,8 @@ export class TetyanaToolSystem {
                 errors: ['tool_calls must be a non-empty array']
             };
         } // STEP 1: Run repetition inspection
-        const inspectionResults = await this.newInspectionManager.inspectTools(toolCalls, context);
-        const processedResults = this.newInspectionManager.processResults(inspectionResults);
+        const inspectionResults = await this.inspectionManager.inspectTools(toolCalls, context);
+        const processedResults = this.inspectionManager.processResults(inspectionResults);
 
         // Handle denied tools from repetition inspector
         if (processedResults.denied.length > 0) {
@@ -368,8 +363,8 @@ export class TetyanaToolSystem {
         context.mode = this.mode;
 
         // STEP 1: Run repetition inspection
-        const inspectionResults = await this.newInspectionManager.inspectTools(toolCalls, context);
-        const processedResults = this.newInspectionManager.processResults(inspectionResults);
+        const inspectionResults = await this.inspectionManager.inspectTools(toolCalls, context);
+        const processedResults = this.inspectionManager.processResults(inspectionResults);
 
         // Handle denied tools from repetition inspector
         if (processedResults.denied.length > 0) {
@@ -602,9 +597,9 @@ export class TetyanaToolSystem {
      * Useful when starting new task
      */
     resetRepetitionHistory() {
-        // Reset new inspection manager
-        if (this.newInspectionManager) {
-            this.newInspectionManager.resetAll();
+        // Reset enhanced inspection manager
+        if (this.inspectionManager) {
+            this.inspectionManager.resetAll();
             logger.debug('tetyana-tool-system', 'Enhanced inspection manager reset');
         }
         
@@ -682,7 +677,7 @@ export class TetyanaToolSystem {
      */
     getInspectionStatistics() {
         this._ensureInitialized();
-        return this.newInspectionManager ? this.newInspectionManager.getStatistics() : null;
+        return this.inspectionManager ? this.inspectionManager.getStatistics() : null;
     }
 
     /**
@@ -701,7 +696,7 @@ export class TetyanaToolSystem {
         this._ensureInitialized();
 
         const historyStats = this.historyManager ? this.historyManager.getStatistics() : null;
-        const inspectionStats = this.newInspectionManager ? this.newInspectionManager.getStatistics() : null;
+        const inspectionStats = this.inspectionManager ? this.inspectionManager.getStatistics() : null;
         const validatorStats = this.llmValidator ? this.llmValidator.getStatistics() : null;
 
         return {

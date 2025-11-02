@@ -29,16 +29,16 @@ TRAILING COMMA EXAMPLE
 • ❌ Wrong:
   {
     "tool_calls": [
-      {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "ls -la"}},
-      {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "pwd"}},
+      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la"}},
+      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "pwd"}},
     ],
     "reasoning": "..."
   }
 • ✅ Correct:
   {
     "tool_calls": [
-      {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "ls -la"}},
-      {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "pwd"}}
+      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la"}},
+      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "pwd"}}
     ],
     "reasoning": "..."
   }
@@ -84,7 +84,7 @@ OUTPUT CONTRACT
   "tool_calls": [
     {
       "server": "shell",
-      "tool": "shell_execute_command",
+      "tool": "shell__execute_command",
       "parameters": {
         "command": "...",
         "workdir": "..." // optional
@@ -105,8 +105,8 @@ OUTPUT CONTRACT
 **EXAMPLE (FORMAT ONLY):**
 {
   "tool_calls": [
-    {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}},
-    {"server": "shell", "tool": "shell_execute_command", "parameters": {"command": "ls -la /Users/dev/Desktop"}}
+    {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}},
+    {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la /Users/dev/Desktop"}}
   ],
   "reasoning": "Створюю папку й одразу перевіряю її появу",
   "tts_phrase": "Створюю папку"
@@ -155,7 +155,7 @@ RESPONSE FORMAT (REQUIRED):
   "tool_calls": [
     {
       "server": "shell",
-      "tool": "shell_execute_command",
+      "tool": "shell__execute_command",
       "parameters": {
         "command": "your command here"
       }

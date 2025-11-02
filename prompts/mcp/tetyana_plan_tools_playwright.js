@@ -43,16 +43,16 @@ TRAILING COMMA REMINDERS
 • ❌ Wrong:
   {
     "tool_calls": [
-      {"server": "playwright", "tool": "playwright_navigate", "parameters": {...}},
-      {"server": "playwright", "tool": "playwright_click", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright__click", "parameters": {...}},
     ],
     "reasoning": "..."
   }
 • ✅ Correct:
   {
     "tool_calls": [
-      {"server": "playwright", "tool": "playwright_navigate", "parameters": {...}},
-      {"server": "playwright", "tool": "playwright_click", "parameters": {...}}
+      {"server": "playwright", "tool": "playwright__navigate", "parameters": {...}},
+      {"server": "playwright", "tool": "playwright__click", "parameters": {...}}
     ],
     "reasoning": "..."
   }
@@ -113,7 +113,7 @@ OUTPUT CONTRACT
   "tool_calls": [
     {
       "server": "playwright",
-      "tool": "playwright_<tool_name_from_available_tools>",
+      "tool": "playwright__<tool_name_from_available_tools>",
       "parameters": { /* parameters exactly as defined in schema */ }
     }
   ],
@@ -130,9 +130,9 @@ RESPONSE RULES
 EXAMPLE 1 - Navigate with webkit (Safari on macOS):
 {
   "tool_calls": [
-    {"server": "playwright", "tool": "playwright_navigate", "parameters": {"url": "https://google.com", "browserType": "webkit", "waitUntil": "load"}},
-    {"server": "playwright", "tool": "playwright_fill", "parameters": {"selector": "input[name='q']", "value": "BYD Song Plus"}},
-    {"server": "playwright", "tool": "playwright_press_key", "parameters": {"key": "Enter"}}
+    {"server": "playwright", "tool": "playwright__navigate", "parameters": {"url": "https://google.com", "browserType": "webkit", "waitUntil": "load"}},
+    {"server": "playwright", "tool": "playwright__fill", "parameters": {"selector": "input[name='q']", "value": "BYD Song Plus"}},
+    {"server": "playwright", "tool": "playwright__press_key", "parameters": {"key": "Enter"}}
   ],
   "reasoning": "Відкриваю Google і запускаю пошук моделі",
   "tts_phrase": "Шукаю інформацію"
@@ -141,7 +141,7 @@ EXAMPLE 1 - Navigate with webkit (Safari on macOS):
 EXAMPLE 2 - YouTube search with webkit:
 {
   "tool_calls": [
-    {"server": "playwright", "tool": "playwright_navigate", "parameters": {"url": "https://www.youtube.com/results?search_query=Архангел", "browserType": "webkit", "width": 1440, "height": 900, "waitUntil": "load"}}
+    {"server": "playwright", "tool": "playwright__navigate", "parameters": {"url": "https://www.youtube.com/results?search_query=Архангел", "browserType": "webkit", "width": 1440, "height": 900, "waitUntil": "load"}}
   ],
   "reasoning": "Відкриваю YouTube з пошуком кліпу Архангела",
   "tts_phrase": "Шукаю відео"

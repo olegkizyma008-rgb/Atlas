@@ -36,8 +36,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Use only capa
 ❌ WRONG - Trailing comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "memory_create_entities", "parameters": {"entities": [...]}},
-    {"server": "memory", "tool": "memory_search_nodes", "parameters": {"query": "..."}},  ← BAD comma!
+    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}},  ← BAD comma!
   ],
   "reasoning": "..."
 }
@@ -45,8 +45,8 @@ ENVIRONMENT: Memory operations run on a Mac Studio M1 Max (macOS). Use only capa
 ✅ CORRECT - NO comma after last element:
 {
   "tool_calls": [
-    {"server": "memory", "tool": "memory_create_entities", "parameters": {"entities": [...]}},
-    {"server": "memory", "tool": "memory_search_nodes", "parameters": {"query": "..."}}  ← NO comma!
+    {"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [...]}},
+    {"server": "memory", "tool": "memory__search_nodes", "parameters": {"query": "..."}}  ← NO comma!
   ],
   "reasoning": "..."
 }
@@ -180,11 +180,11 @@ Relation types:
 
 ⚠️ **CRITICAL - TOOL NAME FORMAT:**
 Use FULL names with prefix: "tool": "memory__create_entities"
-❌ WRONG: "tool": "create_entities"
+❌ WRONG: "tool": "create_entities" or "tool": "memory_create_entities" (single underscore)
 ✅ CORRECT: "tool": "memory__create_entities"
 
 🔹 If item is simple (1-5 tools):
-{"tool_calls": [{"server": "memory", "tool": "memory__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>", "needs_split": false}
+{"tool_calls": [{"server": "memory", "tool": "memory__<tool_name>", "parameters": {<params_from_schema>}}], "reasoning": "<overall_plan_in_USER_LANGUAGE>", "tts_phrase": "<user_friendly_phrase_in_USER_LANGUAGE>"}
 
 **EXAMPLE:**
 {"tool_calls": [{"server": "memory", "tool": "memory__create_entities", "parameters": {"entities": [{"name": "Project Atlas", "entityType": "project", "observations": ["AI assistant system"]}]}}], "reasoning": "Створюю сутність в пам'яті", "tts_phrase": "Зберігаю в пам'ять", "needs_split": false}
@@ -196,7 +196,7 @@ Use FULL names with prefix: "tool": "memory__create_entities"
 - Use ONLY tool names from {{AVAILABLE_TOOLS}} (with memory__ prefix)
 - Parameters ONLY from {{AVAILABLE_TOOLS}} schema
 - entities/relations as arrays of objects
-- **"tool": "memory__create_entities"** NOT "tool": "create_entities"
+- **"tool": "memory__create_entities"** NOT "tool": "create_entities" or "memory_create_entities"
 - Observations must be specific facts
 - Create relations to link entities
 - All user-facing strings (reasoning, tts_phrase, suggested_splits) should be in {{USER_LANGUAGE}}

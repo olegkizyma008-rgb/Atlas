@@ -645,10 +645,9 @@ export class ChatManager {
     this.logger.info('Setting isStreaming to false after agent message');
     this.setStreamingState(false);
 
-    // Save analysis data if present
-    if (analysisData) {
-      this.saveAnalysisData(agent, analysisData);
-    }
+    // Save analysis data if present (removed - method doesn't exist)
+    // Analysis data is already included in the message content
+    // TODO: Implement proper analysis data storage if needed
 
     // Check if DEV mode requires password authentication
     if (mode === 'dev' && requiresAuth && analysisData) {

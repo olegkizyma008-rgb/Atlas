@@ -3,9 +3,12 @@
  * Implements Schema-First approach from refactor.md
  * Generates formal JSON Schema for MCP tools
  * 
- * @version 1.0.0
- * @date 2025-10-29
+ * @version 2.0.0
+ * @date 2025-11-02
+ * @updated Integrated centralized tool name normalizer
  */
+
+import { normalizeToolName } from '../utils/tool-name-normalizer.js';
 
 class MCPSchemaBuilder {
   constructor(logger) {
@@ -53,35 +56,10 @@ class MCPSchemaBuilder {
 
   /**
    * Generate proper tool name with server prefix
+   * UPDATED 2025-11-02: Uses centralized normalizer
    */
   _generateToolName(tool) {
-    // Handle different naming formats from MCP servers
-    if (tool.name && tool.name.includes('__')) {
-      // Already has double underscore - check for duplicates
-      const prefix = `${tool.server}__`;
-      if (tool.name.startsWith(prefix)) {
-        // Remove any duplicate prefixes
-        let cleaned = tool.name;
-        while (cleaned.startsWith(prefix + tool.server)) {
-          cleaned = prefix + cleaned.slice(prefix.length + tool.server.length + 2);
-        }
-        return cleaned;
-      }
-      return tool.name;
-    }
-    
-    if (tool.server && tool.name) {
-      // If tool name already has server prefix with single underscore
-      if (tool.name.startsWith(`${tool.server}_`)) {
-        // Remove server prefix and add with double underscore
-        const withoutPrefix = tool.name.slice(tool.server.length + 1);
-        return `${tool.server}__${withoutPrefix}`;
-      }
-      // Add server prefix with double underscore
-      return `${tool.server}__${tool.name}`;
-    }
-    
-    return tool.name || 'unknown_tool';
+    return normalizeToolName(tool.name, tool.server);
   }
 
   /**

@@ -8,6 +8,7 @@
 
 import { spawn } from 'child_process';
 import logger from '../utils/logger.js';
+import { normalizeToolName, denormalizeToolName, extractServerName } from '../utils/tool-name-normalizer.js';
 
 /**
  * Представляє один MCP server process
@@ -59,11 +60,13 @@ class MCPServer {
     // Process events
     this.process.on('error', (error) => {
       logger.error('mcp-server', `[MCP ${this.name}] ❌ Process error: ${error.message}`);
+      this._cleanupPendingRequests(new Error(`Process error: ${error.message}`));
     });
 
     this.process.on('exit', (code, signal) => {
       logger.warn('mcp-server', `[MCP ${this.name}] Process exited (code: ${code}, signal: ${signal})`);
       this.ready = false;
+      this._cleanupPendingRequests(new Error(`Process exited with code ${code}`));
     });
   }
 
@@ -295,6 +298,30 @@ class MCPServer {
   }
 
   /**
+   * Cleanup all pending requests (memory leak prevention)
+   * Called when process exits or errors occur
+   * @private
+   */
+  _cleanupPendingRequests(error) {
+    if (!this.pendingRequests || this.pendingRequests.size === 0) {
+      return;
+    }
+
+    const count = this.pendingRequests.size;
+    logger.warn('mcp-server', `[MCP ${this.name}] ⚠️ Cleaning up ${count} pending requests`);
+
+    // Reject all pending requests
+    for (const [id, resolver] of this.pendingRequests.entries()) {
+      if (resolver && typeof resolver.reject === 'function') {
+        resolver.reject(error || new Error('MCP server terminated'));
+      }
+    }
+
+    // Clear the map
+    this.pendingRequests.clear();
+  }
+
+  /**
    * Отримати список доступних tools
    * @returns {Array} Список tool definitions
    */
@@ -491,43 +518,39 @@ export class MCPManager {
         throw new Error(`MCP server ${serverName} not ready`);
       }
 
-      // Check if tool exists on server
-      // FIXED 2025-10-31: Support multiple tool name formats
-      // MCP tools may have: applescript_execute (single _) or applescript__execute (double __)
-      let toolExists = Array.isArray(server.tools) && server.tools.some(t => t.name === toolName);
-      let actualToolName = toolName;
+      // UPDATED 2025-11-02: Use centralized normalizer
+      // Normalize input tool name to internal format (double __)
+      const normalizedToolName = normalizeToolName(toolName, serverName);
       
-      // If not found with double __, try with single _
-      if (!toolExists && toolName.includes('__')) {
-        const parts = toolName.split('__');
-        if (parts.length === 2) {
-          // applescript__execute → try applescript_execute
-          const singleUnderscoreName = `${parts[0]}_${parts[1]}`;
-          if (server.tools.some(t => t.name === singleUnderscoreName)) {
-            toolExists = true;
-            actualToolName = singleUnderscoreName;
-          }
-        }
-      }
+      // Denormalize for MCP server call (single _)
+      const mcpToolName = denormalizeToolName(normalizedToolName);
+      
+      // Check if tool exists on server (check both formats)
+      const toolExists = Array.isArray(server.tools) && 
+        server.tools.some(t => t.name === mcpToolName || normalizeToolName(t.name, serverName) === normalizedToolName);
       
       if (!toolExists) {
-        // FIXED 14.10.2025 - Better error message with list of available tools
         const availableTools = Array.isArray(server.tools)
-          ? server.tools.map(t => t.name).join(', ')
+          ? server.tools.map(t => normalizeToolName(t.name, serverName)).join(', ')
           : 'none';
-        throw new Error(`Tool '${toolName}' not available on server '${serverName}'. Available tools: ${availableTools}`);
+        throw new Error(`Tool '${normalizedToolName}' not available on server '${serverName}'. Available tools: ${availableTools}`);
       }
 
-      // OPTIMIZED: Validate parameters before calling
-      // Use actualToolName which may be converted from double __ to single _
-      const tool = server.tools.find(t => t.name === actualToolName);
+      // Find tool definition for validation
+      const tool = server.tools.find(t => 
+        t.name === mcpToolName || normalizeToolName(t.name, serverName) === normalizedToolName
+      );
+      
+      // Validate parameters before calling
       if (tool && tool.inputSchema) {
         this._validateParameters(tool, parameters);
       }
 
-      logger.debug('mcp-manager', `[MCP Manager] Executing ${actualToolName} on ${serverName}`);
+      const finalToolName = mcpToolName;
+      
+      logger.debug('mcp-manager', `[MCP Manager] Executing ${finalToolName} on ${serverName} (from normalized: ${normalizedToolName})`);
 
-      const result = await server.call(actualToolName, parameters);
+      const result = await server.call(finalToolName, parameters);
 
       // Update stats
       const duration = Date.now() - startTime;
@@ -551,25 +574,8 @@ export class MCPManager {
     }
   }
 
-  /**
-   * Validate tool parameters against schema
-   * @param {Object} tool - Tool definition with inputSchema
-   * @param {Object} parameters - Parameters to validate
-   * @private
-   */
-  _validateParameters(tool, parameters) {
-    if (!tool.inputSchema || !tool.inputSchema.required) {
-      return; // No validation needed
-    }
-
-    const required = tool.inputSchema.required;
-    const missing = required.filter(param => !(param in parameters));
-
-    if (missing.length > 0) {
-      logger.warn('mcp-manager', `[MCP Manager] ⚠️ Missing required parameters for ${tool.name}: ${missing.join(', ')}`);
-      // Don't throw, let the MCP server handle it
-    }
-  }
+  // REMOVED 2025-11-02: Duplicate simple validation
+  // Advanced validation method exists at lines 874+
 
   /**
    * Get tool usage statistics

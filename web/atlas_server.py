@@ -64,6 +64,16 @@ def health():
         'port': FRONTEND_PORT
     }
 
+@app.route('/api/config/tts')
+def get_tts_config():
+    """Get TTS configuration from environment"""
+    import os
+    return {
+        'maxChunkSize': int(os.getenv('ATLAS_TTS_MAX_CHUNK_SIZE', '800')),
+        'enabled': os.getenv('ENABLE_TTS', 'true').lower() != 'false',
+        'mode': os.getenv('TTS_MODE', 'real')
+    }
+
 @app.route('/tts/play', methods=['POST'])
 def play_tts():
     """Receive TTS play request from orchestrator"""

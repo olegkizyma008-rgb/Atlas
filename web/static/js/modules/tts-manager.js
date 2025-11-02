@@ -8,12 +8,13 @@ import { TTS_CONFIG, AGENTS } from '../core/config.js';
 import { ttsClient } from '../core/api-client.js';
 
 export class TTSManager {
-  constructor() {
-    this.logger = new logger.constructor('TTS');
+  constructor(options = {}) {
+    this.logger = options.logger || new logger.constructor('TTS');
     this.enabled = TTS_CONFIG.enabled;
-    this.currentAudio = null;
-    this.queue = [];
-    this.isProcessing = false;
+    this.baseUrl = options.baseUrl || 'http://localhost:3001';
+    this.autoplayUnlocked = false;
+    this.configLoaded = false;
+    this.runtimeConfig = {}; // FIXED 2025-11-02: Runtime config from backend
     this.mode = localStorage.getItem('atlas_tts_mode') || 'standard';
     this.autoplayUnlocked = false;
     this._unlockHandlersAttached = false;
@@ -614,8 +615,12 @@ export class TTSManager {
     if (lastError) throw lastError;
   }
 
-  segmentText(text, maxLength = TTS_CONFIG.chunking?.maxChunkSize || 800) {
-    if (!text || text.length <= maxLength) {
+  segmentText(text, maxLength) {
+    // FIXED 2025-11-02: Use runtime config from backend (reads .env)
+    const chunkSize = this.runtimeConfig.maxChunkSize || TTS_CONFIG.chunking?.maxChunkSize || 800;
+    const actualMaxLength = maxLength || chunkSize;
+    
+    if (!text || text.length <= actualMaxLength) {
       return [text];
     }
 
@@ -867,6 +872,24 @@ export class TTSManager {
     }
   }
 
+  /**
+   * Load runtime configuration from backend
+   * FIXED 2025-11-02: Get TTS config from .env via backend API
+   */
+  async loadRuntimeConfig() {
+    try {
+      const response = await fetch('http://localhost:5001/api/config/tts');
+      if (response.ok) {
+        this.runtimeConfig = await response.json();
+        this.configLoaded = true;
+        this.logger.info(`[TTS] Runtime config loaded: maxChunkSize=${this.runtimeConfig.maxChunkSize}`);
+      }
+    } catch (error) {
+      this.logger.warn(`[TTS] Failed to load runtime config, using defaults:`, error.message);
+      this.runtimeConfig = {};
+    }
+  }
+
   // Queue management for sequential playback with agent priority filtering
   async addToQueue(text, agent = 'atlas', options = {}) {
     // ФІЛЬТР СИСТЕМНИХ ПОВІДОМЛЕНЬ: перевіряємо пріоритет агента
@@ -907,7 +930,8 @@ export class TTSManager {
         const { text, agent, options } = item;
 
         // FIXED 2025-11-02: Чанкування для ВСІХ довгих текстів (незалежно від режиму)
-        const chunkThreshold = TTS_CONFIG.chunking?.maxChunkSize || 500;
+        // Use runtime config from backend (reads .env)
+        const chunkThreshold = this.runtimeConfig.maxChunkSize || TTS_CONFIG.chunking?.maxChunkSize || 500;
         const shouldChunk = text.length > chunkThreshold;
 
         this.logger.info(`Processing TTS queue item: agent=${agent}, mode=${options.mode || 'chat'}, chunking=${shouldChunk}, length=${text.length}, threshold=${chunkThreshold}`);

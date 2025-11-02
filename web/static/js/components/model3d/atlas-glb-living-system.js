@@ -51,7 +51,8 @@ export class AtlasGLBLivingSystem {
 
       // TTS візуалізація
       ttsGlowIntensity: options.ttsGlowIntensity || 1.5,
-      ttsRotationAmplitude: options.ttsRotationAmplitude || 1.5, // Зменшено з 3 до 1.5
+      ttsRotationAmplitude: options.ttsRotationAmplitude || 0.8, // FIXED 2025-11-02: Зменшено з 1.5 до 0.8 для природніших рухів
+      ttsCameraZoom: options.ttsCameraZoom || 0.03, // НОВИНКА 2025-11-02: Малий zoom при відповіді (3%)
 
       // Центр обертання (налаштовуваний)
       rotationCenter: {
@@ -312,8 +313,9 @@ export class AtlasGLBLivingSystem {
     this.modelViewer.fieldOfView = '30deg';
 
     // Встановлюємо мінімальну та максимальну відстань камери
-    this.modelViewer.minCameraOrbit = 'auto auto 80%';
-    this.modelViewer.maxCameraOrbit = 'auto auto 150%';
+    // FIXED 2025-11-02: Зменшено діапазон для менших рухів камери
+    this.modelViewer.minCameraOrbit = 'auto auto 95%';  // Було 80%, тепер 95% - менше наближення
+    this.modelViewer.maxCameraOrbit = 'auto auto 115%'; // Було 150%, тепер 115% - менше віддалення
 
     // Увімкнення auto-rotate для базової живості
     this.modelViewer.autoRotate = false; // Вимикаємо, бо ми керуємо вручну
@@ -973,34 +975,40 @@ export class AtlasGLBLivingSystem {
 
   /**
      * Анімація під час мовлення
-     * ОНОВЛЕНО: Більш природні рухи з варіацією
+     * FIXED 2025-11-02: Малий zoom вперед + нахил вуха при відповіді
      */
   startSpeechAnimation(agent) {
-    const agentData = this.agentEmotions[agent] || this.agentEmotions['atlas'];
     let speechPhase = 0;
 
-      // FIXED (30.10.2025): Природніші рухи з випадковою затримкою 1-8 секунд
+    // НОВИНКА 2025-11-02: Малий zoom камери вперед при початку мовлення
+    const currentOrbit = this.modelViewer.getCameraOrbit();
+    const zoomAmount = this.config.ttsCameraZoom; // 3% наближення
+    const targetRadius = currentOrbit.radius * (1 - zoomAmount);
+
+    // Плавно наближаємо камеру
+    this.modelViewer.cameraOrbit = `${currentOrbit.theta}rad ${currentOrbit.phi}rad ${targetRadius}m`;
+
+    // FIXED 2025-11-02: Менші рухи для природності
     const scheduleNextMove = () => {
       if (!this.livingState.isSpeaking) return;
 
       speechPhase += 0.1;
-      const amplitude = this.config.ttsRotationAmplitude;
+      const amplitude = this.config.ttsRotationAmplitude; // Тепер 0.8 замість 1.5
       
-      // Синусоїдальні рухи замість випадкових для більшої природності
-      // FIXED 2025-10-30: Інвертовано horizontalMove для консистентності з mouse tracking
-      const horizontalMove = Math.sin(speechPhase) * amplitude * 0.8;
-      const verticalMove = Math.cos(speechPhase * 0.7) * amplitude * 0.4;
-      const tiltMove = Math.sin(speechPhase * 1.3) * amplitude * 0.2;
+      // Синусоїдальні рухи - ЗМЕНШЕНІ для природності
+      const horizontalMove = Math.sin(speechPhase) * amplitude * 0.6; // Було 0.8
+      const verticalMove = Math.cos(speechPhase * 0.7) * amplitude * 0.3; // Було 0.4
+      const tiltMove = Math.sin(speechPhase * 1.3) * amplitude * 0.15; // Було 0.2
 
-      // Додаємо невеликий випадковий компонент для життєвості
-      const randomFactor = (Math.random() - 0.5) * 0.3;
+      // Менший випадковий компонент
+      const randomFactor = (Math.random() - 0.5) * 0.2; // Було 0.3
 
       this.livingState.targetRotation.y = horizontalMove + randomFactor;
       this.livingState.targetRotation.x = verticalMove + randomFactor * 0.5;
       this.livingState.targetRotation.z = tiltMove;
 
-      // Випадкова затримка від 1 до 8 секунд для природності
-      const randomDelay = 1000 + Math.random() * 7000; // 1000-8000ms
+      // Випадкова затримка від 1 до 8 секунд
+      const randomDelay = 1000 + Math.random() * 7000;
       this.speechAnimationTimeout = setTimeout(scheduleNextMove, randomDelay);
     };
 
@@ -1010,12 +1018,17 @@ export class AtlasGLBLivingSystem {
 
   /**
    * Зупинка мовлення
-   * FIXED (29.10.2025): Розблоковує eye tracking після TTS
+   * FIXED 2025-11-02: Повертає камеру назад після відповіді
    */
   stopSpeaking() {
     console.log('🔇 Atlas stopped speaking');
     this.livingState.isSpeaking = false;
     this.livingState.eyeTrackingEnabled = true;
+
+    // НОВИНКА 2025-11-02: Повертаємо камеру на базову позицію
+    const currentOrbit = this.modelViewer.getCameraOrbit();
+    const baseRadius = currentOrbit.radius / (1 - this.config.ttsCameraZoom); // Повертаємо zoom
+    this.modelViewer.cameraOrbit = `${currentOrbit.theta}rad ${currentOrbit.phi}rad ${baseRadius}m`;
 
     // Очищаємо timeout анімації
     if (this.speechAnimationTimeout) {
@@ -1034,6 +1047,36 @@ export class AtlasGLBLivingSystem {
 
     // Повертаємося до нейтрального стану
     this.setEmotion('neutral', 0.5, 1000);
+  }
+
+  /**
+   * Анімація слухання - нахил вуха до користувача
+   * НОВИНКА 2025-11-02: Природній нахил при записі голосу
+   */
+  startListeningAnimation() {
+    console.log('👂 Atlas is listening...');
+    this.livingState.isListening = true;
+    this.livingState.animationMode = 'listening';
+
+    // Малий нахил вуха вправо (до мікрофона)
+    const listeningTilt = 8; // градуси
+    this.livingState.targetRotation.z = listeningTilt;
+    this.livingState.targetRotation.x = 3; // Трохи вниз
+    this.livingState.targetRotation.y = -5; // Трохи вправо
+  }
+
+  /**
+   * Зупинка анімації слухання
+   */
+  stopListeningAnimation() {
+    console.log('👂 Atlas stopped listening');
+    this.livingState.isListening = false;
+    this.livingState.animationMode = 'idle';
+
+    // Повертаємо до базової позиції
+    this.livingState.targetRotation.z = 0;
+    this.livingState.targetRotation.x = 0;
+    this.livingState.targetRotation.y = 0;
   }
 
   /**
@@ -1059,8 +1102,15 @@ export class AtlasGLBLivingSystem {
       'agent-response': () => this.setEmotion('excited', 0.75, 1200),
       'error': () => this.setEmotion('alert', 1.0, 800),
       'keyword-detected': () => this.setEmotion('alert', 0.9, 600),
-      'recording-start': () => this.setEmotion('focused', 0.9, 99999),
-      'recording-stop': () => this.setEmotion('processing', 0.7, 1500)
+      'recording-start': () => {
+        this.setEmotion('focused', 0.9, 99999);
+        // НОВИНКА 2025-11-02: Нахил вуха при слуханні
+        this.startListeningAnimation();
+      },
+      'recording-stop': () => {
+        this.setEmotion('processing', 0.7, 1500);
+        this.stopListeningAnimation();
+      }
     };
 
     const reaction = reactions[eventType];

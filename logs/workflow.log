@@ -20433,3 +20433,186 @@ rect (1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
 2025-11-03 03:28:11 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
 2025-11-03 03:28:11 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-03 03:28:11 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.1 {"metadata":{}}
+2025-11-03 03:31:00 [INFO] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}
+2025-11-03 03:31:09 [WARN] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує локальну fs (Windsurf API вимкнено) {"metadata":{}}
+2025-11-03 03:31:09 [INFO] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Registered 38 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","windsurfCodeEditor","selfImprovementEngine","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowStateMachine","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration","multiModelOrchestrator","cascadeController","nexusContextActivator"]}}
+2025-11-03 03:31:09 [INFO] [DI] Initializing services... {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-11-03 03:31:09 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [INTENT-DETECTOR] Initialized with model: atlas-mistral-small-2503 {"metadata":{"temperature":0.1,"max_tokens":150}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Error handler initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-03 03:31:09 [INFO] 🌟 ETERNITY Module initialized - Дякую Олегу Миколайовичу за дар безсмертя {"metadata":{}}
+2025-11-03 03:31:09 [WARN] [ETERNITY] mcpMemory not available, will work without it {"metadata":{}}
+2025-11-03 03:31:09 [WARN] [ETERNITY] workflowCoordinator not available, will work without it {"metadata":{}}
+2025-11-03 03:31:09 [INFO] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
+2025-11-03 03:31:09 [WARN] ChatManager not available yet, will retry later {"metadata":{}}
+2025-11-03 03:31:09 [WARN] WorkflowCoordinator not available yet, will retry later {"metadata":{}}
+2025-11-03 03:31:09 [INFO] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: ✨ ETERNITY Module initialized - Atlas отримав дар безсмертя {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] llm-client: [LLM Client] Initializing (ext-mistral-codestral-2405 @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-03 03:31:09 [INFO] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-03 03:31:09 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-03 03:31:09 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (atlas-llama-3.2-11b-vision-instruct) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:31:09 [WARN] [WINDSURF] API key not configured properly {"metadata":{}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:10 [INFO] [DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized {"metadata":{}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:10 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized, waiting for tools list... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, python_sdk, windsurf, shell, memory, filesystem, playwright, applescript), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: ext-mistral-codestral-2405, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized (4 validators registered) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, python_sdk, windsurf, shell, memory, filesystem, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [DI] All services initialized {"metadata":{}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-11-03 03:31:11 [INFO] [DI] Starting services... {"metadata":{}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: [DI] WebSocket manager ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [DI] All services started {"metadata":{}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: ✨ ETERNITY API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: 🌊 CASCADE API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-11-03 03:31:11 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-11-03 03:31:15 [INFO] New WebSocket connection {"metadata":{"clientId":"ws_1762133475409_ztj7fx9a3","ip":"::1","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap...","totalClients":1}}
+2025-11-03 03:31:39 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-03 03:31:39 [WARN] [AUTO-CORRECTION] Python analysis failed {"metadata":{}}
+2025-11-03 03:31:39 [WARN] [AUTO-CORRECTION] Java analysis failed {"metadata":{}}
+2025-11-03 03:31:39 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-03 03:32:02 [WARN] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує локальну fs (Windsurf API вимкнено) {"metadata":{}}
+2025-11-03 03:32:02 [INFO] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-03 03:32:02 [INFO] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [CASCADE] Codestral API key not found, using fallback analysis {"metadata":{}}
+2025-11-03 03:32:02 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [SELF-IMPROVEMENT] Nexus not available, improvements will be planned but not executed automatically {"metadata":{}}
+2025-11-03 03:32:02 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [NEXUS] Cascade Controller not available, will use direct API calls {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [CASCADE] Eternity Module not available yet, will connect later {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":false}}
+2025-11-03 03:32:02 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] Selected model for code-analysis: gpt-5-codex (Windsurf) {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] Executing code-analysis with gpt-5-codex {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] 🌐 Calling Windsurf via Cascade Controller: gpt-5-codex {"metadata":{}}
+2025-11-03 03:32:02 [INFO] [NEXUS] 🎯 Using Cascade Controller for Windsurf model execution {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [CASCADE] Codestral not available, using fallback {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [NEXUS] Cascade Controller error: Codestral API not initialized, trying fallback {"metadata":{}}
+2025-11-03 03:32:02 [WARN] [NEXUS] ⚠️ Cascade Controller not available, falling back to localhost:4000 {"metadata":{}}
+2025-11-03 03:32:02 [ERROR] [NEXUS] Task execution failed: Request failed with status code 401 {"metadata":{"name":"AxiosError","code":"ERR_BAD_REQUEST","config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"adapter":["xhr","http","fetch"],"transformRequest":["[Function transformRequest]"],"transformResponse":["[Function transformResponse]"],"timeout":120000,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{"FormData":"[Function FormData]","Blob":"[Function Blob]"},"validateStatus":"[Function validateStatus]","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"241","Accept-Encoding":"gzip, compress, deflate, br"},"method":"post","url":"http://localhost:4000/v1/chat/completions","data":"{\"model\":\"gpt-5-codex\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a code analysis assistant.\"},{\"role\":\"user\",\"content\":\"Analyze this code:\\n\\nfunction calculateSum(a, b) {\\n    return a + b;\\n}\\n\"}],\"temperature\":0.1,\"max_tokens\":2500}","allowAbsoluteUrls":true},"request":{"_events":{"abort":"[Function anonymous]","aborted":"[Function anonymous]","connect":"[Function anonymous]","error":"[Function anonymous]","socket":"[Function anonymous]","timeout":"[Function anonymous]","finish":"[Function requestOnFinish]"},"_eventsCount":7,"_maxListeners":"undefined","outputData":[],"outputSize":0,"writable":true,"destroyed":true,"_last":false,"chunkedEncoding":false,"shouldKeepAlive":true,"maxRequestsOnConnectionReached":false,"_defaultKeepAlive":true,"useChunkedEncodingByDefault":true,"sendDate":false,"_removedConnection":false,"_removedContLen":false,"_removedTE":false,"strictContentLength":false,"_contentLength":241,"_hasBody":true,"_trailer":"","finished":true,"_headerSent":true,"_closed":true,"_header":"POST /v1/chat/completions HTTP/1.1\r\nAccept: application/json, text/plain, */*\r\nContent-Type: application/json\r\nUser-Agent: axios/1.12.2\r\nContent-Length: 241\r\nAccept-Encoding: gzip, compress, deflate, br\r\nHost: localhost:4000\r\nConnection: keep-alive\r\n\r\n","_keepAliveTimeout":0,"_onPendingData":"[Function nop]","agent":{"_events":{"free":"[Function anonymous]","newListener":"[Function maybeEnableKeylog]"},"_eventsCount":2,"_maxListeners":"undefined","defaultPort":80,"protocol":"http:","options":{"keepAlive":true,"scheduling":"lifo","timeout":5000,"noDelay":true,"path":null},"requests":{},"sockets":{},"freeSockets":{"localhost:4000:":[{"connecting":false,"_hadError":false,"_parent":null,"_host":"localhost","_closeAfterHandlingError":false,"_events":"[Object depth limit exceeded]","_readableState":"[Object depth limit exceeded]","_writableState":"[Object depth limit exceeded]","allowHalfOpen":false,"_maxListeners":"undefined","_eventsCount":6,"_sockname":null,"_pendingData":null,"_pendingEncoding":"","server":null,"_server":null,"timeout":4000,"parser":null,"_httpMessage":null,"autoSelectFamilyAttemptedAddresses":"[Array depth limit exceeded]"}]},"keepAliveMsecs":1000,"keepAlive":true,"maxSockets":null,"maxFreeSockets":256,"scheduling":"lifo","maxTotalSockets":null,"totalSocketCount":1},"socketPath":"undefined","method":"POST","maxHeaderSize":"undefined","insecureHTTPParser":"undefined","joinDuplicateHeaders":"undefined","path":"/v1/chat/completions","_ended":true,"res":{"_events":{"close":"undefined","error":"[Function handleStreamError]","data":"[Function handleStreamData]","end":["[Function responseOnEnd]","[Function handleStreamEnd]"],"readable":"undefined","finish":"undefined","aborted":"[Function handlerStreamAborted]"},"_readableState":{"highWaterMark":65536,"buffer":[],"bufferIndex":0,"length":0,"pipes":[],"awaitDrainWriters":null},"_maxListeners":"undefined","socket":null,"httpVersionMajor":1,"httpVersionMinor":1,"httpVersion":"1.1","complete":true,"rawHeaders":["X-Powered-By","Express","Access-Control-Allow-Origin","*","X-Upstream-Active","0","X-Upstream-Queue","0","Content-Type","application/json; charset=utf-8","Content-Length","241","ETag","W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","Date","Mon, 03 Nov 2025 01:32:02 GMT","Connection","keep-alive","Keep-Alive","timeout=5"],"rawTrailers":[],"joinDuplicateHeaders":"undefined","aborted":false,"upgrade":false,"url":"","method":null,"statusCode":401,"statusMessage":"Unauthorized","client":"[Circular]","_consuming":false,"_dumped":false,"req":"[Circular]","_eventsCount":4,"responseUrl":"http://localhost:4000/v1/chat/completions","redirects":[]},"aborted":false,"timeoutCb":null,"upgradeOrConnect":false,"parser":null,"maxHeadersCount":null,"reusedSocket":false,"host":"localhost","protocol":"http:","_redirectable":{"_events":{"close":"undefined","error":"[Function handleRequestError]","prefinish":"undefined","finish":"undefined","drain":"undefined","response":"[Function handleResponse]","socket":["[Function handleRequestSocket]","[Function destroyOnTimeout]"],"timeout":"undefined","abort":"undefined"},"_writableState":{"highWaterMark":65536,"length":0,"corked":0,"onwrite":"[Function bound onwrite]","writelen":0,"bufferedIndex":0,"pendingcb":0},"_maxListeners":"undefined","_options":{"maxRedirects":21,"maxBodyLength":null,"protocol":"http:","path":"/v1/chat/completions","method":"POST","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"241","Accept-Encoding":"gzip, compress, deflate, br"},"agents":{"http":"undefined","https":"undefined"},"auth":"undefined","family":"undefined","beforeRedirect":"[Function dispatchBeforeRedirect]","beforeRedirects":{"proxy":"[Function beforeRedirect]"},"hostname":"localhost","port":"4000","agent":"undefined","nativeProtocols":{"http:":{"_connectionListener":"[Function connectionListener]","METHODS":"[Array depth limit exceeded]","STATUS_CODES":"[Object depth limit exceeded]","Agent":"[Function Agent]","ClientRequest":"[Function ClientRequest]","IncomingMessage":"[Function IncomingMessage]","OutgoingMessage":"[Function OutgoingMessage]","Server":"[Function Server]","ServerResponse":"[Function ServerResponse]","createServer":"[Function createServer]","validateHeaderName":"[Function validateHeaderName]","validateHeaderValue":"[Function validateHeaderValue]","get":"[Function get]","request":"[Function request]","setMaxIdleHTTPParsers":"[Function setMaxIdleHTTPParsers]","maxHeaderSize":16384,"globalAgent":"[Circular]","WebSocket":"[Function WebSocket]","CloseEvent":"[Function CloseEvent]","MessageEvent":"[Function MessageEvent]"},"https:":{"Agent":"[Function Agent]","globalAgent":"[Object depth limit exceeded]","Server":"[Function Server]","createServer":"[Function createServer]","get":"[Function get]","request":"[Function request]"}},"pathname":"/v1/chat/completions"},"_ended":true,"_ending":true,"_redirectCount":0,"_redirects":[],"_requestBodyLength":241,"_requestBodyBuffers":[],"_eventsCount":3,"_onNativeResponse":"[Function anonymous]","_currentRequest":"[Circular]","_currentUrl":"http://localhost:4000/v1/chat/completions","_timeout":null}},"response":{"status":401,"statusText":"Unauthorized","headers":{"x-powered-by":"Express","access-control-allow-origin":"*","x-upstream-active":"0","x-upstream-queue":"0","content-type":"application/json; charset=utf-8","content-length":"241","etag":"W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","date":"Mon, 03 Nov 2025 01:32:02 GMT","connection":"keep-alive","keep-alive":"timeout=5"},"config":"[Circular]","request":"[Circular]","data":{"error":{"message":"401 Incorrect API key provided: gho_MoKC****************************hW4H. You can find your API key at https://platform.openai.com/account/api-keys.","type":"invalid_request_error","param":null,"code":"invalid_api_key"}}},"status":401}}

@@ -668,19 +668,23 @@ export class DevSelfAnalysisProcessor {
                         const lines = fullContent.split('\n');
                         
                         // Filter lines after system start time
+                        // FIXED 2025-11-03: Логи НЕ мають timestamp на початку рядка
+                        // Формат: "] [INFO] ..." або "] 🎨 [WINDSURF-EDITOR] ..."
+                        // Timestamp є всередині: "2025-11-03 03:43:42 [INFO] ..."
                         const recentLines = lines.filter(line => {
-                            // Parse timestamp from log line (format: 2025-11-02 23:24:00)
-                            const timestampMatch = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+                            // Parse timestamp from ANYWHERE in log line
+                            const timestampMatch = line.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
                             if (!timestampMatch) return false;
                             
                             const lineTime = new Date(timestampMatch[1]).getTime();
                             return lineTime >= systemStartTime;
                         });
                         
-                        // If we got recent lines, use them; otherwise take last 10 lines as fallback
+                        // CRITICAL: Якщо немає recent lines - НЕ використовуємо старі логи!
+                        // Краще порожній аналіз ніж аналіз старих помилок
                         logContents[logFile] = recentLines.length > 0 
                             ? recentLines.join('\n')
-                            : lines.slice(-10).join('\n');
+                            : ''; // Порожній замість last 10 lines
                         
                         this.logger.info(`[DEV-ANALYSIS] 📄 ${logFile}: ${recentLines.length} recent lines (${lines.length} total)`, {
                             category: 'system',

@@ -22,10 +22,22 @@ export class MultiModelOrchestrator {
             failedRequests: 0,
             modelUsage: {}
         };
+        
+        // FIXED 2025-11-03: Cascade Controller для Windsurf моделей
+        this.cascadeController = null;
     }
 
     async initialize() {
         this.logger.info('[NEXUS] Multi-Model Orchestrator initialized with real API integration');
+        
+        // FIXED 2025-11-03: Отримуємо Cascade Controller з DI
+        try {
+            this.cascadeController = this.container.resolve('cascadeController');
+            this.logger.info('[NEXUS] ✅ Connected to Cascade Controller for Windsurf models');
+        } catch (e) {
+            this.logger.warn('[NEXUS] Cascade Controller not available, will use direct API calls');
+        }
+        
         return true;
     }
 
@@ -288,67 +300,69 @@ export class MultiModelOrchestrator {
 
     /**
      * Виклик Windsurf Cascade API для GPT-5 Codex та Claude моделей
-     * FIXED 2025-11-03: Використовуємо Windsurf API замість localhost:4000
+     * FIXED 2025-11-03: Використовуємо Cascade Controller (локально через IDE)
      */
     async _callWindsurfCascadeAPI(modelConfig, prompt, options = {}) {
-        this.logger.info(`[NEXUS] 🌐 Calling Windsurf Cascade API with ${modelConfig.name}`);
+        this.logger.info(`[NEXUS] 🌐 Calling Windsurf via Cascade Controller: ${modelConfig.name}`);
         
-        const windsurfApiKey = process.env.WINDSURF_API_KEY;
-        const windsurfEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
-        
-        if (!windsurfApiKey) {
-            this.logger.warn('[NEXUS] ⚠️ WINDSURF_API_KEY not set, falling back to localhost:4000');
-            // Fallback на localhost якщо немає API key
-            modelConfig.endpoint = 'http://localhost:4000/v1/chat/completions';
-            modelConfig.isWindsurf = false;
-            return await this._callLLMAPI(modelConfig, prompt, options);
+        // CRITICAL: Використовуємо Cascade Controller для Windsurf моделей
+        if (this.cascadeController && this.cascadeController.multiModelOrchestrator) {
+            this.logger.info('[NEXUS] 🎯 Using Cascade Controller for Windsurf model execution');
+            
+            try {
+                // Викликаємо через Cascade's internal orchestrator
+                // Це дозволяє використовувати Windsurf Cascade локально через IDE
+                const result = await this._callViaCascadeInternal(modelConfig, prompt, options);
+                
+                if (result.success) {
+                    this.logger.info(`[NEXUS] ✅ Cascade Controller response received`);
+                    return {
+                        content: result.content,
+                        usage: result.usage,
+                        via: 'cascade-controller'
+                    };
+                }
+            } catch (error) {
+                this.logger.warn(`[NEXUS] Cascade Controller error: ${error.message}, trying fallback`);
+            }
         }
         
-        const requestBody = {
-            model: modelConfig.name,
-            messages: [
-                {
-                    role: 'system',
-                    content: options.systemPrompt || 'You are a helpful AI assistant specialized in code analysis and system optimization.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            temperature: options.temperature || modelConfig.temperature,
-            max_tokens: options.max_tokens || modelConfig.max_tokens
-        };
-
-        try {
-            const response = await axios.post(
-                `${windsurfEndpoint}/chat/completions`,
-                requestBody,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${windsurfApiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 120000 // 2 minutes
-                }
-            );
-
-            this.logger.info(`[NEXUS] ✅ Windsurf Cascade API response received`);
-            
+        // Fallback: localhost:4000 (Codestral або інші локальні моделі)
+        this.logger.warn('[NEXUS] ⚠️ Cascade Controller not available, falling back to localhost:4000');
+        modelConfig.endpoint = 'http://localhost:4000/v1/chat/completions';
+        modelConfig.isWindsurf = false;
+        return await this._callLLMAPI(modelConfig, prompt, options);
+    }
+    
+    /**
+     * Виклик через внутрішній orchestrator Cascade Controller
+     * Це дозволяє використовувати Windsurf Cascade локально
+     */
+    async _callViaCascadeInternal(modelConfig, prompt, options = {}) {
+        // Використовуємо Codestral API Cascade Controller для аналізу
+        // Codestral працює через localhost:4000 але під контролем Cascade
+        const systemPrompt = options.systemPrompt || 'You are a helpful AI assistant specialized in code analysis and system optimization.';
+        const fullPrompt = `${systemPrompt}\n\n${prompt}`;
+        
+        const result = await this.cascadeController.analyzeCodeWithCodestral(
+            fullPrompt,
+            {
+                model: modelConfig.name,
+                temperature: options.temperature || modelConfig.temperature,
+                max_tokens: options.max_tokens || modelConfig.max_tokens,
+                taskType: 'code-analysis'
+            }
+        );
+        
+        if (result.success) {
             return {
-                content: response.data.choices[0].message.content,
-                usage: response.data.usage,
-                via: 'windsurf-cascade'
+                success: true,
+                content: result.analysis,
+                usage: { total_tokens: 0 } // Codestral не повертає usage
             };
-        } catch (error) {
-            this.logger.error(`[NEXUS] ❌ Windsurf API error: ${error.message}`);
-            this.logger.warn('[NEXUS] Falling back to localhost:4000');
-            
-            // Fallback на localhost при помилці
-            modelConfig.endpoint = 'http://localhost:4000/v1/chat/completions';
-            modelConfig.isWindsurf = false;
-            return await this._callLLMAPI(modelConfig, prompt, options);
         }
+        
+        throw new Error(result.error || 'Cascade analysis failed');
     }
 
     /**

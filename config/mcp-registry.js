@@ -35,6 +35,19 @@ export const MCP_REGISTRY = {
       priority: 100,  // NEXUS: HIGHEST PRIORITY
       capabilities: ['code-analysis', 'deep-thinking', 'error-recovery']
     },
+    // DEPRECATED 2025-11-03: nexus is now INTERNAL API (/api/eternity, /api/cascade)
+    // NOT an MCP server - coordinates other MCP servers through DI container
+    // See: /docs/NEXUS_ARCHITECTURE.md
+
+    memory: {
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-memory'],
+      env: {},
+      description: 'Persistent memory storage - часто використовується з windsurf',
+      enabled: true,
+      priority: 90
+    },
+
     filesystem: {
       command: 'npx',
       args: [
@@ -46,17 +59,8 @@ export const MCP_REGISTRY = {
       ],
       env: {},
       description: 'File system operations (read, write, create, delete)',
-      enabled: true
-    },
-
-    playwright: {
-      command: 'npx',
-      args: ['-y', '@executeautomation/playwright-mcp-server'],
-      env: {
-        HEADLESS: 'true'
-      },
-      description: 'Browser automation and web scraping',
-      enabled: true
+      enabled: true,
+      priority: 80
     },
 
     shell: {
@@ -66,7 +70,8 @@ export const MCP_REGISTRY = {
         SHELL: env.SHELL || '/bin/zsh'
       },
       description: 'Shell command execution',
-      enabled: true
+      enabled: true,
+      priority: 70
     },
 
     applescript: {
@@ -74,15 +79,19 @@ export const MCP_REGISTRY = {
       args: ['-y', '@peakmojo/applescript-mcp'],
       env: {},
       description: 'macOS automation via AppleScript',
-      enabled: true
+      enabled: true,
+      priority: 60
     },
 
-    memory: {
+    playwright: {
       command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-memory'],
-      env: {},
-      description: 'Persistent memory storage',
-      enabled: true
+      args: ['-y', '@executeautomation/playwright-mcp-server'],
+      env: {
+        HEADLESS: 'true'
+      },
+      description: 'Browser automation and web scraping',
+      enabled: true,
+      priority: 50
     },
 
     java_sdk: {

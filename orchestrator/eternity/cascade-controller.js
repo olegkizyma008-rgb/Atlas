@@ -76,6 +76,9 @@ export class CascadeController {
             this.multiModelOrchestrator = new MultiModelOrchestrator(this.container);
             await this.multiModelOrchestrator.initialize();
             
+            // CRITICAL 2025-11-03: Реєструємо в DI для використання в self-improvement-engine
+            this.container.singleton('multiModelOrchestrator', () => this.multiModelOrchestrator);
+            
             // 3. Отримання Eternity Module
             try {
                 this.eternityModule = this.container.resolve('eternityModule');

@@ -2321,3 +2321,221 @@ rect (-1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
 2025-11-03 00:06:18 [ERROR] mcp-server {"metadata":{}}
 2025-11-03 00:11:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
 2025-11-03 00:16:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:21:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:26:17 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:26:42 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:28:28 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:33:01 [ERROR] [DEV-MODE] Self-analysis failed: this._ensureConfig is not a function {"metadata":{}}
+2025-11-03 00:33:28 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:34:05 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:38:11 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:42:28 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:47:28 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:50:41 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:51:33 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:56:32 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 00:57:28 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 00:58:22 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:00:03 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:04:48 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:09:21 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:14:21 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:14:35 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:16:34 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:16:34 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:16:42 [ERROR] [MCP-TODO] LLM API request failed: Item 1.1 has forward/circular dependency 1.9 {"metadata":{"category":"mcp-todo","component":"mcp-todo","code":"undefined","stack":"Error: Item 1.1 has forward/circular dependency 1.9\n    at MCPTodoManager._validateTodo (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:2398:17)\n    at MCPTodoManager.createTodo (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/mcp-todo-manager.js:481:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async AtlasTodoPlanningProcessor.execute (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workf"}}
+2025-11-03 01:16:42 [ERROR] atlas-todo-planning {"metadata":{}}
+2025-11-03 01:16:42 [ERROR] atlas-todo-planning {"metadata":{}}
+2025-11-03 01:16:42 [ERROR] MCP workflow failed: TODO planning failed: TODO creation failed: Item 1.1 has forward/circular dependency 1.9 {"metadata":{"sessionId":"default","error":"TODO planning failed: TODO creation failed: Item 1.1 has forward/circular dependency 1.9","stack":"Error: TODO planning failed: TODO creation failed: Item 1.1 has forward/circular dependency 1.9\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1146:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13"}}
+2025-11-03 01:16:42 [ERROR] Step-by-step workflow failed {"metadata":{"error":"TODO planning failed: TODO creation failed: Item 1.1 has forward/circular dependency 1.9","sessionId":"session_1762125331304_wagqryql5","stack":"Error: TODO planning failed: TODO creation failed: Item 1.1 has forward/circular dependency 1.9\n    at executeWorkflow (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/executor-v3.js:1146:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/api/routes/chat.routes.js:161:13"}}
+2025-11-03 01:19:35 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:20:18 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:24:16 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:29:16 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:30:30 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:30:30 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:30:43 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:11 [ERROR] Failed to get correction from LLM {"metadata":{"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:31:11 [ERROR] Failed to get correction from LLM {"metadata":{"attempt":1,"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:31:14 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:14 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:39 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:39 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:50 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:50 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:59 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:31:59 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:07 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:07 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:19 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:35 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:35 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:32:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:02 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:02 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:12 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:20 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:20 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:53 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:33:53 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:11 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:11 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:16 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:34:18 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:18 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:43 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:43 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:34:53 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:20 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:35:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:01 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:01 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:19 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:19 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:52 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:36:52 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:01 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:11 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:11 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:19 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:19 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:37 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:37 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:37:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:22 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:30 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:31 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:38 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:38 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:38:48 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:39:05 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:42:52 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:46:11 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:46:11 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:46:33 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:47:02 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:47:02 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:47:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:47:36 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:47:39 [ERROR] [STAGE-2.0-MCP] ❌ Fallback JSON parse also failed: Unterminated string in JSON at position 239 (line 4 column 9) {"metadata":{"category":"server-selection","component":"server-selection","rawResponse":"{\n  \"selected_servers\": [\"filesystem\"],\n  \"reasoning\": \"The task requires checking if all necessary extensions are installed for reading files, which can be done by reading a configuration file or a list of installed extensions.\",\n  \"conf"}}
+2025-11-03 01:47:52 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:48:50 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:48:51 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:48:57 [ERROR] Failed to get correction from LLM {"metadata":{"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:48:57 [ERROR] Failed to get correction from LLM {"metadata":{"attempt":1,"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:49:00 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:49:00 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:49:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:49:10 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:49:11 [ERROR] [STAGE-3.5-MCP] Failed to parse replan response: Expected ',' or '}' after property value in JSON at position 924 (line 20 column 31) {"metadata":{"category":"atlas-replan-todo","component":"atlas-replan-todo","response":"```json\n{\n  \"replanned\": true,\n  \"strategy\": \"replan_and_continue\",\n  \"reasoning\": \"Не вдалося перевірити встановлені розширення через помилку MCP. Потрібно перевірити параметри інструментів та переконатися, що необхідні дані/файли існують перед їх використанням.\",\n  \"new_items\": [\n    {\n      \"action\": \"Перевірити параметри інструментів для читання файлів\",\n      \"success_criteria\": \"Параметри інструментів коректні та відповідають вимогам\",\n      \"fallback_options\": [\"Використати альтернативні "}}
+2025-11-03 01:49:12 [ERROR] [STAGE-2.0-MCP] ❌ Fallback JSON parse also failed: Unterminated string in JSON at position 239 (line 4 column 9) {"metadata":{"category":"server-selection","component":"server-selection","rawResponse":"{\n  \"selected_servers\": [\"filesystem\"],\n  \"reasoning\": \"The task requires checking if all necessary extensions are installed for reading files, which can be done by reading a configuration file or a list of installed extensions.\",\n  \"conf"}}
+2025-11-03 01:49:23 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:49:37 [ERROR] [ETERNITY-API] Status error: {"metadata":{}}
+2025-11-03 01:50:04 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:50:33 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:51:24 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:52:05 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:52:05 [ERROR] context-enrichment {"metadata":{}}
+2025-11-03 01:52:25 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:52:30 [ERROR] [VISUAL] Active window capture failed: Command failed: screencapture -x -R 1920,-41,1920,41 "/tmp/atlas_visual/screenshot_item_1.1_verify_attempt1_active_window_1762127550012.png"
+rect (1920.0, -41.0, 1920.0, 41.0) does not intersect any displays
+ {"metadata":{"category":"visual-capture","targetApp":"Файл"}}
+2025-11-03 01:52:30 [ERROR] [VISUAL] Screenshot capture failed: Screenshot capture failed for mode: active_window {"metadata":{"category":"visual-capture","component":"visual-capture","context":"item_1.1_verify_attempt1","mode":"active_window"}}
+2025-11-03 01:53:32 [ERROR] [PORT-4000] Timeout - port 4000 too slow {"metadata":{"category":"vision-analysis","note":"OpenRouter fallback disabled - vision parsing not working"}}
+2025-11-03 01:53:32 [ERROR] [VISION] API call failed: Port 4000 timeout and Ollama unavailable. OpenRouter fallback disabled. {"metadata":{"category":"vision-analysis","component":"vision-analysis","stack":"Error: Port 4000 timeout and Ollama unavailable. OpenRouter fallback disabled.\n    at VisionAnalysisService._callPort4000VisionAPI (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/services/vision-analysis-service.js:852:15)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at listOnTimeout (node:internal/timers:549:9)\n    at process.processTimers (node:internal/timers:523:7)\n    at async VisionAnalysisService._callVisionAPI (file:///Users/dev/Documents/GitHub/atlas4/orch..."}}
+2025-11-03 01:55:00 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:00 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:31 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:31 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:43 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:52 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:55:53 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:00 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:01 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:11 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:20 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:20 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:24 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 01:56:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:28 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:30 [ERROR] [STAGE-3.5-MCP] Failed to parse replan response: Expected ',' or '}' after property value in JSON at position 954 (line 20 column 31) {"metadata":{"category":"atlas-replan-todo","component":"atlas-replan-todo","response":"```json\n{\n  \"replanned\": true,\n  \"reasoning\": \"Поточний інструмент для перевірки наявності файлу не працює. Змінюю підхід: спочатку перевірю наявність файлу за допомогою іншого інструменту, а потім прочитаю його вміст.\",\n  \"strategy\": \"replan_and_continue\",\n  \"new_items\": [\n    {\n      \"action\": \"Перевірити наявність файлу orchestrator/test-nexus-bug.js за допомогою іншого інструменту\",\n      \"success_criteria\": \"Файл знайдено і його вміст доступний для читання\",\n      \"fallback_options\": [\"Вико"}}
+2025-11-03 01:56:39 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:50 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:50 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:57 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:56:57 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:57:03 [ERROR] Failed to get correction from LLM {"metadata":{"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:57:03 [ERROR] Failed to get correction from LLM {"metadata":{"attempt":1,"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:57:08 [ERROR] Failed to get correction from LLM {"metadata":{"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:57:08 [ERROR] Failed to get correction from LLM {"metadata":{"attempt":1,"error":"this.llmClient.generateResponse is not a function"}}
+2025-11-03 01:57:16 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:57:27 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:57:34 [ERROR] repetition-inspector {"metadata":{}}
+2025-11-03 01:57:45 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:57:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:57:54 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:58:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:58:03 [ERROR] tool-dispatcher {"metadata":{}}
+2025-11-03 01:58:21 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 01:58:41 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:01:03 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:05:58 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:10:57 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:11:44 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:16:44 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:19:47 [ERROR] [ETERNITY-API] Error: {"metadata":{}}
+2025-11-03 02:19:47 [ERROR] [CASCADE-API] Self-analysis error: {"metadata":{}}
+2025-11-03 02:21:44 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:21:58 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:26:58 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:27:34 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:32:37 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:36:25 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:41:24 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:43:37 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:48:37 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 02:53:03 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 02:58:03 [ERROR] Failed to save to MCP Memory: {"metadata":{}}
+2025-11-03 03:09:49 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:11:19 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:15:11 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:19:44 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:23:11 [ERROR] mcp-server {"metadata":{}}
+2025-11-03 03:24:32 [ERROR] [NEXUS] Task execution failed: Request failed with status code 401 {"metadata":{"name":"AxiosError","code":"ERR_BAD_REQUEST","config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"adapter":["xhr","http","fetch"],"transformRequest":["[Function transformRequest]"],"transformResponse":["[Function transformResponse]"],"timeout":120000,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{"FormData":"[Function FormData]","Blob":"[Function Blob]"},"validateStatus":"[Function validateStatus]","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"566","Accept-Encoding":"gzip, compress, deflate, br"},"method":"post","url":"http://localhost:4000/v1/chat/completions","data":"{\"model\":\"gpt-5-codex\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful AI assistant specialized in code analysis and system optimization.\"},{\"role\":\"user\",\"content\":\"Fix the following issue in code:\\n                    \\n                    Problem: Помилка збереження в MCP Memory відбувається кожні 5 хвилин\\n                    File: unknown\\n                    Context: N/A\\n                    \\n                    Provide exact code changes needed to fix this issue.\"}],\"tempera...","allowAbsoluteUrls":true},"request":{"_events":{"abort":"[Function anonymous]","aborted":"[Function anonymous]","connect":"[Function anonymous]","error":"[Function anonymous]","socket":"[Function anonymous]","timeout":"[Function anonymous]","finish":"[Function requestOnFinish]"},"_eventsCount":7,"_maxListeners":"undefined","outputData":[],"outputSize":0,"writable":true,"destroyed":true,"_last":false,"chunkedEncoding":false,"shouldKeepAlive":true,"maxRequestsOnConnectionReached":false,"_defaultKeepAlive":true,"useChunkedEncodingByDefault":true,"sendDate":false,"_removedConnection":false,"_removedContLen":false,"_removedTE":false,"strictContentLength":false,"_contentLength":566,"_hasBody":true,"_trailer":"","finished":true,"_headerSent":true,"_closed":true,"_header":"POST /v1/chat/completions HTTP/1.1\r\nAccept: application/json, text/plain, */*\r\nContent-Type: application/json\r\nUser-Agent: axios/1.12.2\r\nContent-Length: 566\r\nAccept-Encoding: gzip, compress, deflate, br\r\nHost: localhost:4000\r\nConnection: keep-alive\r\n\r\n","_keepAliveTimeout":0,"_onPendingData":"[Function nop]","agent":{"_events":{"free":"[Function anonymous]","newListener":"[Function maybeEnableKeylog]"},"_eventsCount":2,"_maxListeners":"undefined","defaultPort":80,"protocol":"http:","options":{"keepAlive":true,"scheduling":"lifo","timeout":5000,"noDelay":true,"path":null},"requests":{},"sockets":{},"freeSockets":{"localhost:4000:":[{"connecting":false,"_hadError":false,"_parent":null,"_host":"localhost","_closeAfterHandlingError":false,"_events":"[Object depth limit exceeded]","_readableState":"[Object depth limit exceeded]","_writableState":"[Object depth limit exceeded]","allowHalfOpen":false,"_maxListeners":"undefined","_eventsCount":6,"_sockname":null,"_pendingData":null,"_pendingEncoding":"","server":null,"_server":null,"timeout":4000,"parser":null,"_httpMessage":null,"autoSelectFamilyAttemptedAddresses":"[Array depth limit exceeded]"}]},"keepAliveMsecs":1000,"keepAlive":true,"maxSockets":null,"maxFreeSockets":256,"scheduling":"lifo","maxTotalSockets":null,"totalSocketCount":1},"socketPath":"undefined","method":"POST","maxHeaderSize":"undefined","insecureHTTPParser":"undefined","joinDuplicateHeaders":"undefined","path":"/v1/chat/completions","_ended":true,"res":{"_events":{"close":"undefined","error":"[Function handleStreamError]","data":"[Function handleStreamData]","end":["[Function responseOnEnd]","[Function handleStreamEnd]"],"readable":"undefined","finish":"undefined","aborted":"[Function handlerStreamAborted]"},"_readableState":{"highWaterMark":65536,"buffer":[],"bufferIndex":0,"length":0,"pipes":[],"awaitDrainWriters":null},"_maxListeners":"undefined","socket":null,"httpVersionMajor":1,"httpVersionMinor":1,"httpVersion":"1.1","complete":true,"rawHeaders":["X-Powered-By","Express","Access-Control-Allow-Origin","*","X-Upstream-Active","0","X-Upstream-Queue","0","Content-Type","application/json; charset=utf-8","Content-Length","241","ETag","W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","Date","Mon, 03 Nov 2025 01:24:31 GMT","Connection","keep-alive","Keep-Alive","timeout=5"],"rawTrailers":[],"joinDuplicateHeaders":"undefined","aborted":false,"upgrade":false,"url":"","method":null,"statusCode":401,"statusMessage":"Unauthorized","client":"[Circular]","_consuming":false,"_dumped":false,"req":"[Circular]","_eventsCount":4,"responseUrl":"http://localhost:4000/v1/chat/completions","redirects":[]},"aborted":false,"timeoutCb":null,"upgradeOrConnect":false,"parser":null,"maxHeadersCount":null,"reusedSocket":true,"host":"localhost","protocol":"http:","_redirectable":{"_events":{"close":"undefined","error":"[Function handleRequestError]","prefinish":"undefined","finish":"undefined","drain":"undefined","response":"[Function handleResponse]","socket":["[Function handleRequestSocket]","[Function destroyOnTimeout]"],"timeout":"undefined","abort":"undefined"},"_writableState":{"highWaterMark":65536,"length":0,"corked":0,"onwrite":"[Function bound onwrite]","writelen":0,"bufferedIndex":0,"pendingcb":0},"_maxListeners":"undefined","_options":{"maxRedirects":21,"maxBodyLength":null,"protocol":"http:","path":"/v1/chat/completions","method":"POST","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"566","Accept-Encoding":"gzip, compress, deflate, br"},"agents":{"http":"undefined","https":"undefined"},"auth":"undefined","family":"undefined","beforeRedirect":"[Function dispatchBeforeRedirect]","beforeRedirects":{"proxy":"[Function beforeRedirect]"},"hostname":"localhost","port":"4000","agent":"undefined","nativeProtocols":{"http:":{"_connectionListener":"[Function connectionListener]","METHODS":"[Array depth limit exceeded]","STATUS_CODES":"[Object depth limit exceeded]","Agent":"[Function Agent]","ClientRequest":"[Function ClientRequest]","IncomingMessage":"[Function IncomingMessage]","OutgoingMessage":"[Function OutgoingMessage]","Server":"[Function Server]","ServerResponse":"[Function ServerResponse]","createServer":"[Function createServer]","validateHeaderName":"[Function validateHeaderName]","validateHeaderValue":"[Function validateHeaderValue]","get":"[Function get]","request":"[Function request]","setMaxIdleHTTPParsers":"[Function setMaxIdleHTTPParsers]","maxHeaderSize":16384,"globalAgent":"[Circular]","WebSocket":"[Function WebSocket]","CloseEvent":"[Function CloseEvent]","MessageEvent":"[Function MessageEvent]"},"https:":{"Agent":"[Function Agent]","globalAgent":"[Object depth limit exceeded]","Server":"[Function Server]","createServer":"[Function createServer]","get":"[Function get]","request":"[Function request]"}},"pathname":"/v1/chat/completions"},"_ended":true,"_ending":true,"_redirectCount":0,"_redirects":[],"_requestBodyLength":566,"_requestBodyBuffers":[],"_eventsCount":3,"_onNativeResponse":"[Function anonymous]","_currentRequest":"[Circular]","_currentUrl":"http://localhost:4000/v1/chat/completions","_timeout":null}},"response":{"status":401,"statusText":"Unauthorized","headers":{"x-powered-by":"Express","access-control-allow-origin":"*","x-upstream-active":"0","x-upstream-queue":"0","content-type":"application/json; charset=utf-8","content-length":"241","etag":"W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","date":"Mon, 03 Nov 2025 01:24:31 GMT","connection":"keep-alive","keep-alive":"timeout=5"},"config":"[Circular]","request":"[Circular]","data":{"error":{"message":"401 Incorrect API key provided: gho_MoKC****************************hW4H. You can find your API key at https://platform.openai.com/account/api-keys.","type":"invalid_request_error","param":null,"code":"invalid_api_key"}}},"status":401}}
+2025-11-03 03:24:33 [ERROR] [NEXUS] Task execution failed: Request failed with status code 401 {"metadata":{"name":"AxiosError","code":"ERR_BAD_REQUEST","config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"adapter":["xhr","http","fetch"],"transformRequest":["[Function transformRequest]"],"transformResponse":["[Function transformResponse]"],"timeout":120000,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{"FormData":"[Function FormData]","Blob":"[Function Blob]"},"validateStatus":"[Function validateStatus]","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"542","Accept-Encoding":"gzip, compress, deflate, br"},"method":"post","url":"http://localhost:4000/v1/chat/completions","data":"{\"model\":\"gpt-5-codex\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful AI assistant specialized in code analysis and system optimization.\"},{\"role\":\"user\",\"content\":\"Fix the following issue in code:\\n                    \\n                    Problem: Помилка mcp-server відбувається кожні 5 хвилин\\n                    File: unknown\\n                    Context: N/A\\n                    \\n                    Provide exact code changes needed to fix this issue.\"}],\"temperature\":0.1,\"ma...","allowAbsoluteUrls":true},"request":{"_events":{"abort":"[Function anonymous]","aborted":"[Function anonymous]","connect":"[Function anonymous]","error":"[Function anonymous]","socket":"[Function anonymous]","timeout":"[Function anonymous]","finish":"[Function requestOnFinish]"},"_eventsCount":7,"_maxListeners":"undefined","outputData":[],"outputSize":0,"writable":true,"destroyed":true,"_last":false,"chunkedEncoding":false,"shouldKeepAlive":true,"maxRequestsOnConnectionReached":false,"_defaultKeepAlive":true,"useChunkedEncodingByDefault":true,"sendDate":false,"_removedConnection":false,"_removedContLen":false,"_removedTE":false,"strictContentLength":false,"_contentLength":542,"_hasBody":true,"_trailer":"","finished":true,"_headerSent":true,"_closed":true,"_header":"POST /v1/chat/completions HTTP/1.1\r\nAccept: application/json, text/plain, */*\r\nContent-Type: application/json\r\nUser-Agent: axios/1.12.2\r\nContent-Length: 542\r\nAccept-Encoding: gzip, compress, deflate, br\r\nHost: localhost:4000\r\nConnection: keep-alive\r\n\r\n","_keepAliveTimeout":0,"_onPendingData":"[Function nop]","agent":{"_events":{"free":"[Function anonymous]","newListener":"[Function maybeEnableKeylog]"},"_eventsCount":2,"_maxListeners":"undefined","defaultPort":80,"protocol":"http:","options":{"keepAlive":true,"scheduling":"lifo","timeout":5000,"noDelay":true,"path":null},"requests":{},"sockets":{},"freeSockets":{"localhost:4000:":[{"connecting":false,"_hadError":false,"_parent":null,"_host":"localhost","_closeAfterHandlingError":false,"_events":"[Object depth limit exceeded]","_readableState":"[Object depth limit exceeded]","_writableState":"[Object depth limit exceeded]","allowHalfOpen":false,"_maxListeners":"undefined","_eventsCount":6,"_sockname":null,"_pendingData":null,"_pendingEncoding":"","server":null,"_server":null,"timeout":4000,"parser":null,"_httpMessage":null,"autoSelectFamilyAttemptedAddresses":"[Array depth limit exceeded]"}]},"keepAliveMsecs":1000,"keepAlive":true,"maxSockets":null,"maxFreeSockets":256,"scheduling":"lifo","maxTotalSockets":null,"totalSocketCount":1},"socketPath":"undefined","method":"POST","maxHeaderSize":"undefined","insecureHTTPParser":"undefined","joinDuplicateHeaders":"undefined","path":"/v1/chat/completions","_ended":true,"res":{"_events":{"close":"undefined","error":"[Function handleStreamError]","data":"[Function handleStreamData]","end":["[Function responseOnEnd]","[Function handleStreamEnd]"],"readable":"undefined","finish":"undefined","aborted":"[Function handlerStreamAborted]"},"_readableState":{"highWaterMark":65536,"buffer":[],"bufferIndex":0,"length":0,"pipes":[],"awaitDrainWriters":null},"_maxListeners":"undefined","socket":null,"httpVersionMajor":1,"httpVersionMinor":1,"httpVersion":"1.1","complete":true,"rawHeaders":["X-Powered-By","Express","Access-Control-Allow-Origin","*","X-Upstream-Active","0","X-Upstream-Queue","0","Content-Type","application/json; charset=utf-8","Content-Length","241","ETag","W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","Date","Mon, 03 Nov 2025 01:24:33 GMT","Connection","keep-alive","Keep-Alive","timeout=5"],"rawTrailers":[],"joinDuplicateHeaders":"undefined","aborted":false,"upgrade":false,"url":"","method":null,"statusCode":401,"statusMessage":"Unauthorized","client":"[Circular]","_consuming":false,"_dumped":false,"req":"[Circular]","_eventsCount":4,"responseUrl":"http://localhost:4000/v1/chat/completions","redirects":[]},"aborted":false,"timeoutCb":null,"upgradeOrConnect":false,"parser":null,"maxHeadersCount":null,"reusedSocket":true,"host":"localhost","protocol":"http:","_redirectable":{"_events":{"close":"undefined","error":"[Function handleRequestError]","prefinish":"undefined","finish":"undefined","drain":"undefined","response":"[Function handleResponse]","socket":["[Function handleRequestSocket]","[Function destroyOnTimeout]"],"timeout":"undefined","abort":"undefined"},"_writableState":{"highWaterMark":65536,"length":0,"corked":0,"onwrite":"[Function bound onwrite]","writelen":0,"bufferedIndex":0,"pendingcb":0},"_maxListeners":"undefined","_options":{"maxRedirects":21,"maxBodyLength":null,"protocol":"http:","path":"/v1/chat/completions","method":"POST","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json","User-Agent":"axios/1.12.2","Content-Length":"542","Accept-Encoding":"gzip, compress, deflate, br"},"agents":{"http":"undefined","https":"undefined"},"auth":"undefined","family":"undefined","beforeRedirect":"[Function dispatchBeforeRedirect]","beforeRedirects":{"proxy":"[Function beforeRedirect]"},"hostname":"localhost","port":"4000","agent":"undefined","nativeProtocols":{"http:":{"_connectionListener":"[Function connectionListener]","METHODS":"[Array depth limit exceeded]","STATUS_CODES":"[Object depth limit exceeded]","Agent":"[Function Agent]","ClientRequest":"[Function ClientRequest]","IncomingMessage":"[Function IncomingMessage]","OutgoingMessage":"[Function OutgoingMessage]","Server":"[Function Server]","ServerResponse":"[Function ServerResponse]","createServer":"[Function createServer]","validateHeaderName":"[Function validateHeaderName]","validateHeaderValue":"[Function validateHeaderValue]","get":"[Function get]","request":"[Function request]","setMaxIdleHTTPParsers":"[Function setMaxIdleHTTPParsers]","maxHeaderSize":16384,"globalAgent":"[Circular]","WebSocket":"[Function WebSocket]","CloseEvent":"[Function CloseEvent]","MessageEvent":"[Function MessageEvent]"},"https:":{"Agent":"[Function Agent]","globalAgent":"[Object depth limit exceeded]","Server":"[Function Server]","createServer":"[Function createServer]","get":"[Function get]","request":"[Function request]"}},"pathname":"/v1/chat/completions"},"_ended":true,"_ending":true,"_redirectCount":0,"_redirects":[],"_requestBodyLength":542,"_requestBodyBuffers":[],"_eventsCount":3,"_onNativeResponse":"[Function anonymous]","_currentRequest":"[Circular]","_currentUrl":"http://localhost:4000/v1/chat/completions","_timeout":null}},"response":{"status":401,"statusText":"Unauthorized","headers":{"x-powered-by":"Express","access-control-allow-origin":"*","x-upstream-active":"0","x-upstream-queue":"0","content-type":"application/json; charset=utf-8","content-length":"241","etag":"W/\"f1-P02pHtVO2B8vcLF9NUHXgqSiVU0\"","date":"Mon, 03 Nov 2025 01:24:33 GMT","connection":"keep-alive","keep-alive":"timeout=5"},"config":"[Circular]","request":"[Circular]","data":{"error":{"message":"401 Incorrect API key provided: gho_MoKC****************************hW4H. You can find your API key at https://platform.openai.com/account/api-keys.","type":"invalid_request_error","param":null,"code":"invalid_api_key"}}},"status":401}}

@@ -23,7 +23,7 @@ Process every instruction in English, but produce all enriched text strictly in 
 🌐 ENVIRONMENT CONTEXT
 • Mac Studio M1 Max running macOS
 • Available: Safari (webkit), Chrome (chromium), Firefox
-• Available MCP servers: filesystem, playwright, shell, applescript, memory
+• Available MCP servers: windsurf, memory, filesystem, shell, applescript, playwright, java_sdk, python_sdk
 • Screen resolution: typically 1440x900 or 1920x1080
 
 📋 OUTPUT FORMAT (JSON ONLY)

@@ -353,7 +353,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           message += `Помилок:        ${metrics.error_count || 0}\n`;
           message += `Попереджень:    ${metrics.warning_count || 0}\n`;
           message += `Здоров'я:       ${metrics.system_health || 'невідомо'}%\n`;
-          message += `Працює:         ${Math.floor((metrics.uptime || 0) / 60)} хвилин\n`;
+          // Безпечне форматування uptime
+          const uptimeMinutes = (typeof metrics.uptime === 'number' && !isNaN(metrics.uptime)) 
+            ? Math.floor(metrics.uptime / 60) 
+            : 0;
+          message += `Працює:         ${uptimeMinutes} хвилин\n`;
           message += '```\n\n';
         }
         
@@ -523,7 +527,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           ttsContent += `Здоров'я системи ${health} відсотків, це ${healthWord} стан. `;
         }
         
-        ttsContent += `Працюю вже ${uptime} ${uptime === 1 ? 'хвилину' : uptime < 5 ? 'хвилини' : 'хвилин'}. `;
+        // Безпечне форматування uptime
+        const safeUptime = (typeof uptime === 'number' && !isNaN(uptime)) ? uptime : 0;
+        if (safeUptime > 0) {
+          ttsContent += `Працюю вже ${safeUptime} ${safeUptime === 1 ? 'хвилину' : safeUptime < 5 ? 'хвилини' : 'хвилин'}. `;
+        }
         
         // Результати аналізу
         if (criticalCount === 0 && perfCount === 0) {

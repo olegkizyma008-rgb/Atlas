@@ -12,11 +12,17 @@
 import logger from '../utils/logger.js';
 import fs from 'fs/promises';
 import path from 'path';
+import axios from 'axios';
 
 export class WindsurfCodeEditor {
     constructor() {
         this.logger = logger;
         this.projectRoot = process.cwd();
+        
+        // Windsurf API configuration
+        this.apiKey = process.env.WINDSURF_API_KEY;
+        this.apiEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
+        this.useWindsurfAPI = !!(this.apiKey && process.env.CASCADE_ENABLED === 'true');
         
         // Windsurf Cascade tools що доступні для Atlas
         this.availableTools = {
@@ -28,7 +34,11 @@ export class WindsurfCodeEditor {
             run_command: false       // Commands потребують approval
         };
         
-        this.logger.info('🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas тепер має доступ до Windsurf API');
+        if (this.useWindsurfAPI) {
+            this.logger.info('🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує Windsurf Cascade API');
+        } else {
+            this.logger.warn('🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує локальну fs (Windsurf API вимкнено)');
+        }
     }
 
     /**
@@ -66,64 +76,13 @@ export class WindsurfCodeEditor {
      */
     async replaceFileContent(filePath, replacements, instruction) {
         try {
-            const absolutePath = path.isAbsolute(filePath) 
-                ? filePath 
-                : path.join(this.projectRoot, filePath);
-            
-            this.logger.info(`[WINDSURF-EDITOR] 🔧 Replacing content in: ${filePath}`);
-            this.logger.info(`[WINDSURF-EDITOR] Instruction: ${instruction}`);
-            
-            // Читаємо поточний вміст
-            const currentContent = await fs.readFile(absolutePath, 'utf-8');
-            
-            // Застосовуємо всі заміни
-            let newContent = currentContent;
-            const appliedReplacements = [];
-            
-            for (const replacement of replacements) {
-                const { targetContent, replacementContent, allowMultiple } = replacement;
-                
-                // Підрахунок входжень
-                const occurrences = this._countOccurrences(newContent, targetContent);
-                
-                if (occurrences === 0) {
-                    this.logger.warn(`[WINDSURF-EDITOR] Target not found: ${targetContent.substring(0, 50)}...`);
-                    continue;
-                }
-                
-                if (occurrences > 1 && !allowMultiple) {
-                    throw new Error(`Multiple occurrences found (${occurrences}) but allowMultiple=false`);
-                }
-                
-                // Заміна
-                if (allowMultiple) {
-                    newContent = newContent.replaceAll(targetContent, replacementContent);
-                } else {
-                    newContent = newContent.replace(targetContent, replacementContent);
-                }
-                
-                appliedReplacements.push({
-                    target: targetContent.substring(0, 100),
-                    occurrences,
-                    applied: true
-                });
-                
-                this.logger.info(`[WINDSURF-EDITOR] ✅ Applied replacement (${occurrences} occurrence${occurrences > 1 ? 's' : ''})`);
+            // Якщо Windsurf API активовано - використовуємо його
+            if (this.useWindsurfAPI) {
+                return await this._replaceViaWindsurfAPI(filePath, replacements, instruction);
             }
             
-            // Записуємо змінений файл
-            await fs.writeFile(absolutePath, newContent, 'utf-8');
-            
-            this.logger.info(`[WINDSURF-EDITOR] ✅ File updated: ${filePath}`);
-            
-            return {
-                success: true,
-                file: filePath,
-                replacements: appliedReplacements.length,
-                totalReplacements: replacements.length,
-                appliedReplacements
-            };
-            
+            // Fallback: локальна файлова система
+            return await this._replaceViaLocalFS(filePath, replacements, instruction);
         } catch (error) {
             this.logger.error(`[WINDSURF-EDITOR] Failed to replace content in ${filePath}:`, error);
             return {
@@ -132,6 +91,114 @@ export class WindsurfCodeEditor {
                 file: filePath
             };
         }
+    }
+
+    /**
+     * Заміна через Windsurf Cascade API
+     */
+    async _replaceViaWindsurfAPI(filePath, replacements, instruction) {
+        this.logger.info(`[WINDSURF-EDITOR] 🌐 Using Windsurf Cascade API for: ${filePath}`);
+        
+        try {
+            const response = await axios.post(
+                `${this.apiEndpoint}/tools/replace_file_content`,
+                {
+                    target_file: filePath,
+                    replacement_chunks: replacements.map(r => ({
+                        target_content: r.targetContent,
+                        replacement_content: r.replacementContent,
+                        allow_multiple: r.allowMultiple || false
+                    })),
+                    instruction: instruction,
+                    code_markdown_language: 'javascript'
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${this.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 60000
+                }
+            );
+
+            this.logger.info(`[WINDSURF-EDITOR] ✅ Windsurf API успішно застосував зміни`);
+            
+            return {
+                success: true,
+                file: filePath,
+                replacements: replacements.length,
+                via: 'windsurf-api',
+                response: response.data
+            };
+        } catch (error) {
+            this.logger.error(`[WINDSURF-EDITOR] Windsurf API error, falling back to local fs:`, error.message);
+            // Fallback на локальну fs якщо API не працює
+            return await this._replaceViaLocalFS(filePath, replacements, instruction);
+        }
+    }
+
+    /**
+     * Заміна через локальну файлову систему (fallback)
+     */
+    async _replaceViaLocalFS(filePath, replacements, instruction) {
+        const absolutePath = path.isAbsolute(filePath) 
+            ? filePath 
+            : path.join(this.projectRoot, filePath);
+        
+        this.logger.info(`[WINDSURF-EDITOR] 📁 Using local filesystem for: ${filePath}`);
+        this.logger.info(`[WINDSURF-EDITOR] Instruction: ${instruction}`);
+        
+        // Читаємо поточний вміст
+        const currentContent = await fs.readFile(absolutePath, 'utf-8');
+        
+        // Застосовуємо всі заміни
+        let newContent = currentContent;
+        const appliedReplacements = [];
+        
+        for (const replacement of replacements) {
+            const { targetContent, replacementContent, allowMultiple } = replacement;
+            
+            // Підрахунок входжень
+            const occurrences = this._countOccurrences(newContent, targetContent);
+            
+            if (occurrences === 0) {
+                this.logger.warn(`[WINDSURF-EDITOR] Target not found: ${targetContent.substring(0, 50)}...`);
+                continue;
+            }
+            
+            if (occurrences > 1 && !allowMultiple) {
+                throw new Error(`Multiple occurrences found (${occurrences}) but allowMultiple=false`);
+            }
+            
+            // Заміна
+            if (allowMultiple) {
+                newContent = newContent.replaceAll(targetContent, replacementContent);
+            } else {
+                newContent = newContent.replace(targetContent, replacementContent);
+            }
+            
+            appliedReplacements.push({
+                target: targetContent.substring(0, 100),
+                occurrences,
+                applied: true
+            });
+            
+            this.logger.info(`[WINDSURF-EDITOR] ✅ Applied replacement (${occurrences} occurrence${occurrences > 1 ? 's' : ''})`);
+        }
+        
+        // Записуємо змінений файл
+        await fs.writeFile(absolutePath, newContent, 'utf-8');
+        
+        this.logger.info(`[WINDSURF-EDITOR] ✅ File updated: ${filePath}`);
+        
+        return {
+            success: true,
+            file: filePath,
+            replacements: appliedReplacements.length,
+            totalReplacements: replacements.length,
+            via: 'local-fs',
+            appliedReplacements
+        };
     }
 
     /**

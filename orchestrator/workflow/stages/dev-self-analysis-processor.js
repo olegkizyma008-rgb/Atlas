@@ -12,6 +12,7 @@ import { MCP_PROMPTS } from '../../../prompts/mcp/index.js';
 import GlobalConfig from '../../../config/global-config.js';
 import fs from 'fs/promises';
 import { DynamicPromptInjector } from '../../eternity/dynamic-prompt-injector.js';
+import IntentDetector from './intent-detector.js';
 
 // Get user language from environment
 const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
@@ -35,6 +36,9 @@ export class DevSelfAnalysisProcessor {
         // NEW 2025-11-02: NEXUS Integration - Multi-Model System
         this.dynamicPromptInjector = new DynamicPromptInjector(container);
         this.multiModelOrchestrator = null; // Will be resolved from container
+        
+        // NEW 2025-11-03: Intelligent Intent Detection
+        this.intentDetector = new IntentDetector();
         
         // Configuration paths
         this.config = {
@@ -66,6 +70,36 @@ export class DevSelfAnalysisProcessor {
         
         // NEW 2025-11-03: Ініціалізуємо Nexus одразу
         this._initializeNexus();
+    }
+    
+    /**
+     * Ensure model configuration is loaded
+     */
+    _ensureConfig() {
+        if (!this.modelConfig) {
+            // Safe access to apiEndpoint config
+            const apiConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
+            
+            // Validate apiConfig structure and provide fallback
+            if (!apiConfig || typeof apiConfig !== 'object') {
+                this.logger.warn('[DEV-ANALYSIS] ⚠️ apiEndpoint config not found, using fallback');
+                this.apiEndpoint = 'http://localhost:4000/v1/chat/completions';
+                this.apiTimeout = 120000; // 2 minutes for complex analysis
+            } else {
+                this.apiEndpoint = (apiConfig.useFallback && apiConfig.fallback)
+                    ? apiConfig.fallback
+                    : (apiConfig.primary || 'http://localhost:4000/v1/chat/completions');
+                this.apiTimeout = apiConfig.timeout || 120000;
+            }
+            
+            // Get model config from MCP_MODEL_CONFIG using getStageConfig
+            this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('dev_analysis');
+            
+            this.logger.info('[DEV-ANALYSIS] 🔧 Using API: ' + this.apiEndpoint + ', Model: ' + this.modelConfig.model, {
+                category: 'system',
+                component: 'dev-analysis'
+            });
+        }
     }
     
     /**
@@ -353,13 +387,20 @@ export class DevSelfAnalysisProcessor {
                 );
             }
             
-            // Перевіряємо чи користувач ЯВНО просить внести зміни
-            const userWantsIntervention = this._detectInterventionRequest(userMessage);
+            // NEW 2025-11-03: Інтелектуальна детекція intent (keyword + LLM)
+            const intentResult = await this.intentDetector.detectInterventionIntent(userMessage, {
+                criticalIssues: analysisResult.findings?.critical_issues?.length || 0,
+                performanceIssues: analysisResult.findings?.performance_bottlenecks?.length || 0,
+                suggestions: analysisResult.findings?.improvement_suggestions?.length || 0
+            });
             
-            // NEW 2025-11-03: Детектуємо команду дозволу на виконання
-            const userAllowsExecution = this._detectExecutionPermission(userMessage);
+            const userWantsIntervention = intentResult.detected;
+            this.logger.info(`[DEV-ANALYSIS] 🧠 Intent detection: ${intentResult.detected} (${intentResult.method}, confidence: ${intentResult.confidence})`, {
+                category: 'system',
+                component: 'dev-analysis',
+                reasoning: intentResult.reasoning
+            });
             
-            // NEW 2025-11-02: Автоматична активація якщо є критичні проблеми + користувач просить
             const hasCriticalIssues = (analysisResult.findings?.critical_issues?.length || 0) > 0;
             const shouldIntervene = userWantsIntervention && (analysisResult.intervention_required || hasCriticalIssues);
             

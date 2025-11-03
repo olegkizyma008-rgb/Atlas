@@ -35,6 +35,7 @@ import tetyanaPlanToolsShell from './tetyana_plan_tools_shell.js';  // NEW 18.10
 import tetyanaPlanToolsMemory from './tetyana_plan_tools_memory.js';  // NEW 18.10.2025 - Memory specialized
 import tetyanaPlanToolsJavaSdk from './tetyana_plan_tools_java_sdk.js';  // NEW 29.10.2025 - Java SDK specialized
 import tetyanaPlanToolsPythonSdk from './tetyana_plan_tools_python_sdk.js';  // NEW 29.10.2025 - Python SDK specialized
+// DEPRECATED 03.11.2025: tetyana_plan_tools_nexus.js - Nexus is internal API, not MCP server
 import tetyanaScreenshotAndAdjust from './tetyana_screenshot_and_adjust.js';  // NEW 16.10.2025
 import visualCaptureModeSelector from './visual_capture_mode_selector.js';  // NEW 22.10.2025 - Screenshot mode selection
 import grishaVisualVerifyItem from './grisha_visual_verify_item.js';  // NEW 17.10.2025 - Visual AI verification
@@ -77,6 +78,7 @@ export const MCP_PROMPTS = {
     TETYANA_PLAN_TOOLS_MEMORY: tetyanaPlanToolsMemory,
     TETYANA_PLAN_TOOLS_JAVA_SDK: tetyanaPlanToolsJavaSdk,
     TETYANA_PLAN_TOOLS_PYTHON_SDK: tetyanaPlanToolsPythonSdk,
+    // TETYANA_PLAN_TOOLS_NEXUS - DEPRECATED: Nexus is internal API
 
     // Stage 2.1.5-MCP: Tetyana screenshot and adjust (NEW 16.10.2025)
     TETYANA_SCREENSHOT_AND_ADJUST: tetyanaScreenshotAndAdjust,
@@ -118,6 +120,7 @@ export {
     tetyanaPlanToolsMemory,
     tetyanaPlanToolsJavaSdk,
     tetyanaPlanToolsPythonSdk,
+    // tetyanaPlanToolsNexus - DEPRECATED
     tetyanaScreenshotAndAdjust,
     visualCaptureModeSelector,  // NEW 22.10.2025
     grishaVisualVerifyItem,  // NEW 17.10.2025

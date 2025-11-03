@@ -361,7 +361,13 @@ export const MCP_MODEL_CONFIG = {
         return parseFloat(env.MCP_TEMP_CHAT_MEMORY_ELIGIBILITY || '0.1');
       },
       max_tokens: 150,
-      description: 'Chat Memory Eligibility - швидка класифікація потреби в довготривалій пам\'яті (AI21 Jamba 1.5 Mini - ultra fast)'
+      description: 'Chat Memory Eligibility - швидка класифікація потреби в довготривалій пам’яті (AI21 Jamba 1.5 Mini - ultra fast)'
+    },
+    intent_detection: {
+      model: env.INTENT_DETECTION_MODEL || 'atlas-mistral-small-2503',
+      temperature: parseFloat(env.INTENT_DETECTION_TEMPERATURE) || 0.1,
+      max_tokens: parseInt(env.INTENT_DETECTION_MAX_TOKENS) || 150,
+      description: 'Intent Detection - семантичне розуміння складних запитів на виправлення (Mistral Small - fast & accurate)'
     }
   },
   getStageConfig(stageName) {

@@ -26,6 +26,8 @@ import { configureAxios } from '../utils/axios-config.js';
 import setupHealthRoutes from '../api/routes/health.routes.js';
 import setupChatRoutes from '../api/routes/chat.routes.js';
 import setupWebRoutes from '../api/routes/web.routes.js';
+import setupEternityRoutes from '../api/routes/eternity.routes.js';
+import setupCascadeRoutes from '../api/routes/cascade.routes.js';
 
 /**
  * Клас управління життєвим циклом ATLAS Orchestrator
@@ -107,6 +109,10 @@ export class Application {
             container: this.container  // ✅ NEW: Pass DI container for MCP workflow
         });
         setupWebRoutes(this.app);
+        
+        // Nexus Eternity and Cascade API routes
+        setupEternityRoutes(this.app, { container: this.container });
+        setupCascadeRoutes(this.app, { container: this.container });
 
         // Налаштовуємо обробку помилок
         setupErrorHandling(this.app, this.errorHandler);

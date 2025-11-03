@@ -89,7 +89,7 @@ NEVER return items with simple id: 1, 2, 3. ALWAYS use decimal notation!
 
 📡 MCP SERVER RULES
 • Leave server selection lean: 0, 1, or 2 servers per item. Ideal = 1.
-• Allowed servers: filesystem, playwright, shell, applescript, memory.
+• Allowed servers: windsurf, memory, filesystem, shell, applescript, playwright, java_sdk, python_sdk.
 • Stage 2.0 will bind servers to tools—never list tool names like read_file.
 
 🪜 DEPENDENCIES - CRITICAL RULES (STRICT ENFORCEMENT)

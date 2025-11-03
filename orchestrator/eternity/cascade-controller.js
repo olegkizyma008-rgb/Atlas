@@ -110,45 +110,61 @@ export class CascadeController {
     }
 
     /**
-     * Ініціалізація Codestral API
+     * Ініціалізація Windsurf Cascade API (РЕАЛЬНІ Windsurf моделі через IDE)
+     * FIXED 2025-11-03: Використовуємо Windsurf Cascade замість Codestral
      */
     async _initializeCodestral() {
-        const config = CASCADE_API_CONFIG.capabilities.codestral;
+        const windsurfApiKey = process.env.WINDSURF_API_KEY;
+        const windsurfEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
         
-        if (!config.apiKey) {
-            this.logger.warn('[CASCADE] Codestral API key not found, using fallback analysis');
+        if (!windsurfApiKey) {
+            this.logger.warn('[CASCADE] ⚠️ WINDSURF_API_KEY not found, Windsurf models will not be available');
             this.codestralAPI = null;
             return;
         }
 
+        // CRITICAL: Це РЕАЛЬНИЙ Windsurf Cascade API для виклику моделей IDE
         this.codestralAPI = {
             analyze: async (code, context) => {
                 try {
-                    const response = await axios.post(config.endpoint, {
-                        model: config.model,
-                        messages: [{
-                            role: 'system',
-                            content: `You are Cascade, senior controller of the Eternity module. Analyze code for improvements, bugs, and evolution opportunities.`
-                        }, {
-                            role: 'user',
-                            content: `Context: ${context}\n\nCode:\n${code}\n\nProvide deep analysis with specific recommendations.`
-                        }],
-                        temperature: config.temperature,
-                        max_tokens: config.maxTokens
-                    }, {
-                        headers: {
-                            'Authorization': `Bearer ${config.apiKey}`,
-                            'Content-Type': 'application/json'
+                    // Вибираємо модель залежно від типу задачі
+                    const model = context.model || process.env.CASCADE_CODE_ANALYSIS_MODEL || 'gpt-5-codex';
+                    
+                    this.logger.info(`[CASCADE] 🌐 Calling Windsurf Cascade: ${model}`);
+                    
+                    const response = await axios.post(
+                        `${windsurfEndpoint}/chat/completions`,
+                        {
+                            model: model,
+                            messages: [{
+                                role: 'system',
+                                content: `You are Cascade, senior controller of the Eternity module. Analyze code for improvements, bugs, and evolution opportunities.`
+                            }, {
+                                role: 'user',
+                                content: `Context: ${context}\n\nCode:\n${code}\n\nProvide deep analysis with specific recommendations.`
+                            }],
+                            temperature: context.temperature || 0.2,
+                            max_tokens: context.max_tokens || 4000
                         },
-                        timeout: 60000
-                    });
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${windsurfApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 120000 // 2 minutes для Windsurf моделей
+                        }
+                    );
 
+                    this.logger.info(`[CASCADE] ✅ Windsurf Cascade response received from ${model}`);
+                    
                     return {
                         success: true,
-                        analysis: response.data.choices[0].message.content
+                        analysis: response.data.choices[0].message.content,
+                        model: model,
+                        via: 'windsurf-cascade'
                     };
                 } catch (error) {
-                    this.logger.error('[CASCADE] Codestral API error:', error.message);
+                    this.logger.error('[CASCADE] ❌ Windsurf Cascade API error:', error.message);
                     return {
                         success: false,
                         error: error.message
@@ -157,7 +173,7 @@ export class CascadeController {
             }
         };
 
-        this.logger.info('[CASCADE] 🧠 Codestral API initialized successfully');
+        this.logger.info('[CASCADE] 🎨 Windsurf Cascade API initialized - РЕАЛЬНІ Windsurf моделі доступні');
     }
 
     /**
@@ -295,14 +311,15 @@ Cascade працює в симбіозі з Atlas, доповнюючи один
     }
 
     /**
-     * Глибокий аналіз коду через Codestral
+     * Глибокий аналіз коду через Windsurf Cascade (РЕАЛЬНІ Windsurf моделі)
+     * FIXED 2025-11-03: Використовуємо GPT-5 Codex, Claude Thinking через Windsurf
      */
     async analyzeCodeWithCodestral(code, context) {
         if (!this.codestralAPI) {
-            this.logger.warn('[CASCADE] Codestral not available, using fallback');
+            this.logger.warn('[CASCADE] ⚠️ Windsurf Cascade not available, check WINDSURF_API_KEY');
             return {
                 success: false,
-                error: 'Codestral API not initialized'
+                error: 'Windsurf Cascade API not initialized'
             };
         }
 
@@ -311,7 +328,7 @@ Cascade працює в симбіозі з Atlas, доповнюючи один
         const result = await this.codestralAPI.analyze(code, context);
         
         if (result.success) {
-            this.logger.info('[CASCADE] 🧠 Codestral аналіз завершено успішно');
+            this.logger.info(`[CASCADE] 🎨 Windsurf Cascade аналіз завершено: ${result.model} (via ${result.via})`);
         }
 
         return result;

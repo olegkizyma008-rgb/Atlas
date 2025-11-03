@@ -65,10 +65,9 @@ export class CascadeController {
         try {
             this.logger.info('[CASCADE] 🚀 Ініціалізую контроль над модулем Вічність...');
             
-            // 1. Ініціалізація Codestral
-            if (CASCADE_API_CONFIG.capabilities.codestral.enabled) {
-                await this._initializeCodestral();
-            }
+            // 1. Ініціалізація Windsurf Cascade API (ЗАВЖДИ якщо є WINDSURF_API_KEY)
+            // FIXED 2025-11-03: Не залежить від CASCADE_CODESTRAL_ENABLED
+            await this._initializeCodestral();
             
             // 2. Підключення до підсистем
             this.dynamicPromptInjector = new DynamicPromptInjector(this.container);

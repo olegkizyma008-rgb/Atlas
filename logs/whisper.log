@@ -1,39 +1,17 @@
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: 🚀 Initializing ATLAS Whisper.cpp Service (Metal-ready) ...
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: Port: 3002
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: Binary: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: Binary type: whisper-cli (GPU by default)
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: Model:  /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin
-2025-11-03 03:31:09,209 [INFO] atlas.whispercpp: Device: metal (whisper-cli uses GPU by default, use --no-gpu to disable)
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: 🚀 Initializing ATLAS Whisper.cpp Service (Metal-ready) ...
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: Port: 3002
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: Binary: /Users/dev/Documents/GitHub/atlas4/third_party/whisper.cpp.upstream/build/bin/whisper-cli
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: Binary type: whisper-cli (GPU by default)
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: Model:  /Users/dev/Documents/GitHub/atlas4/models/whisper/ggml-large-v3.bin
+2025-11-03 03:37:43,214 [INFO] atlas.whispercpp: Device: metal (whisper-cli uses GPU by default, use --no-gpu to disable)
  * Serving Flask app 'whispercpp_service'
  * Debug mode: off
-2025-11-03 03:31:09,224 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-11-03 03:37:43,239 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:3002
  * Running on http://10.8.15.97:3002
-2025-11-03 03:31:09,224 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
-2025-11-03 03:31:21,444 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:31:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:31:21,446 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:31:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:31:51,442 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:31:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:31:51,443 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:31:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:32:21,442 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:32:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:32:21,444 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:32:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:32:51,440 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:32:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:32:51,442 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:32:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:33:21,440 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:33:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:33:21,442 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:33:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:33:51,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:33:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:33:51,441 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:33:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:34:21,442 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:34:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:34:21,443 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:34:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:34:51,439 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:34:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:34:51,441 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:34:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:35:21,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:35:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:35:21,440 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:35:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:35:51,437 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:35:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:35:51,439 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:35:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:36:21,437 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:36:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:36:21,440 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:36:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:36:51,436 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:36:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:36:51,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:36:51] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:37:21,436 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:37:21] "GET /health HTTP/1.1" 200 -
-2025-11-03 03:37:21,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:37:21] "GET /health HTTP/1.1" 200 -
+2025-11-03 03:37:43,239 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2025-11-03 03:37:51,436 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:37:51] "GET /health HTTP/1.1" 200 -
+2025-11-03 03:37:51,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:37:51] "GET /health HTTP/1.1" 200 -
+2025-11-03 03:38:21,436 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:38:21] "GET /health HTTP/1.1" 200 -
+2025-11-03 03:38:21,438 [INFO] werkzeug: 127.0.0.1 - - [03/Nov/2025 03:38:21] "GET /health HTTP/1.1" 200 -

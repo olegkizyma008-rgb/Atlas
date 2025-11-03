@@ -40,7 +40,7 @@ export class IntentDetector {
             if (!this.modelConfig) {
                 this.logger.warn('[INTENT-DETECTOR] Stage config not found, using default');
                 this.modelConfig = {
-                    model: 'atlas-mistral-small-2503',
+                    model: 'atlas-ministral-3b',
                     temperature: 0.1,
                     max_tokens: 150
                 };
@@ -77,6 +77,7 @@ export class IntentDetector {
         
         if (hasCriticalIssues || hasPerformanceIssues) {
             this.logger.info('[INTENT-DETECTOR] 🧠 Using LLM for semantic understanding');
+            
             const llmResult = await this._detectLLMIntent(userMessage, analysisContext);
             
             this.logger.info('[INTENT-DETECTOR] LLM result', {
@@ -85,6 +86,15 @@ export class IntentDetector {
                 reasoning: llmResult.reasoning,
                 duration: Date.now() - startTime
             });
+            
+            // FIXED 03.11.2025: Якщо LLM fallback, повертаємо keyword результат
+            if (llmResult.method === 'llm-fallback' && keywordResult.detected) {
+                this.logger.info('[INTENT-DETECTOR] ✅ LLM failed, using keyword result as fallback', {
+                    keyword: keywordResult.matchedPattern,
+                    confidence: keywordResult.confidence
+                });
+                return keywordResult;
+            }
             
             return llmResult;
         }

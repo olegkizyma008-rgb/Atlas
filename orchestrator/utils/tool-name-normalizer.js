@@ -37,14 +37,20 @@ export function normalizeToolName(toolName, serverName = null) {
 
   // Already has double underscore - check for duplicates
   if (toolName.includes('__')) {
-    // Remove duplicate server prefixes
+    // FIXED 2025-11-03: Improved duplicate prefix removal
     // applescript__applescript__execute → applescript__execute
+    // applescript__execute → applescript__execute (no change)
     if (serverName) {
       const prefix = `${serverName}__`;
-      let cleaned = toolName;
+      
+      // If already has correct format, return as-is
+      if (toolName.startsWith(prefix) && !toolName.startsWith(prefix + serverName + '__')) {
+        return toolName;
+      }
       
       // Remove all duplicate prefixes
-      while (cleaned.startsWith(prefix + serverName)) {
+      let cleaned = toolName;
+      while (cleaned.startsWith(prefix + serverName + '__')) {
         cleaned = prefix + cleaned.slice(prefix.length + serverName.length + 2);
       }
       

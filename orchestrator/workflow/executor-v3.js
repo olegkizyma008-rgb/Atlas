@@ -493,11 +493,18 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           if (criticalCount > 0 && perfCount > 0) message += ` та `;
           message += `${perfCount > 0 ? `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності` : ''}. `;
           
-          // Перевіряємо чи Nexus СПРАВДІ виконав зміни
-          const reallyExecuted = analysisResult.metadata?.realExecution && analysisResult.intervention?.success;
+          // FIXED 03.11.2025: Перевіряємо чи Nexus СПРАВДІ виконав зміни
+          // Перевіряємо не тільки success, а й чи є реально застосовані fixes
+          const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
+          const reallyExecuted = analysisResult.metadata?.realExecution && 
+                                analysisResult.intervention?.success && 
+                                hasAppliedFixes;
           
           if (reallyExecuted) {
-            message += `Я вже виконав виправлення через систему Нексус.`;
+            const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
+            message += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус.`;
+          } else if (analysisResult.intervention?.success === false) {
+            message += `Спробував виправити через Нексус, але виникли проблеми. Готовий до ручного виправлення.`;
           } else if (analysisResult.intervention) {
             message += `Створив план виправлень. Готовий виконати за твоєю командою.`;
           } else {
@@ -560,12 +567,17 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           ttsContent += `. `;
         }
         
-        // Дії що виконані або плануються
-        const reallyExecuted = analysisResult.metadata?.realExecution && analysisResult.intervention?.success;
-        const filesModified = analysisResult.intervention?.files_modified || [];
+        // FIXED 03.11.2025: Дії що виконані або плануються - використовуємо ту саму логіку що й у текстовому повідомленні
+        const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
+        const reallyExecutedTts = analysisResult.metadata?.realExecution && 
+                                  analysisResult.intervention?.success && 
+                                  hasAppliedFixes;
         
-        if (reallyExecuted && filesModified.length > 0) {
-          ttsContent += `Я вже виконав виправлення. Змінив ${filesModified.length} ${filesModified.length === 1 ? 'файл' : filesModified.length < 5 ? 'файли' : 'файлів'}. Зміни вже активні. `;
+        if (reallyExecutedTts) {
+          const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
+          ttsContent += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус. Зміни вже застосовані. `;
+        } else if (analysisResult.intervention?.success === false) {
+          ttsContent += `Спробував виправити через Нексус, але виникли проблеми. Треба ручне втручання. `;
         } else if (analysisResult.intervention) {
           ttsContent += `Створив детальний план виправлень. Готовий виконати за твоєю командою. `;
         } else if (criticalCount > 0 || perfCount > 0) {

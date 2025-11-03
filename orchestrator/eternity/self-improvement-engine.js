@@ -252,27 +252,70 @@ export class SelfImprovementEngine {
             await reportCallback(`🔍 Знайдено ${improvement.problems.length} проблем для аналізу`);
             
             // КРОК 1: Парсимо файли з problems (з file або location)
-            const problemFiles = improvement.problems.map(p => {
-                if (p.file) return p.file;
-                // Парсимо file:// з location
-                if (p.location && p.location.startsWith('file://')) {
-                    const match = p.location.match(/file:\/\/(.+?):(\d+)/);
-                    return match ? match[1] : null;
-                }
-                return null;
-            }).filter(Boolean);
-            
-            // Оновлюємо problems щоб мали file
-            improvement.problems = improvement.problems.map(p => {
-                if (!p.file && p.location && p.location.startsWith('file://')) {
-                    const match = p.location.match(/file:\/\/(.+?):(\d+)/);
-                    if (match) {
-                        p.file = match[1];
-                        p.line = parseInt(match[2]);
+            // FIXED 03.11.2025: Підтримка обох форматів - "file://path:line" та "filename.js:line"
+            // FIXED 03.11.2025: Ігноруємо .log файли - виправляємо тільки source code
+            const problemFiles = improvement.problems
+                .filter(p => {
+                    // Ігноруємо log файли
+                    if (p.location && p.location.includes('.log')) {
+                        this.logger.warn('[NEXUS] Skipping log file:', { location: p.location });
+                        return false;
                     }
-                }
-                return p;
-            });
+                    return true;
+                })
+                .map(p => {
+                    if (p.file) return p.file;
+                    
+                    if (p.location) {
+                        // Формат: file://path:line
+                        if (p.location.startsWith('file://')) {
+                            const match = p.location.match(/file:\/\/(.+?):(\d+)/);
+                            return match ? match[1] : null;
+                        }
+                        
+                        // Формат: filename.js:line (БЕЗ file://)
+                        if (p.location.includes(':')) {
+                            const match = p.location.match(/^(.+?):(\d+)$/);
+                            if (match) {
+                                // Повний шлях якщо починається з /
+                                return match[1];
+                            }
+                        }
+                    }
+                    return null;
+                })
+                .filter(Boolean);
+            
+            // Оновлюємо problems щоб мали file (ігноруємо .log файли)
+            improvement.problems = improvement.problems
+                .filter(p => {
+                    // Фільтруємо log файли
+                    if (p.location && p.location.includes('.log')) {
+                        return false;
+                    }
+                    return true;
+                })
+                .map(p => {
+                    if (!p.file && p.location) {
+                        // Формат: file://path:line
+                        if (p.location.startsWith('file://')) {
+                            const match = p.location.match(/file:\/\/(.+?):(\d+)/);
+                            if (match) {
+                                p.file = match[1];
+                                p.line = parseInt(match[2]);
+                            }
+                        }
+                        // Формат: filename.js:line (БЕЗ file://)
+                        else if (p.location.includes(':')) {
+                            const match = p.location.match(/^(.+?):(\d+)$/);
+                            if (match) {
+                                p.file = match[1];
+                                p.line = parseInt(match[2]);
+                            }
+                        }
+                    }
+                    return p;
+                });
             
             this.logger.info('[NEXUS] Problem files:', { problemFiles, updatedProblems: improvement.problems });
             
@@ -358,7 +401,15 @@ export class SelfImprovementEngine {
                     File: ${problem.file || 'unknown'}
                     Context: ${fileData?.content || 'N/A'}
                     
-                    Provide exact code changes needed to fix this issue.`
+                    CRITICAL: Provide code changes in this EXACT format:
+                    
+                    \`\`\`REPLACE
+                    [exact code to find and replace]
+                    ---
+                    [new code to replace with]
+                    \`\`\`
+                    
+                    You can provide multiple REPLACE blocks. Each block must have exact code to match.`
                 );
                 
                 await reportCallback(`  ✅ Виправлення створено для: ${problem.description}`);

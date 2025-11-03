@@ -158,13 +158,13 @@ export const MCP_MODEL_CONFIG = {
   stages: {
     mode_selection: {
       get model() {
-        return env.MCP_MODEL_MODE_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_MODE_SELECTION || 'atlas-mistral-small-2503';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_MODE_SELECTION || '0.05');
       },
       max_tokens: 150,
-      description: 'Бінарна класифікація task vs chat (Mistral 3B - швидка і точна)'
+      description: 'Mode selection task vs chat vs dev (Mistral Small - handles large prompts)'
     },
     backend_selection: {
       get model() {
@@ -364,10 +364,16 @@ export const MCP_MODEL_CONFIG = {
       description: 'Chat Memory Eligibility - швидка класифікація потреби в довготривалій пам’яті (AI21 Jamba 1.5 Mini - ultra fast)'
     },
     intent_detection: {
-      model: env.INTENT_DETECTION_MODEL || 'atlas-mistral-small-2503',
-      temperature: parseFloat(env.INTENT_DETECTION_TEMPERATURE) || 0.1,
-      max_tokens: parseInt(env.INTENT_DETECTION_MAX_TOKENS) || 150,
-      description: 'Intent Detection - семантичне розуміння складних запитів на виправлення (Mistral Small - fast & accurate)'
+      get model() {
+        return env.INTENT_DETECTION_MODEL || 'atlas-ministral-3b';
+      },
+      get temperature() {
+        return parseFloat(env.INTENT_DETECTION_TEMPERATURE || '0.1');
+      },
+      get max_tokens() {
+        return parseInt(env.INTENT_DETECTION_MAX_TOKENS || '150', 10);
+      },
+      description: 'Intent Detection - семантичне розуміння складних запитів на виправлення (Ministral 3B - fast & accurate)'
     }
   },
   getStageConfig(stageName) {

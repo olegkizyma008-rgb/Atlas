@@ -57,25 +57,26 @@ export class ToolDispatcher {
             // STEP 1: Validate tool call format
             this._validateToolCallFormat(toolCall);
 
-            // STEP 2: Check if extension exists and is ready
-            if (!this.extensionManager.isExtensionReady(toolCall.server)) {
-                throw new Error(`Server not ready: ${toolCall.server}`);
-            }
+            // STEP 2: Extract clean tool name (remove server prefix if present)
+            // toolCall.tool може бути "applescript__execute" або "execute"
+            const cleanToolName = toolCall.tool.includes('__') 
+                ? toolCall.tool.split('__').pop()  // applescript__execute → execute
+                : toolCall.tool;                    // execute → execute
 
-            // STEP 3: Execute through extension manager
-            const result = await this.extensionManager.dispatchToolCall(toolCall);
+            // STEP 3: Execute through MCP manager (FIXED 2025-11-03: use mcpManager instead of extensionManager)
+            const result = await this.mcpManager.executeTool(toolCall.server, cleanToolName, toolCall.parameters);
 
             const executionTime = Date.now() - startTime;
 
             logger.debug('tool-dispatcher', 
                 `✅ Tool executed in ${executionTime}ms: ${toolCall.server}__${toolCall.tool}`);
 
-            // STEP 4: Format result
+            // STEP 4: Format result (FIXED 2025-11-03: adapt to mcpManager response format)
             return {
                 requestId,
-                success: result.success,
-                result: result.result,
-                error: result.error || null,
+                success: true,
+                result: result,
+                error: null,
                 metadata: {
                     server: toolCall.server,
                     tool: toolCall.tool,

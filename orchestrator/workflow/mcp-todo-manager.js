@@ -2388,14 +2388,21 @@ Context: ${JSON.stringify(context, null, 2)}
       this.logger.warn(`[MCP-TODO] Extended mode has ${todo.items.length} items (large TODO list)`, { category: 'mcp-todo', component: 'mcp-todo' });
     }
 
-    // Validate dependencies
-    for (const item of todo.items) {
+    // Validate dependencies - FIXED 03.11.2025: Check by array index, not numeric ID comparison
+    // This correctly handles decimal IDs like 1.1, 1.2, ..., 1.9
+    for (let i = 0; i < todo.items.length; i++) {
+      const item = todo.items[i];
       for (const depId of item.dependencies || []) {
-        if (!todo.items.find(i => i.id === depId)) {
+        // Find dependency item index
+        const depIndex = todo.items.findIndex(dep => dep.id === depId);
+        
+        if (depIndex === -1) {
           throw new Error(`Item ${item.id} has invalid dependency ${depId}`);
         }
-        if (depId >= item.id) {
-          throw new Error(`Item ${item.id} has forward/circular dependency ${depId}`);
+        
+        // Dependency must come BEFORE current item in array (depIndex < i)
+        if (depIndex >= i) {
+          throw new Error(`Item ${item.id} (index ${i}) has forward/circular dependency ${depId} (index ${depIndex}). Dependencies must reference earlier items.`);
         }
       }
     }

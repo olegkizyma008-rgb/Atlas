@@ -12,7 +12,8 @@
 import logger from '../utils/logger.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { windsurfCodeEditor } from './windsurf-code-editor.js';
+// FIXED 2025-11-03: WindsurfCodeEditor тепер default export, отримуємо з DI
+// import WindsurfCodeEditor from './windsurf-code-editor.js'; // Not needed - we get from DI
 
 export class SelfImprovementEngine {
     constructor(container) {

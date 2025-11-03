@@ -540,13 +540,24 @@ export class VisualCaptureService {
      * @private
      */
     async _intelligentAppActivation(appName) {
+        // Fix Ukrainian to English app names
+        const appNameMap = {
+            'Калькулятор': 'Calculator',
+            'Нотатки': 'Notes', 
+            'Сафарі': 'Safari',
+            'Файндер': 'Finder'
+        };
+        
+        // Use English name if Ukrainian detected
+        const actualAppName = appNameMap[appName] || appName;
+        
         try {
             // Try to activate the app
-            await execAsync(`osascript -e 'tell application "${appName}" to activate'`);
+            await execAsync(`osascript -e 'tell application "${actualAppName}" to activate'`);
             await new Promise(resolve => setTimeout(resolve, 500));
-            return appName;
+            return actualAppName;
         } catch (error) {
-            this.logger.warn(`[VISUAL] Could not activate ${appName}: ${error.message}`, {
+            this.logger.warn(`[VISUAL] Could not activate ${actualAppName}: ${error.message}`, {
                 category: 'visual-capture'
             });
             return null;

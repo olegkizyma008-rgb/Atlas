@@ -286,18 +286,9 @@ class LocalizationService {
     replaceLanguagePlaceholder(promptText) {
         if (!promptText) return promptText;
         
-        const userLang = this.getUserLanguage();
-        const languageNames = {
-            'uk': 'Ukrainian',
-            'en': 'English',
-            'es': 'Spanish',
-            'fr': 'French',
-            'de': 'German',
-            'pl': 'Polish',
-            'ru': 'Russian'
-        };
-        
-        const languageName = languageNames[userLang] || userLang;
+        // FIXED: Always use English for system prompts
+        // User language setting only affects UI, not internal processing
+        const languageName = 'English';
         
         return promptText.replace(/\{\{USER_LANGUAGE\}\}/g, languageName);
     }

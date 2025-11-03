@@ -86,7 +86,7 @@ class MCPServer {
         const message = JSON.parse(line);
         this._handleMCPMessage(message);
       } catch (error) {
-        logger.error('mcp-server', `[MCP ${this.name}] ❌ Invalid JSON: ${line}`);
+        logger.error('mcp-server', `[MCP ${this.name}] ❌ Invalid JSON: ${line}`, { error: error.message });
       }
     }
   }
@@ -98,34 +98,35 @@ class MCPServer {
   _handleMCPMessage(message) {
     logger.debug('mcp-server', `[MCP ${this.name}] Received message:`, message);
 
-    // Initialize response (підтримка різних SDK версій)
-    // Новий формат: message.result.capabilities (SDK 1.x)
-    // Старий формат: message.capabilities (SDK 0.6.x)
-    const capabilities = message.result?.capabilities || message.capabilities;
-
-    if (capabilities) {
-      // FIXED 14.10.2025: capabilities.tools - це metadata {listChanged: true}, НЕ список tools
-      // Справжні tools приходять окремо через tools/list request
-      // Просто позначаємо що ініціалізація завершена, tools прийдуть окремо
-      this.ready = true;
-      logger.system('mcp-server', `[MCP ${this.name}] ✅ Initialized, waiting for tools list...`);
-      return;
-    }
-
-    // Error response
-    if (message.error) {
-      logger.error('mcp-server', `[MCP ${this.name}] Error: ${JSON.stringify(message.error)}`);
-    }
-
-    // Tool execution response
-    if (message.id && this.pendingRequests?.has(message.id)) {
-      const resolver = this.pendingRequests.get(message.id);
-      this.pendingRequests.delete(message.id);
-
-      if (message.error) {
-        resolver.reject(new Error(message.error.message || 'MCP tool error'));
-      } else {
+    // Handle різні типи MCP повідомлень
+    if (message.result && message.id) {
+      // Response на наш request
+      if (this.pendingRequests && this.pendingRequests.has(message.id)) {
+        const resolver = this.pendingRequests.get(message.id);
+        this.pendingRequests.delete(message.id);
         resolver.resolve(message.result);
+      }
+      
+      // FIXED: Handle initialize response
+      if (message.result.protocolVersion) {
+        this.ready = true;
+        logger.system('mcp-server', `[MCP ${this.name}] ✅ Server initialized (protocol: ${message.result.protocolVersion})`);
+      }
+    } else if (message.method === 'initialized') {
+      // Server готовий після ініціалізації
+      this.ready = true;
+      logger.system('mcp-server', `[MCP ${this.name}] Server initialized`);
+    } else if (message.method === 'tools/listChanged') {
+      // Notification про зміну tools
+      logger.debug('mcp-server', `[MCP ${this.name}] Tools list changed, requesting update...`);
+      this.requestToolsList();
+    } else if (message.error) {
+      // Error response
+      logger.error('mcp-server', `[MCP ${this.name}] Error response:`, message.error);
+      if (message.id && this.pendingRequests && this.pendingRequests.has(message.id)) {
+        const resolver = this.pendingRequests.get(message.id);
+        this.pendingRequests.delete(message.id);
+        resolver.reject(new Error(message.error.message || 'Unknown MCP error'));
       }
     }
   }
@@ -161,25 +162,42 @@ class MCPServer {
       throw error;
     }
 
-    // Чекати на initialize response (timeout 15s для Mac M1 + npx)
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+    // Store initialize request for tracking
+    const initId = this.messageId;
+    if (!this.pendingRequests) {
+      this.pendingRequests = new Map();
+    }
+    
+    // Wait for initialize response
+    const initPromise = new Promise((resolve, reject) => {
+      this.pendingRequests.set(initId, {
+        resolve: (result) => {
+          if (result.protocolVersion) {
+            this.ready = true;
+            logger.system('mcp-server', `[MCP ${this.name}] ✅ Initialized with protocol ${result.protocolVersion}`);
+          }
+          resolve(result);
+        },
+        reject
+      });
+      
+      // Timeout 20s for Mac M1 + npx
+      setTimeout(() => {
         if (!this.ready) {
-          logger.error('mcp-server', `[MCP ${this.name}] ❌ Initialization timeout after 15s`);
+          logger.warn('mcp-server', `[MCP ${this.name}] ⚠️ Initialization timeout after 20s`);
           logger.debug('mcp-server', `[MCP ${this.name}] Stdout buffer: ${this.stdoutBuffer}`);
           logger.debug('mcp-server', `[MCP ${this.name}] Stderr buffer: ${this.stderrBuffer}`);
-          reject(new Error(`${this.name} initialization timeout`));
-        }
-      }, 15000); // Збільшено з 5s до 15s
-
-      const checkReady = setInterval(() => {
-        if (this.ready) {
-          clearInterval(checkReady);
-          clearTimeout(timeout);
+          
+          // Don't reject - some servers work without explicit init confirmation
+          this.ready = true; // Force ready state
+          logger.system('mcp-server', `[MCP ${this.name}] ⚠️ Proceeding despite timeout`);
+          this.pendingRequests.delete(initId);
           resolve();
         }
-      }, 100);
+      }, 20000);
     });
+    
+    await initPromise;
 
     logger.system('mcp-server', `[MCP ${this.name}] ✅ Ready`);
 

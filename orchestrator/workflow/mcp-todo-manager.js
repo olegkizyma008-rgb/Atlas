@@ -1348,9 +1348,9 @@ Create precise MCP tool execution plan.
 
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
         
-        // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
-        // This gives the API server time to process and prevents burst requests
-        const postSuccessDelay = 2000; // 2 seconds between successful LLM calls
+        // FIXED 2025-11-03: Increased delay to prevent rate limiting on localhost:4000
+        // LLM API needs more time to recover between requests when handling multiple parallel workflows
+        const postSuccessDelay = 5000; // 5 seconds between successful LLM calls
         await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
 
       } catch (apiError) {

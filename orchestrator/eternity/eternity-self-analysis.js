@@ -416,26 +416,30 @@ export class EternityModule extends EventEmitter {
         evolution: analysisData.evolution
       };
       
-      // Створення або оновлення запису в Memory
-      await this.workflowCoordinator.executeMemoryOperation({
-        operation: 'upsert',
-        key: 'eternity_current_state',
-        value: memoryPayload
-      });
-      
-      // Збереження історії
-      await this.workflowCoordinator.executeMemoryOperation({
-        operation: 'append',
-        key: 'eternity_history',
-        value: {
-          timestamp: analysisData.timestamp,
-          summary: this._generateAnalysisSummary(analysisData)
-        }
-      });
-      
-      this.logger.info('💾 ETERNITY: Стан збережено в MCP Memory');
+      // Use MCPManager to save to memory
+      const mcpManager = this.container.resolve('mcpManager');
+      if (mcpManager && mcpManager.servers.has('memory')) {
+        // Save current state
+        await mcpManager.executeTool('memory', 'store', {
+          key: 'eternity_current_state',
+          value: JSON.stringify(memoryPayload)
+        });
+        
+        // Save to history
+        await mcpManager.executeTool('memory', 'store', {
+          key: `eternity_history_${Date.now()}`,
+          value: JSON.stringify({
+            timestamp: analysisData.timestamp,
+            summary: this._generateAnalysisSummary(analysisData)
+          })
+        });
+        
+        this.logger.info('💾 ETERNITY: Стан збережено в MCP Memory');
+      } else {
+        this.logger.warn('Memory MCP server not available');
+      }
     } catch (error) {
-      this.logger.error('Failed to save to MCP Memory:', error);
+      this.logger.error('Failed to save to MCP Memory:', error.message || error);
     }
   }
 

@@ -1202,13 +1202,26 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
     // Execute TODO items one by one
     // FIXED 2025-10-23: Changed to while loop to support restart after replanning
+    // FIXED 2025-11-03: Add sequential delay between items to prevent rate limiting
     let i = 0;
+    let lastItemCompletionTime = 0;
+    const MIN_DELAY_BETWEEN_ITEMS = 3000; // 3 seconds minimum between items
+    
     while (i < todo.items.length) {
       const item = todo.items[i];
+      
+      // Add delay between items to prevent rate limiting
+      const timeSinceLastItem = Date.now() - lastItemCompletionTime;
+      if (lastItemCompletionTime > 0 && timeSinceLastItem < MIN_DELAY_BETWEEN_ITEMS) {
+        const delayNeeded = MIN_DELAY_BETWEEN_ITEMS - timeSinceLastItem;
+        logger.system('executor', `[RATE-LIMIT] Waiting ${delayNeeded}ms before processing item ${item.id}`);
+        await new Promise(resolve => setTimeout(resolve, delayNeeded));
+      }
       
       // Skip items that were already processed (completed, failed, replanned, skipped)
       if (item.status === 'completed' || item.status === 'failed' || item.status === 'skipped') {
         logger.system('executor', `[SKIP] Item ${item.id} already processed (status: ${item.status})`);
+        lastItemCompletionTime = Date.now(); // Update time even for skipped items
         i++;
         continue;
       }
@@ -1216,6 +1229,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       // FIXED 2025-10-23: Skip items marked as 'replanned' - new items will replace them
       if (item.status === 'replanned') {
         logger.system('executor', `[SKIP] Item ${item.id} was replanned, new items will be processed`);
+        lastItemCompletionTime = Date.now(); // Update time even for replanned items
         i++;
         continue;
       }
@@ -1934,14 +1948,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
       // Max attempts reached without success - item should already be marked as skipped/replanned/completed
       if (item.status !== 'completed' && item.status !== 'skipped' && item.status !== 'replanned') {
-        logger.warn(`Item ${item.id} failed after ${maxAttempts} attempts`, {
-          sessionId: session.id
-        });
-
         item.status = 'failed';
-        item.error = item.error || 'Max attempts reached';
-
-        // Send failure update to frontend
+        item.error = 'Max attempts reached';
         if (res.writable && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({
             type: 'mcp_item_failed',
@@ -1953,6 +1961,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           })}\n\n`);
         }
       }
+      
+      // Update completion time for rate limiting
+      lastItemCompletionTime = Date.now();
       
       // FIXED 2025-10-23: Move to next item in main loop
       i++;

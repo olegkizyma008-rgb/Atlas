@@ -7,7 +7,7 @@
  * @date 2025-10-29
  */
 
-class RouterClassifierProcessor {
+export default class RouterClassifierProcessor {
   constructor(logger, llmClient) {
     this.logger = logger;
     this.llmClient = llmClient;
@@ -309,5 +309,3 @@ Which servers are needed? (comma-separated list, max 2)`;
     return limited;
   }
 }
-
-export default RouterClassifierProcessor;

@@ -104,7 +104,15 @@ export function registerCoreServices(container) {
             return {
                 call: async () => ({ content: '' }),
                 generate: async () => '',
-                generateResponse: async () => ({ content: '' })
+                generateResponse: async () => ({ content: '' }),
+                // FIXED 2025-11-03: Add chat method for AtlasContextEnrichmentProcessor
+                chat: async () => ({
+                    choices: [{
+                        message: {
+                            content: '{}'
+                        }
+                    }]
+                })
             };
         }
 

@@ -649,17 +649,27 @@ export class TetyanaExecuteToolsProcessor {
      */
     async _executeOneTool(toolCall) {
         try {
-            // Use MCPManager to execute the tool
-            const result = await this.mcpManager.executeTool(
-                toolCall.server,
-                toolCall.tool,
-                toolCall.parameters
+            // FIXED 2025-11-03: Use TetyanaToolSystem instead of direct mcpManager call
+            // This provides proper inspection, validation, and error handling
+            const result = await this.tetyanaToolSystem.executeToolCalls(
+                [toolCall],
+                {
+                    skipInspection: false,
+                    mode: 'task'
+                }
             );
 
+            // Extract first result from the array
+            const firstResult = result.results && result.results[0];
+            if (!firstResult) {
+                throw new Error('No result returned from tool execution');
+            }
+
             return {
-                success: true,
+                success: firstResult.success,
                 tool: `${toolCall.server}__${toolCall.tool}`,
-                data: result,
+                data: firstResult.success ? firstResult.result : null,
+                error: firstResult.success ? null : firstResult.error,
                 timestamp: new Date().toISOString()
             };
 

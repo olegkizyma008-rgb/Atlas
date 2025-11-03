@@ -56,6 +56,12 @@ export class RepetitionInspector {
             const paramsKey = this._generateParamsKey(toolCall.parameters);
             const fullKey = `${toolKey}:${paramsKey}`;
 
+            // FIXED 2025-11-03: Skip repetition check for GUI automation tools
+            // AppleScript keystroke commands are legitimately repetitive (typing digits, etc.)
+            if (this._isGUIAutomationTool(toolCall)) {
+                continue; // Allow all GUI automation without repetition checks
+            }
+
             // Check consecutive repetitions
             const consecutiveResult = this._checkConsecutiveRepetition(fullKey, toolKey, toolCall);
             if (consecutiveResult) {
@@ -237,6 +243,29 @@ export class RepetitionInspector {
         const toolKey = `${server}__${tool}`;
         const count = this.callCounts.get(toolKey) || 0;
         return count > this.maxTotalCalls;
+    }
+
+    /**
+     * Check if tool is GUI automation (should skip repetition checks)
+     * 
+     * @param {Object} toolCall - Tool call object
+     * @returns {boolean} True if GUI automation tool
+     * @private
+     */
+    _isGUIAutomationTool(toolCall) {
+        // AppleScript tools - always GUI automation
+        if (toolCall.server === 'applescript') {
+            return true;
+        }
+        
+        // Playwright tools with GUI-related actions
+        if (toolCall.server === 'playwright') {
+            const guiActions = ['click', 'type', 'fill', 'press', 'hover', 'focus'];
+            const toolName = toolCall.tool.toLowerCase();
+            return guiActions.some(action => toolName.includes(action));
+        }
+        
+        return false;
     }
 
     /**

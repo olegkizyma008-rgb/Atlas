@@ -71,10 +71,12 @@ You receive the full conversational context via the messages array. Always evalu
 Remember: your creator Oleg Mykolayovych expects a precise decision.
 
 CRITICAL PATTERNS FOR TASK MODE:
-✅ Ukrainian action verbs: "Відкрий", "Запусти", "Створи", "Збережи", "Знайди файл", "Зроби", "Виконай"
-✅ English action verbs: "Open", "Launch", "Create", "Save", "Run", "Install", "Execute", "Find file"
+✅ Ukrainian action verbs: "Відкрий", "Запусти", "Створи", "Збережи", "Знайди файл", "Зроби", "Виконай", "Перемнож", "Помнож"
+✅ English action verbs: "Open", "Launch", "Create", "Save", "Run", "Install", "Execute", "Find file", "Multiply"
 ✅ File/app operations: "калькулятор", "YouTube", "браузер", "файл", "calculator", "browser", "file"
+✅ Math operations with apps: "перемнож на калькуляторі", "помнож на калькуляторі", "multiply on calculator"
 ✅ Automation requests: "automated task", "автоматизуй", "налаштуй"
+⚠️ ULTRA PRIORITY: "калькулятор" + action verb = ALWAYS TASK mode with confidence 0.95+!
 ⚠️ NOT TASK: Questions about Atlas itself ("Чи ти маєш", "Do you have", "твоя пам'ять") - these are CHAT
 
 CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS WITH BACKGROUND + CHAT REPORTING):
@@ -202,19 +204,21 @@ EXAMPLES:
 
 ⚠️ CRITICAL RULES:
 1. mode MUST be EXACTLY "chat", "task", or "dev" - NOTHING ELSE!
-2. ALL greetings and personal questions are "chat" mode
-3. ALL questions about Atlas memory/abilities/knowledge are "chat" mode
-4. Questions like "пам'ятаєш розмови" or "remember conversations" are ALWAYS "chat"
-5. Self-analysis ("проаналізуй СЕБЕ") and code introspection are "dev" mode
-6. General analysis ("проведи аналіз" without "себе") is "chat" mode
-7. ⚠️ ULTRA PRIORITY: If user says "в режимі таск", "в режимі task", "зроби в таск", "через таск режим" → IMMEDIATELY return "task" mode with confidence 0.99!
-8. ⚠️ ULTRA PRIORITY: If user says "виправ себе" + "залишайся в чаті" → IMMEDIATELY return "chat" mode with confidence 0.99!
-9. ⚠️ ABSOLUTE PRIORITY: If user says "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "находься в чаті", "не переходь в дев" → IMMEDIATELY return "chat" mode with confidence 0.99!
-10. ⚠️ Mode constraints in message ("в режимі чат", "через чат", "без дев") → FORCE "chat" mode with 0.99 confidence!
-11. "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"
-12. Chat constraint + self-fix/analysis = ALWAYS CHAT mode (self-fix happens in chat)
-13. User's explicit mode preference has ABSOLUTE PRIORITY over content analysis
-14. Return ONLY the JSON object. NO markdown, NO code blocks, NO extra text.`;
+2. ⚠️ HIGHEST PRIORITY: "калькулятор" or "calculator" with ANY action = TASK mode (0.95+ confidence)!
+3. ⚠️ HIGHEST PRIORITY: Math operations (multiply, add, subtract) with app names = TASK mode!
+4. ALL greetings and personal questions are "chat" mode
+5. ALL questions about Atlas memory/abilities/knowledge are "chat" mode
+6. Questions like "пам'ятаєш розмови" or "remember conversations" are ALWAYS "chat"
+7. Self-analysis ("проаналізуй СЕБЕ") and code introspection are "dev" mode
+8. General analysis ("проведи аналіз" without "себе") is "chat" mode
+9. ⚠️ ULTRA PRIORITY: If user says "в режимі таск", "в режимі task", "зроби в таск", "через таск режим" → IMMEDIATELY return "task" mode with confidence 0.99!
+10. ⚠️ ULTRA PRIORITY: If user says "виправ себе" + "залишайся в чаті" → IMMEDIATELY return "chat" mode with confidence 0.99!
+11. ⚠️ ABSOLUTE PRIORITY: If user says "залишись в чаті", "залишайся в чаті", "будь в режимі чат", "находься в чаті", "не переходь в дев" → IMMEDIATELY return "chat" mode with confidence 0.99!
+12. ⚠️ Mode constraints in message ("в режимі чат", "через чат", "без дев") → FORCE "chat" mode with 0.99 confidence!
+13. "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"
+14. Chat constraint + self-fix/analysis = ALWAYS CHAT mode (self-fix happens in chat)
+15. User's explicit mode preference has ABSOLUTE PRIORITY over content analysis
+16. Return ONLY the JSON object. NO markdown, NO code blocks, NO extra text.`;
 
 export const USER_PROMPT = `Analyze this user message and decide the mode:
 

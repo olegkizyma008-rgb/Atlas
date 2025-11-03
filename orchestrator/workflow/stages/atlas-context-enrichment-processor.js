@@ -161,7 +161,12 @@ export class AtlasContextEnrichmentProcessor {
 
         this.logger.system('context-enrichment', `[STAGE-0.5-MCP] Calling LLM: ${model} (temp: ${temperature})`);
 
-        const response = await this.llmClient.chat({
+        // FIXED 2025-11-03: Use correct LLM client API
+        // llmClient.chat() doesn't exist - use axios directly
+        const axios = (await import('axios')).default;
+        const apiUrl = GlobalConfig.AI_MODEL_CONFIG.apiEndpoint.primary;
+        
+        const response = await axios.post(apiUrl, {
             model,
             messages: [
                 { role: 'system', content: prompt.systemPrompt },
@@ -170,13 +175,15 @@ export class AtlasContextEnrichmentProcessor {
             temperature,
             max_tokens: maxTokens,
             response_format: { type: 'json_object' }
+        }, {
+            timeout: 60000
         });
 
-        if (!response?.choices?.[0]?.message?.content) {
+        if (!response?.data?.choices?.[0]?.message?.content) {
             throw new Error('Invalid LLM response structure');
         }
 
-        const content = response.choices[0].message.content.trim();
+        const content = response.data.choices[0].message.content.trim();
         
         try {
             return JSON.parse(content);

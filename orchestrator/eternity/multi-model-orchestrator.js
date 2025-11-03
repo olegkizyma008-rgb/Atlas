@@ -248,8 +248,15 @@ export class MultiModelOrchestrator {
 
     /**
      * Виклик LLM API
+     * FIXED 2025-11-03: Windsurf моделі використовують Windsurf Cascade API
      */
     async _callLLMAPI(modelConfig, prompt, options = {}) {
+        // CRITICAL: Windsurf моделі мають використовувати Cascade API
+        if (modelConfig.isWindsurf) {
+            return await this._callWindsurfCascadeAPI(modelConfig, prompt, options);
+        }
+        
+        // Локальні моделі (Codestral) використовують localhost:4000
         const requestBody = {
             model: modelConfig.name,
             messages: [
@@ -277,6 +284,71 @@ export class MultiModelOrchestrator {
             content: response.data.choices[0].message.content,
             usage: response.data.usage
         };
+    }
+
+    /**
+     * Виклик Windsurf Cascade API для GPT-5 Codex та Claude моделей
+     * FIXED 2025-11-03: Використовуємо Windsurf API замість localhost:4000
+     */
+    async _callWindsurfCascadeAPI(modelConfig, prompt, options = {}) {
+        this.logger.info(`[NEXUS] 🌐 Calling Windsurf Cascade API with ${modelConfig.name}`);
+        
+        const windsurfApiKey = process.env.WINDSURF_API_KEY;
+        const windsurfEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
+        
+        if (!windsurfApiKey) {
+            this.logger.warn('[NEXUS] ⚠️ WINDSURF_API_KEY not set, falling back to localhost:4000');
+            // Fallback на localhost якщо немає API key
+            modelConfig.endpoint = 'http://localhost:4000/v1/chat/completions';
+            modelConfig.isWindsurf = false;
+            return await this._callLLMAPI(modelConfig, prompt, options);
+        }
+        
+        const requestBody = {
+            model: modelConfig.name,
+            messages: [
+                {
+                    role: 'system',
+                    content: options.systemPrompt || 'You are a helpful AI assistant specialized in code analysis and system optimization.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: options.temperature || modelConfig.temperature,
+            max_tokens: options.max_tokens || modelConfig.max_tokens
+        };
+
+        try {
+            const response = await axios.post(
+                `${windsurfEndpoint}/chat/completions`,
+                requestBody,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${windsurfApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 120000 // 2 minutes
+                }
+            );
+
+            this.logger.info(`[NEXUS] ✅ Windsurf Cascade API response received`);
+            
+            return {
+                content: response.data.choices[0].message.content,
+                usage: response.data.usage,
+                via: 'windsurf-cascade'
+            };
+        } catch (error) {
+            this.logger.error(`[NEXUS] ❌ Windsurf API error: ${error.message}`);
+            this.logger.warn('[NEXUS] Falling back to localhost:4000');
+            
+            // Fallback на localhost при помилці
+            modelConfig.endpoint = 'http://localhost:4000/v1/chat/completions';
+            modelConfig.isWindsurf = false;
+            return await this._callLLMAPI(modelConfig, prompt, options);
+        }
     }
 
     /**

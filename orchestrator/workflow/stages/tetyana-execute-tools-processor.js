@@ -139,7 +139,9 @@ export class TetyanaExecuteToolsProcessor {
                     
                     if (call) {
                         const status = result.success ? '✅' : '❌';
-                        this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   ${status} ${call.server}__${call.tool}`);
+                        // FIXED 2025-11-03: Don't add prefix if tool already has it
+                        const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+                        this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   ${status} ${toolName}`);
                         
                         if (!result.success && result.error) {
                             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]      Error: ${result.error}`);

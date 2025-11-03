@@ -255,7 +255,9 @@ export class TetyanaPlanToolsProcessor {
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] ✅ Planned ${plan.tool_calls.length} tool call(s):`);
 
             for (const call of plan.tool_calls) {
-                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP]    ${call.server}__${call.tool}`);
+                // FIXED 2025-11-03: Don't add prefix if tool already has it
+                const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+                this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP]    ${toolName}`);
                 this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP]      Parameters: ${JSON.stringify(call.parameters)}`);
 
                 if (call.reasoning) {
@@ -380,17 +382,23 @@ export class TetyanaPlanToolsProcessor {
             );
 
             if (!toolExists) {
-                issues.push(`Tool ${call.server}__${call.tool} not found in available tools`);
+                // FIXED 2025-11-03: Don't add prefix if tool already has it
+                const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+                issues.push(`Tool ${toolName} not found in available tools`);
             }
 
             // Check parameters
             if (!call.parameters || typeof call.parameters !== 'object') {
-                issues.push(`Tool ${call.server}__${call.tool} has invalid parameters`);
+                // FIXED 2025-11-03: Don't add prefix if tool already has it
+                const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+                issues.push(`Tool ${toolName} has invalid parameters`);
             }
 
             // Warn about missing reasoning
             if (!call.reasoning) {
-                warnings.push(`Tool ${call.server}__${call.tool} has no reasoning`);
+                // FIXED 2025-11-03: Don't add prefix if tool already has it
+                const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+                warnings.push(`Tool ${toolName} has no reasoning`);
             }
         }
 
@@ -418,7 +426,9 @@ export class TetyanaPlanToolsProcessor {
         // List tools
         for (let i = 0; i < plan.tool_calls.length; i++) {
             const call = plan.tool_calls[i];
-            lines.push(`  ${i + 1}. ${call.server}__${call.tool}`);
+            // FIXED 2025-11-03: Don't add prefix if tool already has it
+            const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
+            lines.push(`  ${i + 1}. ${toolName}`);
 
             // Show key parameters
             const keyParams = this._extractKeyParameters(call.parameters);

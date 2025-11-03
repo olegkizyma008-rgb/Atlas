@@ -164,10 +164,46 @@ export class CascadeController {
                     };
                 } catch (error) {
                     this.logger.error('[CASCADE] ❌ Windsurf Cascade API error:', error.message);
-                    return {
-                        success: false,
-                        error: error.message
-                    };
+                    
+                    // FALLBACK: Codestral через localhost:4000 для надійності
+                    this.logger.info('[CASCADE] 🔄 Fallback на Codestral (localhost:4000)');
+                    
+                    try {
+                        const fallbackResponse = await axios.post(
+                            'http://localhost:4000/v1/chat/completions',
+                            {
+                                model: 'ext-mistral-codestral-2405',
+                                messages: [{
+                                    role: 'system',
+                                    content: `You are Cascade, senior controller of the Eternity module. Analyze code for improvements, bugs, and evolution opportunities.`
+                                }, {
+                                    role: 'user',
+                                    content: `Context: ${context}\n\nCode:\n${code}\n\nProvide deep analysis with specific recommendations.`
+                                }],
+                                temperature: context.temperature || 0.2,
+                                max_tokens: context.max_tokens || 4000
+                            },
+                            {
+                                headers: { 'Content-Type': 'application/json' },
+                                timeout: 60000
+                            }
+                        );
+                        
+                        this.logger.info('[CASCADE] ✅ Fallback Codestral успішно');
+                        
+                        return {
+                            success: true,
+                            analysis: fallbackResponse.data.choices[0].message.content,
+                            model: 'ext-mistral-codestral-2405',
+                            via: 'codestral-fallback'
+                        };
+                    } catch (fallbackError) {
+                        this.logger.error('[CASCADE] ❌ Fallback також не вдався:', fallbackError.message);
+                        return {
+                            success: false,
+                            error: `Windsurf API: ${error.message}, Fallback: ${fallbackError.message}`
+                        };
+                    }
                 }
             }
         };

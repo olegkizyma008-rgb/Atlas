@@ -711,12 +711,21 @@ export function registerMCPProcessors(container) {
     });
 
     // Cascade Controller (NEW 02.11.2025)
+    // FIXED 2025-11-03: Додано onInit для виклику initialize()
     container.singleton('cascadeController', async (c) => {
         const { CascadeController } = await import('../eternity/cascade-controller.js');
-        return new CascadeController(c);
+        const instance = new CascadeController(c);
+        return instance;
     }, {
         dependencies: ['logger'],
-        metadata: { category: 'nexus', priority: 93 }
+        metadata: { category: 'nexus', priority: 93 },
+        lifecycle: {
+            onInit: async function() {
+                this.logger.info('[DI] 🚀 Initializing CASCADE Controller...');
+                await this.initialize();
+                this.logger.info('[DI] ✅ CASCADE Controller initialized');
+            }
+        }
     });
 
     // Self-Improvement Engine (NEW 02.11.2025)

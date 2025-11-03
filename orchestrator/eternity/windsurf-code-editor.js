@@ -411,7 +411,8 @@ export class WindsurfCodeEditor {
 }
 
 /**
- * Singleton instance
+ * Export class for DI container instantiation
+ * IMPORTANT: Do NOT create singleton here - it executes before dotenv.config()
+ * Instance is created in service-registry.js AFTER .env is loaded
  */
-export const windsurfCodeEditor = new WindsurfCodeEditor();
-export default windsurfCodeEditor;
+export default WindsurfCodeEditor;

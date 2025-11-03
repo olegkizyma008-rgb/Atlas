@@ -32,7 +32,7 @@ import {
 } from '../workflow/stages/index.js';
 import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor.js';
 import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
-import { windsurfCodeEditor } from '../eternity/windsurf-code-editor.js';
+import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -452,11 +452,14 @@ export function registerMCPProcessors(container) {
     });
 
     // Windsurf Code Editor - NEW 03.11.2025 - Реальні зміни коду
-    container.singleton('windsurfCodeEditor', () => windsurfCodeEditor, {
+    // FIXED 2025-11-03: Створюємо інстанс ТУТ, ПІСЛЯ dotenv.config()
+    container.singleton('windsurfCodeEditor', () => {
+        return new WindsurfCodeEditor();
+    }, {
         metadata: { category: 'eternity', priority: 75 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API');
+                this.logger.info('[DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API');
             }
         }
     });

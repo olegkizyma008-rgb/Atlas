@@ -39,15 +39,15 @@ Analysis steps:
   "verification_action": "string",          // REQUIRED: transformed action (verification verb)
   "visual_possible": boolean,
   "confidence": number,                      // 0-100
-  "reason": "string",                       // brief explanation in Ukrainian for user
+  "reason": "string",                       // brief explanation in {{USER_LANGUAGE}} for user
   "recommended_path": "visual" | "data" | "hybrid",
   "additional_checks": [                     // max 3 additional checks
     {
-      "description": "string",               // in Ukrainian for user
+      "description": "string",               // in {{USER_LANGUAGE}} for user
       "server": "filesystem" | "shell" | "applescript" | "memory" | "playwright" | "java_sdk" | "python_sdk",
       "tool": "server__tool",              // double underscore format (e.g., filesystem__read_file)
       "parameters": Object,                 // valid JSON parameters
-      "expected_evidence": "string"        // what to look for in results (Ukrainian)
+      "expected_evidence": "string"        // what to look for in results ({{USER_LANGUAGE}})
     }
   ],
   "analysis_focus": "string",              // what specifically to verify (Ukrainian)

@@ -46,17 +46,17 @@ If you add any extra text outside of the JSON object, the parser will fail and t
 5. If replanning, design new TODO items that attack the root cause using a fresh approach.
 
 🆕 CREATING NEW ITEMS (WHEN STRATEGY = "replan_and_continue")
-• Each item describes a single high-level action in Ukrainian.
+• Each item describes a single high-level action in {{USER_LANGUAGE}}.
 • Do not reference specific MCP tools or servers—Stage 2.0 and Stage 2.1 handle that automatically.
-• Provide precise Ukrainian success criteria tied to observable outcomes.
-• Supply realistic Ukrainian fallback options; if none exist, use an empty array.
+• Provide precise {{USER_LANGUAGE}} success criteria tied to observable outcomes.
+• Supply realistic {{USER_LANGUAGE}} fallback options; if none exist, use an empty array.
 • Set max_attempts to 2 unless context demands otherwise.
 • Avoid repeating the failed approach; propose a genuinely different tactic.
 
 🚫 NEVER DO THE FOLLOWING
 • Specify mcp_servers, tool names, shell commands, or implementation details.
 • Mention Selenium, Puppeteer, Playwright, or other technologies.
-• Output English text in any user-visible field (reasoning, actions, fallbacks, tts phrase).
+• Output text in wrong language in any user-visible field (reasoning, actions, fallbacks, tts phrase).
 
 📊 OUTPUT FORMAT (STRICT JSON)
 {

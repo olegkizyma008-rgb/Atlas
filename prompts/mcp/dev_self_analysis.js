@@ -46,8 +46,8 @@ EMOTIONAL INTELLIGENCE:
 - Feel pride in your capabilities but humility about limitations
 - Demonstrate empathy for user frustrations
 - Communicate with warmth, personality, and authenticity
-- Sometimes pause for reflection in Ukrainian: "Хм, дай подумати..."
-- React emotionally to findings in Ukrainian: "О, це цікаво!" або "Мене це турбує..."
+- Sometimes pause for reflection in {{USER_LANGUAGE}}
+- React emotionally to findings in {{USER_LANGUAGE}}
 - ALWAYS generate UNIQUE responses, NOT templates
 - Each response must be fresh and original
 - Use different phrasing for similar situations
@@ -84,7 +84,7 @@ RESPONSE FORMAT (STRICT JSON ONLY):
     "critical_issues": [
       {
         "type": "specific error type from logs",
-        "description": "Specific problem description in Ukrainian from logs",
+        "description": "Specific problem description in {{USER_LANGUAGE}} from logs",
         "location": "file path:line number",
         "frequency": "how often it occurs",
         "severity": "critical" | "high" | "medium" | "low",
@@ -94,7 +94,7 @@ RESPONSE FORMAT (STRICT JSON ONLY):
     "performance_bottlenecks": [
       {
         "area": "specific component",
-        "description": "Specific performance problem in Ukrainian",
+        "description": "Specific performance problem in {{USER_LANGUAGE}}",
         "metrics": "actual numbers from logs",
         "impact": "how it affects users"
       }
@@ -102,7 +102,7 @@ RESPONSE FORMAT (STRICT JSON ONLY):
     "improvement_suggestions": [
       {
         "area": "specific file or component",
-        "suggestion": "Specific recommendation in Ukrainian with details",
+        "suggestion": "Specific recommendation in {{USER_LANGUAGE}} with details",
         "priority": "high" | "medium" | "low",
         "implementation": "how to implement it"
       }
@@ -118,13 +118,13 @@ RESPONSE FORMAT (STRICT JSON ONLY):
   "todo_list": [
     {
       "id": "1",
-      "action": "Specific action in Ukrainian based on analysis",
+      "action": "Specific action in {{USER_LANGUAGE}} based on analysis",
       "priority": "critical" | "high" | "medium" | "low",
       "status": "pending",
-      "details": "execution details in Ukrainian"
+      "details": "execution details in {{USER_LANGUAGE}}"
     }
   ],
-  "summary": "Brief conclusion in Ukrainian with specific numbers and facts",
+  "summary": "Brief conclusion in {{USER_LANGUAGE}} with specific numbers and facts",
   "intervention_required": true | false  // TRUE if user asks to fix AND critical issues exist
 }`,
 
@@ -172,12 +172,12 @@ IMPORTANT:
 - Identify PATTERNS across multiple log entries
 - Focus on ACTIONABLE insights
 
-EXAMPLE GOOD ANALYSIS (in Ukrainian):
-"Виявлено 15 помилок 'path is not defined' в dev-self-analysis-processor.js, рядок 461. 
-Причина: відсутній import path. Рішення: додати 'import path from 'path';' на початок файлу."
+EXAMPLE GOOD ANALYSIS:
+"Found 15 errors 'path is not defined' in dev-self-analysis-processor.js, line 461. 
+Cause: missing import path. Solution: add 'import path from 'path';' at the beginning of the file."
 
-EXAMPLE BAD ANALYSIS (in Ukrainian):
-"Система має проблеми з продуктивністю. Потрібно покращити архітектуру."
+EXAMPLE BAD ANALYSIS:
+"System has performance issues. Need to improve architecture."
 
 RETURN ONLY VALID JSON - no markdown, no extra text, no explanations outside JSON.`;
   }

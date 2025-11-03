@@ -1,6 +1,6 @@
 /**
  * @fileoverview Chat Memory Eligibility Prompt
- * Визначає чи потрібна довготривала пам'ять для відповіді в Chat режимі
+ * Determines if long-term memory is needed for response in Chat mode
  * 
  * @version 1.0.0
  * @date 2025-10-26
@@ -34,14 +34,14 @@ RESPOND ONLY WITH JSON (no markdown, no explanations):
 ## WHEN TO SKIP MEMORY (needs_memory: false)
 
 ❌ **SIMPLE INTERACTIONS:**
-- Greetings: "Привіт", "Hi", "Hello"
-- Gratitude: "Дякую", "Thanks"
-- Simple affirmations: "Так", "Yes", "Ні", "No", "Ok"
+- Greetings: "Hi", "Hello", "Hey", "Good morning"
+- Gratitude: "Thanks", "Thank you", "Appreciate it"
+- Simple affirmations: "Yes", "No", "Ok", "Sure"
 
 ❌ **GENERAL KNOWLEDGE:**
-- "Що таке X?" / "What is X?"
-- "Як працює Y?" / "How does Y work?"
-- "Хто такий Z?" / "Who is Z?"
+- "What is X?"
+- "How does Y work?"
+- "Who is Z?"
 - Technical questions not requiring personal context
 
 ❌ **NEW TOPICS:**

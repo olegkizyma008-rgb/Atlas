@@ -109,9 +109,9 @@ export class IntentDetector {
             { pattern: /\b(виправ|fix|repair|полагодь)\b/i, confidence: 0.95 },
             { pattern: /\b(виправ себе|fix yourself|repair yourself)\b/i, confidence: 0.99 },
             
-            // FIXED 2025-11-03: Додано "приступай до виправлення"
-            { pattern: /\b(приступ|proceed|розпочин|start|почн)\b.*(виправ|fix|ліку|heal)/i, confidence: 0.97 },
-            { pattern: /\b(приступай|починай)\b/i, confidence: 0.92 },
+            // FIXED 2025-11-03: Додано "приступай до виправлення" (без \b після групи)
+            { pattern: /(приступ|proceed|розпочин|start|почн).*(виправ|fix|ліку|heal)/i, confidence: 0.97 },
+            { pattern: /(приступай|починай)/i, confidence: 0.92 },
             
             // Зміни коду
             { pattern: /\b(зміни|change|модифік|modify|оновити|update)\b.*\b(код|code|себе|yourself)\b/i, confidence: 0.90 },

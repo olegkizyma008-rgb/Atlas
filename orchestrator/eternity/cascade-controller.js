@@ -116,6 +116,10 @@ export class CascadeController {
         const windsurfApiKey = process.env.WINDSURF_API_KEY;
         const windsurfEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
         
+        // DEBUG 2025-11-03: Діагностика ініціалізації
+        this.logger.info(`[CASCADE-DEBUG] Windsurf API Key present: ${!!windsurfApiKey}`);
+        this.logger.info(`[CASCADE-DEBUG] Windsurf Endpoint: ${windsurfEndpoint}`);
+        
         if (!windsurfApiKey) {
             this.logger.warn('[CASCADE] ⚠️ WINDSURF_API_KEY not found, Windsurf models will not be available');
             this.codestralAPI = null;
@@ -129,10 +133,13 @@ export class CascadeController {
                     // Вибираємо модель залежно від типу задачі
                     const model = context.model || process.env.CASCADE_CODE_ANALYSIS_MODEL || 'gpt-5-codex';
                     
+                    const targetUrl = `${windsurfEndpoint}/chat/completions`;
                     this.logger.info(`[CASCADE] 🌐 Calling Windsurf Cascade: ${model}`);
+                    this.logger.info(`[CASCADE-DEBUG] 🎯 Target URL: ${targetUrl}`);
+                    this.logger.info(`[CASCADE-DEBUG] 🔑 Using API Key: ${windsurfApiKey ? 'YES (length: ' + windsurfApiKey.length + ')' : 'NO'}`);
                     
                     const response = await axios.post(
-                        `${windsurfEndpoint}/chat/completions`,
+                        targetUrl,
                         {
                             model: model,
                             messages: [{
@@ -164,6 +171,10 @@ export class CascadeController {
                     };
                 } catch (error) {
                     this.logger.error('[CASCADE] ❌ Windsurf Cascade API error:', error.message);
+                    this.logger.error(`[CASCADE-DEBUG] 🔴 Error details: ${error.stack}`);
+                    this.logger.error(`[CASCADE-DEBUG] 🔴 Error code: ${error.code}`);
+                    this.logger.error(`[CASCADE-DEBUG] 🔴 Response status: ${error.response?.status}`);
+                    this.logger.error(`[CASCADE-DEBUG] 🔴 Response data: ${JSON.stringify(error.response?.data)}`);
                     
                     // FALLBACK: Codestral через localhost:4000 для надійності
                     this.logger.info('[CASCADE] 🔄 Fallback на Codestral (localhost:4000)');
@@ -350,8 +361,12 @@ Cascade працює в симбіозі з Atlas, доповнюючи один
      * FIXED 2025-11-03: Використовуємо GPT-5 Codex, Claude Thinking через Windsurf
      */
     async analyzeCodeWithCodestral(code, context) {
+        // DEBUG 2025-11-03: Перевірка стану codestralAPI
+        this.logger.info(`[CASCADE-DEBUG] 🔍 codestralAPI status: ${this.codestralAPI ? 'INITIALIZED' : 'NULL'}`);
+        
         if (!this.codestralAPI) {
-            this.logger.warn('[CASCADE] ⚠️ Windsurf Cascade not available, check WINDSURF_API_KEY');
+            this.logger.error('[CASCADE] 🔴 CRITICAL: Windsurf Cascade not available, check WINDSURF_API_KEY');
+            this.logger.error('[CASCADE-DEBUG] 🔴 This means _initializeCodestral() failed or was not called');
             return {
                 success: false,
                 error: 'Windsurf Cascade API not initialized'

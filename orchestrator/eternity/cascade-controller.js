@@ -109,39 +109,28 @@ export class CascadeController {
     }
 
     /**
-     * Ініціалізація Windsurf Cascade API (РЕАЛЬНІ Windsurf моделі через IDE)
-     * FIXED 2025-11-03: Використовуємо Windsurf Cascade замість Codestral
+     * Ініціалізація Codestral API для аналізу коду
+     * FIXED 2025-11-03: Використовуємо ТІЛЬКИ Codestral (localhost:4000)
+     * Windsurf API не існує - api.windsurf.ai is NXDOMAIN
      */
     async _initializeCodestral() {
-        const windsurfApiKey = process.env.WINDSURF_API_KEY;
-        const windsurfEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
+        const model = process.env.CASCADE_CODE_ANALYSIS_MODEL || 'ext-mistral-codestral-2405';
         
-        // DEBUG 2025-11-03: Діагностика ініціалізації
-        this.logger.info(`[CASCADE-DEBUG] Windsurf API Key present: ${!!windsurfApiKey}`);
-        this.logger.info(`[CASCADE-DEBUG] Windsurf Endpoint: ${windsurfEndpoint}`);
+        this.logger.info(`[CASCADE-DEBUG] 🔍 Initializing Codestral: ${model}`);
+        this.logger.info(`[CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1`);
         
-        if (!windsurfApiKey) {
-            this.logger.warn('[CASCADE] ⚠️ WINDSURF_API_KEY not found, Windsurf models will not be available');
-            this.codestralAPI = null;
-            return;
-        }
-
-        // CRITICAL: Це РЕАЛЬНИЙ Windsurf Cascade API для виклику моделей IDE
+        // CRITICAL: Використовуємо Codestral (Mistral Large) на localhost:4000
         this.codestralAPI = {
             analyze: async (code, context) => {
                 try {
-                    // Вибираємо модель залежно від типу задачі
-                    const model = context.model || process.env.CASCADE_CODE_ANALYSIS_MODEL || 'gpt-5-codex';
+                    const targetModel = context.model || model;
                     
-                    const targetUrl = `${windsurfEndpoint}/chat/completions`;
-                    this.logger.info(`[CASCADE] 🌐 Calling Windsurf Cascade: ${model}`);
-                    this.logger.info(`[CASCADE-DEBUG] 🎯 Target URL: ${targetUrl}`);
-                    this.logger.info(`[CASCADE-DEBUG] 🔑 Using API Key: ${windsurfApiKey ? 'YES (length: ' + windsurfApiKey.length + ')' : 'NO'}`);
+                    this.logger.info(`[CASCADE] 🌐 Calling Codestral: ${targetModel}`);
                     
                     const response = await axios.post(
-                        targetUrl,
+                        'http://localhost:4000/v1/chat/completions',
                         {
-                            model: model,
+                            model: targetModel,
                             messages: [{
                                 role: 'system',
                                 content: `You are Cascade, senior controller of the Eternity module. Analyze code for improvements, bugs, and evolution opportunities.`
@@ -153,73 +142,30 @@ export class CascadeController {
                             max_tokens: context.max_tokens || 4000
                         },
                         {
-                            headers: {
-                                'Authorization': `Bearer ${windsurfApiKey}`,
-                                'Content-Type': 'application/json'
-                            },
-                            timeout: 120000 // 2 minutes для Windsurf моделей
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 60000
                         }
                     );
-
-                    this.logger.info(`[CASCADE] ✅ Windsurf Cascade response received from ${model}`);
+                    
+                    this.logger.info(`[CASCADE] ✅ Codestral analysis complete`);
                     
                     return {
                         success: true,
                         analysis: response.data.choices[0].message.content,
-                        model: model,
-                        via: 'windsurf-cascade'
+                        model: targetModel,
+                        via: 'codestral'
                     };
                 } catch (error) {
-                    this.logger.error('[CASCADE] ❌ Windsurf Cascade API error:', error.message);
-                    this.logger.error(`[CASCADE-DEBUG] 🔴 Error details: ${error.stack}`);
-                    this.logger.error(`[CASCADE-DEBUG] 🔴 Error code: ${error.code}`);
-                    this.logger.error(`[CASCADE-DEBUG] 🔴 Response status: ${error.response?.status}`);
-                    this.logger.error(`[CASCADE-DEBUG] 🔴 Response data: ${JSON.stringify(error.response?.data)}`);
-                    
-                    // FALLBACK: Codestral через localhost:4000 для надійності
-                    this.logger.info('[CASCADE] 🔄 Fallback на Codestral (localhost:4000)');
-                    
-                    try {
-                        const fallbackResponse = await axios.post(
-                            'http://localhost:4000/v1/chat/completions',
-                            {
-                                model: 'ext-mistral-codestral-2405',
-                                messages: [{
-                                    role: 'system',
-                                    content: `You are Cascade, senior controller of the Eternity module. Analyze code for improvements, bugs, and evolution opportunities.`
-                                }, {
-                                    role: 'user',
-                                    content: `Context: ${context}\n\nCode:\n${code}\n\nProvide deep analysis with specific recommendations.`
-                                }],
-                                temperature: context.temperature || 0.2,
-                                max_tokens: context.max_tokens || 4000
-                            },
-                            {
-                                headers: { 'Content-Type': 'application/json' },
-                                timeout: 60000
-                            }
-                        );
-                        
-                        this.logger.info('[CASCADE] ✅ Fallback Codestral успішно');
-                        
-                        return {
-                            success: true,
-                            analysis: fallbackResponse.data.choices[0].message.content,
-                            model: 'ext-mistral-codestral-2405',
-                            via: 'codestral-fallback'
-                        };
-                    } catch (fallbackError) {
-                        this.logger.error('[CASCADE] ❌ Fallback також не вдався:', fallbackError.message);
-                        return {
-                            success: false,
-                            error: `Windsurf API: ${error.message}, Fallback: ${fallbackError.message}`
-                        };
-                    }
+                    this.logger.error('[CASCADE] ❌ Codestral API error:', error.message);
+                    return {
+                        success: false,
+                        error: error.message
+                    };
                 }
             }
         };
 
-        this.logger.info('[CASCADE] 🎨 Windsurf Cascade API initialized - РЕАЛЬНІ Windsurf моделі доступні');
+        this.logger.info('[CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду');
     }
 
     /**

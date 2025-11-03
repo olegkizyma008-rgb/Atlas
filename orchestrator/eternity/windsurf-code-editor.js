@@ -24,10 +24,10 @@ export class WindsurfCodeEditor {
         this.apiEndpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
         
         // DEBUG 2025-11-03: Діагностика чому useWindsurfAPI = false
-        this.logger.info('[WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY present:', !!this.apiKey);
-        this.logger.info('[WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY length:', this.apiKey?.length);
-        this.logger.info('[WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED:', process.env.CASCADE_ENABLED);
-        this.logger.info('[WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED === "true":', process.env.CASCADE_ENABLED === 'true');
+        this.logger.info(`[WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY present: ${!!this.apiKey}`);
+        this.logger.info(`[WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY length: ${this.apiKey?.length}`);
+        this.logger.info(`[WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED: ${process.env.CASCADE_ENABLED}`);
+        this.logger.info(`[WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED === "true": ${process.env.CASCADE_ENABLED === 'true'}`);
         
         this.useWindsurfAPI = !!(this.apiKey && process.env.CASCADE_ENABLED === 'true')
         

@@ -96,6 +96,9 @@ export class MultiModelOrchestrator {
             this.stats.successfulRequests++;
             this._updateModelStats(modelConfig.name);
             
+            // NEW 2025-11-05: Позначаємо модель як доступну при успіху
+            this.modelRegistry.markModelAvailable(selectedModel.id);
+            
             return {
                 success: true,
                 content: result.content,
@@ -104,7 +107,47 @@ export class MultiModelOrchestrator {
             };
         } catch (error) {
             this.stats.failedRequests++;
-            this.logger.error(`[NEXUS] Task execution failed:`, error);
+            
+            // NEW 2025-11-05: Перевірка 500/503 помилок та автоперемикання
+            const isServerError = error.response?.status === 500 || 
+                                 error.response?.status === 503 ||
+                                 error.code === 'ECONNREFUSED' ||
+                                 error.message?.includes('timeout');
+            
+            if (isServerError) {
+                this.logger.warn(`[NEXUS] ⚠️ Модель ${selectedModel.id} недоступна (${error.response?.status || error.code}), пробую наступну...`);
+                
+                // Позначаємо модель як тимчасово недоступну
+                this.modelRegistry.markModelUnavailable(selectedModel.id, error.message);
+                
+                // Спроба з наступною моделлю
+                const fallbackModel = this.modelRegistry.selectModelForTask(taskType, options.context || {});
+                
+                if (fallbackModel.id !== selectedModel.id) {
+                    this.logger.info(`[NEXUS] 🔄 Перемикаюсь на модель: ${fallbackModel.id}`);
+                    const fallbackConfig = this._convertToModelConfig(fallbackModel);
+                    
+                    try {
+                        const fallbackResult = await this._callLLMAPI(fallbackConfig, prompt, options);
+                        this.stats.successfulRequests++;
+                        this._updateModelStats(fallbackConfig.name);
+                        
+                        return {
+                            success: true,
+                            content: fallbackResult.content,
+                            model: fallbackConfig.name,
+                            usage: fallbackResult.usage,
+                            fallback: true,
+                            originalModel: selectedModel.id
+                        };
+                    } catch (fallbackError) {
+                        this.logger.error(`[NEXUS] ❌ Fallback модель також не працює:`, fallbackError.message);
+                        this.modelRegistry.markModelUnavailable(fallbackModel.id, fallbackError.message);
+                    }
+                }
+            } else {
+                this.logger.error(`[NEXUS] Task execution failed:`, error);
+            }
             
             return {
                 success: false,

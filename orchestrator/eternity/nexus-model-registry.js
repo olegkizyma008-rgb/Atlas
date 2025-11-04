@@ -17,6 +17,10 @@ export class NexusModelRegistry {
         this.lastUpdate = null;
         this.updateInterval = null;
         
+        // NEW 2025-11-05: Відстеження ТИМЧАСОВО недоступних моделей
+        this.temporarilyUnavailableModels = new Map(); // { modelId: { since, attempts, lastError } }
+        this.unavailabilityTimeout = 600000; // 10 хвилин - після цього спробуємо знову
+        
         // Базові налаштування API
         this.apiEndpoint = process.env.CODESTRAL_API_ENDPOINT || 'http://localhost:4000/v1';
         this.updateFrequency = 300000; // 5 хвилин
@@ -150,6 +154,12 @@ export class NexusModelRegistry {
         for (const model of this.availableModels) {
             const capabilities = this.modelCapabilities.get(model.id);
             if (!capabilities) continue;
+            
+            // NEW 2025-11-05: Пропускаємо ТИМЧАСОВО недоступні моделі
+            if (this.isModelTemporarilyUnavailable(model.id)) {
+                this.logger.debug(`[NEXUS-REGISTRY] Пропускаю тимчасово недоступну модель: ${model.id}`);
+                continue;
+            }
 
             let score = 0;
 
@@ -237,6 +247,61 @@ export class NexusModelRegistry {
         };
     }
 
+    /**
+     * Fallback моделі якщо API недоступний
+     */
+    /**
+     * NEW 2025-11-05: Перевірка чи модель тимчасово недоступна
+     */
+    isModelTemporarilyUnavailable(modelId) {
+        const unavailable = this.temporarilyUnavailableModels.get(modelId);
+        if (!unavailable) return false;
+        
+        const now = Date.now();
+        const timeSince = now - unavailable.since;
+        
+        // Після 10 хвилин спробуємо знову
+        if (timeSince > this.unavailabilityTimeout) {
+            this.logger.info(`[NEXUS-REGISTRY] ⏰ Час минув, спробую модель ${modelId} знову`);
+            this.temporarilyUnavailableModels.delete(modelId);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * NEW 2025-11-05: Позначити модель як тимчасово недоступну (500/503)
+     */
+    markModelUnavailable(modelId, error) {
+        const existing = this.temporarilyUnavailableModels.get(modelId);
+        
+        if (existing) {
+            // Оновлюємо лічильник спроб
+            existing.attempts++;
+            existing.lastError = error;
+            this.logger.warn(`[NEXUS-REGISTRY] ⚠️ Модель ${modelId} досі недоступна (спроба ${existing.attempts})`);
+        } else {
+            // Перший раз позначаємо
+            this.temporarilyUnavailableModels.set(modelId, {
+                since: Date.now(),
+                attempts: 1,
+                lastError: error
+            });
+            this.logger.warn(`[NEXUS-REGISTRY] 🚫 Модель ${modelId} тимчасово недоступна: ${error}`);
+        }
+    }
+    
+    /**
+     * NEW 2025-11-05: Позначити модель як доступну знову
+     */
+    markModelAvailable(modelId) {
+        if (this.temporarilyUnavailableModels.has(modelId)) {
+            this.temporarilyUnavailableModels.delete(modelId);
+            this.logger.info(`[NEXUS-REGISTRY] ✅ Модель ${modelId} знову доступна`);
+        }
+    }
+    
     /**
      * Fallback моделі якщо API недоступний
      */

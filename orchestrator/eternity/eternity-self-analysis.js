@@ -74,77 +74,45 @@ export class EternityModule extends EventEmitter {
   }
 
   async _initializeCodestral() {
+    // FIXED 2025-11-05: Використовуємо MultiModelOrchestrator замість статичних промптів
+    // Всі промпти генеруються динамічно через nexusDynamicPromptInjector
     return {
       analyze: async (code, context) => {
-        // Інтеграція з Codestral API для глибокого аналізу коду
-        const apiKey = process.env.CODESTRAL_API_KEY || process.env.MISTRAL_API_KEY;
-        if (!apiKey) {
-          this.logger.warn('Codestral API key not found, using fallback analysis');
-          return this._fallbackCodeAnalysis(code, context);
-        }
-
         try {
-          const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: 'codestral-latest',
-              messages: [{
-                role: 'system',
-                content: 'You are an AI self-analysis system. Analyze code for improvements, bugs, and optimization opportunities.'
-              }, {
-                role: 'user',
-                content: `Analyze this code for self-improvement:\n\nContext: ${context}\n\nCode:\n${code}`
-              }],
-              temperature: 0.3,
-              max_tokens: 2000
-            })
-          });
+          const orchestrator = this.container?.resolve('multiModelOrchestrator');
+          if (!orchestrator) {
+            this.logger.warn('[ETERNITY] MultiModelOrchestrator not available');
+            return { success: false, analysis: null, suggestions: [] };
+          }
 
-          const data = await response.json();
-          return {
-            success: true,
-            analysis: data.choices[0].message.content,
-            suggestions: this._extractSuggestions(data.choices[0].message.content)
-          };
+          // Використовуємо динамічний промпт через orchestrator
+          // Промпт генерується автоматично на основі свідомості системи
+          const result = await orchestrator.executeTask(
+            'code-analysis',
+            code.substring(0, 2000),
+            { context: { file: context, analysis_type: 'self-improvement' } }
+          );
+
+          if (result.success && result.content) {
+            return {
+              success: true,
+              analysis: result.content,
+              suggestions: this._extractSuggestions(result.content)
+            };
+          }
+          
+          return { success: false, analysis: null, suggestions: [] };
         } catch (error) {
-          this.logger.error('Codestral analysis failed:', error);
-          return this._fallbackCodeAnalysis(code, context);
+          this.logger.error('[ETERNITY] Code analysis error:', error.message);
+          return { success: false, analysis: null, suggestions: [] };
         }
       }
     };
   }
 
-  async _fallbackCodeAnalysis(code, context) {
-    // Базовий аналіз без Codestral
-    const issues = [];
-    const improvements = [];
-    
-    // Простий аналіз на очевидні проблеми
-    if (code.includes('console.log') && !code.includes('logger')) {
-      issues.push('Using console.log instead of proper logging');
-      improvements.push('Replace console.log with logger methods');
-    }
-    
-    if (code.includes('catch(err)') && !code.includes('logger.error')) {
-      issues.push('Error not properly logged');
-      improvements.push('Add proper error logging');
-    }
-    
-    if (code.includes('TODO') || code.includes('FIXME')) {
-      issues.push('Unresolved TODOs found');
-      improvements.push('Implement pending TODOs');
-    }
-    
-    return {
-      success: true,
-      analysis: { issues, improvements },
-      suggestions: improvements
-    };
-  }
+  // REMOVED 2025-11-05: _fallbackCodeAnalysis видалено
+  // Уся логіка аналізу коду тепер в MultiModelOrchestrator з автоматичним вибором моделі
+  // та fallback механізмом
 
   _startContinuousAnalysis() {
     // NEW 2025-11-04: Аналіз кожні 3 хвилини (більш активна еволюція)

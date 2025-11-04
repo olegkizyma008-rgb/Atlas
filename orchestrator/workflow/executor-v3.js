@@ -1280,23 +1280,39 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               itemId: item.id
             });
             
-            // Try to update dependencies to children of replanned parents
+            // FIXED 2025-11-03: Try to resolve blocked dependencies
             let dependenciesUpdated = false;
             const newDependencies = [];
             
             for (const depId of dependencies) {
               const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
               
+              // CRITICAL FIX: Remove skipped dependencies
+              if (depItem && depItem.status === 'skipped') {
+                dependenciesUpdated = true;
+                logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing skipped dependency ${depId}`);
+                continue; // Skip adding this dependency
+              }
+              
+              // Replace replanned dependencies with children
               if (depItem && depItem.status === 'replanned') {
-                // Replace dependency with children
                 const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
                 if (children.length > 0) {
                   newDependencies.push(...children.map(c => c.id));
                   dependenciesUpdated = true;
-                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: replacing dep ${depId} with children ${children.map(c => c.id).join(', ')}`);
+                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: replacing replanned dep ${depId} with children ${children.map(c => c.id).join(', ')}`);
+                } else {
+                  // Replanned but no children - remove dependency
+                  dependenciesUpdated = true;
+                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing replanned dep ${depId} (no children)`);
                 }
-              } else {
+              } else if (depItem) {
+                // Keep valid dependency
                 newDependencies.push(depId);
+              } else {
+                // Dependency не знайдено - видаляємо
+                dependenciesUpdated = true;
+                logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing missing dependency ${depId}`);
               }
             }
             
@@ -1429,15 +1445,22 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 sessionId: session.id
               });
               
-              const routerResult = await routerClassifier.execute({
-                action: item.action,
-                context: todo,
-                availableServers: Array.from(mcpManager.servers.keys())
-              });
-              
-              if (routerResult.success && routerResult.selectedServers) {
-                suggestedServers = routerResult.selectedServers;
-                logger.system('executor', `[ROUTER] Pre-filtered to: ${suggestedServers.join(', ')}`);
+              // FIXED 2025-11-04: Check if routerClassifier has execute method
+              if (typeof routerClassifier.execute === 'function') {
+                const routerResult = await routerClassifier.execute({
+                  action: item.action,
+                  context: todo,
+                  availableServers: Array.from(mcpManager.servers.keys())
+                });
+                
+                if (routerResult.success && routerResult.selectedServers) {
+                  suggestedServers = routerResult.selectedServers;
+                  logger.system('executor', `[ROUTER] Pre-filtered to: ${suggestedServers.join(', ')}`);
+                }
+              } else {
+                logger.warn('Router classifier does not have execute method, skipping', { 
+                  methods: Object.getOwnPropertyNames(Object.getPrototypeOf(routerClassifier)).filter(m => typeof routerClassifier[m] === 'function')
+                });
               }
             }
           } catch (routerError) {

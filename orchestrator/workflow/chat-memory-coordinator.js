@@ -162,8 +162,8 @@ export class ChatMemoryCoordinator {
             
             this.logger.system('chat-memory', `[CHAT-MEMORY] 🔍 Searching memory: "${searchQuery}"`);
 
-            // Call memory__search_nodes
-            const searchResult = await this._callMemoryTool('memory__search_nodes', {
+            // FIXED 2025-11-03: Call correct memory tool (search_nodes, not memory__search_nodes)
+            const searchResult = await this._callMemoryTool('search_nodes', {
                 query: searchQuery,
                 limit: 10
             });

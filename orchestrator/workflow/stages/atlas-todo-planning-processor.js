@@ -122,6 +122,13 @@ export class AtlasTodoPlanningProcessor {
             timestamp: new Date().toISOString()
         };
 
+        // FIXED 2025-11-03: Store original user request for context preservation
+        // This ensures all stages (planning, execution, verification) have access to user's explicit requirements
+        context.originalRequest = request;
+        
+        // Extract key context from user request (browser, app, tool preferences)
+        context.userPreferences = this._extractUserPreferences(request);
+
         // Add session context if available
         if (session) {
             context.sessionId = session.id;
@@ -146,6 +153,35 @@ export class AtlasTodoPlanningProcessor {
         }
 
         return context;
+    }
+
+    /**
+     * Extract user preferences from request (browser, app, tool choices)
+     * ADDED 2025-11-03: Context preservation
+     * 
+     * @param {string} request - User request
+     * @returns {Object} User preferences
+     * @private
+     */
+    _extractUserPreferences(request) {
+        const preferences = {};
+        const lowerRequest = request.toLowerCase();
+
+        // Browser preferences
+        if (lowerRequest.includes('safari') || lowerRequest.includes('сафарі')) {
+            preferences.browser = 'Safari';
+        } else if (lowerRequest.includes('chromium') || lowerRequest.includes('хроміум')) {
+            preferences.browser = 'Chromium';
+        } else if (lowerRequest.includes('chrome') || lowerRequest.includes('хром') || lowerRequest.includes('google chrome')) {
+            preferences.browser = 'Chrome';
+        } else if (lowerRequest.includes('firefox') || lowerRequest.includes('фаєрфокс')) {
+            preferences.browser = 'Firefox';
+        }
+
+        // Other tool preferences can be added here
+        // e.g., text editor, terminal, etc.
+
+        return preferences;
     }
 
     /**

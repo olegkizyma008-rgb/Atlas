@@ -6,7 +6,26 @@
  */
 
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import logger from './logger.js';
+
+// FIXED 2025-11-03: HTTP Agent з keep-alive для запобігання обриву з'єднань
+const httpAgent = new http.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 30000,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+    timeout: 60000
+});
+
+const httpsAgent = new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 30000,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+    timeout: 60000
+});
 
 /**
  * Parse Retry-After header (seconds або timestamp)
@@ -58,6 +77,10 @@ function sleep(ms) {
  * Configure Axios з retry logic для 429 помилок
  */
 export function configureAxios() {
+    // FIXED 2025-11-03: Додаємо HTTP Agent з keep-alive
+    axios.defaults.httpAgent = httpAgent;
+    axios.defaults.httpsAgent = httpsAgent;
+
     // Response interceptor для обробки 429
     axios.interceptors.response.use(
         (response) => response, // Success - pass through
@@ -133,6 +156,8 @@ export function createAxiosInstance(options = {}) {
     const instance = axios.create({
         timeout: options.timeout || 30000,
         maxRetries: options.maxRetries || 3,
+        httpAgent: httpAgent,
+        httpsAgent: httpsAgent,
         headers: {
             'Content-Type': 'application/json'
         }

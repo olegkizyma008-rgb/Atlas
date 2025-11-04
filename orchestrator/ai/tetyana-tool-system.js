@@ -101,9 +101,11 @@ export class TetyanaToolSystem {
             logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized (4 validators registered)');
 
             // STEP 6: Initialize Dispatcher
+            // FIXED 2025-11-03: Pass mcpManager instead of extensionManager
             this.dispatcher = new ToolDispatcher(
-                this.extensionManager,
-                this.inspectionManager
+                this.mcpManager,
+                this.inspectionManager,
+                logger
             );
 
             this.initialized = true;

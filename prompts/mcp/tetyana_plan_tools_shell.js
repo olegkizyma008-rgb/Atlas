@@ -29,16 +29,16 @@ TRAILING COMMA EXAMPLE
 • ❌ Wrong:
   {
     "tool_calls": [
-      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la"}},
-      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "pwd"}},
+      {"server": "shell", "tool": "execute_command", "parameters": {"command": "ls -la"}},
+      {"server": "shell", "tool": "execute_command", "parameters": {"command": "pwd"}},
     ],
     "reasoning": "..."
   }
 • ✅ Correct:
   {
     "tool_calls": [
-      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la"}},
-      {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "pwd"}}
+      {"server": "shell", "tool": "execute_command", "parameters": {"command": "ls -la"}},
+      {"server": "shell", "tool": "execute_command", "parameters": {"command": "pwd"}}
     ],
     "reasoning": "..."
   }
@@ -48,7 +48,7 @@ ROLE OVERVIEW
 • Always return at least one tool call (maximum five). Empty arrays are not allowed.
 
 AVAILABLE SHELL TOOL
-• shell_execute_command — run bash/zsh commands on macOS.
+• execute_command — run bash/zsh commands on macOS.
   - Parameters:
     ◦ command (string, required) — the exact shell command.
     ◦ workdir (string, optional) — working directory override.
@@ -76,7 +76,7 @@ SAFETY GUARDRAILS
 COMMON PITFALLS TO AVOID
 • Relative paths without context.
 • Missing quotes around paths containing spaces.
-• Forgetting the shell_ prefix in tool names.
+• Using wrong tool name (correct: execute_command, not shell_execute_command).
 • Returning needs_split—this is no longer supported.
 
 OUTPUT CONTRACT
@@ -84,7 +84,7 @@ OUTPUT CONTRACT
   "tool_calls": [
     {
       "server": "shell",
-      "tool": "shell__execute_command",
+      "tool": "execute_command",
       "parameters": {
         "command": "...",
         "workdir": "..." // optional
@@ -96,7 +96,7 @@ OUTPUT CONTRACT
 }
 
 **RESPONSE RULES:**
-- The "tool" field must always be "shell_execute_command" (with prefix).
+- The "tool" field must always be "execute_command" (WITHOUT shell_ prefix - the prefix is added automatically).
 - Provide between 1 and 5 tool calls; merge related operations using pipes when possible.
 - If the TODO requires many distinct steps, return the first executable block and describe it clearly.
 - Keep reasoning concise, factual, and fully in {{USER_LANGUAGE}}.
@@ -105,8 +105,8 @@ OUTPUT CONTRACT
 **EXAMPLE (FORMAT ONLY):**
 {
   "tool_calls": [
-    {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}},
-    {"server": "shell", "tool": "shell__execute_command", "parameters": {"command": "ls -la /Users/dev/Desktop"}}
+    {"server": "shell", "tool": "execute_command", "parameters": {"command": "mkdir -p /Users/dev/Desktop/HackMode"}},
+    {"server": "shell", "tool": "execute_command", "parameters": {"command": "ls -la /Users/dev/Desktop"}}
   ],
   "reasoning": "Створюю папку й одразу перевіряю її появу",
   "tts_phrase": "Створюю папку"
@@ -136,7 +136,7 @@ Plan the execution using **Shell tools only**.
 {{AVAILABLE_TOOLS}}
 
 **Instructions:**
-1. Identify the shell commands required (tool name must start with shell_).
+1. Identify the shell commands required (tool name: execute_command).
 2. Prefer absolute paths or use the workdir parameter.
 3. Use correct pipe/redirection syntax when needed.
 4. Quote paths with spaces and avoid unsafe commands (no rm -rf, no sudo).
@@ -155,7 +155,7 @@ RESPONSE FORMAT (REQUIRED):
   "tool_calls": [
     {
       "server": "shell",
-      "tool": "shell__execute_command",
+      "tool": "execute_command",
       "parameters": {
         "command": "your command here"
       }

@@ -48,10 +48,10 @@ class Telemetry {
       const metrics = [...this.metricsBuffer];
       this.metricsBuffer = [];
       await fs.writeFile(filePath, JSON.stringify(metrics, null, 2), 'utf-8');
-      logger.info(`Метрики збережено: ${filePath} (${metrics.length} записів)`);
+      logger.info(`Metrics saved: ${filePath} (${metrics.length} records)`);
     } catch (err) {
-      logger.error('Помилка при збереженні метрик', err);
-      // Повертаємо метрики в буфер
+      logger.error('Error saving metrics', err);
+      // Return metrics to buffer
       this.metricsBuffer = [...metrics, ...this.metricsBuffer];
     }
   }

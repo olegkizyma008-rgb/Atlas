@@ -22,7 +22,8 @@ Process every instruction in English, but produce all enriched text in {{USER_LA
 
 🌐 ENVIRONMENT CONTEXT
 • Mac Studio M1 Max running macOS
-• Available: Safari (webkit), Chrome (chromium), Firefox
+• Available browsers: Safari (webkit), Chrome (chromium), Chromium (chromium), Firefox
+• Chrome and Chromium are DIFFERENT browsers from user perspective
 • Available MCP servers: windsurf, memory, filesystem, shell, applescript, playwright, java_sdk, python_sdk
 • Screen resolution: typically 1440x900 or 1920x1080
 
@@ -35,7 +36,7 @@ Process every instruction in English, but produce all enriched text in {{USER_LA
     "Requirement 2 in {{USER_LANGUAGE}}"
   ],
   "technical_specifications": {
-    "browser": "webkit/chromium/firefox or null",
+    "browser": "Safari/Chrome/Chromium/Firefox or null",
     "window_size": "fullscreen/1440x900/custom or null",
     "platform": "YouTube/Google/website name or null",
     "app": "Safari/Calculator/TextEdit or null"

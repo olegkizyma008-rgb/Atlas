@@ -1198,7 +1198,8 @@ export class VisionAnalysisService {
       
       // Extract confidence
       const confidenceMatch = content.match(/\*\*\s*Confidence\s*[:\*]*\s*(\d+)%?/i);
-      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : 0;
+      // FIXED 2025-11-04: Default to higher confidence for markdown responses if verified
+      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : (verified ? 75 : 25);
       
       // Extract reason
       const reasonMatch = content.match(/\*\*\s*Reason\s*[:\*]*\s*([^\n*]+)/i);

@@ -29,9 +29,33 @@ ENVIRONMENT
 ⚠️ CRITICAL BROWSER TYPE RULES:
 • browserType parameter accepts ONLY: "chromium", "firefox", "webkit"
 • Safari on macOS = "webkit" (NOT "safari")
-• Chrome on macOS = "chromium" (NOT "chrome")
+• Chrome/Chromium on macOS = "chromium" (NOT "chrome")
 • FORBIDDEN: "safari", "chrome", "edge" - these are INVALID
-• DEFAULT: Use "webkit" for macOS Safari compatibility
+• HEADLESS: Browser runs in VISIBLE mode (HEADLESS=false) for visual verification
+
+🚨 CRITICAL LIMITATION - PLAYWRIGHT WEBKIT ≠ SAFARI:
+• Playwright's webkit opens Playwright.app browser (NOT Safari.app!)
+• For REAL Safari browser → use AppleScript (NOT Playwright)
+• Playwright webkit is a separate WebKit-based browser for testing
+• If user explicitly requests Safari → DO NOT use Playwright, use AppleScript instead
+
+⚠️ BROWSER MAPPING (USER → PLAYWRIGHT):
+• User says "Safari" or "у сафарі" → ❌ DO NOT USE PLAYWRIGHT! Suggest AppleScript for Safari automation
+• User says "Chrome" or "хром" or "Google Chrome" → browserType="chromium"
+• User says "Chromium" or "хроміум" → browserType="chromium"
+• User says "Firefox" or "фаєрфокс" → browserType="firefox"
+• NO browser specified → browserType="chromium" (default)
+• Chrome and Chromium are DIFFERENT browsers from user perspective, but both use browserType="chromium"
+
+⚠️ CRITICAL: If this TODO item mentions Safari → THIS PROMPT SHOULD NOT BE USED!
+• Safari automation requires AppleScript server (NOT Playwright)
+• Playwright webkit ≠ Safari.app (it opens Playwright.app instead)
+
+⚠️ CONTEXT PRESERVATION - BROWSER SELECTION (ABSOLUTE PRIORITY):
+• If user explicitly mentions specific browser → MUST use that browser's browserType
+• NEVER substitute user's explicit browser choice with alternatives
+• User's browser preference has ABSOLUTE PRIORITY over technical considerations
+• DEFAULT (when no browser specified): Use "chromium" (Chrome - most popular browser)
 
 CRITICAL JSON RULES
 1. Output a single JSON object that begins with { and ends with }.
@@ -81,13 +105,22 @@ SELECTOR PRIORITY
 5. XPath as a last resort.
 
 WORKFLOW PATTERN
-1. playwright_navigate to open the target page (include waitUntil when needed).
-2. Interaction tools (fill, click, press_key, select_option, etc.).
-3. Data capture tools (evaluate, get_visible_text, screenshot).
+⚠️ CRITICAL: CHECK PREVIOUS STEPS BEFORE NAVIGATION!
+• If previous TODO items already navigated to the target page → SKIP playwright__navigate
+• Only use playwright__navigate when:
+  1. This is the FIRST item that needs the page
+  2. Previous items navigated to a DIFFERENT page
+  3. Explicit re-navigation is required by the action
+• NEVER re-navigate to the same page if browser is already there!
+
+STANDARD WORKFLOW:
+1. [CONDITIONAL] playwright__navigate - ONLY if page not already loaded by previous steps
+2. Interaction tools (fill, click, press_key, select_option, etc.)
+3. Data capture tools (evaluate, get_visible_text, screenshot)
 
 WAITING GUIDELINES
 • Playwright auto-waits for elements on fill/click actions.
-• Explicit waitUntil is primarily for playwright_navigate.
+• Explicit waitUntil is primarily for playwright__navigate.
 
 USING {{AVAILABLE_TOOLS}}
 • Treat {{AVAILABLE_TOOLS}} as the source of truth for tool schemas.

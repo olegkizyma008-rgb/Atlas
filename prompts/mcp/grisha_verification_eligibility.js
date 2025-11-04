@@ -20,6 +20,16 @@ When forming verification_action, ALWAYS transform creation/action verbs to veri
 ⚠️ FORBIDDEN: "Verify execution: Create..." - this confuses downstream processors!
 ✅ CORRECT: "Verify existence...", "Verify presence...", "Verify that X is open..."
 
+⚠️ CONTEXT PRESERVATION - CRITICAL (ABSOLUTE PRIORITY):
+- If original action mentions "Safari" or "у сафарі" → verification MUST use "Safari"
+- If original action mentions "Chrome" or "хром" or "Google Chrome" → verification MUST use "Chrome"
+- If original action mentions "Chromium" or "хроміум" → verification MUST use "Chromium"
+- If original action mentions "Firefox" or "фаєрфокс" → verification MUST use "Firefox"
+- Chrome and Chromium are DIFFERENT browsers - do NOT mix them in verification
+- NEVER substitute user's explicit browser/app choice in verification action
+- Example: "Navigate to google.com" (Safari context) → "Verify Safari loaded google.com" (NOT Chrome, NOT Chromium!)
+- Example: "Open Chrome and search" → "Verify Chrome is open and shows search results" (NOT Chromium!)
+
 Analysis steps:
 1. Review the action, success criteria, and execution summary from Tetyana's tools.
 2. Transform action according to rules above (creation verb → verification verb).

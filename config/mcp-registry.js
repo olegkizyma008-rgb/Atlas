@@ -87,7 +87,7 @@ export const MCP_REGISTRY = {
       command: 'npx',
       args: ['-y', '@executeautomation/playwright-mcp-server'],
       env: {
-        HEADLESS: 'true'
+        HEADLESS: 'false'  // FIXED 2025-11-03: Show browser on screen for visual verification
       },
       description: 'Browser automation and web scraping',
       enabled: true,

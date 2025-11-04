@@ -260,9 +260,15 @@ export class RepetitionInspector {
         
         // Playwright tools with GUI-related actions
         if (toolCall.server === 'playwright') {
-            const guiActions = ['click', 'type', 'fill', 'press', 'hover', 'focus'];
+            const guiActions = ['click', 'type', 'fill', 'press', 'hover', 'focus', 'navigate'];
             const toolName = toolCall.tool.toLowerCase();
             return guiActions.some(action => toolName.includes(action));
+        }
+        
+        // FIXED 2025-11-04: Allow filesystem verification tools (commonly repeated for checks)
+        if (toolCall.server === 'filesystem' && 
+            (toolCall.tool.includes('get_file_info') || toolCall.tool.includes('read_file'))) {
+            return true; // Allow repetitive file checks for verification
         }
         
         return false;

@@ -221,7 +221,19 @@ export class AutoCorrectionModule extends EventEmitter {
     try {
       // Використовуємо Python SDK для аналізу
       const pythonServer = this.mcpManager.servers.get('python_sdk');
-      if (!pythonServer) return issues;
+      if (!pythonServer) {
+        this.logger.debug('[AUTO-CORRECTION] Python SDK not available, skipping analysis');
+        return issues;
+      }
+      
+      // FIXED 2025-11-03: Перевіряємо чи інструмент існує перед викликом
+      const tools = pythonServer.tools || [];
+      const hasAnalyzeTool = tools.some(t => t.name === 'analyze_code' || t.name === 'python_sdk__analyze_code');
+      
+      if (!hasAnalyzeTool) {
+        this.logger.debug('[AUTO-CORRECTION] Python SDK does not have analyze_code tool, skipping');
+        return issues;
+      }
       
       // Виклик інструменту аналізу
       const result = await pythonServer.callTool('analyze_code', {
@@ -239,7 +251,7 @@ export class AutoCorrectionModule extends EventEmitter {
       }
       
     } catch (error) {
-      this.logger.warn('[AUTO-CORRECTION] Python analysis failed', error);
+      this.logger.debug('[AUTO-CORRECTION] Python analysis skipped: ' + error.message);
     }
     
     return issues;
@@ -251,7 +263,19 @@ export class AutoCorrectionModule extends EventEmitter {
     try {
       // Використовуємо Java SDK для аналізу
       const javaServer = this.mcpManager.servers.get('java_sdk');
-      if (!javaServer) return issues;
+      if (!javaServer) {
+        this.logger.debug('[AUTO-CORRECTION] Java SDK not available, skipping analysis');
+        return issues;
+      }
+      
+      // FIXED 2025-11-03: Перевіряємо чи інструмент існує перед викликом
+      const tools = javaServer.tools || [];
+      const hasAnalyzeTool = tools.some(t => t.name === 'analyze_project' || t.name === 'java_sdk__analyze_project');
+      
+      if (!hasAnalyzeTool) {
+        this.logger.debug('[AUTO-CORRECTION] Java SDK does not have analyze_project tool, skipping');
+        return issues;
+      }
       
       // Виклик інструменту аналізу
       const result = await javaServer.callTool('analyze_project', {
@@ -269,7 +293,7 @@ export class AutoCorrectionModule extends EventEmitter {
       }
       
     } catch (error) {
-      this.logger.warn('[AUTO-CORRECTION] Java analysis failed', error);
+      this.logger.debug('[AUTO-CORRECTION] Java analysis skipped: ' + error.message);
     }
     
     return issues;

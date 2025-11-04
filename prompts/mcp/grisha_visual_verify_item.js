@@ -85,11 +85,50 @@ export const USER_PROMPT = `
 **TODO Item:** {{item_action}}
 **Success Criteria:** {{success_criteria}}
 
-{{#if execution_results}}
-**Execution Results Summary:** {{execution_results}}
+{{#if executionAnalysis}}
+**CRITICAL - Tools Execution Summary:**
+• Planned tools: {{executionAnalysis.total_planned}}
+• Successfully executed: {{executionAnalysis.successful_count}}
+• Failed/Denied: {{executionAnalysis.failed_count}}
+{{#if executionAnalysis.successful_tools}}
+
+✅ **Tools that executed successfully:**
+{{#each executionAnalysis.successful_tools}}
+  • {{this}}
+{{/each}}
+{{/if}}
+{{#if executionAnalysis.failed_tools}}
+
+❌ **Tools that failed/denied:**
+{{#each executionAnalysis.failed_tools}}
+  • {{this}}
+{{/each}}
+{{/if}}
+{{#if executionAnalysis.actions_taken}}
+
+📌 **Actions that were taken:**
+{{#each executionAnalysis.actions_taken}}
+  • {{this}}
+{{/each}}
+{{/if}}
+{{#if executionAnalysis.expected_changes}}
+
+🎯 **Expected state changes to verify:**
+{{#each executionAnalysis.expected_changes}}
+  • {{this}}
+{{/each}}
+{{/if}}
 {{/if}}
 
-Analyze the screenshot and verify if the task was completed successfully.
+{{#if execution_results}}
+**Detailed Execution Results:** {{execution_results}}
+{{/if}}
+
+⚠️ IMPORTANT: Base your verification ONLY on what tools actually executed successfully.
+If only partial tools succeeded (e.g., navigate ✅ but fill ❌), verify ONLY the successful actions.
+Do NOT expect to see results from tools that failed or were denied.
+
+Analyze the screenshot and verify if the SUCCESSFULLY EXECUTED actions are visible.
 Return ONLY raw JSON (no markdown, no explanations).
 `;
 

@@ -160,15 +160,21 @@ export const MCP_MODEL_CONFIG = {
       get model() {
         return env.MCP_MODEL_MODE_SELECTION || 'atlas-mistral-small-2503';
       },
+      get fallback() {
+        return env.MCP_MODEL_MODE_SELECTION_FALLBACK || 'atlas-jamba-1.5-mini';
+      },
       get temperature() {
         return parseFloat(env.MCP_TEMP_MODE_SELECTION || '0.05');
       },
-      max_tokens: 150,
-      description: 'Mode selection task vs chat vs dev (Mistral Small - handles large prompts)'
+      max_tokens: 300,
+      description: 'Mode selection (Mistral Small with Jamba fallback)'
     },
     backend_selection: {
       get model() {
         return env.MCP_MODEL_BACKEND_SELECTION || 'atlas-ministral-3b';
+      },
+      get fallback() {
+        return env.MCP_MODEL_BACKEND_SELECTION_FALLBACK || 'atlas-jamba-1.5-mini';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_BACKEND_SELECTION || '0.05');
@@ -190,21 +196,27 @@ export const MCP_MODEL_CONFIG = {
       get model() {
         return env.MCP_MODEL_TODO_PLANNING || 'atlas-mistral-medium-2505';
       },
+      get fallback() {
+        return env.MCP_MODEL_TODO_PLANNING_FALLBACK || 'atlas-mistral-small-2503';
+      },
       get temperature() {
         return parseFloat(env.MCP_TEMP_TODO_PLANNING || '0.3');
       },
       max_tokens: 4000,
-      description: 'Atlas TODO Planning (Mistral Medium - reliable reasoning)'
+      description: 'Atlas TODO Planning (Mistral Medium with Small fallback)'
     },
     plan_tools: {
       get model() {
-        return env.MCP_MODEL_PLAN_TOOLS || 'ext-mistral-codestral-latest';
+        return env.MCP_MODEL_PLAN_TOOLS || 'atlas-mistral-small-2503';
+      },
+      get fallback() {
+        return env.MCP_MODEL_PLAN_TOOLS_FALLBACK || 'atlas-jamba-1.5-mini';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_PLAN_TOOLS || '0.1');
       },
       max_tokens: 2500,
-      description: 'Tetyana Plan Tools - чистий JSON (Codestral Latest - TEMP due to rate limit)'
+      description: 'Tetyana Plan Tools - чистий JSON (Mistral Small with Jamba fallback)'
     },
     verification_eligibility: {
       get model() {
@@ -240,11 +252,14 @@ export const MCP_MODEL_CONFIG = {
       get model() {
         return env.MCP_MODEL_REPLAN_TODO || 'atlas-mistral-medium-2505';
       },
+      get fallback() {
+        return env.MCP_MODEL_REPLAN_TODO_FALLBACK || 'atlas-mistral-small-2503';
+      },
       get temperature() {
         return parseFloat(env.MCP_TEMP_REPLAN_TODO || '0.3');
       },
       max_tokens: 3000,
-      description: 'Atlas Replan TODO - глибокий аналіз (Mistral Medium)'
+      description: 'Atlas Replan TODO (Mistral Medium with Small fallback)'
     },
     final_summary: {
       get model() {

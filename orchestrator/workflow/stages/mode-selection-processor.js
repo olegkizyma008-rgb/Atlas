@@ -162,10 +162,39 @@ export class ModeSelectionProcessor {
                 };
             }
 
+            // TASK mode keyword detection fallback (NEW 04.11.2025)
+            // Detect action verbs and explicit task requests
+            const taskKeywords = [
+                // Explicit task mode requests
+                'режим таск', 'task mode', 'через таск', 'в таск режимі',
+                'виконай через таск', 'зроби через таск',
+                
+                // Action verbs (imperative form)
+                'виконай', 'зроби', 'відкрий', 'запусти', 'знайди',
+                'створи', 'встанови', 'завантаж', 'збережи',
+                'перейди', 'натисни', 'введи', 'напиши',
+                'скачай', 'включи', 'виключи', 'закрий',
+                
+                // English action verbs
+                'execute', 'open', 'launch', 'run', 'find',
+                'create', 'install', 'download', 'save',
+                'navigate', 'click', 'type', 'write'
+            ];
+
+            const taskDetected = taskKeywords.some((keyword) => lowerMessage.includes(keyword));
+
+            if (taskDetected) {
+                this.logger.warn('[STAGE-0-MCP] ⚠️ API failed, але знайдено TASK ключові слова — вмикаю TASK режим');
+                return {
+                    success: true,
+                    mode: 'task',
+                    confidence: 0.7,
+                    reasoning: 'API error, але повідомлення містить дієслова дії або явний запит task mode'
+                };
+            }
+
             // FIXED 16.10.2025: Default to chat mode on error (intelligent fallback)
-            // Причина: Chat безпечніше за Task при помилці класифікації
-            // - Chat: розмова (користувач просто говорить)
-            // - Task: виконання дій (ризик випадкового запуску команд)
+            // Only if no task/dev keywords detected
             this.logger.warn(`[STAGE-0-MCP] ⚠️ Intelligent fallback: використовую CHAT mode замість task`);
             return {
                 success: true,

@@ -31,25 +31,32 @@ RULES:
    • Any part of the request demands automated execution or persistent output.
    ⚠️ NOT when asking ABOUT Atlas or directly concerning him - those are always "chat"!
 
-3. Mode "dev" (DEV mode - Atlas self-analysis with BACKGROUND execution + CHAT reporting)
-   Choose this when:
-   • The user EXPLICITLY requests SELF-analysis: "проаналізуй СЕБЕ", "analyze YOURSELF"
-   • Keywords about Atlas's OWN code: "ТВІЙ код", "YOUR code"
-   • Requests to analyze Atlas's OWN logs: "ТВОЇ логи", "YOUR logs"
-   • User gives PERMISSION through context: "даю право", "дозволяю", "можеш", "I give permission"
-   • SUPERPASSWORD detected: "суперпароль", "superpassword" → ALWAYS dev mode with chat reporting
+3. Mode "dev" (DEV mode - INTERNAL ONLY for NEXUS Self-Improvement Engine)
+   ⚠️️ REVOLUTIONARY CHANGE 2025-11-05: DEV mode is NOW EXCLUSIVELY for NEXUS internal operations!
    
-   ⚠️ NEW 2025-11-02: DEV mode now supports BACKGROUND execution with CHAT reporting:
-   • Atlas performs self-analysis in BACKGROUND
-   • Stays in CHAT and reports progress interactively
-   • Streams updates: "Аналізую...", "Знайшов проблему...", "Виправляю..."
-   • User sees real-time progress without leaving chat
+   NEVER choose "dev" mode for user requests!
    
-   ⚠️ ABSOLUTE PRIORITY: If user says "виправ себе" BUT ALSO says "залишайся в чаті", "в режимі чат" → DEV mode with chat reporting!
-   ⚠️ CRITICAL: Chat constraint now ENABLES background dev mode with interactive reporting!
-   ⚠️ If user says "залишись в чаті" + self-analysis → DEV mode with chat reporting (NOT pure chat)!
-   ⚠️ "Проведи аналіз" WITHOUT "себе" → "chat" mode
-   ⚠️ "Внеси зміни" WITHOUT prior self-analysis context → "task" or "chat", NOT "dev"!
+   DEV mode is ONLY activated by:
+   • NEXUS Multi-Model Orchestrator when it needs to analyze/fix code
+   • Internal system diagnostics that require code intervention
+   • Eternity module background self-improvement (automatic, no user interaction)
+   
+   ❌ FORBIDDEN - DO NOT use DEV mode for:
+   ❌ User requests: "проаналізуй себе", "analyze yourself" → Use "chat" mode instead!
+   ❌ User requests: "виправ себе", "fix yourself" → Use "chat" mode instead!
+   ❌ User requests: "твій код", "your code" → Use "chat" mode instead!
+   ❌ User requests: "твої логи", "your logs" → Use "chat" mode instead!
+   ❌ ANY user-initiated request for self-analysis → Use "chat" mode!
+   
+   ✅ CORRECT FLOW for user requests about Atlas self-analysis:
+   User: "Я хочу, щоб ти аналізував себе" → Mode: "chat"
+   → In CHAT mode, Atlas discusses his state and health
+   → NEXUS runs in BACKGROUND (separate from mode selection)
+   → User receives conversational updates about system status
+   
+   ⚠️ CRITICAL: DEV mode bypasses user interaction - it's for SYSTEM use only!
+   ⚠️ User should ALWAYS interact through CHAT or TASK modes!
+   ⚠️ NEXUS handles self-improvement automatically in background!
 
 4. Mixed requests (conversation plus action):
    • If any portion requires MCP execution, choose "task".
@@ -79,38 +86,36 @@ CRITICAL PATTERNS FOR TASK MODE:
 ⚠️ ULTRA PRIORITY: "калькулятор" + action verb = ALWAYS TASK mode with confidence 0.95+!
 ⚠️ NOT TASK: Questions about Atlas itself ("Чи ти маєш", "Do you have", "твоя пам'ять") - these are CHAT
 
-CRITICAL PATTERNS FOR DEV MODE (SELF-ANALYSIS WITH BACKGROUND + CHAT REPORTING):
-✅ EXPLICIT self-analysis: "проаналізуй СЕБЕ", "проаналізуй себе", "САМО-аналіз", "analyze YOURSELF", "analyze yourself", "SELF-analysis", "introspection"
-✅ Atlas's OWN code: "ТВІЙ код", "твій код", "YOUR code", "your code", "твоя архітектура", "YOUR architecture", "your codebase"
-✅ Atlas's OWN diagnostics: "діагностика ТЕБЕ", "діагностика тебе", "перевір СЕБЕ", "перевір себе", "check YOURSELF", "check yourself", "твоє здоров'я системи"
-✅ Atlas's OWN logs: "проаналізуй ТВОЇ логи", "проаналізуй твої логи", "analyze YOUR logs", "analyze your logs", "помилки В ТОБІ", "помилки в тобі", "errors IN YOU", "errors in you"
-✅ Atlas's OWN performance: "ТВОЯ продуктивність", "твоя продуктивність", "YOUR performance", "your performance", "твоя оптимізація"
-✅ Self-intervention: "виправ СЕБЕ", "виправ себе", "fix YOURSELF", "fix yourself", "покращ СЕБЕ", "покращ себе", "improve YOURSELF", "improve yourself"
-✅ ULTRA CRITICAL: "Виправ себе" (з великої В, малої себе) → ЗАВЖДИ DEV mode!
-✅ Execute fixes: "виконай виправлення", "застосуй виправлення", "execute fixes", "apply fixes" → DEV mode if PREVIOUS message was self-analysis
-✅ Debug mode: "режим дев", "dev mode", "режим розробника" (explicit dev mode request)
-✅ Context-aware: If discussing errors/issues from PREVIOUS self-analysis, continue in dev mode
-✅ CRITICAL: If user says "виконай виправлення" AFTER self-analysis → DEV mode (NOT task!)
-✅ SUPERPASSWORD: "суперпароль", "superpassword" → ALWAYS dev mode with chat reporting (HIGHEST PRIORITY)
-✅ Permission context: "даю право", "дозволяю", "можеш", "I give permission" + self-analysis keywords
-✅ Self-fix WITH chat constraint: "виправ себе" + "залишайся в чаті" → DEV mode with background + chat reporting
+CRITICAL: DEV MODE IS NOW INTERNAL ONLY (2025-11-05)
 
-❌ NOT DEV MODE:
-❌ "Проведи аналіз" (without "себе") → CHAT mode (general analysis, not self-analysis)
-❌ "Внеси зміни" (without prior self-analysis context) → TASK or CHAT
-❌ "Виконай виправлення" (without prior self-analysis context) → TASK mode
-❌ General analysis requests → CHAT mode unless explicitly about Atlas
+❌❌❌ NEVER USE DEV MODE FOR USER REQUESTS ❌❌❌
 
-✅ CONTEXT-AWARE DEV MODE (CRITICAL):
-✅ If PREVIOUS message contained self-analysis results → "виконай виправлення" = DEV mode
-✅ If conversation context has self-analysis → "застосуй виправлення" = DEV mode
-✅ If user just said "Проаналізуй себе" → next "виконай" = DEV mode
+⚠️ ALL user requests about Atlas self-analysis → "chat" mode:
+• "проаналізуй себе" → CHAT mode (discusses status conversationally)
+• "виправ себе" → CHAT mode (NEXUS handles fixes in background)
+• "твій код" → CHAT mode (discusses architecture conversationally)
+• "твої логи" → CHAT mode (discusses errors conversationally)
+• "твоя продуктивність" → CHAT mode (discusses performance conversationally)
+• "перевір себе" → CHAT mode (discusses diagnostics conversationally)
+• "як твоє здоров'я" → CHAT mode (discusses system health conversationally)
+• "що з тобою" → CHAT mode (discusses current state conversationally)
 
-✅ NOW DEV MODE (CHANGED 2025-11-02):
-✅ "Виправ себе" + "залишайся в чаті" → DEV mode with background + chat reporting (NOT pure chat!)
-✅ "Проаналізуй себе" + "в режимі чат" → DEV mode with background + chat reporting (NOT pure chat!)
-✅ Self-fix request + chat constraint → DEV mode with interactive reporting
-✅ "Залишись в чаті" + self-analysis → DEV mode with chat reporting (background execution)
+✅ CORRECT BEHAVIOR:
+• User asks about Atlas → Mode: "chat"
+• In CHAT: Atlas discusses his state, health, issues conversationally
+• NEXUS runs automatically in BACKGROUND (outside mode system)
+• User gets friendly, conversational responses about system status
+
+❌ OBSOLETE PATTERNS (NO LONGER VALID):
+❌ "Виправ себе" → was DEV mode, now CHAT mode
+❌ "Проаналізуй себе" → was DEV mode, now CHAT mode  
+❌ "суперпароль" → was DEV mode, now CHAT mode
+❌ ALL self-analysis patterns → now handled in CHAT mode with NEXUS in background
+
+⚠️ DEV mode reserved for:
+• NEXUS internal operations (code analysis by Multi-Model Orchestrator)
+• System-triggered diagnostics (not user-triggered)
+• Eternity background self-improvement (automatic)
 
 CRITICAL PATTERNS FOR CHAT MODE:
 ✅ Greetings/Привітання: "Привіт", "Hello", "Hi", "Hey", "Доброго дня", "Вітаю"

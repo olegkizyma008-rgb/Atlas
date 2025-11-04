@@ -292,10 +292,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     }
 
     // ===============================================
-    // Handle DEV mode - Self-analysis and code intervention
+    // Handle DEV mode - INTERNAL ONLY (2025-11-05)
+    // DEV mode is ONLY for NEXUS internal operations
+    // User requests about self-analysis go to CHAT mode
     // ===============================================
     if (mode === 'dev') {
-      logger.workflow('stage', 'atlas', 'DEV mode detected - Starting self-analysis', {
+      // DEV mode should NEVER be activated by user requests after 2025-11-05 changes
+      // This block is kept for NEXUS internal operations only
+      logger.workflow('stage', 'system', '⚠️ DEV mode activated - INTERNAL NEXUS operation (not user-initiated)', {
         sessionId: session.id
       });
 
@@ -865,6 +869,59 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           }
         } catch (err) {
           logger.debug('[NEXUS-CONSCIOUSNESS] Dynamic prompt injector not available:', err.message);
+        }
+
+        // NEW 2025-11-05: Detect self-analysis requests in CHAT mode and trigger NEXUS in background
+        const isSelfAnalysisRequest = 
+          userMessage.toLowerCase().includes('проаналізуй себе') ||
+          userMessage.toLowerCase().includes('виправ себе') ||
+          userMessage.toLowerCase().includes('твій код') ||
+          userMessage.toLowerCase().includes('твої логи') ||
+          userMessage.toLowerCase().includes('твоя продуктивність') ||
+          userMessage.toLowerCase().includes('як твоє здоров\'я') ||
+          userMessage.toLowerCase().includes('перевір себе') ||
+          userMessage.toLowerCase().includes('analyze yourself') ||
+          userMessage.toLowerCase().includes('fix yourself') ||
+          userMessage.toLowerCase().includes('your code') ||
+          userMessage.toLowerCase().includes('your logs');
+
+        if (isSelfAnalysisRequest) {
+          logger.system('executor', '[NEXUS-CHAT] 🔍 Self-analysis request detected in CHAT mode - triggering NEXUS in background');
+          
+          // Trigger NEXUS in background (non-blocking)
+          setImmediate(async () => {
+            try {
+              const multiModelOrchestrator = container.resolve('multiModelOrchestrator');
+              if (multiModelOrchestrator) {
+                logger.system('executor', '[NEXUS-CHAT] 🚀 Starting background NEXUS analysis...');
+                
+                // Collect system context
+                const systemContext = {
+                  userRequest: userMessage,
+                  timestamp: new Date().toISOString(),
+                  sessionId: session.id
+                };
+                
+                // Execute NEXUS analysis in background
+                const nexusResult = await multiModelOrchestrator.executeTask(
+                  'system-health-check',
+                  `Analyze Atlas system health based on user request: ${userMessage}`,
+                  { context: systemContext }
+                );
+                
+                logger.system('executor', '[NEXUS-CHAT] ✅ Background NEXUS analysis complete');
+                
+                // Store results for next user query
+                session.lastNexusAnalysis = {
+                  timestamp: new Date().toISOString(),
+                  result: nexusResult,
+                  userRequest: userMessage
+                };
+              }
+            } catch (nexusError) {
+              logger.warn('executor', `[NEXUS-CHAT] ⚠️ Background NEXUS failed: ${nexusError.message}`);
+            }
+          });
         }
 
         // Build chat context from recent messages (last 5 exchanges = 10 messages)

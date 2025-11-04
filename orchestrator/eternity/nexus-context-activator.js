@@ -58,15 +58,17 @@ export class NexusContextActivator {
             priority: 'normal'
         };
 
-        // 1. DEV режим → ЗАВЖДИ Nexus
-        if (detectedMode === 'dev' || this._isDevMode(userMessage, session)) {
+        // 1. DEV режим → ВИКЛЮЧНО ВНУТРІШНІЙ (2025-11-05)
+        // DEV mode більше НЕ активується user requests
+        // Тільки для NEXUS internal operations
+        if (detectedMode === 'dev') {
             analysis.shouldUseNexus = true;
-            analysis.strategy = 'dev-full-nexus';
-            analysis.reasoning = 'DEV mode requires full Nexus capabilities';
+            analysis.strategy = 'dev-internal-nexus';
+            analysis.reasoning = 'DEV mode - NEXUS internal operation (not user-triggered)';
             analysis.models = ['codestral', 'codex', 'thinking'];
-            analysis.priority = 'high';
+            analysis.priority = 'critical';
             
-            this.logger.info('[NEXUS-ACTIVATOR] ✅ DEV mode detected → Full Nexus activation');
+            this.logger.info('[NEXUS-ACTIVATOR] 🔧 DEV mode (INTERNAL) → Full Nexus activation');
             return analysis;
         }
 

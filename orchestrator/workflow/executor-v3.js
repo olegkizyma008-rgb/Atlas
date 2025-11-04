@@ -853,6 +853,20 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.system('executor', `[CHAT-CONTEXT] Total messages in history: ${session.chatThread.messages.length}`);
         logger.system('executor', `[CHAT-CONTEXT] History: ${JSON.stringify(session.chatThread.messages.map(m => ({ role: m.role, content: m.content.substring(0, 50) })), null, 2)}`);
 
+        // NEXUS: Generate dynamic consciousness prompt
+        let dynamicPrompt = '';
+        try {
+          const dynamicPromptInjector = container.resolve('nexusDynamicPromptInjector');
+          if (dynamicPromptInjector) {
+            dynamicPrompt = await dynamicPromptInjector.generateDynamicPrompt(userMessage);
+            if (dynamicPrompt) {
+              logger.system('executor', `[NEXUS-CONSCIOUSNESS] Dynamic prompt generated: ${dynamicPrompt.substring(0, 200)}...`);
+            }
+          }
+        } catch (err) {
+          logger.debug('[NEXUS-CONSCIOUSNESS] Dynamic prompt injector not available:', err.message);
+        }
+
         // Build chat context from recent messages (last 5 exchanges = 10 messages)
         // CRITICAL: Filter out system messages and prompts from context
         const recentMessages = session.chatThread.messages
@@ -938,27 +952,55 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         logger.system('executor', `[SYSTEM-PROMPT] Using prompt from prompts/mcp/atlas_chat.js`);
 
-        // Call LLM for chat response with fallback support
-        let chatResponse;
-        let usedFallback = false;
+    // Call LLM for chat response with fallback support
+    let chatResponse;
+    let usedFallback = false;
+
+    try {
+      // Build messages for LLM
+      // NEXUS: Inject dynamic consciousness prompt into system prompt
+      const enhancedSystemPrompt = chatPrompt.SYSTEM_PROMPT
+        .replace('{{USER_LANGUAGE}}', GlobalConfig.USER_LANGUAGE || 'uk')
+        .replace('{{DYNAMIC_CONSCIOUSNESS_PROMPT}}', dynamicPrompt || '');
+      
+      const messages = [
+        {
+          role: 'system',
+          content: enhancedSystemPrompt
+        },
+        ...recentMessages
+      ];
+
+      // Log what we're sending to LLM
+      logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messages, null, 2)}`);
+      logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
+
+      const response = await axios.post(apiUrl, {
+        model: modelConfig.model,
+        messages,
+        temperature: modelConfig.temperature,
+        max_tokens: modelConfig.max_tokens
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000
+      });
+      chatResponse = response;
+
+      // Log API response
+      const llmAnswer = response.data?.choices?.[0]?.message?.content;
+      logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
+
+    } catch (primaryError) {
+      // Try fallback if primary fails
+      if (apiEndpointConfig?.fallback && !usedFallback) {
+        logger.warn('executor', `Chat API failed: ${primaryError.message}, attempting fallback...`);
+        apiUrl = apiEndpointConfig.fallback;
+        usedFallback = true;
 
         try {
-          // Prepare messages array
-          const messagesArray = [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            ...recentMessages
-          ];
-
-          // Log what we're sending to LLM
-          logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messagesArray, null, 2)}`);
-          logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
-
           const response = await axios.post(apiUrl, {
             model: modelConfig.model,
-            messages: messagesArray,
+            messages,
             temperature: modelConfig.temperature,
             max_tokens: modelConfig.max_tokens
           }, {
@@ -969,41 +1011,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
           // Log API response
           const llmAnswer = response.data?.choices?.[0]?.message?.content;
-          logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
+          logger.system('executor', `[API-RESPONSE FALLBACK] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
 
-        } catch (primaryError) {
-          // Try fallback if primary fails
-          if (apiEndpointConfig?.fallback && !usedFallback) {
-            logger.warn('executor', `Chat API failed: ${primaryError.message}, attempting fallback...`);
-            apiUrl = apiEndpointConfig.fallback;
-            usedFallback = true;
-
-            try {
-              chatResponse = await axios.post(apiUrl, {
-                model: modelConfig.model,
-                messages: [
-                  {
-                    role: 'system',
-                    content: systemPrompt
-                  },
-                  ...recentMessages
-                ],
-                temperature: modelConfig.temperature,
-                max_tokens: modelConfig.max_tokens
-              }, {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 60000
-              });
-              logger.system('executor', `✅ Chat API fallback succeeded`);
-
-            } catch (fallbackError) {
-              logger.error('executor', `Chat API fallback also failed: ${fallbackError.message}`);
-              throw fallbackError;
-            }
-          } else {
-            throw primaryError;
-          }
+        } catch (fallbackError) {
+          logger.error('executor', `Chat API fallback also failed: ${fallbackError.message}`);
+          throw fallbackError;
         }
+      } else {
+        throw primaryError;
+      }
+    }
 
         // Handle both OpenAI format (message.content) and Ollama format (text)
         const atlasResponse = chatResponse.data?.choices?.[0]?.message?.content

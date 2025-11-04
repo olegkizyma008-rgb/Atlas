@@ -11,6 +11,7 @@ import logger from '../utils/logger.js';
 import GlobalConfig from '../../config/global-config.js';
 import fs from 'fs/promises';
 import path from 'path';
+import NexusModelRegistry from './nexus-model-registry.js';
 
 export class MultiModelOrchestrator {
     constructor(container) {
@@ -25,6 +26,9 @@ export class MultiModelOrchestrator {
         
         // FIXED 2025-11-03: Cascade Controller для Windsurf моделей
         this.cascadeController = null;
+        
+        // NEW 2025-11-04: Автономний реєстр моделей
+        this.modelRegistry = new NexusModelRegistry();
     }
 
     async initialize() {
@@ -37,6 +41,10 @@ export class MultiModelOrchestrator {
         } catch (e) {
             this.logger.warn('[NEXUS] Cascade Controller not available, will use direct API calls');
         }
+        
+        // NEW 2025-11-04: Ініціалізація реєстру моделей
+        await this.modelRegistry.initialize();
+        this.logger.info('[NEXUS] ✅ Автономний реєстр моделей активовано');
         
         return true;
     }
@@ -77,7 +85,10 @@ export class MultiModelOrchestrator {
     async executeTask(taskType, prompt, options = {}) {
         this.stats.totalRequests++;
         
-        const modelConfig = this._selectModelForTask(taskType);
+        // NEW 2025-11-04: Використовуємо динамічний вибір моделі через registry
+        const selectedModel = this.modelRegistry.selectModelForTask(taskType, options.context || {});
+        const modelConfig = this._convertToModelConfig(selectedModel);
+        
         this.logger.info(`[NEXUS] Executing ${taskType} with ${modelConfig.name}`);
 
         try {
@@ -130,7 +141,38 @@ export class MultiModelOrchestrator {
     }
 
     /**
-     * Вибір моделі для задачі
+     * NEW 2025-11-04: Конвертація моделі з registry в modelConfig
+     */
+    _convertToModelConfig(model) {
+        if (!model) {
+            // Fallback на дефолтну модель
+            return {
+                name: 'codestral-latest',
+                endpoint: 'http://localhost:4000/v1/chat/completions',
+                temperature: 0.2,
+                max_tokens: 2000,
+                isWindsurf: false
+            };
+        }
+
+        // Визначаємо чи це Windsurf модель
+        const modelId = model.id.toLowerCase();
+        const isWindsurf = modelId.includes('claude') || modelId.includes('gpt-5') || 
+                          modelId.includes('thinking') || modelId.includes('sonnet');
+
+        return {
+            name: model.id,
+            endpoint: isWindsurf 
+                ? (GlobalConfig.MCP_MODEL_CONFIG.apiEndpoint.primary || 'http://localhost:4000/v1/chat/completions')
+                : 'http://localhost:4000/v1/chat/completions',
+            temperature: 0.2,
+            max_tokens: model.context_length > 32000 ? 4000 : 2000,
+            isWindsurf: isWindsurf
+        };
+    }
+
+    /**
+     * Вибір моделі для задачі (DEPRECATED - використовується registry)
      * 
      * WINDSURF моделі (через Windsurf API):
      * - CASCADE_PRIMARY_MODEL: claude-sonnet-4.5-thinking

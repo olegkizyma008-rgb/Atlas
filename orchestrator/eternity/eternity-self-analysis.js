@@ -407,34 +407,26 @@ export class EternityModule extends EventEmitter {
   async _saveAnalysisToMemory(analysisData) {
     try {
       // Збереження через MCP Memory
-      const memoryPayload = {
-        type: 'ETERNITY_SELF_ANALYSIS',
-        timestamp: analysisData.timestamp,
-        evolutionLevel: this.selfAwareness.evolutionLevel,
-        state: analysisData.state,
-        improvements: analysisData.improvements,
-        evolution: analysisData.evolution
-      };
-      
-      // Use MCPManager to save to memory
+      // FIXED 2025-11-04: Memory MCP is knowledge graph, not key-value store
+      // Use create_entities and add_observations instead of 'store'
       const mcpManager = this.container.resolve('mcpManager');
       if (mcpManager && mcpManager.servers.has('memory')) {
-        // Save current state
-        await mcpManager.executeTool('memory', 'store', {
-          key: 'eternity_current_state',
-          value: JSON.stringify(memoryPayload)
+        // Create/update ETERNITY entity in knowledge graph
+        await mcpManager.executeTool('memory', 'create_entities', {
+          entities: [{
+            name: 'ETERNITY_SYSTEM',
+            entityType: 'self_analysis_system',
+            observations: [
+              `Evolution Level: ${this.selfAwareness.evolutionLevel}`,
+              `Last Analysis: ${analysisData.timestamp}`,
+              `State: ${analysisData.state}`,
+              `Improvements: ${analysisData.improvements.length} found`,
+              `Summary: ${this._generateAnalysisSummary(analysisData)}`
+            ]
+          }]
         });
         
-        // Save to history
-        await mcpManager.executeTool('memory', 'store', {
-          key: `eternity_history_${Date.now()}`,
-          value: JSON.stringify({
-            timestamp: analysisData.timestamp,
-            summary: this._generateAnalysisSummary(analysisData)
-          })
-        });
-        
-        this.logger.info('💾 ETERNITY: Стан збережено в MCP Memory');
+        this.logger.info('💾 ETERNITY: Стан збережено в Knowledge Graph');
       } else {
         this.logger.warn('Memory MCP server not available');
       }

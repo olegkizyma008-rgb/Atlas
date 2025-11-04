@@ -20,6 +20,7 @@ export class EternityModule extends EventEmitter {
     this.codestralAPI = null;
     this.mcpMemory = null;
     this.workflowCoordinator = null;
+    this.pendingCorrections = []; // FIXED: Масив для відстежування pending corrections
     
     // NEW 2025-11-04: Повністю автономний режим
     this.autonomousMode = true;

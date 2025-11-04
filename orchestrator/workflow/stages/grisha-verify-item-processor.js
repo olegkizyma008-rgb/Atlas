@@ -2514,7 +2514,11 @@ export class GrishaVerifyItemProcessor {
         const criteriaLower = criteria.toLowerCase();
         
         // FIXED 2025-11-04: Check for specific patterns in criteria
-        if (criteriaLower.includes('відкрит') || criteriaLower.includes('open') || criteriaLower.includes('запущен') || criteriaLower.includes('launched')) {
+        if (criteriaLower.includes('відкрит') || criteriaLower.includes('open') || 
+            criteriaLower.includes('запущен') || criteriaLower.includes('launched') ||
+            criteriaLower.includes('видим') || criteriaLower.includes('visible') ||
+            criteriaLower.includes('активн') || criteriaLower.includes('active')) {
+            
             // Application/browser opening - check if AppleScript executed successfully
             const hasAppleScriptCheck = results.some(r => 
                 r.tool?.includes('applescript') && 
@@ -2534,9 +2538,10 @@ export class GrishaVerifyItemProcessor {
                 return { matched: true, confidence: 75, reason: 'Верифікація не потребує додаткових інструментів - дія вже виконана' };
             }
             
-            // Even if just AppleScript executed without errors, consider it success
+            // CRITICAL FIX 2025-11-04: Even if just AppleScript executed without errors, consider it success
+            // This handles "Safari відкрито та видимий" - if activate succeeded, app is visible
             if (results.some(r => r.tool?.includes('applescript') && r.success)) {
-                return { matched: true, confidence: 85, reason: 'AppleScript виконано успішно - програма відкрита' };
+                return { matched: true, confidence: 90, reason: 'AppleScript виконано успішно - програма відкрита і видима' };
             }
         }
         

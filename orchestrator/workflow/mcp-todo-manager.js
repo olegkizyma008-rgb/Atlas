@@ -12,6 +12,7 @@ import axios from 'axios';
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 import { MCP_PROMPTS, universalMcpPrompt } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
+import { MCP_MODEL_CONFIG } from '../../config/models-config.js';
 import LocalizationService from '../services/localization-service.js';
 import { VisualCaptureService } from '../services/visual-capture-service.js';
 import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
@@ -78,6 +79,9 @@ export class MCPTodoManager {
   constructor({ logger, wsManager = null, localizationService = null, mcpManager = null, ttsSyncManager = null, atlasReplanProcessor = null, llmClient = null }) {
     this.logger = logger;
     this.mcpManager = mcpManager;
+    
+    // Store MCP_MODEL_CONFIG reference (imported at top of file)
+    this.mcpModelConfig = MCP_MODEL_CONFIG;
     this.wsManager = wsManager;
     this.ttsSyncManager = ttsSyncManager;
     this.atlasReplanProcessor = atlasReplanProcessor;
@@ -211,6 +215,118 @@ export class MCPTodoManager {
   }
 
   /**
+   * Analyze TODO feasibility - REASONING before planning
+   * CRITICAL 2025-11-03: Determine if user goal is achievable
+   * 
+   * @param {string} request - User request
+   * @param {Object} context - Context information
+   * @returns {Promise<Object>} Reasoning analysis
+   * @private
+   */
+  async _analyzeTodoFeasibility(request, context = {}) {
+    try {
+      const prompt = {
+        systemPrompt: `You are Atlas - reasoning agent analyzing task feasibility.
+
+**TASK:** Analyze if the user's request is achievable with available tools and propose optimal strategy.
+
+**OUTPUT FORMAT (JSON only):**
+{
+  "feasible": boolean,
+  "confidence": number (0-100),
+  "strategy": "brief strategy description",
+  "risks": ["risk1", "risk2"],
+  "prerequisites": ["prereq1", "prereq2"],
+  "estimated_steps": number,
+  "reasoning": "detailed reasoning about approach"
+}
+
+**ANALYSIS CRITERIA:**
+1. Can this be done with available MCP tools (filesystem, shell, applescript, playwright, memory)?
+2. Are there any blockers or missing prerequisites?
+3. What's the optimal step-by-step strategy?
+4. What risks should be considered?
+5. How complex is this task (simple=1-3 steps, complex=4-10+ steps)?
+
+Respond ONLY with JSON, no markdown, no explanations.`,
+        userPrompt: `**User Request:** ${request}
+
+**Available MCP Tools:**
+- filesystem: read/write files, create directories
+- shell: execute terminal commands
+- applescript: macOS automation (open apps, UI control)
+- playwright: browser automation (navigate, click, fill forms)
+- memory: persistent storage
+- windsurf: code analysis (if needed)
+
+Analyze feasibility and propose strategy.`
+      };
+
+      const modelConfig = this._getModelForStage('reasoning');
+      
+      // FIXED 2025-11-04: Use direct axios call instead of non-existent callLLM method
+      const apiResponse = await axios.post(
+        this.mcpModelConfig.apiEndpoint,
+        {
+          model: modelConfig.model,
+          messages: [
+            { role: 'system', content: prompt.systemPrompt },
+            { role: 'user', content: prompt.userPrompt }
+          ],
+          temperature: 0.2,
+          max_tokens: 800
+        },
+        { timeout: 20000 }
+      );
+
+      const response = apiResponse.data.choices[0].message.content;
+      
+      // Parse JSON response
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/i, '').replace(/```\s*$/i, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/i, '').replace(/```\s*$/i, '');
+      }
+      
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        cleanResponse = cleanResponse.slice(jsonStart, jsonEnd + 1);
+      }
+      
+      const analysis = JSON.parse(cleanResponse);
+      
+      return {
+        feasible: analysis.feasible !== false, // Default to true
+        confidence: analysis.confidence || 75,
+        strategy: analysis.strategy || 'Standard execution',
+        risks: analysis.risks || [],
+        prerequisites: analysis.prerequisites || [],
+        estimated_steps: analysis.estimated_steps || 5,
+        reasoning: analysis.reasoning || 'No detailed reasoning provided'
+      };
+
+    } catch (error) {
+      this.logger.warn(`[MCP-TODO] Reasoning analysis failed: ${error.message}`, {
+        category: 'mcp-todo',
+        component: 'mcp-todo'
+      });
+      
+      // Fallback: assume feasible
+      return {
+        feasible: true,
+        confidence: 60,
+        strategy: 'Standard execution with monitoring',
+        risks: ['Reasoning stage failed - proceeding with caution'],
+        prerequisites: [],
+        estimated_steps: 5,
+        reasoning: 'Reasoning failed, proceeding with default approach'
+      };
+    }
+  }
+
+  /**
      * Wait before making API call to avoid rate limits
      * ADDED 14.10.2025 - Prevent parallel API calls
      *
@@ -339,6 +455,27 @@ export class MCPTodoManager {
     }
 
     try {
+      // CRITICAL 2025-11-03: REASONING STAGE BEFORE TODO CREATION
+      // Analyze user request and determine if the goal is achievable
+      this.logger.system('mcp-todo', '[TODO] 🧠 Stage 0: Pre-planning reasoning...');
+      
+      const reasoningAnalysis = await this._analyzeTodoFeasibility(request, context);
+      
+      this.logger.system('mcp-todo', `[TODO] 🧠 Reasoning result:`);
+      this.logger.system('mcp-todo', `[TODO]   Feasible: ${reasoningAnalysis.feasible ? '✅' : '❌'}`);
+      this.logger.system('mcp-todo', `[TODO]   Confidence: ${reasoningAnalysis.confidence}%`);
+      this.logger.system('mcp-todo', `[TODO]   Strategy: ${reasoningAnalysis.strategy}`);
+      
+      if (reasoningAnalysis.risks && reasoningAnalysis.risks.length > 0) {
+        this.logger.system('mcp-todo', `[TODO]   Risks identified: ${reasoningAnalysis.risks.length}`);
+        reasoningAnalysis.risks.forEach((risk, idx) => {
+          this.logger.system('mcp-todo', `[TODO]      ${idx + 1}. ${risk}`);
+        });
+      }
+      
+      // Store reasoning for use in TODO prompt
+      context.reasoning_analysis = reasoningAnalysis;
+
       // Import full prompt from MCP prompts
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
       const todoPrompt = MCP_PROMPTS.ATLAS_TODO_PLANNING;
@@ -479,6 +616,14 @@ export class MCPTodoManager {
 
       // Validate TODO structure
       this._validateTodo(todo);
+
+      // FIXED 2025-11-03: Store user preferences and original request in TODO for context preservation
+      // This ensures execution and verification stages can access user's explicit requirements
+      todo.context = {
+        originalRequest: request,
+        userPreferences: context.userPreferences || {},
+        timestamp: context.timestamp
+      };
 
       // Store active TODO
       this.activeTodos.set(todo.id, todo);
@@ -1095,6 +1240,25 @@ export class MCPTodoManager {
         throw new Error('Tool planning failed: no available tools loaded from MCP servers');
       }
 
+      // FIXED 2025-11-03: Generate JSON Schema for tools to prevent "toolSchema is not defined" error
+      let toolSchema = null;
+      if (options.toolSchema) {
+        // Use provided schema from options
+        toolSchema = options.toolSchema;
+        this.logger.system('mcp-todo', '[TODO] 📋 Using provided toolSchema from options');
+      } else if (this.container) {
+        // Generate schema using mcpSchemaBuilder
+        try {
+          const schemaBuilder = this.container.resolve('mcpSchemaBuilder');
+          if (schemaBuilder && typeof schemaBuilder.buildToolSchema === 'function') {
+            toolSchema = schemaBuilder.buildToolSchema(availableTools);
+            this.logger.system('mcp-todo', `[TODO] 📋 Generated JSON Schema for ${availableTools.length} tools`);
+          }
+        } catch (err) {
+          this.logger.debug('mcp-todo', 'Schema builder not available, skipping JSON Schema');
+        }
+      }
+
       // Import Tetyana Plan Tools prompt
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
       
@@ -1239,15 +1403,17 @@ Create precise MCP tool execution plan.
 
         // FIXED 2025-10-22 - Optimized timeout configuration
         // FIXED 2025-11-02 - Add safety check for undefined modelConfig.model
-        const modelName = modelConfig?.model || '';
-        const isReasoningModel = modelName.includes('reasoning') || modelName.includes('phi-4');
-        const timeoutMs = isReasoningModel ? 90000 : 30000;  // 90s for reasoning, 30s for fast models
+        // CRITICAL 2025-11-03 - Automatic fallback to alternative model on rate limits
+        const timeoutMs = modelConfig?.timeout || 60000;
+        let model = modelConfig?.model || 'atlas-mistral-small-2503';
+        const fallbackModel = modelConfig?.fallback || 'atlas-jamba-1.5-mini';
+        let usingFallback = false;
+        
+        this.logger.system('mcp-todo', `[TODO] Primary model: ${model}, Fallback: ${fallbackModel}`);
 
-        // NEW 2025-10-22: Build JSON Schema for tool_calls to enforce valid tool names (Goose-style)
-        const toolSchema = this._buildToolCallsSchema(availableTools);
-
+        // Build request body
         const requestBody = {
-          model: modelConfig.model,
+          model,
           messages: [
             {
               role: 'system',
@@ -1301,9 +1467,20 @@ Create precise MCP tool execution plan.
               validateStatus: (status) => status < 600 // Accept all responses to handle manually
             });
             
-            // Check for rate limit errors (need retry with longer delay)
-            if (apiResponse.status === 500 && apiResponse.data?.error?.code === 'RATE_LIMIT') {
-              this.logger.warn(`[MCP-TODO] Rate limit detected, will retry with exponential backoff`, {
+            // CRITICAL 2025-11-03: Auto-switch to fallback on rate limit
+            if (apiResponse.status === 429 || (apiResponse.status === 500 && apiResponse.data?.error?.code === 'RATE_LIMIT')) {
+              if (!usingFallback && fallbackModel && fallbackModel !== model) {
+                this.logger.warn(`[MCP-TODO] 🔄 Rate limit on ${model} - switching to fallback ${fallbackModel}`, {
+                  category: 'mcp-todo',
+                  component: 'mcp-todo'
+                });
+                model = fallbackModel;
+                usingFallback = true;
+                retryCount = 0; // Reset retry counter for fallback model
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Brief delay before fallback
+                continue; // Retry with fallback model immediately
+              }
+              this.logger.warn(`[MCP-TODO] Rate limit on fallback model, will retry with backoff`, {
                 category: 'mcp-todo',
                 component: 'mcp-todo',
                 attempt: retryCount + 1,
@@ -1327,6 +1504,19 @@ Create precise MCP tool execution plan.
           } catch (retryError) {
             retryCount++;
             
+            // CRITICAL 2025-11-03: Try fallback after 2 failures on primary
+            if (retryCount === 2 && !usingFallback && fallbackModel && fallbackModel !== model) {
+              this.logger.warn(`[MCP-TODO] 🔄 2 failures on ${model} - switching to fallback ${fallbackModel}`, {
+                category: 'mcp-todo',
+                component: 'mcp-todo'
+              });
+              model = fallbackModel;
+              usingFallback = true;
+              retryCount = 0; // Reset for fallback
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              continue;
+            }
+            
             if (retryCount >= maxRetries) {
               throw retryError;
             }
@@ -1348,9 +1538,8 @@ Create precise MCP tool execution plan.
 
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
         
-        // FIXED 2025-11-03: Increased delay to prevent rate limiting on localhost:4000
-        // LLM API needs more time to recover between requests when handling multiple parallel workflows
-        const postSuccessDelay = 5000; // 5 seconds between successful LLM calls
+        // FIXED 2025-11-04: Reduced delay - API can handle faster requests
+        const postSuccessDelay = 500; // 0.5 seconds between successful LLM calls
         await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
 
       } catch (apiError) {
@@ -2434,23 +2623,36 @@ Context: ${JSON.stringify(context, null, 2)}
           .replace(/\s*```$/i, '')       // Remove closing ```
           .trim();
 
-        // Step 3: Aggressive JSON extraction - find first { to last }
-        // This handles cases where LLM adds text before/after JSON
+        // Step 3: Aggressive JSON extraction - find first { or [ to last } or ]
+        // FIXED 2025-11-04: Handle both object and array responses
         const firstBrace = cleanResponse.indexOf('{');
+        const firstBracket = cleanResponse.indexOf('[');
         const lastBrace = cleanResponse.lastIndexOf('}');
-
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const lastBracket = cleanResponse.lastIndexOf(']');
+        
+        // Determine if response is an array or object
+        const isArray = (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace));
+        
+        if (isArray && firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+          // Extract array
+          cleanResponse = cleanResponse.substring(firstBracket, lastBracket + 1);
+        } else if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          // Extract object
           cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
         } else {
           // No JSON found in response - try to extract from original
-          // Some models put JSON AFTER <think>, so try original response too
           const origFirstBrace = response.indexOf('{');
+          const origFirstBracket = response.indexOf('[');
           const origLastBrace = response.lastIndexOf('}');
+          const origLastBracket = response.lastIndexOf(']');
+          const origIsArray = (origFirstBracket !== -1 && (origFirstBrace === -1 || origFirstBracket < origFirstBrace));
 
-          if (origFirstBrace !== -1 && origLastBrace !== -1 && origLastBrace > origFirstBrace) {
+          if (origIsArray && origFirstBracket !== -1 && origLastBracket !== -1 && origLastBracket > origFirstBracket) {
+            cleanResponse = response.substring(origFirstBracket, origLastBracket + 1);
+          } else if (origFirstBrace !== -1 && origLastBrace !== -1 && origLastBrace > origFirstBrace) {
             cleanResponse = response.substring(origFirstBrace, origLastBrace + 1);
           } else {
-            throw new Error('No JSON object found in response (no curly braces)');
+            throw new Error('No JSON object or array found in response');
           }
         }
       }
@@ -2495,9 +2697,54 @@ Context: ${JSON.stringify(context, null, 2)}
         parsed = cleanResponse;
       }
       // FIXED 2025-10-29 - Handle JSON Schema wrapper format
-      // LLM sometimes returns {"type":"object","properties":{"tool_calls":[...]}} instead of {"tool_calls":[...]}
+      // FIXED 2025-11-04 - Handle direct array responses
       let actualData = parsed;
-      if (parsed.type === 'object' && parsed.properties) {
+      
+      // Check if response is a direct array of tool calls
+      if (Array.isArray(parsed)) {
+        // FIXED 2025-11-04: LLM returns array of objects without server field
+        // Need to infer server from context or tool name
+        const toolCallsWithServer = parsed.map(item => {
+          // If item already has server field, use it
+          if (item.server || item.mcp_server) {
+            return item;
+          }
+          
+          // Try to infer server from tool name
+          const toolName = item.tool || item.tool_name || '';
+          let inferredServer = null;
+          
+          // Check common patterns
+          if (toolName.includes('browser') || toolName.includes('navigate') || toolName.includes('playwright')) {
+            inferredServer = 'playwright';
+          } else if (toolName.includes('applescript') || toolName.includes('apple')) {
+            inferredServer = 'applescript';
+          } else if (toolName.includes('file') || toolName.includes('directory')) {
+            inferredServer = 'filesystem';
+          } else if (toolName.includes('shell') || toolName.includes('command')) {
+            inferredServer = 'shell';
+          }
+          
+          if (inferredServer) {
+            this.logger.warn(`[MCP-TODO] 🔧 Inferred server "${inferredServer}" from tool "${toolName}"`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo'
+            });
+            return { ...item, server: inferredServer };
+          }
+          
+          return item;
+        });
+        
+        actualData = {
+          tool_calls: toolCallsWithServer,
+          reasoning: ''
+        };
+        this.logger.warn('[MCP-TODO] ⚠️ LLM returned array format, converting to object format', {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
+        });
+      } else if (parsed.type === 'object' && parsed.properties) {
         // Extract actual data from JSON Schema wrapper
         actualData = parsed.properties;
         this.logger.warn('[MCP-TODO] ⚠️ LLM returned JSON Schema format instead of data, extracting properties', {
@@ -2506,21 +2753,65 @@ Context: ${JSON.stringify(context, null, 2)}
         });
       }
       
-      // FIXED 2025-10-22 - Auto-fix null server by extracting from tool name
-      const toolCalls = (actualData.tool_calls || []).map(call => {
-        const server = call.server || call.mcp_server || call.server_name;
-        const rawTool = call.tool || call.tool_name;
+      // FIXED 2025-11-03 - Filter valid tool calls from metadata elements
+      // LLM sometimes returns: [{"server":"...","tool":"..."}, {"reasoning":"...","tts_phrase":"..."}]
+      // Second element is metadata, not a tool call - extract it separately
+      let reasoning = actualData.reasoning || '';
+      let ttsPhrase = actualData.tts_phrase || '';
+      
+      const toolCalls = (actualData.tool_calls || [])
+        .filter(call => {
+          // Check if this is a valid tool call (has server and tool)
+          const hasServer = call.server || call.mcp_server || call.server_name;
+          const hasTool = call.tool || call.tool_name;
+          
+          // If it's metadata (reasoning/tts_phrase), extract and skip
+          if (!hasServer && !hasTool) {
+            if (call.reasoning) reasoning = call.reasoning;
+            if (call.tts_phrase) ttsPhrase = call.tts_phrase;
+            return false;  // Skip this element
+          }
+          
+          return true;  // Valid tool call
+        })
+        .map(call => {
+          let server = call.server || call.mcp_server || call.server_name;
+          let rawTool = call.tool || call.tool_name;
 
-        if (!server || !rawTool) {
-          throw new Error('Tool call missing server or tool');
-        }
+          // FIXED 2025-11-04: Parse "server_toolname" format
+          // LLM often returns {"tool": "filesystem_write_file"} without separate server field
+          if (!server && rawTool && rawTool.includes('_')) {
+            const parts = rawTool.split('_');
+            // Check if first part is a known server
+            const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
+            if (knownServers.includes(parts[0])) {
+              server = parts[0];
+              rawTool = parts.slice(1).join('_'); // Rest is tool name
+              this.logger.debug(`[MCP-TODO] 🔧 Parsed tool name: ${call.tool} -> server=${server}, tool=${rawTool}`, {
+                category: 'mcp-todo',
+                component: 'mcp-todo'
+              });
+            }
+          }
 
-        return {
-          server,
-          tool: this._normalizeToolName(server, rawTool),
-          parameters: call.parameters || {}
-        };
-      });
+          if (!server || !rawTool) {
+            this.logger.warn(`[MCP-TODO] ⚠️ Skipping invalid tool call:`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo',
+              call
+            });
+            return null;
+          }
+
+          // FIXED 2025-11-04: LLM invents tool names - accept any name and let validation handle it
+          // Parser should be permissive, validator will suggest corrections
+          return {
+            server,
+            tool: this._normalizeToolName(server, rawTool),
+            parameters: call.parameters || call.params || {}
+          };
+        })
+        .filter(call => call !== null);  // Remove nulls
       
       return {
         tool_calls: toolCalls,
@@ -2804,6 +3095,28 @@ Context: ${JSON.stringify(context, null, 2)}
       .replace(/['‛'`´]/g, '\'')
       .replace(/[""]/g, '"');
 
+    // FIXED 2025-11-04: Enhanced escape handling for AppleScript code
+    // Handle nested quotes and special characters in AppleScript parameters
+    // Process string content more carefully to avoid breaking valid JSON
+    sanitized = sanitized.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
+      // First, handle already escaped sequences
+      let escaped = content;
+      
+      // Only escape unescaped quotes (not already escaped)
+      escaped = escaped.replace(/(?<!\\)"/g, '\\"');
+      
+      // Escape real newlines/tabs/returns (not already escaped)
+      escaped = escaped
+        .replace(/(?<!\\)\n/g, '\\n')   // Real newline -> \\n
+        .replace(/(?<!\\)\r/g, '\\r')   // Real carriage return -> \\r
+        .replace(/(?<!\\)\t/g, '\\t');  // Real tab -> \\t
+      
+      // Remove other control characters except already escaped ones
+      escaped = escaped.replace(/(?<!\\)[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+      
+      return `"${escaped}"`;
+    });
+
     // FIXED 2025-11-02: Remove repeated "reasoning: " patterns that break JSON
     // LLM sometimes generates: }}, "reasoning: ","reasoning: ","reasoning: "...
     sanitized = sanitized.replace(/,\s*"reasoning:\s*"\s*(,\s*"reasoning:\s*"\s*)*/g, '');
@@ -3015,6 +3328,55 @@ Context: ${JSON.stringify(context, null, 2)}
     if (mod10 === 1 && mod100 !== 11) return one;
     if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
     return many;
+  }
+
+  /**
+   * Get model configuration for specific workflow stage
+   * ADDED 2025-11-04: Support for stage-specific model selection
+   * 
+   * @param {string} stageName - Stage name (e.g., 'reasoning', 'todo_planning')
+   * @returns {Object} Model configuration {model, temperature, max_tokens}
+   * @private
+   */
+  _getModelForStage(stageName) {
+    // Fallback to GlobalConfig if mcpModelConfig not loaded yet
+    const config = this.mcpModelConfig || GlobalConfig.MCP_MODEL_CONFIG;
+    
+    if (!config || !config.stages) {
+      this.logger.warn(`[MCP-TODO] MCP_MODEL_CONFIG not available for stage: ${stageName}`, {
+        category: 'mcp-todo',
+        component: 'mcp-todo'
+      });
+      
+      // Return safe defaults
+      return {
+        model: 'atlas-mistral-medium-2505',
+        temperature: 0.3,
+        max_tokens: 4000
+      };
+    }
+    
+    // Get stage config
+    const stageConfig = config.stages[stageName];
+    
+    if (!stageConfig) {
+      this.logger.warn(`[MCP-TODO] No config found for stage: ${stageName}, using defaults`, {
+        category: 'mcp-todo',
+        component: 'mcp-todo'
+      });
+      
+      return {
+        model: 'atlas-mistral-medium-2505',
+        temperature: 0.3,
+        max_tokens: 4000
+      };
+    }
+    
+    return {
+      model: stageConfig.model,
+      temperature: stageConfig.temperature,
+      max_tokens: stageConfig.max_tokens
+    };
   }
 
   /**

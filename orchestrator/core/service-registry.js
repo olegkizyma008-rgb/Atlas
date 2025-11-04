@@ -541,6 +541,29 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'workflow', priority: 41 }
     });
 
+    // Hybrid Workflow Executor - NEW 04.11.2025
+    // Goose-Atlas hybrid system for parallel execution
+    container.singleton('hybridWorkflowExecutor', async (c) => {
+        const { HybridWorkflowExecutor } = await import('../workflow/hybrid/hybrid-executor.js');
+        return new HybridWorkflowExecutor({
+            maxWorkers: 10,
+            executionMode: 'adaptive',
+            verificationStrategy: 'composite',
+            container: c,
+            wsManager: c.resolve('wsManager'),
+            ttsSyncManager: c.resolve('ttsSyncManager'),
+            localizationService: c.resolve('localizationService')
+        });
+    }, {
+        dependencies: ['wsManager', 'ttsSyncManager', 'localizationService'],
+        metadata: { category: 'workflow', priority: 40 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🚀 Hybrid Workflow Executor initialized - Goose-Atlas hybrid system ready');
+            }
+        }
+    });
+
     // Router Classifier Processor - NEW 29.10.2025
     // Optional fast pre-filter before server selection
     container.singleton('routerClassifier', async (c) => {

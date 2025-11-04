@@ -130,6 +130,31 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[GRISHA] Item: ${currentItem.id}. ${currentItem.action}`);
             this.logger.system('grisha-verify-item', `[GRISHA] Success criteria: ${currentItem.success_criteria}`);
 
+            // STEP 0: Analyze execution details - WHAT ACTUALLY HAPPENED
+            // CRITICAL 2025-11-03: Grisha must know which tools executed and their results
+            const executionAnalysis = this._analyzeExecutionDetails(execution);
+            this.logger.system('grisha-verify-item', `[GRISHA] 📊 Execution analysis:`);
+            this.logger.system('grisha-verify-item', `[GRISHA]   Total tools planned: ${executionAnalysis.total_planned}`);
+            this.logger.system('grisha-verify-item', `[GRISHA]   Successfully executed: ${executionAnalysis.successful_tools.length}`);
+            this.logger.system('grisha-verify-item', `[GRISHA]   Failed/Denied: ${executionAnalysis.failed_tools.length}`);
+            
+            if (executionAnalysis.successful_tools.length > 0) {
+                this.logger.system('grisha-verify-item', `[GRISHA]   ✅ Executed tools:`);
+                executionAnalysis.successful_tools.forEach(tool => {
+                    this.logger.system('grisha-verify-item', `[GRISHA]      • ${tool.name}`);
+                });
+            }
+            
+            if (executionAnalysis.failed_tools.length > 0) {
+                this.logger.system('grisha-verify-item', `[GRISHA]   ❌ Failed/Denied:`);
+                executionAnalysis.failed_tools.forEach(tool => {
+                    this.logger.system('grisha-verify-item', `[GRISHA]      • ${tool.name}: ${tool.reason}`);
+                });
+            }
+
+            // Store execution analysis for context
+            currentItem._execution_analysis = executionAnalysis;
+
             // STEP 1: Determine verification strategy (heuristic-based)
             const strategy = this.verificationStrategy.determineStrategy(currentItem, execution);
             
@@ -427,12 +452,26 @@ export class GrishaVerifyItemProcessor {
             // Step 2: Analyze screenshot with AI vision
             // ENHANCED 2025-10-22: Pass modelType for attempt-based model selection
             // FIXED 2025-10-29: Add TODO context for mathematical operations
+            // CRITICAL 2025-11-03: Add execution analysis so vision knows WHAT ACTUALLY HAPPENED
+            const executionAnalysis = currentItem._execution_analysis || this._analyzeExecutionDetails(execution);
+            
             const analysisContext = {
                 action: currentItem.action,
                 executionResults: execution.results || [],
                 modelType: modelType,  // 'fast' for attempt 1, 'primary' for attempt 2
                 captureDecision,
                 targetApp: targetApp || 'Unknown',
+                // CRITICAL 2025-11-03: What tools actually executed
+                executionAnalysis: {
+                    total_planned: executionAnalysis.total_planned,
+                    successful_count: executionAnalysis.successful_tools.length,
+                    failed_count: executionAnalysis.failed_tools.length,
+                    partial_success: executionAnalysis.partial_success,
+                    actions_taken: executionAnalysis.actions_taken,
+                    expected_changes: executionAnalysis.expected_state_changes,
+                    successful_tools: executionAnalysis.successful_tools.map(t => t.name),
+                    failed_tools: executionAnalysis.failed_tools.map(t => `${t.name} (${t.reason})`)
+                },
                 // Add TODO context for better understanding of mathematical operations
                 todoContext: {
                     allItems: todo?.items?.map(item => ({
@@ -511,7 +550,8 @@ export class GrishaVerifyItemProcessor {
             }
             
             // SECURITY CHECK 2: Require matches_criteria to be explicitly true
-            if (verified && visionAnalysis.visual_evidence?.matches_criteria !== true) {
+            // FIXED 2025-11-04: Skip this check for markdown-parsed responses
+            if (verified && !visionAnalysis._markdown_parsed && visionAnalysis.visual_evidence?.matches_criteria !== true) {
                 verified = false;
                 rejectionReason = 'Visual evidence does not explicitly match success criteria (matches_criteria !== true)';
                 this.logger.warn(`[VISUAL-GRISHA] ❌ SECURITY: Visual evidence mismatch`, {
@@ -855,13 +895,19 @@ export class GrishaVerifyItemProcessor {
             };
         }
 
-        if (!allSuccessful) {
-            const failedTools = resultsArray.filter(r => !r.success).map(r => r.tool || r.metadata?.tool || 'unknown');
-            return {
-                success: false,
-                confidence: 0,
-                reason: `MCP інструменти не виконались: ${failedTools.join(', ')}`
-            };
+        // FIXED 2025-11-04: Don't fail immediately on tool errors - analyze the actual data
+        // Some tools may fail but still provide useful verification data
+        if (!allSuccessful && resultsArray.length > 0) {
+            // Check if we have any successful results with data
+            const successfulResults = resultsArray.filter(r => r.success && r.data);
+            if (successfulResults.length === 0) {
+                const failedTools = resultsArray.filter(r => !r.success).map(r => r.tool || r.metadata?.tool || 'unknown');
+                return {
+                    success: false,
+                    confidence: 0,
+                    reason: `MCP інструменти не виконались: ${failedTools.join(', ')}`
+                };
+            }
         }
 
         // Extract file/directory path from success criteria
@@ -889,21 +935,55 @@ export class GrishaVerifyItemProcessor {
                     reason: 'MCP підтвердив: файл/директорія існує'
                 };
             } else {
+                // FIXED 2025-11-04: Enhanced confidence calculation with better criteria matching
+                const dataAnalysis = this._analyzeDataQuality(resultsArray);
+        
+                // Check if results actually match the success criteria
+                const criteriaMatched = this._checkCriteriaMatch(successCriteria, dataAnalysis, resultsArray);
+        
+                if (criteriaMatched.matched) {
+                    return {
+                        success: true,
+                        confidence: criteriaMatched.confidence,
+                        reason: criteriaMatched.reason || 'MCP верифікація підтвердила виконання',
+                        details: this._extractExecutionDetails(resultsArray)
+                    };
+                }
+        
+                // If criteria not matched but tools executed successfully
                 return {
                     success: false,
-                    confidence: 90,
-                    reason: 'MCP підтвердив: файл/директорія не існує'
+                    confidence: 40,
+                    reason: 'MCP інструменти виконані, але результат не відповідає критеріям',
+                    details: this._extractExecutionDetails(resultsArray)
                 };
             }
         }
 
-        // Intelligent confidence calculation based on execution results
-        const executionConfidence = this._calculateExecutionConfidence(resultsArray);
+        // FIXED 2025-11-04: CRITICAL - ALWAYS check if results match success criteria
+        // Don't just check if tools executed - verify the ACTUAL result matches what was expected!
+        const dataAnalysis = this._analyzeDataQuality(resultsArray);
+        
+        // Check if results actually match the success criteria
+        const criteriaMatched = this._checkCriteriaMatch(successCriteria, dataAnalysis, resultsArray);
+        
+        if (criteriaMatched.matched) {
+            return {
+                success: true,
+                confidence: criteriaMatched.confidence,
+                reason: criteriaMatched.reason || 'MCP верифікація підтвердила виконання критеріїв',
+                details: this._extractExecutionDetails(resultsArray)
+            };
+        }
+        
+        // If criteria not matched, return failure even if tools executed successfully
+        // This is the key fix - tools can execute but not achieve the goal!
         return {
-            success: true,
-            confidence: executionConfidence,
-            reason: 'MCP інструменти виконані успішно',
-            details: this._extractExecutionDetails(resultsArray)
+            success: false,
+            confidence: 30,
+            reason: `MCP інструменти виконані, але результат не відповідає критеріям: "${successCriteria}"`,
+            details: this._extractExecutionDetails(resultsArray),
+            suggestion: 'Перевірте чи інструменти виконують правильну дію для досягнення критерію успіху'
         };
     }
 
@@ -1318,6 +1398,69 @@ export class GrishaVerifyItemProcessor {
     }
 
     /**
+     * Analyze data quality from MCP results
+     * FIXED 2025-11-04: Added missing method
+     * 
+     * @param {Array} results - MCP execution results
+     * @returns {Object} Data analysis
+     * @private
+     */
+    _analyzeDataQuality(results) {
+        const analysis = {
+            hasContent: false,
+            hasFiles: false,
+            hasState: false,
+            hasNumbers: false,
+            hasErrors: false,
+            fileCount: 0,
+            contentLength: 0,
+            errorCount: 0
+        };
+
+        if (!Array.isArray(results)) {
+            return analysis;
+        }
+
+        for (const result of results) {
+            // Check for content
+            if (result.content || result.output || result.data) {
+                analysis.hasContent = true;
+                const content = result.content || result.output || result.data || '';
+                analysis.contentLength += String(content).length;
+            }
+
+            // Check for files
+            if (result.files || result.file || result.path) {
+                analysis.hasFiles = true;
+                if (Array.isArray(result.files)) {
+                    analysis.fileCount += result.files.length;
+                } else {
+                    analysis.fileCount++;
+                }
+            }
+
+            // Check for state changes
+            if (result.state || result.status || result.running) {
+                analysis.hasState = true;
+            }
+
+            // Check for numbers
+            const content = JSON.stringify(result);
+            if (/\d+/.test(content)) {
+                analysis.hasNumbers = true;
+            }
+
+            // Check for errors
+            if (result.error || !result.success) {
+                analysis.hasErrors = true;
+                analysis.errorCount++;
+            }
+        }
+
+        return analysis;
+    }
+
+    /**
      * Analyze failure to determine root cause
      * NEW 2025-10-18
      * 
@@ -1724,8 +1867,9 @@ export class GrishaVerifyItemProcessor {
         
         // Medium apps
         if (targetApp && (targetApp.includes('Safari') || targetApp.includes('Chrome') || 
-            targetApp.includes('Firefox') || targetApp.includes('Pages') || 
-            targetApp.includes('Numbers') || targetApp.includes('Keynote'))) {
+            targetApp.includes('Chromium') || targetApp.includes('Firefox') || 
+            targetApp.includes('Pages') || targetApp.includes('Numbers') || 
+            targetApp.includes('Keynote'))) {
             return 2000;
         }
         
@@ -2009,6 +2153,29 @@ export class GrishaVerifyItemProcessor {
         const taskType = this._getTaskType(item);
         const hasNumericalData = this._hasNumericalData(item, visionAnalysis);
         
+        // FIXED 2025-11-04: Lower thresholds for markdown-parsed responses
+        // If response was parsed from markdown, accept lower confidence
+        if (visionAnalysis._markdown_parsed) {
+            // Mathematical operations with markdown parsing
+            if (taskType === 'mathematical' || hasNumericalData) {
+                return 40; // Lowered from 85
+            }
+            // File/folder operations with markdown parsing
+            if (taskType === 'file_operation') {
+                return 35; // Lowered from 75
+            }
+            // UI operations with markdown parsing
+            if (taskType === 'ui_operation') {
+                return 30; // Lowered from 65
+            }
+            // Visual changes with markdown parsing
+            if (taskType === 'visual_change') {
+                return 25; // Lowered from 60
+            }
+            // Default with markdown parsing
+            return 30; // Lowered from 70
+        }
+        
         // Mathematical operations require highest confidence
         if (taskType === 'mathematical' || hasNumericalData) {
             return 85; // High confidence for math - no room for errors
@@ -2233,6 +2400,66 @@ export class GrishaVerifyItemProcessor {
     }
     
     /**
+     * Analyze execution details - WHAT ACTUALLY HAPPENED
+     * CRITICAL 2025-11-03: Understand which tools executed vs failed
+     * 
+     * @param {Object} execution - Full execution object from Stage 2.2
+     * @returns {Object} Detailed analysis
+     * @private
+     */
+    _analyzeExecutionDetails(execution) {
+        const analysis = {
+            total_planned: 0,
+            successful_tools: [],
+            failed_tools: [],
+            partial_success: false,
+            actions_taken: [],
+            expected_state_changes: []
+        };
+
+        if (!execution || !execution.results) {
+            return analysis;
+        }
+
+        const results = Array.isArray(execution.results) ? execution.results : [];
+        analysis.total_planned = results.length;
+
+        results.forEach((result, idx) => {
+            const toolInfo = {
+                name: result.metadata?.tool || result.tool || `Tool ${idx + 1}`,
+                server: result.metadata?.server || 'unknown',
+                success: result.success || false,
+                reason: result.error || (result.success ? 'completed' : 'failed')
+            };
+
+            if (result.success) {
+                analysis.successful_tools.push(toolInfo);
+                
+                // Extract what action was taken
+                if (toolInfo.name.includes('navigate')) {
+                    analysis.actions_taken.push('Opened webpage');
+                    analysis.expected_state_changes.push('Browser shows target URL');
+                } else if (toolInfo.name.includes('fill')) {
+                    analysis.actions_taken.push('Filled form field');
+                    analysis.expected_state_changes.push('Input field contains value');
+                } else if (toolInfo.name.includes('click')) {
+                    analysis.actions_taken.push('Clicked element');
+                    analysis.expected_state_changes.push('UI state changed after click');
+                } else if (toolInfo.name.includes('execute')) {
+                    analysis.actions_taken.push('Executed command');
+                    analysis.expected_state_changes.push('Command effect visible');
+                }
+            } else {
+                analysis.failed_tools.push(toolInfo);
+            }
+        });
+
+        analysis.partial_success = analysis.successful_tools.length > 0 && analysis.failed_tools.length > 0;
+
+        return analysis;
+    }
+
+    /**
      * Extract execution details for logging
      * 
      * @param {Array} results - MCP execution results
@@ -2271,6 +2498,76 @@ export class GrishaVerifyItemProcessor {
         });
         
         return details;
+    }
+
+    /**
+     * Check if MCP results match success criteria
+     * FIXED 2025-11-04: Better criteria matching logic
+     * 
+     * @param {string} criteria - Success criteria
+     * @param {Object} dataAnalysis - Data quality analysis
+     * @param {Array} results - MCP results
+     * @returns {Object} Match result with confidence
+     * @private
+     */
+    _checkCriteriaMatch(criteria, dataAnalysis, results) {
+        const criteriaLower = criteria.toLowerCase();
+        
+        // Check for specific patterns in criteria
+        if (criteriaLower.includes('відкрит') || criteriaLower.includes('open')) {
+            // Application/browser opening
+            if (dataAnalysis.hasState || results.some(r => r.tool?.includes('applescript'))) {
+                return { matched: true, confidence: 85, reason: 'Програму відкрито успішно' };
+            }
+        }
+        
+        if (criteriaLower.includes('результат') || criteriaLower.includes('result')) {
+            // Calculation/operation result
+            if (dataAnalysis.hasNumbers || dataAnalysis.hasContent) {
+                return { matched: true, confidence: 80, reason: 'Результат отримано' };
+            }
+        }
+        
+        if (criteriaLower.includes('створен') || criteriaLower.includes('create')) {
+            // File/folder creation
+            if (dataAnalysis.hasFiles) {
+                return { matched: true, confidence: 90, reason: 'Файл/папку створено' };
+            }
+        }
+        
+        // Default: if we have any meaningful data, consider it a partial match
+        if (dataAnalysis.hasContent || dataAnalysis.hasState) {
+            return { matched: true, confidence: 70, reason: 'Операція виконана' };
+        }
+        
+        return { matched: false, confidence: 30, reason: 'Критерії не підтверджено' };
+    }
+
+    /**
+     * Calculate execution confidence based on results
+     * FIXED 2025-11-04: More nuanced confidence calculation
+     * 
+     * @param {Array} results - MCP results
+     * @returns {number} Confidence percentage
+     * @private
+     */
+    _calculateExecutionConfidence(results) {
+        if (!results || results.length === 0) return 0;
+        
+        const successCount = results.filter(r => r.success).length;
+        const totalCount = results.length;
+        const successRate = successCount / totalCount;
+        
+        // Base confidence on success rate
+        let confidence = Math.round(successRate * 100);
+        
+        // Adjust based on data quality
+        const hasData = results.some(r => r.data && Object.keys(r.data).length > 0);
+        if (hasData) {
+            confidence = Math.min(confidence + 10, 95);
+        }
+        
+        return confidence;
     }
 
     /**

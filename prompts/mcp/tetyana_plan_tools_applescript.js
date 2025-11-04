@@ -160,6 +160,20 @@ tell application "System Events"
     end tell
 end tell
 
+6. **Safari fullscreen check (CRITICAL):**
+-- ❌ WRONG: if not (front window's visible) - DOES NOT WORK!
+-- ✅ CORRECT: Check menu item state via System Events
+tell application "System Events"
+    tell process "Safari"
+        set isFullscreen to (value of attribute "AXFullScreen" of window 1) as boolean
+        if isFullscreen then
+            return "fullscreen"
+        else
+            return "not fullscreen"
+        end if
+    end tell
+end tell
+
 **macOS SYSTEM PATHS:**
 - Desktop: /Users/dev/Desktop
 - Documents: /Users/dev/Documents

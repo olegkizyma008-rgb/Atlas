@@ -316,7 +316,8 @@ export class EternityModule extends EventEmitter {
     
     // FIXED 2025-11-05: ПОВНИЙ аналіз всього проекту, не тільки 3 файли
     try {
-      const orchestrator = this.container?.resolve('multiModelOrchestrator');
+      // FIXED 2025-11-05: multiModelOrchestrator є async factory в DI
+      const orchestrator = await this.container?.resolve('multiModelOrchestrator');
       if (!orchestrator) {
         this.logger.warn('[NEXUS-AUTONOMOUS] MultiModelOrchestrator not available for code analysis');
         return improvements;

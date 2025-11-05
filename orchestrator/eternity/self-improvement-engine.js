@@ -273,13 +273,18 @@ export class SelfImprovementEngine {
                             return match ? match[1] : null;
                         }
                         
-                        // Формат: filename.js:line (БЕЗ file://)
+                        // Формат: filename.js:line (з номером рядка)
                         if (p.location.includes(':')) {
                             const match = p.location.match(/^(.+?):(\d+)$/);
                             if (match) {
-                                // Повний шлях якщо починається з /
                                 return match[1];
                             }
+                        }
+                        
+                        // FIXED 2025-11-05: Формат БЕЗ номера рядка (просто шлях)
+                        // Приклад: "orchestrator/eternity/eternity-self-analysis.js"
+                        if (p.location.endsWith('.js') || p.location.endsWith('.ts')) {
+                            return p.location;
                         }
                     }
                     return null;
@@ -305,13 +310,18 @@ export class SelfImprovementEngine {
                                 p.line = parseInt(match[2]);
                             }
                         }
-                        // Формат: filename.js:line (БЕЗ file://)
+                        // Формат: filename.js:line (з номером рядка)
                         else if (p.location.includes(':')) {
                             const match = p.location.match(/^(.+?):(\d+)$/);
                             if (match) {
                                 p.file = match[1];
                                 p.line = parseInt(match[2]);
                             }
+                        }
+                        // FIXED 2025-11-05: Формат БЕЗ номера рядка
+                        else if (p.location.endsWith('.js') || p.location.endsWith('.ts')) {
+                            p.file = p.location;
+                            p.line = null; // Немає конкретного рядка
                         }
                     }
                     return p;
@@ -401,7 +411,7 @@ export class SelfImprovementEngine {
                     File: ${problem.file || 'unknown'}
                     Context: ${fileData?.content || 'N/A'}
                     
-                    CRITICAL: Provide code changes in this EXACT format:
+                    CRITICAL: You MUST provide code changes in this EXACT format with triple backticks:
                     
                     \`\`\`REPLACE
                     [exact code to find and replace]
@@ -409,8 +419,29 @@ export class SelfImprovementEngine {
                     [new code to replace with]
                     \`\`\`
                     
-                    You can provide multiple REPLACE blocks. Each block must have exact code to match.`
+                    EXAMPLE:
+                    \`\`\`REPLACE
+                    const oldVariable = 123;
+                    ---
+                    const newVariable = 456;
+                    \`\`\`
+                    
+                    Rules:
+                    1. Use EXACTLY "\`\`\`REPLACE" (3 backticks + REPLACE)
+                    2. Put "---" on separate line between target and replacement
+                    3. Close with "\`\`\`" (3 backticks)
+                    4. Match code EXACTLY as it appears in file
+                    5. You can provide multiple REPLACE blocks
+                    
+                    DO NOT provide explanations or comments - ONLY REPLACE blocks!`
                 );
+                
+                // FIXED 2025-11-05: Логуємо LLM відповідь для діагностики
+                this.logger.info('[NEXUS] LLM fix response preview', { 
+                    preview: fixResult.content?.substring(0, 300),
+                    hasREPLACE: fixResult.content?.includes('```REPLACE'),
+                    hasSeparator: fixResult.content?.includes('---')
+                });
                 
                 await reportCallback(`  ✅ Виправлення створено для: ${problem.description}`);
                 
@@ -499,9 +530,7 @@ export class SelfImprovementEngine {
         const changes = [];
         
         try {
-            // LLM має повертати структуровані зміни
-            // Формат: ```REPLACE\n[target]\n---\n[replacement]\n```
-            
+            // Формат 1: ```REPLACE\n[target]\n---\n[replacement]\n```
             const replaceBlocks = llmResponse.match(/```REPLACE\n([\s\S]*?)\n---\n([\s\S]*?)\n```/g) || [];
             
             for (const block of replaceBlocks) {
@@ -516,14 +545,77 @@ export class SelfImprovementEngine {
                 }
             }
             
-            // Fallback: якщо немає структурованого формату, створюємо додавання
-            if (changes.length === 0 && llmResponse.length > 0) {
-                this.logger.warn('[SELF-IMPROVEMENT] LLM response not in REPLACE format, using append');
-                // Не можемо надійно застосувати - потрібно повідомити
-                return [];
+            if (changes.length > 0) {
+                this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} REPLACE blocks`);
+                return changes;
             }
             
-            return changes;
+            // FIXED 2025-11-05: Fallback - шукаємо звичайні code blocks з коментарями
+            // Формат 2: ```javascript\n// OLD:\n[old]\n// NEW:\n[new]\n```
+            const codeBlocksWithComments = llmResponse.match(/```(?:javascript|js)?\n\/\/ OLD:[\s\S]*?\/\/ NEW:[\s\S]*?```/g) || [];
+            
+            for (const block of codeBlocksWithComments) {
+                const oldMatch = block.match(/\/\/ OLD:[\s\S]*?(?=\/\/ NEW:)/);
+                const newMatch = block.match(/\/\/ NEW:([\s\S]*?)```/);
+                
+                if (oldMatch && newMatch) {
+                    const oldCode = oldMatch[0].replace(/\/\/ OLD:\s*\n?/, '').trim();
+                    const newCode = newMatch[1].trim();
+                    
+                    if (oldCode && newCode) {
+                        changes.push({
+                            targetContent: oldCode,
+                            replacementContent: newCode,
+                            allowMultiple: false
+                        });
+                    }
+                }
+            }
+            
+            if (changes.length > 0) {
+                this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} code blocks with OLD/NEW comments`);
+                return changes;
+            }
+            
+            // FIXED 2025-11-05: Fallback 2 - diff-подібний формат
+            // Формат 3: ```diff\n- [old line]\n+ [new line]\n```
+            const diffBlocks = llmResponse.match(/```diff\n([\s\S]*?)\n```/g) || [];
+            
+            for (const block of diffBlocks) {
+                const lines = block.split('\n');
+                let oldLines = [];
+                let newLines = [];
+                
+                for (const line of lines) {
+                    if (line.startsWith('- ')) {
+                        oldLines.push(line.substring(2));
+                    } else if (line.startsWith('+ ')) {
+                        newLines.push(line.substring(2));
+                    }
+                }
+                
+                if (oldLines.length > 0 && newLines.length > 0) {
+                    changes.push({
+                        targetContent: oldLines.join('\n'),
+                        replacementContent: newLines.join('\n'),
+                        allowMultiple: false
+                    });
+                }
+            }
+            
+            if (changes.length > 0) {
+                this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} diff blocks`);
+                return changes;
+            }
+            
+            // Немає жодного розпізнаного формату
+            if (llmResponse.length > 0) {
+                this.logger.warn('[SELF-IMPROVEMENT] LLM response not in any recognized format', {
+                    responsePreview: llmResponse.substring(0, 200)
+                });
+            }
+            
+            return [];
             
         } catch (error) {
             this.logger.error('[SELF-IMPROVEMENT] Failed to parse code changes:', error);

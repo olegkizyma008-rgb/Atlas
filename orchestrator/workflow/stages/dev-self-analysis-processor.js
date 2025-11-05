@@ -402,7 +402,12 @@ export class DevSelfAnalysisProcessor {
             });
             
             const hasCriticalIssues = (analysisResult.findings?.critical_issues?.length || 0) > 0;
-            const shouldIntervene = userWantsIntervention && (analysisResult.intervention_required || hasCriticalIssues);
+            
+            // FIXED 2025-11-05: Автоматично виправляти критичні помилки
+            // Якщо є критичні проблеми → ЗАВЖДИ виправляти, незалежно від intent detection
+            // Intent detection може падати через JSON errors, але критичні баги треба фіксити
+            const shouldIntervene = hasCriticalIssues || 
+                                   (userWantsIntervention && analysisResult.intervention_required);
             
             this.logger.info(`[DEV-ANALYSIS] Intervention check: userWants=${userWantsIntervention}, llmSays=${analysisResult.intervention_required}, hasCritical=${hasCriticalIssues}, shouldIntervene=${shouldIntervene}`, {
                 category: 'system',

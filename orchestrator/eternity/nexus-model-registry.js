@@ -21,11 +21,23 @@ export class NexusModelRegistry {
         this.temporarilyUnavailableModels = new Map(); // { modelId: { since, attempts, lastError } }
         this.unavailabilityTimeout = 600000; // 10 хвилин - після цього спробуємо знову
         
+        // NEXUS 2025-11-05: Windsurf copilot моделі повертають 500 - блокуємо одразу
+        this._blockWindsurfModels();
+        
         // Базові налаштування API
         this.apiEndpoint = process.env.CODESTRAL_API_ENDPOINT || 'http://localhost:4000/v1';
         this.updateFrequency = 300000; // 5 хвилин
         
         this.logger.info('🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей');
+    }
+    
+    /**
+     * NEXUS 2025-11-05: Блокування Windsurf моделей через 500 помилки
+     */
+    _blockWindsurfModels() {
+        // Блокуємо ВСІ copilot-* моделі через Windsurf API 500 помилки
+        this.blockAllCopilotModels = true;
+        this.logger.info(`🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500)`);
     }
 
     async initialize() {
@@ -154,6 +166,11 @@ export class NexusModelRegistry {
         for (const model of this.availableModels) {
             const capabilities = this.modelCapabilities.get(model.id);
             if (!capabilities) continue;
+            
+            // NEXUS 2025-11-05: Блокуємо ВСІ copilot-* моделі (Windsurf API 500)
+            if (this.blockAllCopilotModels && model.id.startsWith('copilot-')) {
+                continue;
+            }
             
             // NEW 2025-11-05: Пропускаємо ТИМЧАСОВО недоступні моделі
             if (this.isModelTemporarilyUnavailable(model.id)) {

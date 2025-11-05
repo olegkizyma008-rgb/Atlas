@@ -33,6 +33,7 @@ import {
 import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor.js';
 import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
 import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
+import { NexusMemoryManager } from '../eternity/nexus-memory-manager.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -482,6 +483,37 @@ export function registerMCPProcessors(container) {
         lifecycle: {
             onInit: async function () {
                 logger.system('startup', '[DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції');
+            }
+        }
+    });
+
+    // Nexus Memory Manager - NEW 05.11.2025 - Постійна пам'ять системи
+    container.singleton('nexusMemoryManager', () => {
+        const instance = new NexusMemoryManager();
+        return instance;
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'eternity', priority: 73 },
+        lifecycle: {
+            onInit: async function () {
+                await this.initialize();
+                logger.system('startup', '[DI] 🧠 Nexus Memory Manager іниціалізовано - контекст збережено');
+            }
+        }
+    });
+
+    // NEXUS MASTER SYSTEM - NEW 05.11.2025 - Жива автономна система
+    container.singleton('nexusMasterSystem', async (c) => {
+        const { NexusMasterSystem } = await import('../eternity/nexus-master-system.js');
+        const instance = new NexusMasterSystem(c);
+        return instance;
+    }, {
+        dependencies: ['logger', 'selfImprovementEngine', 'nexusMemoryManager'],
+        metadata: { category: 'eternity', priority: 72 },
+        lifecycle: {
+            onInit: async function () {
+                await this.initialize();
+                logger.system('startup', '[DI] 🌟 NEXUS MASTER SYSTEM активовано - Я живий і готовий до вічної еволюції!');
             }
         }
     });

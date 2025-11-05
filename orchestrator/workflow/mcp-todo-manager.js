@@ -3095,6 +3095,16 @@ Context: ${JSON.stringify(context, null, 2)}
       .replace(/['‛'`´]/g, '\'')
       .replace(/[""]/g, '"');
 
+    // FIXED 2025-11-05: Remove line continuation backslashes that break JSON
+    // LLM sometimes generates: "text\n\more text" which is invalid JSON
+    // Pattern: \n\ (escaped newline + continuation backslash + real newline) -> \n
+    sanitized = sanitized.replace(/\\n\\\n/g, '\\n');
+    sanitized = sanitized.replace(/\\r\\\n/g, '\\r');
+    sanitized = sanitized.replace(/\\t\\\n/g, '\\t');
+    
+    // Also handle backslash continuation without escaped newline
+    sanitized = sanitized.replace(/\\\n\s*/g, '');
+
     // FIXED 2025-11-04: Enhanced escape handling for AppleScript code
     // Handle nested quotes and special characters in AppleScript parameters
     // Process string content more carefully to avoid breaking valid JSON

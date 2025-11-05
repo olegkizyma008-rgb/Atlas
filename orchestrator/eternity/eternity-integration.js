@@ -41,6 +41,13 @@ export class EternityIntegration {
         this.logger.warn('WorkflowCoordinator not available yet, will retry later');
       }
       
+      // FIXED 2025-11-05: Отримання wsManager для відправки повідомлень
+      try {
+        this.wsManager = this.container.resolve('wsManager');
+      } catch (e) {
+        this.logger.warn('wsManager not available yet, will retry later');
+      }
+      
       // Підписка на події
       this.setupEventHandlers();
       
@@ -143,6 +150,9 @@ export class EternityIntegration {
   }
 
   async handleImprovementReport(data) {
+    // FIXED 2025-11-05: Відправка звіту через WebSocket/SSE
+    this.logger.info(`[ETERNITY-INTEGRATION] 📢 Improvement report: ${data.message}`);
+    
     // Звіт про покращення в UI
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('eternity-improvement-report', {
@@ -150,9 +160,24 @@ export class EternityIntegration {
       }));
     }
     
-    // Додавання в чат
-    if (this.chatManager && this.chatManager.addMessage) {
-      this.chatManager.addMessage(data.message, 'eternity');
+    // FIXED: Використовуємо wsManager для відправки в чат
+    if (this.wsManager) {
+      this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
+        content: data.message,
+        agent: 'nexus',
+        sessionId: 'default',
+        timestamp: new Date().toISOString(),
+        metadata: {
+          type: 'improvement-report',
+          level: data.level,
+          detected: data.detected?.length || 0,
+          applied: data.applied?.length || 0
+        }
+      });
+      
+      this.logger.info('[ETERNITY-INTEGRATION] ✅ Report sent to chat via WebSocket');
+    } else {
+      this.logger.warn('[ETERNITY-INTEGRATION] ⚠️ wsManager not available, cannot send to chat');
     }
   }
 

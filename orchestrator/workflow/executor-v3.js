@@ -1100,8 +1100,20 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           });
         }
 
-        // NOTE: SSE response removed to prevent duplicate messages
-        // Frontend receives via WebSocket only
+        // REMOVED 2025-11-05: SSE відправка створювала подвоєння повідомлень
+        // WebSocket вже відправляє agent_message, SSE не потрібен
+        // SSE залишається тільки для технічних повідомлень (mode_selected, status)
+        // if (res?.writable && !res.writableEnded) {
+        //   res.write(`data: ${JSON.stringify({
+        //     type: 'agent_message',
+        //     data: {
+        //       content: atlasResponse,
+        //       agent: 'atlas',
+        //       sessionId: session.id,
+        //       timestamp: new Date().toISOString()
+        //     }
+        //   })}\n\n`);
+        // }
 
         // Add to session history
         if (session.chatThread) {

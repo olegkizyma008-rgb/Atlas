@@ -27,7 +27,8 @@
     "@modelcontextprotocol/sdk": "^1.20.2",
     "axios": "^1.12.2",
     "chokidar": "^3.6.0",
-    "sharp": "^0.34.4"
+    "sharp": "^0.34.4",
+    "tail": "^2.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",

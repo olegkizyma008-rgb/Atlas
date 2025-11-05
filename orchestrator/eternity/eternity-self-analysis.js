@@ -20,7 +20,7 @@ export class EternityModule extends EventEmitter {
     this.analysisInterval = null;
     this.codestralAPI = null;
     this.mcpMemory = null;
-    this.workflowCoordinator = null;
+    this.selfImprovementEngine = null; // FIXED 2025-11-05: використовуємо selfImprovementEngine замість workflowCoordinator
     this.pendingCorrections = [];
     this.validator = new ImprovementValidator();
     this.memoryManager = null;
@@ -56,10 +56,12 @@ export class EternityModule extends EventEmitter {
         this.logger.warn('[ETERNITY] mcpMemory not available, will work without it');
       }
       
+      // FIXED 2025-11-05: Використовуємо selfImprovementEngine для застосування покращень
       try {
-        this.workflowCoordinator = this.container.resolve('workflowCoordinator');
+        this.selfImprovementEngine = await this.container.resolve('selfImprovementEngine');
+        this.logger.info('[ETERNITY] ✅ SelfImprovementEngine підключено');
       } catch (e) {
-        this.logger.warn('[ETERNITY] workflowCoordinator not available, will work without it');
+        this.logger.warn('[ETERNITY] selfImprovementEngine not available:', e.message);
       }
       
       this.codestralAPI = await this._initializeCodestral();
@@ -648,19 +650,28 @@ export class EternityModule extends EventEmitter {
     for (const error of errors) {
       if (error.suggestion) {
         try {
-          // FIXED 2025-11-04: Перевірка наявності workflowCoordinator
-          if (!this.workflowCoordinator) {
-            this.logger.warn('[NEXUS-AUTONOMOUS] workflowCoordinator not available, skipping error fix');
-            fixes.push({ success: false, error: 'workflowCoordinator not available' });
+          // FIXED 2025-11-05: Використовуємо selfImprovementEngine
+          if (!this.selfImprovementEngine) {
+            this.logger.warn('[NEXUS-AUTONOMOUS] selfImprovementEngine not available, skipping error fix');
+            fixes.push({ success: false, error: 'selfImprovementEngine not available' });
             continue;
           }
           
-          // Застосування запропонованого виправлення
-          const fix = await this.workflowCoordinator.executeCodeFix({
-            error: error.message,
-            context: error.context,
-            suggestion: error.suggestion
-          });
+          // Застосування запропонованого виправлення через SelfImprovementEngine
+          const improvementForEngine = {
+            type: 'bug-fix',
+            description: error.message,
+            problems: [{
+              file: error.file || 'unknown',
+              description: error.suggestion,
+              location: error.context
+            }]
+          };
+          
+          const fix = await this.selfImprovementEngine.applyImprovement(
+            improvementForEngine,
+            async (msg) => this.logger.debug(`[NEXUS-FIX] ${msg}`)
+          );
           
           fixes.push(fix);
         } catch (err) {
@@ -679,28 +690,38 @@ export class EternityModule extends EventEmitter {
 
   async _improveCode(improvement) {
     try {
-      // FIXED 2025-11-04: Перевірка наявності workflowCoordinator
-      if (!this.workflowCoordinator) {
-        this.logger.warn('[NEXUS-AUTONOMOUS] workflowCoordinator not available, skipping code improvement');
+      // FIXED 2025-11-05: Використовуємо selfImprovementEngine
+      if (!this.selfImprovementEngine) {
+        this.logger.warn('[NEXUS-AUTONOMOUS] selfImprovementEngine not available, skipping code improvement');
         return {
           success: false,
           module: improvement.module,
-          error: 'workflowCoordinator not available',
+          error: 'selfImprovementEngine not available',
           type: 'code-improvement'
         };
       }
       
-      // Використання MCP для покращення коду
-      const result = await this.workflowCoordinator.executeCodeImprovement({
-        module: improvement.module,
-        suggestions: improvement.suggestions,
-        backup: true // Завжди створювати backup
-      });
+      // Конвертація формату для SelfImprovementEngine
+      const improvementForEngine = {
+        type: 'bug-fix', // або 'performance-optimization', 'code-modernization'
+        description: improvement.description || 'Code improvement',
+        problems: [{
+          file: improvement.module,
+          description: Array.isArray(improvement.suggestions) ? improvement.suggestions.join(', ') : improvement.suggestions,
+          location: improvement.module
+        }]
+      };
+      
+      // Використання SelfImprovementEngine для застосування покращення
+      const result = await this.selfImprovementEngine.applyImprovement(
+        improvementForEngine,
+        async (msg) => this.logger.debug(`[NEXUS-IMPROVEMENT] ${msg}`)
+      );
       
       return {
         success: result.success,
         module: improvement.module,
-        changes: result.changes,
+        changes: result.fixes || result.changes,
         type: 'code-improvement'
       };
     } catch (error) {

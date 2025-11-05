@@ -335,7 +335,7 @@ export class EternityModule extends EventEmitter {
       
       for (const fileInfo of filesToAnalyze) {
         try {
-          const code = await this._readFile(fileInfo.path);
+          const code = await this._readFile(fileInfo.fullPath);
           
           // Метрики якості коду
           const metrics = this._calculateCodeMetrics(code, fileInfo.path);
@@ -1036,9 +1036,11 @@ export class EternityModule extends EventEmitter {
     }
   }
   
-  async _readFile(path) {
+  async _readFile(filePathOrInfo) {
     const fs = await import('fs').then(m => m.promises);
-    return await fs.readFile(path, 'utf8');
+    // Підтримка як рядка так і об'єкта з fullPath
+    const filePath = typeof filePathOrInfo === 'string' ? filePathOrInfo : filePathOrInfo.fullPath || filePathOrInfo.path;
+    return await fs.readFile(filePath, 'utf8');
   }
   
   _calculatePriority(analysis) {

@@ -370,11 +370,17 @@ export class EternityModule extends EventEmitter {
             });
           }
         } catch (error) {
-          this.logger.debug(`[NEXUS-AUTONOMOUS] Could not analyze ${modulePath}:`, error.message);
+          this.logger.warn(`[NEXUS-AUTONOMOUS] Failed to analyze ${fileInfo.path}:`, {
+            error: error.message,
+            stack: error.stack?.split('\n')[0]
+          });
         }
       }
     } catch (error) {
-      this.logger.error('[NEXUS-AUTONOMOUS] Code analysis failed:', error);
+      this.logger.error('[NEXUS-AUTONOMOUS] Code analysis failed:', {
+        error: error.message,
+        stack: error.stack
+      });
     }
     
     return improvements;

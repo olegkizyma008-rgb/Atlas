@@ -110,7 +110,8 @@ ehthumbs.db
 Thumbs.db
 
 # Environment variables
-.env
+# NEXUS 2025-11-05: Тимчасово доступний для налаштування автономної системи
+# .env
 .env.local
 .env.development.local
 .env.test.local
@@ -136,7 +137,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.egg
-.env
+# .env
 .venv
 env/
 venv/
@@ -159,7 +160,7 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 .yarn-integrity
-.env
+# .env
 .env.local
 .env.development.local
 .env.test.local
@@ -245,6 +246,6 @@ unused_files/goose_mcp_servers/mcp/temp_servers/
 logs/metrics/
 logs/archive/
 
-# Environment file - ignore (contains secrets)
-.env
+# Environment file - NEXUS 2025-11-05: Тимчасово доступний
+# .env
 

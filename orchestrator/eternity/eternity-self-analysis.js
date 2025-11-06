@@ -230,21 +230,18 @@ export class EternityModule extends EventEmitter {
       this.logger.info(`✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: ${this.selfAwareness.evolutionLevel.toFixed(1)}`);
       await this._persistMemory();
       
-      // FIXED 2025-11-05: Повідомляємо про ВИЯВЛЕНІ покращення, не тільки про застосовані
-      // Це дозволяє NEXUS звітувати навіть коли workflowCoordinator недоступний
+      // Emit event для веб-інтерфейсу (без звіту в логах - звіт буде в _applyImprovementsAutonomously)
       const allImprovements = [...improvements.critical, ...improvements.automatic, ...improvements.suggested];
       
       if (allImprovements.length > 0) {
-        const reportMessage = this._generateImprovementMessage(allImprovements, improvements.applied.length > 0);
+        const reportMessage = this._generateImprovementMessage(allImprovements, false);
         
         this.emit('improvement-report', {
           level: this.selfAwareness.evolutionLevel,
           detected: allImprovements,
-          applied: improvements.applied,
+          applied: [],
           message: reportMessage
         });
-        
-        this.logger.info(`[NEXUS-AUTONOMOUS] 📢 Звітую: виявлено ${allImprovements.length} покращень, застосовано ${improvements.applied.length}`);
       }
       
     } catch (error) {
@@ -1256,19 +1253,22 @@ export class EternityModule extends EventEmitter {
     
     // FIXED 2025-11-05: Зберігаємо повний стан selfAwareness
     try {
-      await this.memoryManager.updateSelfAwareness({
-        evolutionLevel: this.selfAwareness.evolutionLevel,
-        totalImprovements: this.selfAwareness.totalImprovements,
-        autonomousImprovements: this.selfAwareness.autonomousImprovements,
+      const selfAwarenessData = {
+        evolutionLevel: Number(this.selfAwareness.evolutionLevel) || 1.0,
+        totalImprovements: Number(this.selfAwareness.totalImprovements) || 0,
+        autonomousImprovements: Number(this.selfAwareness.autonomousImprovements) || 0,
         lastAnalysis: Date.now(),
-        improvements: this.selfAwareness.improvements.slice(-10), // Останні 10
-        errors: this.selfAwareness.errors.slice(-10),
+        improvements: this.selfAwareness.improvements?.slice(-10) || [],
+        errors: this.selfAwareness.errors?.slice(-10) || [],
         currentState: {
-          cyclesCompleted,
-          testsRun,
-          testsPassed
+          cyclesCompleted: cyclesCompleted || 0,
+          testsRun: testsRun || 0,
+          testsPassed: testsPassed || 0
         }
-      });
+      };
+      
+      this.logger.debug('[ETERNITY] Saving selfAwareness:', selfAwarenessData);
+      await this.memoryManager.updateSelfAwareness(selfAwarenessData);
     } catch (error) {
       this.logger.warn('[ETERNITY] Failed to persist selfAwareness:', error.message);
     }

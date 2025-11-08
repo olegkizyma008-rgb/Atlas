@@ -7,6 +7,7 @@
  */
 
 import logger from '../utils/logger.js';
+import testModeConfig from '../../config/test-mode-config.js';
 
 export class NexusCommandHandler {
     constructor(container) {
@@ -36,17 +37,22 @@ export class NexusCommandHandler {
     async handleMessage(message, userId) {
         const lowerMessage = message.toLowerCase().trim();
 
-        // 1. Перевірка на команду зупинки
+        // 1. ADDED 2025-11-08: Перевірка на команду тестового режиму
+        if (this._isTestModeCommand(lowerMessage)) {
+            return await this._handleTestModeCommand(lowerMessage, userId);
+        }
+
+        // 2. Перевірка на команду зупинки
         if (this._isStopCommand(lowerMessage)) {
             return await this._handleStopCommand(message, userId);
         }
 
-        // 2. Якщо очікується ідентифікація
+        // 3. Якщо очікується ідентифікація
         if (this.pendingIdentification) {
             return await this._handleIdentification(message, userId);
         }
 
-        // 3. Якщо очікується код
+        // 4. Якщо очікується код
         if (this.pendingIdentification === 'awaiting_code') {
             return await this._handleCodeInput(message, userId);
         }
@@ -209,6 +215,78 @@ export class NexusCommandHandler {
             autonomousImprovements: this.eternityModule.selfAwareness.autonomousImprovements,
             autonomousMode: this.eternityModule.autonomousMode
         };
+    }
+    /**
+     * ADDED 2025-11-08: Перевірка чи це команда тестового режиму
+     */
+    _isTestModeCommand(message) {
+        const testModePatterns = [
+            'перейди в тестовий режим',
+            'увімкни тестовий режим',
+            'test mode',
+            'ollama режим',
+            'тільки ollama',
+            'вийди з тестового режиму',
+            'вимкни тестовий режим',
+            'нормальний режим',
+            'звичайний режим'
+        ];
+
+        return testModePatterns.some(pattern => message.includes(pattern));
+    }
+
+    /**
+     * ADDED 2025-11-08: Обробка команди тестового режиму
+     */
+    async _handleTestModeCommand(message, userId) {
+        const isEnable = message.includes('перейди') || 
+                        message.includes('увімкни') || 
+                        message.includes('test mode') ||
+                        message.includes('тільки');
+
+        if (isEnable) {
+            this.logger.info('🧪 [TEST-MODE] Користувач активував тестовий режим');
+            
+            const result = testModeConfig.enable();
+            
+            // Перевірка які моделі встановлені
+            const modelsCheck = await testModeConfig.checkInstalledModels();
+            
+            let response = `🧪 **Тестовий режим активовано!**\n\n`;
+            response += `Atlas тепер використовує виключно Ollama моделі (${result.models.length} моделей).\n\n`;
+            
+            if (modelsCheck.needsDownload && modelsCheck.missing.length > 0) {
+                response += `⚠️ Рекомендується скачати додаткові моделі:\n`;
+                modelsCheck.missing.forEach(model => {
+                    response += `  • ${model}\n`;
+                });
+                response += `\nДля скачування скажіть: "скачай ollama модель ${modelsCheck.missing[0]}"`;
+            } else {
+                response += `✅ Всі рекомендовані моделі встановлені.`;
+            }
+            
+            response += `\n\nДоступні моделі:\n`;
+            response += `  • Текст: ${testModeConfig.ollamaModels.text[0]}\n`;
+            response += `  • Код: ${testModeConfig.ollamaModels.code[0]}\n`;
+            response += `  • Vision: ${testModeConfig.ollamaModels.vision[0]}`;
+            
+            return {
+                handled: true,
+                response: response,
+                type: 'test_mode_enabled'
+            };
+            
+        } else {
+            this.logger.info('🧪 [TEST-MODE] Користувач деактивував тестовий режим');
+            
+            const result = testModeConfig.disable();
+            
+            return {
+                handled: true,
+                response: `🧪 **Тестовий режим вимкнено.**\n\nAtlas повернувся до використання всіх доступних моделей.`,
+                type: 'test_mode_disabled'
+            };
+        }
     }
 }
 

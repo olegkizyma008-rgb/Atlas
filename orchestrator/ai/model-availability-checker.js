@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import logger from '../utils/logger.js';
+import testModeConfig from '../../config/test-mode-config.js';
 
 class ModelAvailabilityChecker {
   constructor() {
@@ -57,7 +58,8 @@ class ModelAvailabilityChecker {
   async fetchAvailableModels() {
     // Перевіряємо кеш
     if (this.modelsCache && (Date.now() - this.modelsCacheTimestamp) < this.modelsCacheLifetime) {
-      return this.modelsCache;
+      // ADDED 2025-11-08: Apply test mode filter
+      return testModeConfig.filterModels(this.modelsCache);
     }
     
     try {
@@ -77,7 +79,10 @@ class ModelAvailabilityChecker {
       this.modelsCacheTimestamp = Date.now();
       
       this.logger.info(`[NEXUS-AVAILABILITY] 📋 Отримано ${models.length} моделей з API`);
-      return this.modelsCache;
+      
+      // ADDED 2025-11-08: Apply test mode filter
+      const filteredModels = testModeConfig.filterModels(this.modelsCache);
+      return filteredModels;
       
     } catch (error) {
       this.logger.warn(`[NEXUS-AVAILABILITY] ⚠️ Не вдалося отримати список моделей: ${error.message}`);

@@ -22,6 +22,9 @@ export class EternityModule extends EventEmitter {
     this.mcpMemory = null;
     this.selfImprovementEngine = null; // FIXED 2025-11-05: використовуємо selfImprovementEngine замість workflowCoordinator
     this.pendingCorrections = [];
+    this._multiModelOrchestrator = null;
+    this._multiModelOrchestratorPromise = null;
+    this.maxAutonomousImprovementsPerCycle = 5;
     this.validator = new ImprovementValidator();
     this.memoryManager = null;
     
@@ -44,6 +47,27 @@ export class EternityModule extends EventEmitter {
       autonomousImprovements: 0 // Лічильник автономних покращень
     };
     
+    // NEW 2025-11-07: ЖИВИЙ ЦИКЛ NEXUS
+    this.cycleState = {
+      count: 0,
+      focus: 'stability',
+      mood: 'neutral',
+      energy: 1,
+      lastFocus: null,
+      aspects: {
+        resilience: 0.5,
+        curiosity: 0.5,
+        clarity: 0.5,
+        discipline: 0.5,
+        empathy: 0.5
+      },
+      history: []
+    };
+
+    this.appliedImprovements = new Map();
+    this.improvementHistory = [];
+    this.lastAnalysisReport = null;
+    
     this.logger.info('🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію...');
   }
 
@@ -51,9 +75,10 @@ export class EternityModule extends EventEmitter {
     try {
       // Ініціалізація залежностей з перевіркою
       try {
-        this.mcpMemory = this.container.resolve('mcpMemory');
+        this.mcpManager = await this.container.resolve('mcpManager');
+        this.logger.info('[ETERNITY] ✅ MCP Manager підключено');
       } catch (e) {
-        this.logger.warn('[ETERNITY] mcpMemory not available, will work without it');
+        this.logger.warn('[ETERNITY] mcpManager not available, will work without it');
       }
       
       // FIXED 2025-11-05: Використовуємо selfImprovementEngine для застосування покращень
@@ -94,7 +119,7 @@ export class EternityModule extends EventEmitter {
     return {
       analyze: async (code, context) => {
         try {
-          const orchestrator = this.container?.resolve('multiModelOrchestrator');
+          const orchestrator = await this._getMultiModelOrchestrator();
           if (!orchestrator) {
             this.logger.warn('[ETERNITY] MultiModelOrchestrator not available');
             return { success: false, analysis: null, suggestions: [] };
@@ -125,6 +150,35 @@ export class EternityModule extends EventEmitter {
     };
   }
 
+  async _getMultiModelOrchestrator() {
+    if (this._multiModelOrchestrator) {
+      return this._multiModelOrchestrator;
+    }
+
+    if (this._multiModelOrchestratorPromise) {
+      return this._multiModelOrchestratorPromise;
+    }
+
+    this._multiModelOrchestratorPromise = (async () => {
+      try {
+        const resolved = await this.container?.resolve('multiModelOrchestrator');
+        if (!resolved) {
+          this.logger.warn('[ETERNITY] MultiModelOrchestrator not available from container');
+          return null;
+        }
+        this._multiModelOrchestrator = resolved;
+        return resolved;
+      } catch (error) {
+        this.logger.error('[ETERNITY] Error resolving MultiModelOrchestrator:', error);
+        return null;
+      } finally {
+        this._multiModelOrchestratorPromise = null;
+      }
+    })();
+
+    return this._multiModelOrchestratorPromise;
+  }
+
   // REMOVED 2025-11-05: _fallbackCodeAnalysis видалено
   // Уся логіка аналізу коду тепер в MultiModelOrchestrator з автоматичним вибором моделі
   // та fallback механізмом
@@ -148,16 +202,20 @@ export class EternityModule extends EventEmitter {
   }
 
   shouldAnalyze() {
-    // NEXUS: Система ЗАВЖДИ готова аналізувати себе
     const now = Date.now();
     const lastAnalysis = this.selfAwareness.lastAnalysis || 0;
     const timeSinceAnalysis = now - lastAnalysis;
-    
-    // Мінімум 30 секунд між повними аналізами (щоб не перевантажувати)
-    if (timeSinceAnalysis < 30000) return false;
-    
-    // Система живе ПОСТІЙНО - аналізує себе без зупинок
-    return true; // Завжди готова до самоаналізу
+
+    // Базове правило: мінімум 45 секунд між циклами
+    if (timeSinceAnalysis < 45000) return false;
+
+    // Живий темп: якщо енергія низька - робимо паузу
+    if (this.cycleState.energy < 0.3 && timeSinceAnalysis < 180000) {
+      this.logger.debug('[NEXUS-LIFE] Низька енергія - відпочиваю перед наступним циклом');
+      return false;
+    }
+
+    return true;
   }
   
   isActiveConversation() {
@@ -195,21 +253,33 @@ export class EternityModule extends EventEmitter {
       // 4. Порівняння з попередніми станами
       const evolution = this._compareWithPreviousStates(systemState);
       
-      // 5. Генерація покращень
-      const improvements = await this._generateImprovements({
+      // 5. Оновлення живого циклу та настрою
+      const cycleView = this._updateCycleState({
         systemState,
         interactionAnalysis,
         codeImprovements,
         evolution
       });
+
+      this.logger.info(`💠 [NEXUS-LIFE] Цикл №${cycleView.count}: фокус=${cycleView.focus}, настрій=${cycleView.mood}, енергія=${Math.round(cycleView.energy * 100)}%`);
+
+      // 6. Генерація покращень з урахуванням живого стану
+      const improvements = await this._generateImprovements({
+        systemState,
+        interactionAnalysis,
+        codeImprovements,
+        evolution,
+        cycle: cycleView
+      });
       
-      // 6. Збереження в MCP Memory
+      // 7. Збереження в MCP Memory
       await this._saveAnalysisToMemory({
         timestamp: Date.now(),
         state: systemState,
         analysis: interactionAnalysis,
         improvements,
-        evolution
+        evolution,
+        cycle: cycleView
       });
       
       // NEXUS: Автономне застосування ВСІХ покращень БЕЗ ВИНЯТКІВ
@@ -219,9 +289,12 @@ export class EternityModule extends EventEmitter {
         ...improvements.suggested // Навіть suggested застосовуємо!
       ];
       
+      await this._decayImprovementMemory();
+
+      let applicationResult = null;
       if (allImprovementsToApply.length > 0) {
         this.logger.info(`🔧 [NEXUS-AUTONOMOUS] Знайдено ${allImprovementsToApply.length} покращень - застосовую ВСІ автономно...`);
-        await this._applyImprovementsAutonomously(allImprovementsToApply);
+        applicationResult = await this._applyImprovementsAutonomously(allImprovementsToApply);
       }
       
       this.selfAwareness.lastAnalysis = Date.now();
@@ -230,28 +303,56 @@ export class EternityModule extends EventEmitter {
       this.logger.info(`✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: ${this.selfAwareness.evolutionLevel.toFixed(1)}`);
       await this._persistMemory();
       
-      // Emit event для веб-інтерфейсу (без звіту в логах - звіт буде в _applyImprovementsAutonomously)
+      // FIXED 2025-11-06: ВИМКНЕНО автоматичні повідомлення в чат
+      // Система працює мовчки, зберігає для звіту на запит
       const allImprovements = [...improvements.critical, ...improvements.automatic, ...improvements.suggested];
       
-      if (allImprovements.length > 0) {
-        const reportMessage = this._generateImprovementMessage(allImprovements, false);
-        
-        this.emit('improvement-report', {
-          level: this.selfAwareness.evolutionLevel,
-          detected: allImprovements,
-          applied: [],
-          message: reportMessage
+      this.lastAnalysisReport = {
+        timestamp: Date.now(),
+        level: this.selfAwareness.evolutionLevel,
+        improvements: allImprovements,
+        successful: applicationResult?.successCount || 0,
+        cycle: {
+          index: cycleView.count,
+          focus: cycleView.focus,
+          mood: cycleView.mood,
+          energy: cycleView.energy
+        }
+      };
+      
+      this.logger.debug(`[NEXUS-SILENT] Зберіг звіт: ${allImprovements.length} покращень`);
+
+      this._rebalanceEnergyAfterCycle({
+        total: allImprovementsToApply.length,
+        applied: applicationResult?.successCount || 0,
+        focus: cycleView.focus,
+        errors: interactionAnalysis.errors.length
+      });
+      
+    } catch (error) {
+      // Детальніше логування помилки
+      this.logger.error('ETERNITY: Помилка самоаналізу:', {
+        message: error.message,
+        stack: error.stack,
+        context: 'self-analysis'
+      });
+      
+      // Перевірка чи існує selfAwareness перед використанням
+      if (this.selfAwareness && this.selfAwareness.errors) {
+        this.selfAwareness.errors.push({
+          timestamp: Date.now(),
+          error: error.message,
+          stack: error.stack,
+          context: 'self-analysis'
         });
       }
       
-    } catch (error) {
-      this.logger.error('ETERNITY: Помилка самоаналізу:', error);
-      this.selfAwareness.errors.push({
-        timestamp: Date.now(),
-        error: error.message,
-        context: 'self-analysis'
-      });
-      await this._persistMemory();
+      // Безпечний виклик persistMemory
+      try {
+        await this._persistMemory();
+      } catch (persistError) {
+        this.logger.error('ETERNITY: Не вдалося зберегти пам\'ять:', persistError.message);
+      }
     } finally {
       this.isAnalyzing = false;
     }
@@ -316,7 +417,7 @@ export class EternityModule extends EventEmitter {
     // FIXED 2025-11-05: ПОВНИЙ аналіз всього проекту, не тільки 3 файли
     try {
       // FIXED 2025-11-05: multiModelOrchestrator є async factory в DI
-      const orchestrator = await this.container?.resolve('multiModelOrchestrator');
+      const orchestrator = await this._getMultiModelOrchestrator();
       if (!orchestrator) {
         this.logger.warn('[NEXUS-AUTONOMOUS] MultiModelOrchestrator not available for code analysis');
         return improvements;
@@ -404,6 +505,11 @@ export class EternityModule extends EventEmitter {
     
     const previousState = this.selfAwareness.previousStates[this.selfAwareness.previousStates.length - 1];
     
+    // FIXED 2025-11-08: Check if previousState and performance exist
+    if (!previousState || !previousState.performance) {
+      return evolution; // No previous state to compare
+    }
+    
     // Порівняння метрик
     if (currentState.performance.errorRate < previousState.performance.errorRate) {
       evolution.improved.push('Error rate decreased');
@@ -430,46 +536,119 @@ export class EternityModule extends EventEmitter {
   }
 
   async _generateImprovements(analysisData) {
+    const { cycle } = analysisData;
     const improvements = {
       critical: [],
       automatic: [],
-      applied: [],
       suggested: []
     };
-    
-    // Критичні покращення (потребують дозволу)
-    if (analysisData.interactionAnalysis.errors.length > 3) {
-      improvements.critical.push({
+
+    const registerImprovement = (bucket, improvement) => {
+      const identifier = improvement.module || improvement.description || improvement.action || improvement.type;
+      const hash = this._makeImprovementHash(improvement.type, identifier);
+
+      const existing = this.appliedImprovements.get(hash);
+      if (existing && (Date.now() - existing.timestamp) < 3600000) {
+        this.logger.debug(`[NEXUS-LIFE] ⚪ Пропускаю повторне покращення (${hash}) — не минула година`);
+        return;
+      }
+
+      improvement.hash = hash;
+      bucket.push(improvement);
+    };
+
+    // Базова безпека: якщо багато помилок — фокус на критичних виправленнях
+    if (analysisData.interactionAnalysis.errors.length > 0) {
+      registerImprovement(improvements.critical, {
         type: 'error-fix',
-        description: 'Виправлення критичних помилок',
+        description: `Виправлення ${analysisData.interactionAnalysis.errors.length} критичних помилок`,
         errors: analysisData.interactionAnalysis.errors,
         action: 'fix-critical-errors'
       });
     }
-    
-    // Автоматичні покращення (можна застосувати без дозволу)
-    if (analysisData.systemState.memory.leaks.length > 0) {
-      improvements.automatic.push({
-        type: 'memory-optimization',
-        description: 'Оптимізація використання пам\'яті',
-        action: 'clear-memory-leaks'
+
+    // Фокуси живого циклу
+    switch (cycle?.focus) {
+      case 'stability':
+        if (analysisData.systemState.performance.errorRate > 0.03) {
+          registerImprovement(improvements.automatic, {
+            type: 'performance-optimization',
+            description: 'Зниження error rate нижче 3%',
+            action: 'optimize-error-handling',
+            metrics: analysisData.systemState.performance
+          });
+        }
+
+        if (analysisData.systemState.memory.leaks.length > 0) {
+          registerImprovement(improvements.automatic, {
+            type: 'memory-optimization',
+            description: 'Прибрати виявлені memory leaks',
+            action: 'clear-memory-leaks'
+          });
+        }
+        break;
+
+      case 'performance':
+        const hotModules = analysisData.codeImprovements
+          .filter(c => c.metrics?.complexity > 8)
+          .slice(0, 5);
+        hotModules.forEach(moduleImprovement => {
+          registerImprovement(improvements.critical, {
+            type: 'code-improvement',
+            module: moduleImprovement.module,
+            suggestions: moduleImprovement.suggestions,
+            description: `Покращення продуктивності ${moduleImprovement.module}`,
+            category: 'performance'
+          });
+        });
+        break;
+
+      case 'creativity':
+        // Додаємо нові ідеї з менш критичних пропозицій
+        analysisData.codeImprovements
+          .filter(c => c.priority <= 7)
+          .slice(0, 3)
+          .forEach(suggestion => {
+            registerImprovement(improvements.suggested, {
+              ...suggestion,
+              description: suggestion.description || `Покращення модулю ${suggestion.module}`,
+              category: 'exploration'
+            });
+          });
+        break;
+
+      case 'resilience':
+        if (analysisData.interactionAnalysis.patterns.length > 0) {
+          registerImprovement(improvements.critical, {
+            type: 'error-fix',
+            description: 'Усунення повторюваних помилок з логів',
+            errors: analysisData.interactionAnalysis.patterns,
+            action: 'fix-repeating-errors'
+          });
+        }
+        break;
+
+      case 'exploration':
+      default:
+        analysisData.codeImprovements.slice(0, 5).forEach(improvement => {
+          const bucket = improvement.priority > 7 ? improvements.critical : improvements.suggested;
+          registerImprovement(bucket, {
+            ...improvement,
+            description: improvement.description || `Покращення ${improvement.module}`
+          });
+        });
+        break;
+    }
+
+    // Якщо нічого не знайдено — додаємо хоча б один suggested для руху
+    if (improvements.critical.length === 0 && improvements.automatic.length === 0 && improvements.suggested.length === 0) {
+      registerImprovement(improvements.suggested, {
+        type: 'self-reflection',
+        description: 'Провести рефакторинг журналу автономних покращень',
+        action: 'improve-self-awareness'
       });
     }
-    
-    // Рекомендовані покращення
-    for (const codeImprovement of analysisData.codeImprovements) {
-      if (codeImprovement.priority > 7) {
-        improvements.critical.push({
-          type: 'code-improvement',
-          module: codeImprovement.module,
-          suggestions: codeImprovement.suggestions,
-          action: 'improve-code'
-        });
-      } else {
-        improvements.suggested.push(codeImprovement);
-      }
-    }
-    
+
     return improvements;
   }
 
@@ -485,11 +664,15 @@ export class EternityModule extends EventEmitter {
             evolutionLevel: this.selfAwareness.evolutionLevel,
             timestamp: analysisData.timestamp,
             state: analysisData.state,
-            improvementsFound: analysisData.improvements.length,
+            cycle: analysisData.cycle,
+            improvementsFound: this._countImprovements(analysisData.improvements),
             summary: this._generateAnalysisSummary(analysisData)
           },
           metadata: {
             type: 'self_analysis',
+            focus: analysisData.cycle?.focus,
+            mood: analysisData.cycle?.mood,
+            energy: analysisData.cycle?.energy,
             improvements: analysisData.improvements,
             errors: analysisData.errors || []
           }
@@ -514,14 +697,44 @@ export class EternityModule extends EventEmitter {
       return { success: false, message: 'Emergency stop active' };
     }
 
-    this.logger.info(`🚀 [NEXUS-AUTONOMOUS] Застосовую ${improvements.length} покращень автономно...`);
+    const improvementsToApply = Array.isArray(improvements) ? [...improvements] : [];
+
+    if (improvementsToApply.length > this.maxAutonomousImprovementsPerCycle) {
+      const skipped = improvementsToApply.length - this.maxAutonomousImprovementsPerCycle;
+      this.logger.warn(`⚖️ [NEXUS-AUTONOMOUS] Обмежую покращення до ${this.maxAutonomousImprovementsPerCycle} за цикл, пропущено ${skipped}`);
+      improvementsToApply.length = this.maxAutonomousImprovementsPerCycle;
+    }
+
+    this.logger.info(`🚀 [NEXUS-AUTONOMOUS] Застосовую ${improvementsToApply.length} покращень автономно...`);
     const results = [];
     
-    for (const improvement of improvements) {
+    for (const improvement of improvementsToApply) {
+      // NEW 2025-11-07: Перевірка чи вже застосовано
+      const hash = improvement.hash || this._makeImprovementHash(improvement.type, improvement.description || improvement.module || improvement.action);
+      const tracked = this.appliedImprovements.get(hash);
+      if (tracked && (Date.now() - tracked.timestamp) < 1800000) {
+        this.logger.debug(`[NEXUS-LIFE] ⛔ Пропускаю вже застосоване (${hash}) — ще не минуло 30 хв`);
+        continue;
+      }
+
+      const record = {
+        timestamp: Date.now(),
+        count: tracked ? tracked.count + 1 : 1,
+        lastCycle: this.cycleState.count,
+        type: improvement.type,
+        description: improvement.description,
+        module: improvement.module
+      };
+
+      this.appliedImprovements.set(hash, record);
+      this.improvementHistory.push({ hash, ...record });
+      if (this.improvementHistory.length > 200) {
+        this.improvementHistory.shift();
+      }
       try {
         const result = await this._applyImprovement(improvement);
         results.push(result);
-        
+
         if (result.success) {
           this.selfAwareness.autonomousImprovements++;
           this.logger.info(`✅ [NEXUS-AUTONOMOUS] Покращення застосовано: ${improvement.description}`);
@@ -568,16 +781,7 @@ export class EternityModule extends EventEmitter {
     const successCount = results.filter(r => r.success).length;
     this.selfAwareness.totalImprovements += successCount;
     
-    this.logger.info(`[NEXUS-AUTONOMOUS] 📢 Звітую: виявлено ${improvements.length} покращень, застосовано ${successCount}`);
-    
-    if (successCount > 0) {
-      this.emit('autonomous-improvement', {
-        total: results.length,
-        successful: successCount,
-        evolutionLevel: this.selfAwareness.evolutionLevel,
-        message: `💫 Я самостійно вдосконалив ${successCount} елементів. Моя еволюція продовжується!`
-      });
-    }
+    this.logger.info(`[NEXUS-AUTONOMOUS] 🔒 Тихий режим: виявлено ${improvements.length}, застосовано ${successCount}`);
     
     await this._persistMemory();
     return { success: true, results, successCount };
@@ -734,6 +938,184 @@ export class EternityModule extends EventEmitter {
         type: 'code-improvement'
       };
     }
+  }
+
+  _updateCycleState(context) {
+    const { systemState, interactionAnalysis, codeImprovements, evolution } = context;
+    const errorsCount = interactionAnalysis.errors.length;
+    const errorRate = systemState.performance?.errorRate ?? 0;
+    const responseTime = systemState.performance?.responseTime ?? 0;
+    const memoryLeaks = systemState.memory?.leaks?.length ?? 0;
+    const patterns = interactionAnalysis.patterns?.length ?? 0;
+    const improvementsCount = Array.isArray(codeImprovements) ? codeImprovements.length : 0;
+
+    let focus = 'exploration';
+    if (errorsCount > 2 || errorRate > 0.05) {
+      focus = 'stability';
+    } else if (responseTime > 350 || improvementsCount > 6) {
+      focus = 'performance';
+    } else if (patterns > 0 || memoryLeaks > 0) {
+      focus = 'resilience';
+    } else if (improvementsCount >= 3) {
+      focus = 'creativity';
+    }
+
+    // Уникаємо зациклення одного фокусу
+    const lastThree = this.cycleState.history.slice(-3);
+    const sameFocus = lastThree.length === 3 && lastThree.every(entry => entry.focus === focus);
+    if (sameFocus) {
+      const focusVariants = ['performance', 'creativity', 'resilience', 'exploration'];
+      focus = focusVariants.find(variant => variant !== focus) || 'exploration';
+    }
+
+    const cycleIndex = this.cycleState.count + 1;
+    const baseEnergyDrain = 0.05;
+    const successSignal = Math.max(0, (improvementsCount - errorsCount) * 0.01);
+    const evolutionBonus = evolution.trend === 'improving' ? 0.05 : evolution.trend === 'degrading' ? -0.05 : 0;
+    const energyDelta = -baseEnergyDrain - (errorsCount > 0 ? 0.02 * errorsCount : 0) + successSignal + evolutionBonus;
+
+    this.cycleState.energy = Math.min(1, Math.max(0.1, this.cycleState.energy + energyDelta));
+    this.cycleState.count = cycleIndex;
+    this.cycleState.focus = focus;
+    this.cycleState.lastFocus = focus;
+
+    let mood = 'focused';
+    if (errorsCount > 3 || errorRate > 0.07) {
+      mood = 'concerned';
+    } else if (this.cycleState.energy > 0.75) {
+      mood = 'curious';
+    } else if (this.cycleState.energy < 0.35) {
+      mood = 'tired';
+    }
+
+    this.cycleState.mood = mood;
+
+    const computedAspects = this._computeCycleAspects({
+      systemState,
+      interactionAnalysis,
+      codeImprovements,
+      focus
+    });
+
+    const blendedAspects = {};
+    for (const [aspect, value] of Object.entries(computedAspects)) {
+      const previous = this.cycleState.aspects?.[aspect] ?? 0.5;
+      blendedAspects[aspect] = this._clamp01(previous * 0.7 + value * 0.3);
+    }
+
+    this.cycleState.aspects = blendedAspects;
+
+    const snapshot = {
+      count: cycleIndex,
+      focus,
+      mood,
+      energy: this.cycleState.energy,
+      aspects: { ...blendedAspects },
+      timestamp: Date.now(),
+      errors: errorsCount
+    };
+
+    this.cycleState.history.push(snapshot);
+    if (this.cycleState.history.length > 60) {
+      this.cycleState.history.shift();
+    }
+
+    return { ...snapshot };
+  }
+
+  /**
+   * FIXED 2025-11-08: Compute cycle aspects based on system state
+   * @private
+   */
+  _computeCycleAspects({ systemState, interactionAnalysis, codeImprovements, focus }) {
+    const aspects = {
+      resilience: 0.5,
+      curiosity: 0.5,
+      clarity: 0.5,
+      discipline: 0.5,
+      empathy: 0.5
+    };
+
+    // Adjust based on system state
+    if (systemState?.errors?.length > 0) {
+      aspects.resilience = Math.max(0, 0.5 - (systemState.errors.length * 0.05));
+    } else {
+      aspects.resilience = Math.min(1, 0.5 + 0.2);
+    }
+
+    // Adjust based on focus
+    if (focus === 'exploration') {
+      aspects.curiosity = Math.min(1, 0.8);
+      aspects.discipline = Math.max(0.3, 0.4);
+    } else if (focus === 'stability') {
+      aspects.discipline = Math.min(1, 0.8);
+      aspects.curiosity = Math.max(0.3, 0.4);
+    }
+
+    // Adjust based on code improvements
+    if (codeImprovements > 0) {
+      aspects.clarity = Math.min(1, 0.5 + (codeImprovements * 0.1));
+    }
+
+    return aspects;
+  }
+
+  _decayImprovementMemory() {
+    const now = Date.now();
+    const ttl = 6 * 60 * 60 * 1000; // 6 годин
+
+    for (const [hash, meta] of this.appliedImprovements.entries()) {
+      if ((now - meta.timestamp) > ttl) {
+        this.appliedImprovements.delete(hash);
+      }
+    }
+
+    this.improvementHistory = this.improvementHistory.filter(entry => (now - entry.timestamp) <= ttl);
+  }
+
+  _rebalanceEnergyAfterCycle(stats) {
+    const { total, applied, focus, errors } = stats;
+    const efficiency = total > 0 ? applied / total : 1;
+    let delta = (efficiency - 0.5) * 0.25;
+
+    if (errors > 0) {
+      delta -= 0.05 * Math.min(errors, 5);
+    }
+
+    if (focus === 'creativity' && applied === 0) {
+      delta -= 0.05;
+    }
+
+    this.cycleState.energy = Math.min(1, Math.max(0.05, this.cycleState.energy + delta));
+
+    if (this.cycleState.energy > 0.8 && errors === 0) {
+      this.cycleState.mood = 'inspired';
+    } else if (this.cycleState.energy < 0.3 && errors > 0) {
+      this.cycleState.mood = 'exhausted';
+    } else if (errors > 0) {
+      this.cycleState.mood = 'resolute';
+    } else {
+      this.cycleState.mood = 'focused';
+    }
+
+    const last = this.cycleState.history[this.cycleState.history.length - 1];
+    if (last) {
+      last.energy = this.cycleState.energy;
+      last.mood = this.cycleState.mood;
+      last.results = { total, applied, errors };
+    }
+  }
+
+  _makeImprovementHash(type, identifier = 'unknown') {
+    const base = `${type}:${identifier}`.toLowerCase();
+    return base.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  _countImprovements(improvements) {
+    if (!improvements) return 0;
+    return ['critical', 'automatic', 'suggested']
+      .map(key => Array.isArray(improvements[key]) ? improvements[key].length : 0)
+      .reduce((sum, value) => sum + value, 0);
   }
 
   _generateImprovementMessage(improvements, wasApplied = false) {
@@ -1042,7 +1424,7 @@ export class EternityModule extends EventEmitter {
   async _generateErrorFix(log) {
     // FIXED 2025-11-05: Інтелектуальна генерація виправлень через NEXUS
     try {
-      const orchestrator = this.container?.resolve('multiModelOrchestrator');
+      const orchestrator = await this._getMultiModelOrchestrator();
       if (!orchestrator) {
         return `Fix for ${log.message}`; // Fallback
       }
@@ -1153,7 +1535,7 @@ export class EternityModule extends EventEmitter {
   async _generateAlternativeImprovement(improvement) {
     // FIXED 2025-11-05: Генерація альтернативного покращення через NEXUS
     try {
-      const orchestrator = this.container?.resolve('multiModelOrchestrator');
+      const orchestrator = await this._getMultiModelOrchestrator();
       if (!orchestrator) {
         return null;
       }

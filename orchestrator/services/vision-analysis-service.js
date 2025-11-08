@@ -23,9 +23,12 @@ import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import LocalizationService from './localization-service.js';
+import GlobalConfig from '../../config/atlas-config.js';
+import { globalRateLimiter } from '../utils/rate-limiter.js';
 import visionAnalysisPrompts from '../../prompts/mcp/vision_analysis.js';
 import CircuitBreaker from '../utils/circuit-breaker.js';
-import GlobalConfig from '../../config/atlas-config.js';
+import modelChecker from '../ai/model-availability-checker.js';
 
 /**
  * Vision Analysis Service
@@ -55,6 +58,9 @@ export class VisionAnalysisService {
     this.initialized = false;
     this.port4000Available = false;
     this.ollamaAvailable = false;
+    
+    // ADDED 2025-11-08: Model availability checker for intelligent fallback
+    this.modelChecker = modelChecker;
 
     // OPTIMIZED: Add caching for repeated analyses
     this.cache = new Map();
@@ -261,7 +267,9 @@ export class VisionAnalysisService {
 
       // Call vision API with retry logic
       // ENHANCED 2025-10-22: Pass context for model selection
-      const analysis = await this._callVisionAPIWithRetry(base64Image, prompt, 3, context);
+      let analysis = await this._callVisionAPIWithRetry(base64Image, prompt, 3, context);
+
+      analysis = this._applyVerificationGuards(analysis, successCriteria, enrichedContext);
 
       // OPTIMIZED: Cache successful results
       this._cacheResult(cacheKey, analysis);
@@ -706,8 +714,8 @@ export class VisionAnalysisService {
         return await this._callOllamaVisionAPI(base64Image, prompt, systemPrompt);
       }
 
-      // LAST RESORT: OpenRouter (paid but reliable)
-      return await this._callOpenRouterVisionAPI(base64Image, prompt, systemPrompt);
+      // EMERGENCY FALLBACK: Try alternative vision models via ModelAvailabilityChecker
+      return await this._callEmergencyVisionFallback(base64Image, prompt, systemPrompt);
 
     } catch (error) {
       this.logger.error(`[VISION] API call failed: ${error.message}`, {
@@ -755,104 +763,79 @@ export class VisionAnalysisService {
         this.logger.system('vision-analysis', '[PORT-4000] Adding Copilot-Vision-Request header for GitHub Copilot model');
       }
 
-      const response = await axios.post(apiEndpoint, {
-        model: visionConfig.model,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${optimizedImage}`,
-                  detail: 'low'  // Low detail for SPEED and smaller payload
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: visionConfig.max_tokens || 1000,
-        temperature: visionConfig.temperature
+      // Use rate limiter for vision API calls
+      return globalRateLimiter.executeWithRetry(async () => {
+        // FIXED 2025-11-07: Get captureMode from context
+        const captureMode = context.captureMode || 'screen';
+        // Check model availability (timeout 5s)
+        this.logger.system('vision-analysis', `[PORT-4000] 🚀 Fast vision API for ${captureMode} (${visionConfig.model})...`);
+
+        // Build request with multimodal format
+        // FIXED 2025-11-07: Use apiEndpoint variable, not visionConfig.apiEndpoint
+        const response = await axios.post(apiEndpoint, {
+          model: visionConfig.model,
+          messages: [
+            ...(systemPrompt ? [{
+              role: 'system',
+              content: systemPrompt
+            }] : []),
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: {
+                  url: `data:image/jpeg;base64,${optimizedImage}`
+                }}
+              ]
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: visionConfig.max_tokens || 500
+        }, {
+          timeout: 60000,  // FIXED 2025-10-29: 60s timeout for vision models (llama-90b needs more time)
+          headers
+        });
+
+        const content = response.data.choices[0]?.message?.content;
+        this.logger.system('vision-analysis', '[PORT-4000] ✅ Fast response received');
+
+        return this._parseVisionResponse(content);
       }, {
-        timeout: 60000,  // FIXED 2025-10-29: 60s timeout for vision models (llama-90b needs more time)
-        headers
+        endpoint: visionConfig.apiEndpoint,
+        priority: 2 // Lower priority than text LLM calls
       });
 
-      const content = response.data.choices[0]?.message?.content;
-      this.logger.system('vision-analysis', '[PORT-4000] ✅ Fast response received');
-
-      return this._parseVisionResponse(content);
-
     } catch (error) {
-      // Handle specific HTTP errors
-      if (error.response?.status === 422) {
-        this.logger.error('[PORT-4000] ❌ 422 Unprocessable Entity - model may not support vision API', {
-          category: 'vision-analysis',
-          model: visionConfig.model,
-          hint: 'Check if the model supports vision API format (multimodal)'
-        });
+      // UPDATED 2025-11-08: Unified error handling - ALL errors trigger emergency fallback with model selection
+      const errorType = error.response?.status || error.code || 'unknown';
+      const errorDetails = {
+        category: 'vision-analysis',
+        errorType,
+        model: visionConfig.model,
+        message: error.message
+      };
 
-        // Try Ollama fallback only
-        if (this.ollamaAvailable) {
-          this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama after 422 error...');
-          return await this._callOllamaVisionAPI(base64Image, prompt);
-        }
-        // DISABLED: OpenRouter fallback
-        throw new Error('422 error and Ollama unavailable. OpenRouter fallback disabled.');
-      }
-
-      if (error.response?.status === 413) {
-        this.logger.error('[PORT-4000] ❌ 413 Payload Too Large - request exceeded size limit', {
-          category: 'vision-analysis',
-          hint: 'Image/prompt too large, trying fallback'
-        });
-
-        // Try Ollama fallback only
-        if (this.ollamaAvailable) {
-          this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama after 413 error...');
-          return await this._callOllamaVisionAPI(base64Image, prompt);
-        }
-        // DISABLED: OpenRouter fallback
-        throw new Error('413 error and Ollama unavailable. OpenRouter fallback disabled.');
-      }
-
-      if (error.code === 'ECONNREFUSED') {
-        this.logger.warn('[PORT-4000] Connection refused - port 4000 not available', {
-          category: 'vision-analysis'
-        });
+      // Log specific error type
+      if (error.response?.status === 429) {
+        this.logger.error('[PORT-4000] ❌ Rate limit (429) - switching to alternative models', errorDetails);
+      } else if (error.response?.status === 500 || error.response?.status === 503) {
+        this.logger.error('[PORT-4000] ❌ Server error - model overloaded or unavailable', errorDetails);
+      } else if (error.response?.status === 422) {
+        this.logger.error('[PORT-4000] ❌ Unprocessable Entity - model may not support vision', errorDetails);
+      } else if (error.response?.status === 413) {
+        this.logger.error('[PORT-4000] ❌ Payload Too Large - request size exceeded', errorDetails);
+      } else if (error.code === 'ECONNREFUSED') {
+        this.logger.warn('[PORT-4000] Connection refused - port 4000 not available', errorDetails);
         this.port4000Available = false;
-
-        // Try Ollama fallback only
-        if (this.ollamaAvailable) {
-          this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama...');
-          return await this._callOllamaVisionAPI(base64Image, prompt);
-        }
-
-        // DISABLED: OpenRouter fallback
-        throw new Error('Port 4000 unavailable and Ollama unavailable. OpenRouter fallback disabled.');
+      } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        this.logger.error('[PORT-4000] Timeout - request took too long', errorDetails);
+      } else {
+        this.logger.error('[PORT-4000] Unexpected error', errorDetails);
       }
 
-      // Timeout error - DISABLED OpenRouter fallback 2025-10-22
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        this.logger.error('[PORT-4000] Timeout - port 4000 too slow', {
-          category: 'vision-analysis',
-          note: 'OpenRouter fallback disabled - vision parsing not working'
-        });
-
-        if (this.ollamaAvailable) {
-          this.logger.system('vision-analysis', '[FALLBACK] Trying Ollama...');
-          return await this._callOllamaVisionAPI(base64Image, prompt);
-        }
-
-        // DISABLED: OpenRouter fallback not working (parsing issues)
-        throw new Error('Port 4000 timeout and Ollama unavailable. OpenRouter fallback disabled.');
-      }
-
-      throw error;
+      // For ALL errors - try emergency fallback with intelligent model selection
+      this.logger.warn(`[PORT-4000] 🔄 Activating emergency fallback for error: ${errorType}`);
+      return await this._callEmergencyVisionFallback(base64Image, prompt, systemPrompt);
     }
   }
 
@@ -912,7 +895,139 @@ export class VisionAnalysisService {
   }
 
   /**
-     * Call OpenRouter vision API (cloud)
+     * ADDED 2025-11-08: Emergency fallback using ModelAvailabilityChecker
+     * Finds and uses alternative vision models when primary sources fail
+     * @param {string} base64Image - Base64 encoded image
+     * @param {string} prompt - Analysis prompt
+     * @param {string} systemPrompt - System prompt
+     * @returns {Promise<Object>} Parsed analysis result
+     * @private
+     */
+  async _callEmergencyVisionFallback(base64Image, prompt, systemPrompt = null) {
+    try {
+      this.logger.warn('[VISION] 🆘 Emergency fallback activated - searching for available vision models');
+      
+      // STEP 1: Get available models from API (OpenAI standard)
+      let availableVisionModels = [];
+      try {
+        const modelsResponse = await axios.get('http://localhost:4000/v1/models', {
+          timeout: 5000
+        });
+        
+        if (modelsResponse.data && modelsResponse.data.data) {
+          // Filter vision models (contain 'vision' in name or known vision models)
+          availableVisionModels = modelsResponse.data.data
+            .map(m => m.id)
+            .filter(modelId => 
+              modelId.includes('vision') || 
+              modelId.includes('gpt-4o') ||
+              modelId.includes('llama-3.2') ||
+              modelId.includes('phi-4-multimodal')
+            );
+          
+          this.logger.info(`[VISION-EMERGENCY] 📋 Found ${availableVisionModels.length} vision models: ${availableVisionModels.join(', ')}`);
+        }
+      } catch (error) {
+        this.logger.warn('[VISION-EMERGENCY] Failed to fetch models list, using fallback list');
+        // Fallback to known vision models with atlas prefix
+        availableVisionModels = [
+          'atlas-gpt-4o-mini',
+          'atlas-gpt-4o',
+          'atlas-llama-3.2-11b-vision-instruct',
+          'atlas-llama-3.2-90b-vision-instruct',
+          'atlas-phi-4-multimodal-instruct'
+        ];
+      }
+      
+      if (availableVisionModels.length === 0) {
+        throw new Error('No vision models available in API');
+      }
+      
+      // STEP 2: Try each model with availability check
+      const emergencyConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_emergency');
+      const preferredModel = emergencyConfig.model; // atlas-gpt-4o-mini
+      
+      // Prioritize preferred model if it's in the list
+      const modelsToTry = availableVisionModels.includes(preferredModel)
+        ? [preferredModel, ...availableVisionModels.filter(m => m !== preferredModel)]
+        : availableVisionModels;
+      
+      let selectedModel = null;
+      let modelSource = 'unknown';
+      
+      // Try each model until one works
+      for (const model of modelsToTry) {
+        const modelResult = await this.modelChecker.getAvailableModel(model, null, 'vision');
+        if (modelResult.available) {
+          selectedModel = modelResult.model;
+          modelSource = modelResult.source;
+          break;
+        }
+      }
+      
+      if (!selectedModel) {
+        throw new Error('All vision models unavailable - failed availability checks');
+      }
+      
+      this.logger.info(`[VISION-EMERGENCY] 🎯 Using ${selectedModel} (source: ${modelSource})`);
+      
+      // Optimize image for API
+      const optimizedImage = this._optimizeImageForAPI(base64Image);
+      
+      // Build messages with vision format
+      const messages = [
+        ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/jpeg;base64,${optimizedImage}` }
+            }
+          ]
+        }
+      ];
+      
+      // Call API with selected model
+      const response = await axios.post(
+        'http://localhost:4000/v1/chat/completions',
+        {
+          model: selectedModel,
+          messages,
+          max_tokens: emergencyConfig.max_tokens || 800,
+          temperature: emergencyConfig.temperature || 0.2
+        },
+        {
+          timeout: 60000,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      
+      const content = response.data.choices[0]?.message?.content;
+      this.logger.system('vision-analysis', `[VISION-EMERGENCY] ✅ Response received from ${selectedModel}`);
+      
+      return this._parseVisionResponse(content);
+      
+    } catch (error) {
+      this.logger.error('[VISION-EMERGENCY] ❌ All vision fallbacks failed', {
+        category: 'vision-analysis',
+        error: error.message
+      });
+      
+      // Return safe fallback response
+      return {
+        verified: false,
+        confidence: 0,
+        reason: 'All vision models unavailable',
+        visual_evidence: {},
+        _emergency_fallback: true
+      };
+    }
+  }
+
+  /**
+     * Call OpenRouter vision API (PAID, RELIABLE)
      * @param {string} base64Image - Base64 encoded image
      * @param {string} prompt - Analysis prompt
      * @returns {Promise<Object>} Parsed analysis result
@@ -1198,8 +1313,8 @@ export class VisionAnalysisService {
       
       // Extract confidence
       const confidenceMatch = content.match(/\*\*\s*Confidence\s*[:\*]*\s*(\d+)%?/i);
-      // FIXED 2025-11-04: Default to higher confidence for markdown responses if verified
-      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : (verified ? 75 : 25);
+      // UPDATED 2025-11-08: Lower optimistic default for markdown responses to avoid false positives
+      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : (verified ? 55 : 25);
       
       // Extract reason
       const reasonMatch = content.match(/\*\*\s*Reason\s*[:\*]*\s*([^\n*]+)/i);
@@ -1284,6 +1399,133 @@ export class VisionAnalysisService {
     normalized._fallback = Boolean(normalized._fallback);
 
     return normalized;
+  }
+
+  _applyVerificationGuards(result, successCriteria = '', context = {}) {
+    if (!result) {
+      return result;
+    }
+
+    const guardNotes = [];
+    const normalizedCriteria = (successCriteria || '').toLowerCase();
+
+    if (this._requiresVideoGuard(normalizedCriteria, context)) {
+      const evidenceText = this._collectEvidenceText(result, context);
+      const playbackIndicators = [
+        'playing',
+        'playback',
+        'pause button',
+        'video controls',
+        'timeline',
+        'progress bar',
+        'youtube player',
+        'play icon',
+        'time bar',
+        'buffering',
+        'video player',
+        'контрол',
+        'прогрес',
+        'вiдтвор',
+        'пауза'
+      ];
+
+      if (!this._textContainsAny(evidenceText, playbackIndicators)) {
+        guardNotes.push('video-playback-indicator-missing');
+        result.verified = false;
+        if (result.visual_evidence) {
+          result.visual_evidence.matches_criteria = false;
+        }
+        result.confidence = Number.isFinite(result.confidence) ? Math.min(result.confidence, 35) : 35;
+        if (!result.reason || result.reason === 'No reason provided') {
+          result.reason = 'Відсутні ознаки відтворення відео або програвача на скріншоті.';
+        }
+      }
+
+      if (this._requiresFullscreenGuard(normalizedCriteria, context)) {
+        const fullscreenIndicators = [
+          'full screen',
+          'fullscreen',
+          'повноекран',
+          'maximize',
+          'full-screen icon',
+          'full screen button'
+        ];
+
+        if (!this._textContainsAny(evidenceText, fullscreenIndicators)) {
+          guardNotes.push('fullscreen-indicator-missing');
+          result.verified = false;
+          if (result.visual_evidence) {
+            result.visual_evidence.matches_criteria = false;
+          }
+          result.confidence = Number.isFinite(result.confidence) ? Math.min(result.confidence, 30) : 30;
+          if (!result.reason || result.reason === 'No reason provided') {
+            result.reason = 'Не бачу підтвердження повноекранного режиму на скріншоті.';
+          }
+        }
+      }
+    }
+
+    if (guardNotes.length > 0) {
+      result._guard_notes = Array.isArray(result._guard_notes)
+        ? [...result._guard_notes, ...guardNotes]
+        : guardNotes;
+    }
+
+    return result;
+  }
+
+  _requiresVideoGuard(normalizedCriteria, context = {}) {
+    if (!normalizedCriteria) {
+      return false;
+    }
+
+    const videoKeywords = ['відео', 'video', 'play', 'youtube', 'відтвор'];
+    const previousActions = (context.previous_actions || '').toLowerCase();
+    const action = (context.action || '').toLowerCase();
+
+    return this._textContainsAny(normalizedCriteria, videoKeywords)
+      || this._textContainsAny(previousActions, videoKeywords)
+      || this._textContainsAny(action, videoKeywords);
+  }
+
+  _requiresFullscreenGuard(normalizedCriteria, context = {}) {
+    const fullscreenKeywords = ['full screen', 'fullscreen', 'повноекран'];
+    const previousActions = (context.previous_actions || '').toLowerCase();
+    const action = (context.action || '').toLowerCase();
+
+    return this._textContainsAny(normalizedCriteria, fullscreenKeywords)
+      || this._textContainsAny(previousActions, fullscreenKeywords)
+      || this._textContainsAny(action, fullscreenKeywords);
+  }
+
+  _collectEvidenceText(result, context = {}) {
+    const parts = [];
+
+    if (result.reason) parts.push(String(result.reason));
+    if (result.message) parts.push(String(result.message));
+
+    if (result.visual_evidence) {
+      const { observed, details, text } = result.visual_evidence;
+      if (observed) parts.push(String(observed));
+      if (details) parts.push(String(details));
+      if (text) parts.push(String(text));
+    }
+
+    if (Array.isArray(result.notes)) {
+      parts.push(result.notes.join(' '));
+    }
+
+    if (context.execution_history) parts.push(String(context.execution_history));
+
+    return parts.join(' ').toLowerCase();
+  }
+
+  _textContainsAny(text, keywords) {
+    if (!text || !keywords || keywords.length === 0) {
+      return false;
+    }
+
+    return keywords.some(keyword => text.includes(keyword.toLowerCase()));
   }
 
   /**

@@ -4,11 +4,11 @@
  */
 
 import axios from 'axios';
-
-// Імпортуємо нові модулі
+import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
 import * as agentProtocol from '../agents/agent-protocol.js';
 import GlobalConfig from '../../config/atlas-config.js';
+import modelChecker from './model-availability-checker.js';
 
 // Model registry - dynamically built from GlobalConfig (lazy loaded)
 let MODELS_CACHE = null;
@@ -142,7 +142,54 @@ export async function chatCompletion(messages, options = {}) {
   } catch (error) {
     console.error('[FALLBACK-LLM] Request failed:', error.message);
 
-    // Fallback to simple rule-based response
+    // ADDED 2025-11-08: Try alternative models via ModelAvailabilityChecker
+    if (error.response?.status === 429 || error.response?.status >= 500 || error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') {
+      console.log('[FALLBACK-LLM] 🔄 Trying alternative models...');
+      
+      try {
+        // Get list of available models
+        const modelsResponse = await axios.get(`${baseUrl}/v1/models`, { timeout: 5000 });
+        const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+        
+        // Try each available model
+        for (const altModel of availableModels) {
+          if (altModel === model) continue; // Skip the failed model
+          
+          const modelResult = await modelChecker.getAvailableModel(altModel, null, 'general');
+          if (modelResult.available) {
+            console.log(`[FALLBACK-LLM] ✅ Trying alternative model: ${altModel}`);
+            
+            const retryResponse = await axios.post(`${baseUrl}/v1/chat/completions`, {
+              model: altModel,
+              messages: effectiveMessages,
+              max_tokens,
+              temperature,
+              stream
+            }, {
+              timeout: 30000,
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            return {
+              id: retryResponse.data.id,
+              object: retryResponse.data.object,
+              created: retryResponse.data.created,
+              model: retryResponse.data.model,
+              choices: retryResponse.data.choices,
+              usage: {
+                ...retryResponse.data.usage,
+                atlas_truncated,
+                atlas_fallback_model: altModel
+              }
+            };
+          }
+        }
+      } catch (fallbackError) {
+        console.error('[FALLBACK-LLM] All alternative models failed:', fallbackError.message);
+      }
+    }
+
+    // Ultimate fallback to simple rule-based response
     const userMsg = effectiveMessages.slice().reverse().find(m => m.role === 'user')?.content || '';
     const reply = generateSimpleReply(userMsg, model);
 
@@ -160,7 +207,8 @@ export async function chatCompletion(messages, options = {}) {
         prompt_tokens: atlas_truncated ? MAX_INPUT_TOKENS : promptTokens,
         completion_tokens: Math.ceil(reply.length / 4),
         total_tokens: (atlas_truncated ? MAX_INPUT_TOKENS : promptTokens) + Math.ceil(reply.length / 4),
-        atlas_truncated
+        atlas_truncated,
+        atlas_rule_based: true
       }
     };
   }

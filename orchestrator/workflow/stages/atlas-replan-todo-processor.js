@@ -14,6 +14,7 @@
 import logger from '../../utils/logger.js';
 import axios from 'axios';
 import GlobalConfig from '../../../config/atlas-config.js';
+import modelChecker from '../../ai/model-availability-checker.js';
 
 /**
  * Atlas Replan TODO Processor
@@ -224,25 +225,65 @@ export class AtlasReplanTodoProcessor {
             ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
             : 'http://localhost:4000/v1/chat/completions';
 
-        // Call LLM
-        const apiResponse = await axios.post(apiUrl, {
-            model: modelConfig.model,
-            messages: [
-                {
-                    role: 'system',
-                    content: replanPrompt.systemPrompt || replanPrompt.SYSTEM_PROMPT
-                },
-                {
-                    role: 'user',
-                    content: userMessage
+        // ADDED 2025-11-08: Call LLM with fallback on any error
+        let apiResponse;
+        let usedModel = modelConfig.model;
+        
+        try {
+            apiResponse = await axios.post(apiUrl, {
+                model: usedModel,
+                messages: [
+                    {
+                        role: 'system',
+                        content: replanPrompt.systemPrompt || replanPrompt.SYSTEM_PROMPT
+                    },
+                    {
+                        role: 'user',
+                        content: userMessage
+                    }
+                ],
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
+            }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 60000
+            });
+        } catch (primaryError) {
+            this.logger.warn('[REPLAN] Primary model failed, trying alternatives');
+            
+            const modelsResponse = await axios.get(`${apiUrl.replace('/chat/completions', '/models')}`, { timeout: 5000 });
+            const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+            
+            for (const altModel of availableModels) {
+                if (altModel === usedModel) continue;
+                
+                const modelResult = await modelChecker.getAvailableModel(altModel, null, 'replan');
+                if (modelResult.available) {
+                    usedModel = altModel;
+                    apiResponse = await axios.post(apiUrl, {
+                        model: usedModel,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: replanPrompt.systemPrompt || replanPrompt.SYSTEM_PROMPT
+                            },
+                            {
+                                role: 'user',
+                                content: userMessage
+                            }
+                        ],
+                        temperature: modelConfig.temperature,
+                        max_tokens: modelConfig.max_tokens
+                    }, {
+                        headers: { 'Content-Type': 'application/json' },
+                        timeout: 60000
+                    });
+                    break;
                 }
-            ],
-            temperature: modelConfig.temperature,
-            max_tokens: modelConfig.max_tokens
-        }, {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 60000  // 60s for deep analysis
-        });
+            }
+            
+            if (!apiResponse) throw primaryError;
+        }
 
         const response = apiResponse.data.choices[0].message.content;
 

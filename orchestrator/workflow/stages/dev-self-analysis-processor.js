@@ -13,6 +13,7 @@ import GlobalConfig from '../../../config/global-config.js';
 import fs from 'fs/promises';
 import { DynamicPromptInjector } from '../../eternity/dynamic-prompt-injector.js';
 import IntentDetector from './intent-detector.js';
+import modelChecker from '../../ai/model-availability-checker.js';
 
 // Get user language from environment
 const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
@@ -266,15 +267,50 @@ export class DevSelfAnalysisProcessor {
                 description: 'Глибокий аналіз через LLM з контекстом свідомості'
             });
             
-            const response = await axios.post(this.apiEndpoint, {
-                model: this.modelConfig.model,
-                messages,
-                temperature: this.modelConfig.temperature,
-                max_tokens: this.modelConfig.max_tokens,
-                response_format: { type: 'json_object' } // Force JSON output
-            }, {
-                timeout: this.apiTimeout
-            });
+            // ADDED 2025-11-08: Try with fallback on any error
+            let response;
+            let usedModel = this.modelConfig.model;
+            
+            try {
+                response = await axios.post(this.apiEndpoint, {
+                    model: usedModel,
+                    messages,
+                    temperature: this.modelConfig.temperature,
+                    max_tokens: this.modelConfig.max_tokens,
+                    response_format: { type: 'json_object' }
+                }, {
+                    timeout: this.apiTimeout
+                });
+            } catch (primaryError) {
+                this.logger.warn(`[DEV-ANALYSIS] ⚠️ Primary model failed: ${primaryError.message}`);
+                
+                // Try alternative models via ModelAvailabilityChecker
+                const modelsResponse = await axios.get(`${this.apiEndpoint.replace('/chat/completions', '/models')}`, { timeout: 5000 });
+                const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+                
+                for (const altModel of availableModels) {
+                    if (altModel === usedModel) continue;
+                    
+                    const modelResult = await modelChecker.getAvailableModel(altModel, null, 'analysis');
+                    if (modelResult.available) {
+                        this.logger.info(`[DEV-ANALYSIS] 🔄 Trying alternative model: ${altModel}`);
+                        usedModel = altModel;
+                        
+                        response = await axios.post(this.apiEndpoint, {
+                            model: usedModel,
+                            messages,
+                            temperature: this.modelConfig.temperature,
+                            max_tokens: this.modelConfig.max_tokens,
+                            response_format: { type: 'json_object' }
+                        }, {
+                            timeout: this.apiTimeout
+                        });
+                        break;
+                    }
+                }
+                
+                if (!response) throw primaryError;
+            }
 
             const analysisResult = this._parseRobustResponse(response.data.choices[0].message.content);
             

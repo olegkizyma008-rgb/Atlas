@@ -15,6 +15,7 @@
 import logger from '../../utils/logger.js';
 import axios from 'axios';
 import GlobalConfig from '../../../config/atlas-config.js';
+import modelChecker from '../../ai/model-availability-checker.js';
 
 /**
  * Chat Memory Eligibility Processor
@@ -229,19 +230,53 @@ export class ChatMemoryEligibilityProcessor {
         const apiEndpoint = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint?.primary || 
                            'http://localhost:4000/v1/chat/completions';
 
+        let response;
+        let usedModel = modelConfig.model;
+        
         try {
-            const response = await axios.post(apiEndpoint, {
-                model: modelConfig.model,
+            response = await axios.post(apiEndpoint, {
+                model: usedModel,
                 messages: [
                     { role: 'system', content: prompt.system },
                     { role: 'user', content: prompt.user }
                 ],
-                temperature: modelConfig.temperature,
-                max_tokens: modelConfig.max_tokens
+                temperature: 0.1,
+                max_tokens: 100
             }, {
-                timeout: 5000 // 5 second timeout for fast decision
+                timeout: 10000
             });
+        } catch (primaryError) {
+            // ADDED 2025-11-08: Try alternative models on any error
+            this.logger.warn('[MEMORY-ELIGIBILITY] Primary model failed, trying alternatives');
+            
+            const modelsResponse = await axios.get(`${apiEndpoint.replace('/chat/completions', '/models')}`, { timeout: 5000 });
+            const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+            
+            for (const altModel of availableModels) {
+                if (altModel === usedModel) continue;
+                
+                const modelResult = await modelChecker.getAvailableModel(altModel, null, 'eligibility');
+                if (modelResult.available) {
+                    usedModel = altModel;
+                    response = await axios.post(apiEndpoint, {
+                        model: usedModel,
+                        messages: [
+                            { role: 'system', content: prompt.system },
+                            { role: 'user', content: prompt.user }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 100
+                    }, {
+                        timeout: 10000
+                    });
+                    break;
+                }
+            }
+            
+            if (!response) throw primaryError;
+        }
 
+        try {
             const rawResponse = response.data.choices[0].message.content;
             return this._parseMemoryDecision(rawResponse);
 

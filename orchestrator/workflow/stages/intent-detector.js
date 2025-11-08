@@ -6,8 +6,10 @@
  * Purpose: Замінити примітивний pattern matching на справжнє розуміння
  */
 
+import axios from 'axios';
 import logger from '../../utils/logger.js';
 import GlobalConfig from '../../../config/index.js';
+import modelChecker from '../../ai/model-availability-checker.js';
 
 export class IntentDetector {
     constructor() {
@@ -163,23 +165,49 @@ export class IntentDetector {
         try {
             const prompt = this._buildIntentPrompt(userMessage, analysisContext);
             
-            const response = await fetch(this.apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: this.modelConfig.model,
+            // ADDED 2025-11-08: Use axios with fallback on any error
+            let response;
+            let usedModel = this.modelConfig.model;
+            
+            try {
+                response = await axios.post(this.apiEndpoint, {
+                    model: usedModel,
                     messages: [{ role: 'user', content: prompt }],
                     temperature: this.modelConfig.temperature,
                     max_tokens: this.modelConfig.max_tokens,
                     response_format: { type: 'json_object' }
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`LLM API error: ${response.status}`);
+                }, {
+                    timeout: 10000
+                });
+            } catch (primaryError) {
+                this.logger.warn('[INTENT-DETECTOR] Primary model failed, trying alternatives');
+                
+                const modelsResponse = await axios.get(`${this.apiEndpoint.replace('/chat/completions', '/models')}`, { timeout: 5000 });
+                const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+                
+                for (const altModel of availableModels) {
+                    if (altModel === usedModel) continue;
+                    
+                    const modelResult = await modelChecker.getAvailableModel(altModel, null, 'intent');
+                    if (modelResult.available) {
+                        usedModel = altModel;
+                        response = await axios.post(this.apiEndpoint, {
+                            model: usedModel,
+                            messages: [{ role: 'user', content: prompt }],
+                            temperature: this.modelConfig.temperature,
+                            max_tokens: this.modelConfig.max_tokens,
+                            response_format: { type: 'json_object' }
+                        }, {
+                            timeout: 10000
+                        });
+                        break;
+                    }
+                }
+                
+                if (!response) throw primaryError;
             }
             
-            const data = await response.json();
+            const data = response.data;
             const content = data.choices?.[0]?.message?.content;
             
             if (!content) {

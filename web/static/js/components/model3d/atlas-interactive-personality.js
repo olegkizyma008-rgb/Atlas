@@ -264,7 +264,8 @@ export class AtlasInteractivePersonality {
             this.livingSystem.setEmotion(mood, visual.intensity, 2000);
         }
         
-        console.log(`😊 Mood changed to: ${mood}`);
+        // Only log mood changes in debug mode to reduce console spam
+        // console.log(`😊 Mood changed to: ${mood}`);
     }
     
     /**

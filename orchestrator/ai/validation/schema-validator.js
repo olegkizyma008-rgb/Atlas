@@ -7,6 +7,7 @@
  */
 
 import logger from '../../utils/logger.js';
+import { normalizeToolName, denormalizeToolName, extractServerName, extractToolAction } from '../../utils/tool-name-normalizer.js';
 
 /**
  * Schema Validator
@@ -74,22 +75,20 @@ export class SchemaValidator {
         continue;
       }
 
-      // FIXED 2025-10-23: Try to find tool with both formats
-      // MCP tools may have full name (server__tool) or short name (tool)
-      let toolDef = server.tools.find(t => t.name === call.tool);
-      
-      // If not found, try without server prefix
-      if (!toolDef && call.tool.includes('__')) {
-        const toolNameWithoutPrefix = call.tool.split('__')[1];
-        toolDef = server.tools.find(t => t.name === toolNameWithoutPrefix);
-      }
-      
-      // If still not found, try with server prefix
-      if (!toolDef && !call.tool.includes('__')) {
-        const toolNameWithPrefix = `${call.server}__${call.tool}`;
-        toolDef = server.tools.find(t => t.name === toolNameWithPrefix);
-      }
-      
+      // CONSOLIDATED 2025-11-14: Use centralized tool name normalizer
+      // Normalize input tool name to internal format (double __)
+      const normalizedToolName = normalizeToolName(call.tool, call.server);
+
+      // Denormalize for MCP server lookup (single _)
+      const mcpToolName = denormalizeToolName(normalizedToolName);
+
+      // Try to find tool with both formats
+      let toolDef = server.tools.find(t =>
+        t.name === mcpToolName ||
+        normalizeToolName(t.name, call.server) === normalizedToolName ||
+        t.name === call.tool
+      );
+
       const toolName = toolDef ? toolDef.name : call.tool;
       if (!toolDef) {
         warnings.push({
@@ -233,7 +232,7 @@ export class SchemaValidator {
         // ENHANCED 2025-10-23: Auto-correct common type mismatches
         let correctedValue = null;
         let canCorrect = false;
-        
+
         // Empty string → empty array
         if (expectedType === 'array' && actualType === 'string' && paramValue === '') {
           correctedValue = [];
@@ -264,11 +263,11 @@ export class SchemaValidator {
           correctedValue = [paramValue];
           canCorrect = true;
         }
-        
+
         if (canCorrect) {
           correctedParams[paramName] = correctedValue;
           hasCorrections = true;
-          
+
           corrections.push({
             type: 'type_corrected',
             parameter: paramName,

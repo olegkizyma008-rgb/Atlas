@@ -82,20 +82,50 @@ export class ModeSelectionProcessor {
                 { role: 'user', content: prompt.buildUserPrompt(userMessage) }
             ];
 
-            // Call LLM API
-            this.logger.system('mode-selection', `[STAGE-0-MCP] Calling API: ${this.apiEndpoint}`);
-            this.logger.system('mode-selection', `[STAGE-0-MCP] Messages: ${JSON.stringify(messages.map(m => ({ role: m.role, content: m.content.substring(0, 80) })))}`);
+            // FIXED 2025-11-06: Retry with fallback model on rate limit
+            let response;
+            let usedModel = this.modelConfig.model;
+            
+            try {
+                // Try primary model first
+                this.logger.system('mode-selection', `[STAGE-0-MCP] Calling API: ${this.apiEndpoint}`);
+                this.logger.system('mode-selection', `[STAGE-0-MCP] Primary model: ${usedModel}`);
+                
+                response = await axios.post(this.apiEndpoint, {
+                    model: usedModel,
+                    messages,
+                    temperature: this.modelConfig.temperature,
+                    max_tokens: this.modelConfig.max_tokens
+                }, {
+                    timeout: this.apiTimeout
+                });
+                
+            } catch (primaryError) {
+                // Check if it's a rate limit error
+                const isRateLimit = primaryError.response?.status === 500 && 
+                                  primaryError.response?.data?.error?.code === 'RATE_LIMIT';
+                
+                if (isRateLimit && this.modelConfig.fallback) {
+                    this.logger.warn('[STAGE-0-MCP] ⚠️ Rate limit на primary model, пробую fallback');
+                    this.logger.warn(`[STAGE-0-MCP] Fallback model: ${this.modelConfig.fallback}`);
+                    
+                    // Retry with fallback model
+                    usedModel = this.modelConfig.fallback;
+                    response = await axios.post(this.apiEndpoint, {
+                        model: usedModel,
+                        messages,
+                        temperature: this.modelConfig.temperature,
+                        max_tokens: this.modelConfig.max_tokens
+                    }, {
+                        timeout: this.apiTimeout
+                    });
+                } else {
+                    // Not a rate limit or no fallback - rethrow
+                    throw primaryError;
+                }
+            }
 
-            const response = await axios.post(this.apiEndpoint, {
-                model: this.modelConfig.model,
-                messages,
-                temperature: this.modelConfig.temperature,
-                max_tokens: this.modelConfig.max_tokens
-            }, {
-                timeout: this.apiTimeout  // Use configured timeout with fallback support
-            });
-
-            this.logger.system('mode-selection', `[STAGE-0-MCP] Response received: status=${response.status}, has_data=${!!response.data}, has_choices=${!!response.data.choices}`);
+            this.logger.system('mode-selection', `[STAGE-0-MCP] Response received: status=${response.status}, model=${usedModel}`);
 
             if (!response.data || !response.data.choices || response.data.choices.length === 0) {
                 throw new Error('Invalid API response structure');
@@ -119,7 +149,8 @@ export class ModeSelectionProcessor {
                 metadata: {
                     userMessage,
                     timestamp: new Date().toISOString(),
-                    prompt: 'MODE_SELECTION'
+                    prompt: 'MODE_SELECTION',
+                    model: usedModel
                 }
             };
 

@@ -8,7 +8,6 @@
  * UPDATED 14.10.2025 - Added MCP_MODEL_CONFIG support for per-stage models
  */
 
-import axios from 'axios';
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 import { MCP_PROMPTS, universalMcpPrompt } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
@@ -17,6 +16,9 @@ import LocalizationService from '../services/localization-service.js';
 import { VisualCaptureService } from '../services/visual-capture-service.js';
 import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
 import { ValidationPipeline } from '../ai/validation/validation-pipeline.js';
+import { postToLLM } from '../utils/llm-api-client.js';
+import { getRateLimiter } from '../utils/api-rate-limiter.js';
+import axios from 'axios';
 
 /**
  * @typedef {Object} TodoItem
@@ -74,21 +76,29 @@ export class MCPTodoManager {
      * @param {Object} dependencies.wsManager - WebSocket Manager for chat updates
      * @param {Object} dependencies.atlasReplanTodoProcessor - Atlas Replan TODO Processor (optional)
      * @param {Object} dependencies.logger - Logger instance
-     * @param {Object} dependencies.localizationService - Localization Service instance
      */
-  constructor({ logger, wsManager = null, localizationService = null, mcpManager = null, ttsSyncManager = null, atlasReplanProcessor = null, llmClient = null }) {
-    this.logger = logger;
-    this.mcpManager = mcpManager;
+  constructor(options = {}) {
+    this.logger = options.logger || console;
+    this.mcpManager = options.mcpManager;
+    this.diContainer = options.diContainer;
+    this.llmClient = options.llmClient;
+    this.localizationService = options.localizationService || new LocalizationService({ logger: this.logger });
+    this.wsManager = options.wsManager;
+    this.ttsSyncManager = options.ttsSyncManager;
+    this.idManager = HierarchicalIdManager;
     
+    // Initialize rate limiter for API calls
+    this.rateLimiter = getRateLimiter({
+      minDelay: 2000,        // 2 seconds minimum between calls
+      maxDelay: 60000,       // 60 seconds max backoff
+      maxConcurrent: 1,      // Only 1 API call at a time
+      retryAttempts: 2,      // 2 retry attempts for TODO calls
+      burstLimit: 3,         // Max 3 calls per minute
+      burstWindow: 60000     // 1 minute window
+    });
+
     // Store MCP_MODEL_CONFIG reference (imported at top of file)
     this.mcpModelConfig = MCP_MODEL_CONFIG;
-    this.wsManager = wsManager;
-    this.ttsSyncManager = ttsSyncManager;
-    this.atlasReplanProcessor = atlasReplanProcessor;
-    this.llmClient = llmClient;
-    this.localizationService = localizationService || new LocalizationService({ logger });
-    this.currentTodo = null;
-    this.currentSessionId = null;
     this.hierarchicalIdManager = new HierarchicalIdManager();
     this.lastApiCall = 0;
     this.minApiDelay = 100; // Minimum delay between API calls in ms
@@ -116,6 +126,97 @@ export class MCPTodoManager {
   }
 
   /**
+   * Centralized API call method with rate limiting
+   * @private
+   */
+  async _makeApiCall(apiUrl, payload, options = {}) {
+    const priority = options.priority || 7;
+    const metadata = options.metadata || {};
+    const retryable = options.retryable !== false;
+    
+    return this.rateLimiter.call(
+      async () => axios.post(apiUrl, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: options.timeout || 30000
+      }),
+      { 
+        priority, 
+        retryable,
+        metadata: { type: 'mcp_todo', ...metadata } 
+      }
+    );
+  }
+
+  _enhanceTodoSuccessCriteria(todo) {
+    if (!todo || !Array.isArray(todo.items)) {
+      return;
+    }
+
+    for (const item of todo.items) {
+      this._enhanceItemSuccessCriteria(item);
+    }
+  }
+
+  _enhanceItemSuccessCriteria(item) {
+    if (!item || typeof item !== 'object') {
+      return;
+    }
+
+    let successCriteria = typeof item.success_criteria === 'string' ? item.success_criteria : '';
+    const actionText = (item.action || '').toLowerCase();
+
+    const videoKeywords = ['video', 'watch', 'movie', 'film', 'відео', 'перегля', 'відтвор'];
+    const playbackIndicators = ['playback controls', 'pause button', 'timeline', 'progress bar', 'play button', 'timer', 'playback time'];
+    const fullscreenKeywords = ['full screen', 'fullscreen', 'повноекран'];
+    const fullscreenIndicators = ['fullscreen indicator', 'full screen mode', 'entire screen', 'window covers entire display'];
+
+    let criteriaLower = successCriteria.toLowerCase();
+    let modified = false;
+
+    if (this._textContainsAny(actionText, videoKeywords) || this._textContainsAny(criteriaLower, videoKeywords)) {
+      if (!this._textContainsAny(criteriaLower, playbackIndicators)) {
+        successCriteria = this._appendCriterion(successCriteria, 'Video player is visible with playback controls and the playback timer is running.');
+        criteriaLower = successCriteria.toLowerCase();
+        modified = true;
+      }
+    }
+
+    if (this._textContainsAny(actionText, fullscreenKeywords) || this._textContainsAny(criteriaLower, fullscreenKeywords)) {
+      if (!this._textContainsAny(criteriaLower, fullscreenIndicators)) {
+        successCriteria = this._appendCriterion(successCriteria, 'Fullscreen mode is confirmed (fullscreen indicator visible or window covers the entire display).');
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      item.success_criteria = successCriteria.trim();
+    }
+  }
+
+  _appendCriterion(existing, addition) {
+    const trimmedExisting = (existing || '').trim();
+    if (!trimmedExisting) {
+      return addition;
+    }
+
+    const endsWithTerminator = /[.!?]$/.test(trimmedExisting);
+    if (endsWithTerminator) {
+      return `${trimmedExisting} ${addition}`;
+    }
+
+    return `${trimmedExisting}. ${addition}`;
+  }
+
+  _textContainsAny(text, keywords) {
+    if (!text || !keywords || keywords.length === 0) {
+      return false;
+    }
+
+    const lower = text.toLowerCase();
+    return keywords.some(keyword => lower.includes(keyword.toLowerCase()));
+  }
+
+  /**
    * Normalize tool name by ensuring it has exactly one `server__tool` prefix
    * FIXED 2025-10-30: Prevent double prefix for tools already in correct format
    * @private
@@ -126,44 +227,25 @@ export class MCPTodoManager {
     }
 
     const prefix = `${server}__`;
+    let cleanTool = tool;
 
-    // If tool already has correct prefix format, return as-is
-    if (tool.startsWith(prefix)) {
-      const withoutPrefix = tool.slice(prefix.length);
-      
-      // Check for double prefix (e.g., playwright__playwright__navigate)
-      if (withoutPrefix.startsWith(server)) {
-        // Remove duplicate prefix
-        const cleaned = withoutPrefix.slice(server.length);
-        if (cleaned.startsWith('__')) {
-          return prefix + cleaned.slice(2);
-        }
-        if (cleaned.startsWith('_')) {
-          return prefix + cleaned.slice(1);
-        }
-      }
-      
-      // Tool is already in correct format
-      return tool;
+    // If tool already has correct prefix format, clean it
+    if (cleanTool.startsWith(prefix)) {
+      cleanTool = cleanTool.slice(prefix.length);
     }
-
-    // If tool has double underscore but wrong server prefix
-    if (tool.includes('__')) {
-      const parts = tool.split('__');
-      if (parts.length >= 2) {
-        // Take everything after first __
-        return prefix + parts.slice(1).join('__');
-      }
+    // Remove single underscore prefix if present
+    else if (cleanTool.startsWith(`${server}_`)) {
+      cleanTool = cleanTool.slice(server.length + 1);
     }
-
-    // If tool has single underscore with server name, remove it
-    if (tool.startsWith(`${server}_`)) {
-      const withoutSinglePrefix = tool.slice(server.length + 1);
-      return prefix + withoutSinglePrefix;
+    
+    // Special case: if tool still has server name in it (e.g., "applescript_execute" after removing prefix)
+    // This handles cases like "applescript__applescript_execute" -> "applescript_execute" -> "execute"
+    if (cleanTool.startsWith(`${server}_`)) {
+      cleanTool = cleanTool.slice(server.length + 1);
     }
-
-    // Tool has no prefix, add it
-    return prefix + tool;
+    
+    // Return with proper format: server__tool
+    return `${server}__${cleanTool}`;
   }
 
   /**
@@ -264,8 +346,8 @@ Analyze feasibility and propose strategy.`
 
       const modelConfig = this._getModelForStage('reasoning');
       
-      // FIXED 2025-11-04: Use direct axios call instead of non-existent callLLM method
-      const apiResponse = await axios.post(
+      // FIXED 2025-11-04: Use centralized LLM client helper for authorization handling
+      const apiResponse = await postToLLM(
         this.mcpModelConfig.apiEndpoint,
         {
           model: modelConfig.model,
@@ -503,20 +585,21 @@ Analyze feasibility and propose strategy.`
 
       this.logger.system('mcp-todo', `[TODO] Using primary API endpoint: ${apiUrl}`);
 
+      const requestPayload = {
+        model: modelConfig.model,
+        messages: [
+          { role: 'system', content: todoPrompt.systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: modelConfig.temperature,
+        max_tokens: modelConfig.max_tokens
+      };
+
       let apiResponse;
       let usedFallback = false;
 
       try {
-        const apiResponse_attempt = await axios.post(apiUrl, {
-          model: modelConfig.model,
-          messages: [
-            { role: 'system', content: todoPrompt.systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          temperature: modelConfig.temperature,
-          max_tokens: modelConfig.max_tokens
-        }, {
-          headers: { 'Content-Type': 'application/json' },
+        const apiResponse_attempt = await postToLLM(apiUrl, requestPayload, {
           timeout: 120000  // FIXED 14.10.2025 - 120s для mistral-small-2503 (повільна але якісна модель)
         });
         apiResponse = apiResponse_attempt;
@@ -539,16 +622,7 @@ Analyze feasibility and propose strategy.`
           this.logger.system('mcp-todo', `[TODO] Using fallback API endpoint: ${apiUrl}`);
 
           try {
-            const apiResponse_fallback = await axios.post(apiUrl, {
-              model: modelConfig.model,
-              messages: [
-                { role: 'system', content: todoPrompt.systemPrompt },
-                { role: 'user', content: userMessage }
-              ],
-              temperature: modelConfig.temperature,
-              max_tokens: modelConfig.max_tokens
-            }, {
-              headers: { 'Content-Type': 'application/json' },
+            const apiResponse_fallback = await postToLLM(apiUrl, requestPayload, {
               timeout: 120000
             });
             apiResponse = apiResponse_fallback;
@@ -613,6 +687,9 @@ Analyze feasibility and propose strategy.`
       this.logger.system('mcp-todo', `[TODO] Response suffix: ...${response.substring(Math.max(0, response.length - 300))}`);
 
       const todo = this._parseTodoResponse(response, request);
+
+      // ENHANCED 2025-11-08: Strengthen success criteria for video/fullscreen tasks
+      this._enhanceTodoSuccessCriteria(todo);
 
       // Validate TODO structure
       this._validateTodo(todo);
@@ -1459,12 +1536,11 @@ Create precise MCP tool execution plan.
         
         while (retryCount < maxRetries) {
           try {
-            apiResponse = await axios.post(apiUrl, requestBody, {
-              headers: { 'Content-Type': 'application/json' },
+            apiResponse = await postToLLM(apiUrl, requestBody, {
               timeout: timeoutMs,
               maxContentLength: 50 * 1024 * 1024,  // 50MB
-              maxBodyLength: 50 * 1024 * 1024,  // 50MB
-              validateStatus: (status) => status < 600 // Accept all responses to handle manually
+              maxBodyLength: 50 * 1024 * 1024,     // 50MB
+              validateStatus: (status) => status < 600
             });
             
             // CRITICAL 2025-11-03: Auto-switch to fallback on rate limit
@@ -1750,7 +1826,7 @@ Create precise MCP tool execution plan.
       // Use centralized config for screenshot adjustment
       const screenshotConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('screenshot_adjustment');
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: screenshotConfig.model,
         messages: [
           { role: 'system', content: adjustPrompt.systemPrompt },
@@ -1868,18 +1944,21 @@ Create precise MCP tool execution plan.
       try {
         this.logger.system('mcp-todo', `[TODO] Calling ${toolCall.tool} on ${toolCall.server}`);
 
-        // Auto-correct AppleScript parameters if LLM used legacy field names
+        // Auto-correct AppleScript parameters - MCP uses 'script' not 'code_snippet'
         if (toolCall.server === 'applescript' && toolCall.tool === 'applescript_execute') {
-          if (!parameters.code_snippet && typeof parameters.script === 'string') {
-            parameters.code_snippet = parameters.script;
-            this.logger.system('mcp-todo', '[TODO] Auto-filled code_snippet from script for applescript_execute');
+          if (!parameters.script && typeof parameters.code_snippet === 'string') {
+            parameters.script = parameters.code_snippet;
+            delete parameters.code_snippet;
+            this.logger.system('mcp-todo', '[TODO] Auto-corrected: code_snippet -> script for applescript_execute');
           }
-          if (!parameters.code_snippet && typeof parameters.code === 'string') {
-            parameters.code_snippet = parameters.code;
-            this.logger.system('mcp-todo', '[TODO] Auto-filled code_snippet from code for applescript_execute');
+          if (!parameters.script && typeof parameters.code === 'string') {
+            parameters.script = parameters.code;
+            delete parameters.code;
+            this.logger.system('mcp-todo', '[TODO] Auto-corrected: code -> script for applescript_execute');
           }
-          if (!parameters.language) {
-            parameters.language = 'applescript';
+          // Remove 'language' parameter as it's not needed
+          if (parameters.language) {
+            delete parameters.language;
             this.logger.system('mcp-todo', '[TODO] Defaulted AppleScript language parameter to "applescript"');
           }
         }
@@ -2051,7 +2130,7 @@ Attempt: ${attempt}/${item.max_attempts}
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           {
@@ -2199,7 +2278,7 @@ Respond with JSON:
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           {
@@ -2389,7 +2468,7 @@ Results: ${JSON.stringify(todo.items.map(i => ({
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           { role: 'system', content: 'MCP_FINAL_SUMMARY' },
@@ -2753,69 +2832,83 @@ Context: ${JSON.stringify(context, null, 2)}
         });
       }
       
+      // FIXED 2025-11-08 - Handle both 'tool_calls' and 'tool_plan' keys from LLM
+      // Some models return {"tool_plan": [...]} instead of {"tool_calls": [...]}
+      const rawToolCalls = actualData.tool_calls || actualData.tool_plan || [];
+      
       // FIXED 2025-11-03 - Filter valid tool calls from metadata elements
       // LLM sometimes returns: [{"server":"...","tool":"..."}, {"reasoning":"...","tts_phrase":"..."}]
-      // Second element is metadata, not a tool call - extract it separately
-      let reasoning = actualData.reasoning || '';
-      let ttsPhrase = actualData.tts_phrase || '';
-      
-      const toolCalls = (actualData.tool_calls || [])
-        .filter(call => {
-          // Check if this is a valid tool call (has server and tool)
-          const hasServer = call.server || call.mcp_server || call.server_name;
-          const hasTool = call.tool || call.tool_name;
-          
-          // If it's metadata (reasoning/tts_phrase), extract and skip
-          if (!hasServer && !hasTool) {
-            if (call.reasoning) reasoning = call.reasoning;
-            if (call.tts_phrase) ttsPhrase = call.tts_phrase;
-            return false;  // Skip this element
-          }
-          
-          return true;  // Valid tool call
-        })
+      const toolCalls = (Array.isArray(rawToolCalls) ? rawToolCalls : [])
+        .filter(call => call && typeof call === 'object')
         .map(call => {
-          let server = call.server || call.mcp_server || call.server_name;
-          let rawTool = call.tool || call.tool_name;
-
-          // FIXED 2025-11-04: Parse "server_toolname" format
-          // LLM often returns {"tool": "filesystem_write_file"} without separate server field
-          if (!server && rawTool && rawTool.includes('_')) {
-            const parts = rawTool.split('_');
-            // Check if first part is a known server
-            const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
-            if (knownServers.includes(parts[0])) {
-              server = parts[0];
-              rawTool = parts.slice(1).join('_'); // Rest is tool name
-              this.logger.debug(`[MCP-TODO] 🔧 Parsed tool name: ${call.tool} -> server=${server}, tool=${rawTool}`, {
-                category: 'mcp-todo',
-                component: 'mcp-todo'
-              });
+          // FIXED 2025-11-08 - Handle format where tool is key: {"filesystem_write_file": {...}}
+          // Convert to standard format: {server, tool, parameters}
+          const keys = Object.keys(call);
+          
+          // Check if this is the wrong format (tool name as key)
+          if (keys.length === 1 && !call.server && !call.tool) {
+            const toolKey = keys[0];
+            const params = call[toolKey];
+            
+            // Skip if it's metadata
+            if (toolKey === 'reasoning' || toolKey === 'tts_phrase') {
+              return null;
             }
-          }
-
-          if (!server || !rawTool) {
-            this.logger.warn(`[MCP-TODO] ⚠️ Skipping invalid tool call:`, {
-              category: 'mcp-todo',
-              component: 'mcp-todo',
-              call
-            });
+            
+            // Extract server from tool name (e.g., "filesystem_write_file" -> "filesystem")
+            const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
+            
+            let server = null;
+            for (const knownServer of knownServers) {
+              if (toolKey.startsWith(knownServer + '_')) {
+                server = knownServer;
+                break;
+              }
+            }
+            
+            if (server) {
+              return {
+                server,
+                tool: toolKey,
+                parameters: params || {}
+              };
+            }
             return null;
           }
+          
+          // Standard format - validate and process
+          if (call.server || call.tool || call.mcp_server || call.tool_name) {
+            let server = call.server || call.mcp_server || call.server_name;
+            let rawTool = call.tool || call.tool_name;
 
-          // FIXED 2025-11-04: LLM invents tool names - accept any name and let validation handle it
-          // Parser should be permissive, validator will suggest corrections
-          return {
-            server,
-            tool: this._normalizeToolName(server, rawTool),
-            parameters: call.parameters || call.params || {}
-          };
+            // FIXED 2025-11-04: Parse "server_toolname" format
+            // LLM often returns {"tool": "filesystem_write_file"} without separate server field
+            if (!server && rawTool && rawTool.includes('_')) {
+              const parts = rawTool.split('_');
+              // Check if first part is a known server
+              const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
+              if (knownServers.includes(parts[0])) {
+                server = parts[0];
+                rawTool = parts.slice(1).join('_'); // Rest is tool name
+              }
+            }
+
+            if (server && rawTool) {
+              return {
+                server,
+                tool: this._normalizeToolName(server, rawTool),
+                parameters: call.parameters || call.params || {}
+              };
+            }
+          }
+          
+          return null;
         })
         .filter(call => call !== null);  // Remove nulls
       
       return {
         tool_calls: toolCalls,
-        reasoning: actualData.reasoning || ''
+        reasoning: actualData.reasoning || actualData.plan_reasoning || ''
       };
     } catch (error) {
       // Truncate long responses for logging
@@ -3095,6 +3188,10 @@ Context: ${JSON.stringify(context, null, 2)}
       .replace(/['‛'`´]/g, '\'')
       .replace(/[""]/g, '"');
 
+    // FIXED 2025-11-07: Enhanced control character handling
+    // Remove all control characters except \n, \r, \t (will be escaped later)
+    sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    
     // FIXED 2025-11-05: Remove line continuation backslashes that break JSON
     // LLM sometimes generates: "text\n\more text" which is invalid JSON
     // Pattern: \n\ (escaped newline + continuation backslash + real newline) -> \n
@@ -3580,7 +3677,7 @@ Return ONLY JSON:
 
       this.logger.system('mcp-todo', `[TODO] 🔍 Planning verification tools with ${modelConfig.model} (timeout: ${timeoutMs}ms)`);
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           { role: 'system', content: 'You are a JSON-only API. Return ONLY valid JSON, no markdown, no explanations.' },
@@ -3785,7 +3882,7 @@ Verification evidence: ${verificationResults.results.length} checks performed`;
 
       this.logger.system('mcp-todo', `[TODO] 🧠 Analyzing verification results with ${modelConfig.model}`);
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           { role: 'system', content: 'You are a JSON-only API. Return ONLY valid JSON, no markdown, no explanations.' },
@@ -3889,7 +3986,7 @@ Select 1-2 most relevant servers.
         ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
         : 'http://localhost:4000/v1/chat/completions';
 
-      const apiResponse = await axios.post(apiUrl, {
+      const apiResponse = await this._makeApiCall(apiUrl, {
         model: modelConfig.model,
         messages: [
           {
@@ -3997,17 +4094,10 @@ Select 1-2 most relevant servers.
       try {
         this.logger.system('mcp-todo', `[TODO] Trying fallback LLM endpoint: ${endpoint}`);
         
-        const response = await axios.post(endpoint, requestBody, {
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(endpoint.includes('openrouter') && {
-              'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
-              'HTTP-Referer': 'https://atlas.local',
-              'X-Title': 'Atlas MCP'
-            })
-          },
-          timeout: 60000,
-          validateStatus: (status) => status < 600 // Accept all responses
+        const response = await this._makeApiCall(endpoint, requestBody, {
+          timeout: 30000,
+          metadata: { type: 'fallback_llm', endpoint },
+          priority: 5
         });
         
         if (response.status === 200) {
@@ -4045,9 +4135,9 @@ Select 1-2 most relevant servers.
           const appName = getMacOSAppName(appMatch[1]);
           plan.tool_calls.push({
             server: 'applescript',
-            tool: 'applescript__applescript_execute',
+            tool: 'applescript__execute',
             parameters: {
-              code_snippet: `tell application "${appName}" to activate`
+              script: `tell application "${appName}" to activate`
             }
           });
         }

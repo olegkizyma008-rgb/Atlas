@@ -397,6 +397,8 @@ start_orchestrator() {
         
         export FALLBACK_API_BASE="http://127.0.0.1:$FALLBACK_PORT/v1"
         export ORCH_SSE_FOR_GITHUB_COPILOT="${ORCH_SSE_FOR_GITHUB_COPILOT:-false}"
+        # Force CASCADE_ENABLED to true for Nexus functionality
+        export CASCADE_ENABLED="true"
         
         node server.js > "$LOGS_DIR/orchestrator.log" 2>&1 &
         echo $! > "$LOGS_DIR/orchestrator.pid"

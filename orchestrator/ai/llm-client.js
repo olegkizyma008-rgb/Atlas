@@ -7,6 +7,7 @@
  */
 
 import logger from '../utils/logger.js';
+import { globalRateLimiter } from '../utils/rate-limiter.js';
 
 /**
  * LLM Client для MCP mode
@@ -150,7 +151,8 @@ export class LLMClient {
       response_format = null
     } = options;
 
-    try {
+    // Use rate limiter for API calls
+    return globalRateLimiter.executeWithRetry(async () => {
       const requestBody = {
         model,
         messages,
@@ -172,7 +174,9 @@ export class LLMClient {
       });
 
       if (!response.ok) {
-        throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
+        const error = new Error(`LLM API error: ${response.status} ${response.statusText}`);
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();
@@ -181,16 +185,11 @@ export class LLMClient {
         throw new Error('Invalid LLM API response format');
       }
 
-      // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
-      const postSuccessDelay = 2000; // 2 seconds between LLM calls
-      await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
-
       return data; // Return full response for compatibility
-
-    } catch (error) {
-      logger.error('llm-client', `[LLM Client] Chat failed: ${error.message}`);
-      throw error;
-    }
+    }, { 
+      endpoint: this.endpoint,
+      priority: 1 
+    });
   }
 
   /**
@@ -204,7 +203,8 @@ export class LLMClient {
     const temperature = options.temperature || this.temperature;
     const max_tokens = options.max_tokens || 1000;
 
-    try {
+    // Use rate limiter for API calls
+    return globalRateLimiter.executeWithRetry(async () => {
       const response = await fetch(this.endpoint, {
         method: 'POST',
         headers: {
@@ -219,7 +219,9 @@ export class LLMClient {
       });
 
       if (!response.ok) {
-        throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
+        const error = new Error(`LLM API error: ${response.status} ${response.statusText}`);
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();
@@ -228,16 +230,11 @@ export class LLMClient {
         throw new Error('Invalid LLM API response format');
       }
 
-      // FIXED 2025-10-30: Add mandatory delay after successful LLM call to prevent rate limiting
-      const postSuccessDelay = 2000; // 2 seconds between LLM calls
-      await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
-
       return data.choices[0].message.content;
-
-    } catch (error) {
-      logger.error('llm-client', `[LLM Client] Complete failed: ${error.message}`);
-      throw error;
-    }
+    }, {
+      endpoint: this.endpoint,
+      priority: 1
+    });
   }
 
   /**

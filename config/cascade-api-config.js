@@ -101,13 +101,13 @@ export const CASCADE_API_CONFIG = {
       maxTokens: parseInt(env.CASCADE_CODESTRAL_MAX_TOKENS || '4000', 10)
     },
 
-    // Vision (MCP 6/7)
+    // Vision (MCP 6/7) - FIXED 2025-11-08: Ollama моделі замість Atlas
     vision: {
       enabled: env.CASCADE_VISION_ENABLED !== 'false',
-      model: env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct',
-      strongModel: env.MCP_MODEL_VISION_STRONG || 'atlas-llama-3.2-90b-vision-instruct',
-      fastModel: env.MCP_MODEL_VISION_FAST || 'atlas-llama-3.2-11b-vision-instruct',
-      fallbackModel: env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision',
+      model: env.MCP_MODEL_VISION || 'ext-ollama-llama3.2-vision:latest',
+      strongModel: env.MCP_MODEL_VISION_STRONG || 'ext-ollama-llama3.2-vision:latest',
+      fastModel: env.MCP_MODEL_VISION_FAST || 'ext-ollama-llama3.2-vision:latest',
+      fallbackModel: env.MCP_MODEL_VISION_FALLBACK || 'ext-ollama-llama3.2-vision:latest',
       temperature: parseFloat(env.MCP_TEMP_VISION || '0.2')
     },
 

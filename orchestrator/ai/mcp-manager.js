@@ -121,8 +121,26 @@ class MCPServer {
       logger.debug('mcp-server', `[MCP ${this.name}] Tools list changed, requesting update...`);
       this.requestToolsList();
     } else if (message.error) {
-      // Error response
-      logger.error('mcp-server', `[MCP ${this.name}] Error response:`, message.error);
+      // Error response - log with more details
+      const errorDetails = {
+        server: this.name,
+        errorCode: message.error.code || 'UNKNOWN',
+        errorMessage: message.error.message || 'No error message provided',
+        errorData: message.error.data || null,
+        messageId: message.id || null
+      };
+      
+      // Only log as error if it's not a common/expected error
+      const isExpectedError = message.error.code === -32601 || // Method not found
+                             message.error.code === -32602 || // Invalid params
+                             message.error.message?.includes('not supported');
+      
+      if (isExpectedError) {
+        logger.debug('mcp-server', `[MCP ${this.name}] Expected error response:`, errorDetails);
+      } else {
+        logger.error('mcp-server', `[MCP ${this.name}] Error response:`, errorDetails);
+      }
+      
       if (message.id && this.pendingRequests && this.pendingRequests.has(message.id)) {
         const resolver = this.pendingRequests.get(message.id);
         this.pendingRequests.delete(message.id);

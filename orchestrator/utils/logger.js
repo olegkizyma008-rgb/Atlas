@@ -207,26 +207,54 @@ const contextLogger = {
       console.log(`[LOGGER_ERROR] ${String(message)}`);
     }
   },
-  warn: (message, meta = {}) => {
+  warn: (messageOrCategory, metaOrMessage = {}, legacyMeta = {}) => {
     try {
-      const sanitizedMeta = sanitizeMetadata(meta);
-      logger.warn(String(message), sanitizedMeta);
+      // FIXED 2025-11-08: Support both old and new formats
+      let finalMessage, finalMeta;
+      
+      if (typeof metaOrMessage === 'string') {
+        // Old format: 3 params
+        finalMessage = `[${messageOrCategory}] ${metaOrMessage}`;
+        finalMeta = { category: messageOrCategory, ...legacyMeta };
+      } else {
+        // New format: 2 params
+        finalMessage = String(messageOrCategory);
+        finalMeta = metaOrMessage || {};
+      }
+      
+      const sanitizedMeta = sanitizeMetadata(finalMeta);
+      logger.warn(finalMessage, sanitizedMeta);
 
       // Відправляємо у веб-інтерфейс
-      sendToWeb('warn', String(message), 'system', sanitizedMeta);
+      sendToWeb('warn', finalMessage, 'system', sanitizedMeta);
     } catch (error) {
-      console.warn(`[LOGGER_ERROR] ${String(message)}`);
+      console.warn(`[LOGGER_ERROR] ${String(messageOrCategory)}`);
     }
   },
-  error: (message, meta = {}) => {
+  error: (messageOrCategory, metaOrMessage = {}, legacyMeta = {}) => {
     try {
-      const sanitizedMeta = sanitizeMetadata(meta);
-      logger.error(String(message), sanitizedMeta);
+      // FIXED 2025-11-08: Support both old and new formats
+      // Old: logger.error('category', 'message', {metadata})
+      // New: logger.error('message', {metadata})
+      let finalMessage, finalMeta;
+      
+      if (typeof metaOrMessage === 'string') {
+        // Old format: 3 params
+        finalMessage = `[${messageOrCategory}] ${metaOrMessage}`;
+        finalMeta = { category: messageOrCategory, ...legacyMeta };
+      } else {
+        // New format: 2 params
+        finalMessage = String(messageOrCategory);
+        finalMeta = metaOrMessage || {};
+      }
+      
+      const sanitizedMeta = sanitizeMetadata(finalMeta);
+      logger.error(finalMessage, sanitizedMeta);
 
       // Відправляємо у веб-інтерфейс
-      sendToWeb('error', String(message), 'system', sanitizedMeta);
+      sendToWeb('error', finalMessage, 'system', sanitizedMeta);
     } catch (error) {
-      console.error(`[LOGGER_ERROR] ${String(message)}`);
+      console.error(`[LOGGER_ERROR] ${String(messageOrCategory)}`);
     }
   },
   debug: (message, meta = {}) => {

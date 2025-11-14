@@ -8,6 +8,7 @@
 import axios from 'axios';
 import logger from '../utils/logger.js';
 import testModeConfig from '../../config/test-mode-config.js';
+import { getRateLimiter } from '../utils/api-rate-limiter.js';
 
 class ModelAvailabilityChecker {
   constructor() {
@@ -16,6 +17,20 @@ class ModelAvailabilityChecker {
     this.cacheLifetime = 60000; // 1 хвилина TTL
     this.checkTimeout = 5000; // 5 секунд таймаут на перевірку
     this.apiEndpoint = 'http://localhost:4000';
+    
+    // ADDED 2025-11-10: Global cache for GET /v1/models to prevent burst requests
+    this.modelsListCache = null;
+    this.modelsListCacheTimestamp = 0;
+    this.modelsListCacheTTL = 30000; // 30 seconds TTL for models list
+    
+    // ADDED 2025-11-10: Concurrency control
+    this.activeChecks = 0;
+    this.maxConcurrentChecks = 2; // Maximum 2 concurrent model checks
+    this.checkQueue = [];
+    
+    // ADDED 2025-11-10: Delay between checks to prevent rate limit
+    this.delayBetweenChecks = 500; // 500ms delay between model availability checks
+    this.lastCheckTimestamp = 0;
     
     // UPDATED 2025-11-08: Динамічний список з API + rate limit info
     this.modelsCache = null;
@@ -53,16 +68,25 @@ class ModelAvailabilityChecker {
   }
 
   /**
-   * UPDATED 2025-11-08: Отримати список моделей з API
+   * UPDATED 2025-11-10: Отримати список моделей з API з глобальним кешуванням
+   * CRITICAL: Prevents burst GET /v1/models requests
    */
   async fetchAvailableModels() {
-    // Перевіряємо кеш
-    if (this.modelsCache && (Date.now() - this.modelsCacheTimestamp) < this.modelsCacheLifetime) {
-      // ADDED 2025-11-08: Apply test mode filter
+    // STEP 1: Check global models list cache (30 seconds TTL)
+    const now = Date.now();
+    if (this.modelsListCache && (now - this.modelsListCacheTimestamp) < this.modelsListCacheTTL) {
+      this.logger.debug(`[NEXUS-AVAILABILITY] 📋 Using cached models list (age: ${Math.round((now - this.modelsListCacheTimestamp)/1000)}s)`);
+      return testModeConfig.filterModels(this.modelsListCache);
+    }
+    
+    // STEP 2: Перевіряємо старий кеш (5 хвилин)
+    if (this.modelsCache && (now - this.modelsCacheTimestamp) < this.modelsCacheLifetime) {
+      this.logger.debug(`[NEXUS-AVAILABILITY] 📋 Using legacy cache`);
       return testModeConfig.filterModels(this.modelsCache);
     }
     
     try {
+      this.logger.info(`[NEXUS-AVAILABILITY] 🌐 Fetching fresh models list from API...`);
       const response = await axios.get(`${this.apiEndpoint}/v1/models`, {
         timeout: 5000
       });
@@ -70,18 +94,23 @@ class ModelAvailabilityChecker {
       const models = response.data?.data || [];
       
       // Зберігаємо з rate_limit info
-      this.modelsCache = models.map(model => ({
+      const modelsList = models.map(model => ({
         id: model.id,
         rate_limit: model.rate_limit || {},
         provider: model.provider || 'unknown'
       }));
       
-      this.modelsCacheTimestamp = Date.now();
+      // UPDATED 2025-11-10: Update BOTH caches
+      this.modelsListCache = modelsList; // Global cache (30s TTL)
+      this.modelsListCacheTimestamp = now;
       
-      this.logger.info(`[NEXUS-AVAILABILITY] 📋 Отримано ${models.length} моделей з API`);
+      this.modelsCache = modelsList; // Legacy cache (5min TTL)
+      this.modelsCacheTimestamp = now;
+      
+      this.logger.info(`[NEXUS-AVAILABILITY] 📋 Отримано ${models.length} моделей з API (cached for 30s)`);
       
       // ADDED 2025-11-08: Apply test mode filter
-      const filteredModels = testModeConfig.filterModels(this.modelsCache);
+      const filteredModels = testModeConfig.filterModels(modelsList);
       return filteredModels;
       
     } catch (error) {
@@ -200,70 +229,160 @@ class ModelAvailabilityChecker {
   }
 
   /**
-   * Перевірка доступності однієї моделі
+   * UPDATED 2025-11-10: Перевірка доступності однієї моделі з concurrency control та delays
    */
   async checkModelAvailability(modelName) {
-    // Перевіряємо кеш
+    // STEP 1: Перевіряємо кеш
     const cached = this.availabilityCache.get(modelName);
     if (cached && (Date.now() - cached.timestamp) < this.cacheLifetime) {
       return cached.available;
     }
     
+    // STEP 2: Wait for concurrency slot
+    await this._waitForConcurrencySlot();
+    
+    // STEP 3: Enforce delay between checks (rate limiting)
+    const timeSinceLastCheck = Date.now() - this.lastCheckTimestamp;
+    if (timeSinceLastCheck < this.delayBetweenChecks) {
+      const waitTime = this.delayBetweenChecks - timeSinceLastCheck;
+      this.logger.debug(`[NEXUS-AVAILABILITY] ⏱️ Waiting ${waitTime}ms before checking ${modelName}`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
     try {
       // Робимо тестовий запит
-      const response = await axios.post(
-        'http://localhost:4000/v1/chat/completions',
-        {
-          model: modelName,
-          messages: [{ role: 'user', content: 'test' }],
-          max_tokens: 5
-        },
-        { timeout: this.checkTimeout }
+      const rateLimiter = getRateLimiter();
+      const response = await rateLimiter.call(
+        async () => axios.post(
+          'http://localhost:4000/v1/chat/completions',
+          {
+            model: modelName,
+            messages: [
+              { role: 'system', content: 'Test' },
+              { role: 'user', content: 'Hi' }
+            ],
+            max_tokens: 10,
+            temperature: 0.1
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: this.checkTimeout
+          }
+        ),
+        { priority: 5, retryable: false, metadata: { type: 'model_check', model: modelName } }
       );
       
       const available = response.status === 200;
-      
-      // Зберігаємо в кеш
+    
+    // Зберігаємо в кеш
+    this.availabilityCache.set(modelName, {
+      available,
+      timestamp: Date.now()
+    });
+    
+    return available;
+    
+  } catch (error) {
+    // Якщо 429 (rate limit) - модель доступна, просто переповнена
+    if (error.response?.status === 429) {
       this.availabilityCache.set(modelName, {
-        available,
+        available: true,
         timestamp: Date.now()
       });
-      
-      return available;
-      
-    } catch (error) {
-      // Якщо 429 (rate limit) - модель доступна, просто переповнена
-      if (error.response?.status === 429) {
-        this.availabilityCache.set(modelName, {
-          available: true,
-          timestamp: Date.now()
-        });
-        return true;
-      }
-      
-      // Інші помилки - модель недоступна
-      this.availabilityCache.set(modelName, {
-        available: false,
-        timestamp: Date.now()
-      });
-      
-      return false;
+      return true;
     }
+    
+    // Інші помилки - модель недоступна
+    this.availabilityCache.set(modelName, {
+      available: false,
+      timestamp: Date.now()
+    });
+    
+    return false;
+  } finally {
+    // ADDED 2025-11-10: Release concurrency slot
+    this.activeChecks--;
+    this._processQueue();
+  }
+}
+
+/**
+ * NEW 2025-11-10: Знайти робочу модель при помилці (500, 429 тощо)
+ * Автоматично перебирає доступні моделі з API до знаходження робочої
+ */
+async findWorkingModelOnError(currentModel, errorStatus, task = 'general') {
+  this.logger.warn(`[NEXUS-FALLBACK] 🔄 Model ${currentModel} failed with ${errorStatus}, searching for alternative...`);
+  
+  // Отримуємо список всіх доступних моделей
+  const apiModels = await this.fetchAvailableModels();
+  
+  if (!apiModels || apiModels.length === 0) {
+    this.logger.error(`[NEXUS-FALLBACK] ❌ No models available from API`);
+    return null;
+  }
+  
+  // Фільтруємо моделі (виключаємо поточну що не працює)
+  const alternativeModels = apiModels
+    .filter(m => m.id !== currentModel)
+    .slice(0, 10); // Обмежуємо до 10 моделей
+  
+  this.logger.info(`[NEXUS-FALLBACK] 🔍 Testing ${alternativeModels.length} alternative models...`);
+  
+  // Пробуємо кожну модель
+  for (const model of alternativeModels) {
+    try {
+      this.logger.debug(`[NEXUS-FALLBACK] 🧪 Testing model: ${model.id}`);
+      
+      const rateLimiter = getRateLimiter();
+      const response = await rateLimiter.call(
+        async () => axios.post(
+          'http://localhost:4000/v1/chat/completions',
+          {
+            model: model.id,
+            messages: [
+              { role: 'system', content: 'Test' },
+              { role: 'user', content: 'Hi' }
+            ],
+            max_tokens: 10,
+            temperature: 0.1
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 2000
+          }
+        ),
+        { priority: 3, retryable: false, metadata: { type: 'fallback_check', model: model.id } }
+      );
+      
+      if (response.status === 200) {
+        this.logger.info(`[NEXUS-FALLBACK] ✅ Found working alternative: ${model.id}`);
+        return model.id;
+      }
+    } catch (testError) {
+      this.logger.debug(`[NEXUS-FALLBACK] Model ${model.id} failed: ${testError.message}`);
+      continue;
+    }
+  }
+    
+    this.logger.error(`[NEXUS-FALLBACK] ❌ No working model found among ${alternativeModels.length} alternatives`);
+    return null;
   }
 
   /**
-   * UPDATED 2025-11-08: Знайти будь-яку доступну модель для задачі
-   * Використовує динамічний список з API + rate limit перевірку
+   * UPDATED 2025-11-10: Знайти будь-яку доступну модель для задачі
+   * CRITICAL: Limits to first 5 models to prevent burst requests
    */
   async findAnyAvailableModel(task = 'general') {
-    // STEP 1: Отримуємо свіжий список моделей з API
+    // STEP 1: Отримуємо свіжий список моделей з API (cached)
     const apiModels = await this.fetchAvailableModels();
     
     if (apiModels && apiModels.length > 0) {
-      this.logger.info(`[NEXUS-AVAILABILITY] 🔍 Шукаю серед ${apiModels.length} моделей з API`);
+      // CRITICAL 2025-11-10: Limit to first 5 models to prevent burst
+      const modelsToCheck = apiModels.slice(0, 5);
+      this.logger.info(`[NEXUS-AVAILABILITY] 🔍 Шукаю серед ${modelsToCheck.length} моделей (limited from ${apiModels.length})`);
       
       // Фільтруємо моделі без rate limit проблем
-      for (const model of apiModels) {
+      for (const model of modelsToCheck) {
         const rateLimitCheck = this.checkRateLimit(model.id);
         
         if (!rateLimitCheck.ok) {
@@ -271,7 +390,7 @@ class ModelAvailabilityChecker {
           continue;
         }
         
-        // Перевіряємо доступність
+        // Перевіряємо доступність (with concurrency control and delays)
         const isAvailable = await this.checkModelAvailability(model.id);
         if (isAvailable) {
           this.logger.info(`[NEXUS-AVAILABILITY] ✅ Знайдено доступну модель: ${model.id}`);
@@ -361,9 +480,45 @@ class ModelAvailabilityChecker {
     
     return stats;
   }
+
+  /**
+   * NEW 2025-11-11: Очікування доступного слоту перевірки (concurrency control)
+   */
+  async _waitForConcurrencySlot() {
+    if (this.activeChecks < this.maxConcurrentChecks) {
+      this.activeChecks++;
+      return;
+    }
+
+    return new Promise((resolve) => {
+      this.checkQueue.push(resolve);
+    }).then(() => {
+      this.activeChecks++;
+    });
+  }
+
+  /**
+   * NEW 2025-11-11: Обробка черги очікування для перевірок доступності моделей
+   */
+  _processQueue() {
+    if (this.checkQueue.length === 0) {
+      return;
+    }
+
+    if (this.activeChecks >= this.maxConcurrentChecks) {
+      return;
+    }
+
+    const nextResolve = this.checkQueue.shift();
+    if (typeof nextResolve === 'function') {
+      nextResolve();
+    }
+  }
 }
+
+// UPDATED 2025-11-10: Export both class and singleton for flexibility
+export { ModelAvailabilityChecker };
 
 // Singleton instance
 const modelChecker = new ModelAvailabilityChecker();
-
 export default modelChecker;

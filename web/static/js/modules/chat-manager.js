@@ -203,29 +203,36 @@ export class ChatManager {
       return null;
     }
 
-    // CRITICAL: Filter out system messages based on .env settings
-    const showSystemMessages = window.SHOW_SYSTEM_MESSAGES !== false;
-    const systemMessageLevel = window.SYSTEM_MESSAGE_LEVEL || 1;
+    // FIXED 2025-11-07: Hide system messages, show only agent messages
+    // Agent messages should always be shown
+    const agentTypes = ['atlas', 'tetyana', 'grisha', 'user', 'assistant'];
+    const isAgentMessage = agentTypes.includes(type);
 
-    // Check if this is a system message
+    // System message detection - these should be hidden
     const isSystemMessage = type === 'system' ||
+                           type === 'error' ||
                            content.includes('[SYSTEM]') ||
                            content.includes('Mode:') ||
                            content.includes('confidence:') ||
-                           content.includes('❌ MCP:');
+                           content.includes('✅ Завдання виконано') ||
+                           content.includes('📋 TODO') ||
+                           content.includes('❌ MCP:') ||
+                           content.includes('✅ Item') ||
+                           content.includes('⚠️ Planning');
 
-    // Filter based on settings
+    // Hide system messages unless explicitly enabled
+    const showSystemMessages = window.SHOW_SYSTEM_MESSAGES === true; // Default to false
+
     if (isSystemMessage && !showSystemMessages) {
-      // Only show critical errors (level 1)
-      if (systemMessageLevel === 0) {
-        return null; // Don't show any system messages
-      }
-      if (systemMessageLevel === 1 && !content.includes('❌') && !content.includes('Error')) {
-        return null; // Only show errors
-      }
-      if (systemMessageLevel === 2 && !content.includes('❌') && !content.includes('⚠️') && !content.includes('Error')) {
-        return null; // Only show errors and warnings
-      }
+      console.log('[CHAT] Filtering out system message:', content.substring(0, 50));
+      return null; // Don't show system messages
+    }
+
+    // Always show agent messages
+    if (!isAgentMessage && !isSystemMessage) {
+      // Unknown type - treat as system and filter
+      console.log('[CHAT] Filtering unknown message type:', type);
+      return null;
     }
 
     // Map agent names to signatures
@@ -447,62 +454,62 @@ export class ChatManager {
     }
 
     switch (data.type) {
-      case 'agent_message':
-        // ENHANCED 21.10.2025 - Queue messages with sequence tracking
-        this.enqueueMessage(data);
-        break;
-      case 'status_update':
-        this.handleStatusUpdate(data.data);
-        break;
-      case 'error':
-        this.handleError(data.data);
-        break;
-      case 'workflow_started':
-        this.handleWorkflowStarted(data.data);
-        break;
-      case 'workflow_complete':
-        this.handleWorkflowComplete(data.data);
-        break;
-      case 'tts_start':
-        this.emit('tts-start', data.data);
-        break;
-      case 'tts_stop':
-        this.emit('tts-stop', data.data);
-        break;
-      // FIXED 14.10.2025 - Handle new MCP workflow events
-      case 'mcp_todo_created':
-        this.handleMCPTodoCreated(data.data);
-        break;
-      case 'mcp_item_planning_failed':
-        this.handleMCPItemPlanningFailed(data.data);
-        break;
-      case 'mcp_item_executed':
-        this.handleMCPItemExecuted(data.data);
-        break;
-      case 'mcp_item_verified':
-        this.handleMCPItemVerified(data.data);
-        break;
-      case 'mcp_item_failed':
-        this.handleMCPItemFailed(data.data);
-        break;
-      case 'mcp_workflow_complete':
-        this.handleMCPWorkflowComplete(data.data);
-        break;
-      case 'workflow_error':
-        this.handleWorkflowError(data.data);
-        break;
-      // FIXED 16.10.2025 - Handle mode_selected event
-      case 'mode_selected':
-        this.handleModeSelected(data.data);
-        break;
-      // FIXED 16.10.2025 - Handle mcp_workflow_error event
-      case 'mcp_workflow_error':
-        this.handleMCPWorkflowError(data.data);
-        break;
-      // FIXED 16.10.2025 - Handle chat_response event for chat mode
-      case 'chat_response':
-        this.handleChatResponse(data.data);
-        break;
+    case 'agent_message':
+      // ENHANCED 21.10.2025 - Queue messages with sequence tracking
+      this.enqueueMessage(data);
+      break;
+    case 'status_update':
+      this.handleStatusUpdate(data.data);
+      break;
+    case 'error':
+      this.handleError(data.data);
+      break;
+    case 'workflow_started':
+      this.handleWorkflowStarted(data.data);
+      break;
+    case 'workflow_complete':
+      this.handleWorkflowComplete(data.data);
+      break;
+    case 'tts_start':
+      this.emit('tts-start', data.data);
+      break;
+    case 'tts_stop':
+      this.emit('tts-stop', data.data);
+      break;
+    // FIXED 14.10.2025 - Handle new MCP workflow events
+    case 'mcp_todo_created':
+      this.handleMCPTodoCreated(data.data);
+      break;
+    case 'mcp_item_planning_failed':
+      this.handleMCPItemPlanningFailed(data.data);
+      break;
+    case 'mcp_item_executed':
+      this.handleMCPItemExecuted(data.data);
+      break;
+    case 'mcp_item_verified':
+      this.handleMCPItemVerified(data.data);
+      break;
+    case 'mcp_item_failed':
+      this.handleMCPItemFailed(data.data);
+      break;
+    case 'mcp_workflow_complete':
+      this.handleMCPWorkflowComplete(data.data);
+      break;
+    case 'workflow_error':
+      this.handleWorkflowError(data.data);
+      break;
+    // FIXED 16.10.2025 - Handle mode_selected event
+    case 'mode_selected':
+      this.handleModeSelected(data.data);
+      break;
+    // FIXED 16.10.2025 - Handle mcp_workflow_error event
+    case 'mcp_workflow_error':
+      this.handleMCPWorkflowError(data.data);
+      break;
+    // FIXED 16.10.2025 - Handle chat_response event for chat mode
+    case 'chat_response':
+      this.handleChatResponse(data.data);
+      break;
       default:
         this.logger.debug('Unknown stream message type', data.type);
     }
@@ -1047,9 +1054,18 @@ export class ChatManager {
   }
 
   // FIXED 16.10.2025 - Handler for mcp_workflow_error event
+  // UPDATED 10.11.2025 - Better error handling with retry suggestion
   handleMCPWorkflowError(data) {
-    this.logger.error('❌ MCP Workflow error', data.error || data.message);
     const errorMsg = data.error || data.message || 'Невідома помилка MCP workflow';
+    
+    // Don't log 500 errors to console as errors, they're expected during model unavailability
+    if (errorMsg.includes('500') || errorMsg.includes('Request failed')) {
+      this.logger.debug('MCP Workflow temporary failure:', errorMsg);
+      // Don't show system messages for temporary failures
+      return;
+    }
+    
+    this.logger.error('❌ MCP Workflow error', errorMsg);
     this.addMessage(`❌ MCP: ${errorMsg}`, 'system');
   }
 

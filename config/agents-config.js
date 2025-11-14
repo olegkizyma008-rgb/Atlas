@@ -57,8 +57,8 @@ export const AGENTS = {
       },
       visual: {
         enabled: true,
-        visionModel: 'atlas-llama-3.2-90b-vision-instruct',
-        fallbackModel: 'atlas-llama-3.2-11b-vision-instruct',
+        visionModel: 'ext-ollama-llama3.2-vision:latest',
+        fallbackModel: 'ext-ollama-llama3.2-vision:latest',
         minConfidence: 70,
         captureDelay: 2000,
         description: 'Візуальна верифікація через скріншоти та Vision AI'

@@ -9,6 +9,7 @@ import logger from '../utils/logger.js';
 import * as agentProtocol from '../agents/agent-protocol.js';
 import GlobalConfig from '../../config/atlas-config.js';
 import modelChecker from './model-availability-checker.js';
+import { getRateLimiter } from '../utils/api-rate-limiter.js';
 
 // Model registry - dynamically built from GlobalConfig (lazy loaded)
 let MODELS_CACHE = null;
@@ -113,16 +114,20 @@ export async function chatCompletion(messages, options = {}) {
   }
 
   try {
-    const response = await axios.post(`${baseUrl}/v1/chat/completions`, {
-      model,
-      messages: effectiveMessages,
-      max_tokens,
-      temperature,
-      stream
-    }, {
-      timeout: 30000,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const rateLimiter = getRateLimiter();
+    const response = await rateLimiter.call(
+      async () => axios.post(`${baseUrl}/v1/chat/completions`, {
+        model,
+        messages: effectiveMessages,
+        max_tokens,
+        temperature,
+        stream
+      }, {
+        timeout: 30000,
+        headers: { 'Content-Type': 'application/json' }
+      }),
+      { priority: 10, metadata: { type: 'fallback_llm', model } }
+    );
 
     if (stream) {
       return response; // Return raw response for streaming
@@ -142,33 +147,44 @@ export async function chatCompletion(messages, options = {}) {
   } catch (error) {
     console.error('[FALLBACK-LLM] Request failed:', error.message);
 
-    // ADDED 2025-11-08: Try alternative models via ModelAvailabilityChecker
+    // UPDATED 2025-11-10: Try alternative models via ModelAvailabilityChecker (CACHED)
     if (error.response?.status === 429 || error.response?.status >= 500 || error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') {
       console.log('[FALLBACK-LLM] 🔄 Trying alternative models...');
       
       try {
-        // Get list of available models
-        const modelsResponse = await axios.get(`${baseUrl}/v1/models`, { timeout: 5000 });
-        const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+        // FIXED 2025-11-10: Use cached fetchAvailableModels instead of direct GET /v1/models
+        const apiModels = await modelChecker.fetchAvailableModels();
         
-        // Try each available model
-        for (const altModel of availableModels) {
+        if (!apiModels || apiModels.length === 0) {
+          throw new Error('No models available from API');
+        }
+        
+        // CRITICAL 2025-11-10: Limit to first 5 models to prevent burst
+        const modelsToTry = apiModels.slice(0, 5).map(m => m.id);
+        console.log(`[FALLBACK-LLM] 🔍 Checking ${modelsToTry.length} models (limited from ${apiModels.length})`);
+        
+        // Try each available model with delays
+        for (const altModel of modelsToTry) {
           if (altModel === model) continue; // Skip the failed model
           
           const modelResult = await modelChecker.getAvailableModel(altModel, null, 'general');
           if (modelResult.available) {
             console.log(`[FALLBACK-LLM] ✅ Trying alternative model: ${altModel}`);
             
-            const retryResponse = await axios.post(`${baseUrl}/v1/chat/completions`, {
-              model: altModel,
-              messages: effectiveMessages,
-              max_tokens,
-              temperature,
-              stream
-            }, {
-              timeout: 30000,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            const rateLimiter = getRateLimiter();
+            const retryResponse = await rateLimiter.call(
+              async () => axios.post(`${baseUrl}/v1/chat/completions`, {
+                model: altModel,
+                messages: effectiveMessages,
+                max_tokens,
+                temperature,
+                stream
+              }, {
+                timeout: 30000,
+                headers: { 'Content-Type': 'application/json' }
+              }),
+              { priority: 8, retryable: false, metadata: { type: 'fallback_retry', model: altModel } }
+            );
             
             return {
               id: retryResponse.data.id,

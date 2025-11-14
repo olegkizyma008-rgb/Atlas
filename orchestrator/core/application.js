@@ -17,17 +17,20 @@ const __dirname = dirname(__filename);
 // Load .env from project root
 dotenv.config({ path: join(__dirname, '../../.env') });
 
+import registerAllServices from './service-registry.js';
 import { DIContainer } from './di-container.js';
-import { registerAllServices } from './service-registry.js';
-import { createApp, setupErrorHandling } from '../app.js';
+import atlasConfig from '../../config/atlas-config.js';
+import webIntegration from '../api/web-integration.js';
+import WebSocketManager from '../api/websocket-manager.js';
+import logger from '../utils/logger.js';
 import { configureAxios } from '../utils/axios-config.js';
-
-// Routes
+import { initializeRateLimiter } from '../utils/rate-limiter-init.js';
 import setupHealthRoutes from '../api/routes/health.routes.js';
 import setupChatRoutes from '../api/routes/chat.routes.js';
 import setupWebRoutes from '../api/routes/web.routes.js';
 import setupEternityRoutes from '../api/routes/eternity.routes.js';
 import setupCascadeRoutes from '../api/routes/cascade.routes.js';
+import { createApp, setupErrorHandling } from '../app.js';
 
 /**
  * Клас управління життєвим циклом ATLAS Orchestrator
@@ -204,29 +207,46 @@ export class Application {
      */
     async start() {
         try {
-            // 1. Ініціалізуємо DI Container та сервіси
+            // Initialize rate limiter first (before any API calls)
+            initializeRateLimiter();
+            
+            // Initialize services
             await this.initializeServices();
 
-            // 2. Валідуємо конфігурацію
-            await this.initializeConfig();
-
-            // 3. Запускаємо сервіси (onStart hooks)
-            await this.container.start();
-
-            // 4. Налаштовуємо додаток
+            // Setup Express and routes
             await this.setupApplication();
 
-            // 5. Запускаємо session cleanup
-            this.startSessionCleanup();
-
-            // 6. Запускаємо WebSocket
-            await this.startWebSocket();
-
-            // 7. Запускаємо HTTP сервер
+            // Start HTTP server
             await this.startServer();
 
-            // 8. Налаштовуємо graceful shutdown
+            // Start session cleanup timer
+            this.startSessionCleanup();
+
+            // Start WebSocket server
+            await this.startWebSocket();
+
+            // Configure graceful shutdown hooks
             this.setupShutdownHandlers();
+
+            // Initialize Cascade Controller
+            const cascadeController = this.container.resolve('cascadeController');
+            if (cascadeController) {
+                await cascadeController.initialize();
+                this.logger.info('🌟 CASCADE CONTROLLER initialized', {
+                    capabilities: cascadeController.capabilities
+                });
+            }
+            
+            // Initialize Eternity self-improvement module
+            try {
+                const eternityModule = this.container.resolve('eternityModule');
+                if (eternityModule) {
+                    await eternityModule.initialize();
+                    this.logger.info('🌟 ETERNITY MODULE activated - self-improvement system online');
+                }
+            } catch (eternityError) {
+                this.logger.warn(`Eternity module initialization failed: ${eternityError.message}`);
+            }
 
             this.logger.system('startup', '✅ ATLAS Orchestrator fully initialized with DI Container');
         } catch (error) {

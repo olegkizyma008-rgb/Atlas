@@ -10,46 +10,47 @@
  */
 const env = typeof process !== 'undefined' ? process.env : {};
 
-// === VISION MODELS CONFIGURATION (UPDATED 18.10.2025) ===
+// === VISION MODELS CONFIGURATION (UPDATED 2025-11-10) ===
+// FIXED: Ollama не запущений - використовуємо Atlas GPT-4o-mini з порту 4000
 export const VISION_CONFIG = {
   primary: {
-    model: 'atlas-llama-3.2-90b-vision-instruct',
+    model: 'atlas-gpt-4o',
     provider: 'atlas',
-    cost: 0.01,
+    cost: 0.005,
     speed: '1-2s',
-    rateLimitPerMin: 10,
-    use_cases: ['any_task', 'complex_ui', 'high_accuracy_required'],
-    endpoint: 'http://localhost:4000/v1/chat/completions',
+    quality: 'excellent',
+    maxTokens: 4096,
+    description: 'Primary vision model - Atlas GPT-4o',
     isLocal: false
   },
   fast: {
-    model: 'atlas-llama-3.2-11b-vision-instruct',
+    model: 'atlas-gpt-4o-mini',
     provider: 'atlas',
-    cost: 0.0002,
-    speed: '0.8-1.2s',
-    rateLimitPerMin: 6,
-    use_cases: ['browser_open', 'file_exists', 'app_active', 'window_visible'],
-    endpoint: 'http://localhost:4000/v1/chat/completions',
+    cost: 0.001,
+    speed: '1-2s',
+    quality: 'good',
+    maxTokens: 2048,
+    description: 'Fast vision model - Atlas GPT-4o-mini',
     isLocal: false
   },
   standard: {
-    model: 'atlas-llama-3.2-90b-vision-instruct',
+    model: 'atlas-gpt-4o-mini',
     provider: 'atlas',
-    cost: 0.0003,
-    speed: '1.5-2.5s',
-    rateLimitPerMin: 3,
-    use_cases: ['text_match', 'ui_validation', 'form_filled', 'button_state'],
-    endpoint: 'http://localhost:4000/v1/chat/completions',
+    cost: 0.001,
+    speed: '1-2s',
+    quality: 'excellent',
+    maxTokens: 2048,
+    description: 'Standard vision - Atlas GPT-4o-mini',
     isLocal: false
   },
   cheapest: {
-    model: 'atlas-llama-3.2-11b-vision-instruct',
+    model: 'atlas-gpt-4o-mini',
     provider: 'atlas',
-    cost: 0.0001,
-    speed: '1-1.5s',
-    rateLimitPerMin: 12,
-    use_cases: ['simple_check', 'presence_check', 'quick_verify'],
-    endpoint: 'http://localhost:4000/v1/chat/completions',
+    cost: 0.001,
+    speed: '1-2s',
+    quality: 'acceptable',
+    maxTokens: 1024,
+    description: 'Cheapest vision - Atlas GPT-4o-mini',
     isLocal: false
   },
   get default() {
@@ -112,13 +113,13 @@ export const AI_MODEL_CONFIG = {
     },
     analysis: {
       get model() {
-        return env.AI_MODEL_ANALYSIS || 'ext-mistral-codestral-2405';
+        return env.AI_MODEL_ANALYSIS || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(env.AI_TEMP_ANALYSIS || '0.2');
       },
       max_tokens: 1000,
-      description: 'Аналіз та контекст - точність (Codestral 2405 - TEMP due to rate limit)'
+      description: 'Аналіз та контекст - точність (GPT-4o-mini)'
     },
     tts_optimization: {
       get model() {
@@ -222,6 +223,9 @@ export const MCP_MODEL_CONFIG = {
       get model() {
         return env.MCP_MODEL_VERIFICATION_ELIGIBILITY || 'atlas-ministral-3b';
       },
+      get fallback() {
+        return env.MCP_MODEL_VERIFICATION_ELIGIBILITY_FALLBACK || 'atlas-jamba-1.5-mini';
+      },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VERIFICATION_ELIGIBILITY || '0.1');
       },
@@ -273,7 +277,7 @@ export const MCP_MODEL_CONFIG = {
     },
     dev_analysis: {
       get model() {
-        return env.MCP_MODEL_DEV_ANALYSIS || 'ext-mistral-codestral-latest';
+        return env.MCP_MODEL_DEV_ANALYSIS || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_DEV_ANALYSIS || '0.2');
@@ -283,33 +287,33 @@ export const MCP_MODEL_CONFIG = {
     },
     vision_analysis: {
       get model() {
-        return env.MCP_MODEL_VISION || 'atlas-llama-3.2-11b-vision-instruct';
+        return env.MCP_MODEL_VISION || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION || '0.2');
       },
       max_tokens: 1000,
-      description: 'Vision Analysis - аналіз скріншотів (GPT-4o vision)'
+      description: 'Vision Analysis - аналіз скріншотів (Ollama Llama 3.2 Vision)'
     },
     vision_verification_fast: {
       get model() {
-        return env.MCP_MODEL_VISION_FAST || 'atlas-llama-3.2-11b-vision-instruct';
+        return env.MCP_MODEL_VISION_FAST || 'atlas-gpt-4o-mini';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_FAST || '0.2');
       },
       max_tokens: 800,
-      description: 'Grisha Visual Verification Attempt 1 - середня модель (Llama-3.2 11B Vision)'
+      description: 'Grisha Visual Verification Attempt 1 - Ollama Llama 3.2 Vision'
     },
     vision_verification_strong: {
       get model() {
-        return env.MCP_MODEL_VISION_STRONG || 'atlas-llama-3.2-90b-vision-instruct';
+        return env.MCP_MODEL_VISION_STRONG || 'atlas-gpt-4o';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_STRONG || '0.2');
       },
       max_tokens: 1000,
-      description: 'Grisha Visual Verification Attempt 2 - потужна модель (Llama-3.2-90B Vision)'
+      description: 'Grisha Visual Verification Attempt 2 - Ollama Llama 3.2 Vision'
     },
     vision_fallback: {
       get model() {
@@ -317,6 +321,17 @@ export const MCP_MODEL_CONFIG = {
       },
       endpoint: 'http://localhost:11434/api/generate',
       description: 'Ollama local vision - безкоштовний fallback (повільний)'
+    },
+    vision_emergency: {
+      get model() {
+        return env.MCP_MODEL_VISION_EMERGENCY || 'atlas-gpt-4o-mini';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_EMERGENCY || '0.2');
+      },
+      max_tokens: 800,
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'GPT-4o-mini - emergency fallback для vision (швидкий і надійний)'
     },
     server_selection: {
       get model() {
@@ -452,7 +467,7 @@ export const AI_BACKEND_CONFIG = {
         provider: 'atlas',
         apiEndpoint: 'http://localhost:4000/v1/chat/completions',
         get model() {
-          return env.MCP_LLM_MODEL || 'ext-mistral-codestral-2405';  // Codestral 2405 for LLM Tool Validator (TEMP due to rate limit)
+          return env.MCP_LLM_MODEL || 'atlas-gpt-4o-mini';  // GPT-4o-mini for LLM Tool Validator
         },
         get temperature() {
           return parseFloat(env.MCP_LLM_TEMPERATURE || '0.1');  // Low temperature for consistent validation

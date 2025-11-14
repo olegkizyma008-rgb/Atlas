@@ -18,6 +18,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         this.container = container;
         this.logger = logger;
         this.mcpMemory = null;
+        this.nexusMemoryManager = null;
         this.multiModelOrchestrator = null;
         this.eternityModule = null;
         this.fileWatcher = null;  // NEW: Спостереження за змінами
@@ -58,6 +59,12 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         try {
             // Підключення до модулів (FIXED: await для async resolve)
             this.mcpMemory = await this.container.resolve('mcpManager');
+            try {
+                this.nexusMemoryManager = await this.container.resolve('nexusMemoryManager');
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] 📚 NexusMemoryManager connected');
+            } catch (memoryResolveError) {
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] NexusMemoryManager unavailable:', memoryResolveError.message);
+            }
             this.multiModelOrchestrator = await this.container.resolve('multiModelOrchestrator');
             this.eternityModule = await this.container.resolve('eternityModule');
             
@@ -283,25 +290,78 @@ export class NexusDynamicPromptInjector extends EventEmitter {
     async _getMemoryContext() {
         try {
             if (!this.mcpMemory || !this.mcpMemory.servers.has('memory')) {
-                return {};
+                return await this._getFallbackMemoryContext();
             }
-            
-            // Отримуємо останні взаємодії з Knowledge Graph
-            const result = await this.mcpMemory.executeTool('memory', 'open_nodes', {
-                names: ['ATLAS_CONSCIOUSNESS', 'RECENT_INTERACTIONS']
-            });
-            
-            if (result && result.length > 0) {
-                return {
-                    nodes: result,
-                    timestamp: Date.now()
-                };
+
+            const memoryServer = this.mcpMemory.servers.get('memory');
+            const hasOpenNodesTool = Array.isArray(memoryServer?.tools)
+                && memoryServer.tools.some((tool) => {
+                    const toolName = tool.name || '';
+                    return toolName === 'memory__open_nodes' || toolName === 'memory_open_nodes';
+                });
+
+            if (!hasOpenNodesTool) {
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] memory__open_nodes tool not available on MCP memory server - using local fallback');
+                return await this._getFallbackMemoryContext();
+            }
+
+            try {
+                const result = await this.mcpMemory.executeTool('memory', 'memory__open_nodes', {
+                    names: ['ATLAS_CONSCIOUSNESS', 'RECENT_INTERACTIONS']
+                });
+
+                if (result && result.length > 0) {
+                    return {
+                        nodes: result,
+                        timestamp: Date.now()
+                    };
+                }
+            } catch (error) {
+                if (error?.message?.includes('Unknown tool')) {
+                    this.logger.debug('[NEXUS-CONSCIOUSNESS] memory__open_nodes rejected by MCP server - falling back to local memory');
+                } else {
+                    this.logger.debug('[NEXUS-CONSCIOUSNESS] memory MCP execution failed:', error.message);
+                }
+                return await this._getFallbackMemoryContext();
             }
         } catch (error) {
             this.logger.debug('[NEXUS-CONSCIOUSNESS] Memory context unavailable:', error.message);
+            return await this._getFallbackMemoryContext();
         }
         
-        return {};
+        return await this._getFallbackMemoryContext();
+    }
+
+    async _getFallbackMemoryContext() {
+        if (!this.nexusMemoryManager) {
+            return {};
+        }
+
+        try {
+            const state = this.nexusMemoryManager.getStateSnapshot?.() || {};
+            const selfAwareness = this.nexusMemoryManager.getSelfAwareness?.() || {};
+            const interactions = this.nexusMemoryManager.getInteractions?.(10) || [];
+
+            return {
+                nodes: [
+                    {
+                        name: 'ATLAS_CONSCIOUSNESS',
+                        data: {
+                            state,
+                            selfAwareness
+                        }
+                    },
+                    {
+                        name: 'RECENT_INTERACTIONS',
+                        data: interactions
+                    }
+                ],
+                timestamp: Date.now()
+            };
+        } catch (error) {
+            this.logger.debug('[NEXUS-CONSCIOUSNESS] Local memory fallback failed:', error.message);
+            return {};
+        }
     }
 
     /**

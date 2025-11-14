@@ -13,6 +13,7 @@ import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';
 import { NexusContextActivator } from '../eternity/nexus-context-activator.js';
+import { getRateLimiter } from '../utils/api-rate-limiter.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -266,30 +267,29 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       })}\n\n`);
     }
 
-    // Send mode selection message to chat via WebSocket
-    if (wsManager) {
-      try {
-        // System message in English
-        const modeEmoji = mode === 'chat' ? '💬 Chat' : mode === 'dev' ? '🔬 Dev' : '🔧 Task';
-        const systemMessage = `Mode: ${modeEmoji} (confidence: ${Math.round(confidence * 100)}%)`;
-        const systemTts = `Mode ${mode}`;
-        
-        // Translate for user display
-        const userMessage = localizationService.translateToUser(systemMessage);
-        const userTts = localizationService.translateToUser(systemTts);
-        
-        wsManager.broadcastToSubscribers('chat', 'agent_message', {
-          content: userMessage,
-          agent: 'system',
-          sessionId: session.id,
-          timestamp: new Date().toISOString(),
-          ttsContent: userTts,
-          mode: mode
-        });
-      } catch (error) {
-        logger.warn('executor', `Failed to send mode selection WebSocket message: ${error.message}`);
-      }
-    }
+    // FIXED 2025-11-06: Відключено автоматичні mode selection повідомлення в чат
+    // Режим відображається тільки в логах, щоб не спамити користувача
+    // if (wsManager) {
+    //   try {
+    //     const modeEmoji = mode === 'chat' ? '💬 Chat' : mode === 'dev' ? '🔬 Dev' : '🔧 Task';
+    //     const systemMessage = `Mode: ${modeEmoji} (confidence: ${Math.round(confidence * 100)}%)`;
+    //     const systemTts = `Mode ${mode}`;
+    //     
+    //     const userMessage = localizationService.translateToUser(systemMessage);
+    //     const userTts = localizationService.translateToUser(systemTts);
+    //     
+    //     wsManager.broadcastToSubscribers('chat', 'agent_message', {
+    //       content: userMessage,
+    //       agent: 'system',
+    //       sessionId: session.id,
+    //       timestamp: new Date().toISOString(),
+    //       ttsContent: userTts,
+    //       mode: mode
+    //     });
+    //   } catch (error) {
+    //     logger.warn('executor', `Failed to send mode selection WebSocket message: ${error.message}`);
+    //   }
+    // }
 
     // ===============================================
     // Handle DEV mode - INTERNAL ONLY (2025-11-05)
@@ -1032,15 +1032,19 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messages, null, 2)}`);
       logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
 
-      const response = await axios.post(apiUrl, {
-        model: modelConfig.model,
-        messages,
-        temperature: modelConfig.temperature,
-        max_tokens: modelConfig.max_tokens
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 60000
-      });
+      const rateLimiter = getRateLimiter();
+      const response = await rateLimiter.call(
+        async () => axios.post(apiUrl, {
+          model: modelConfig.model,
+          messages,
+          temperature: modelConfig.temperature,
+          max_tokens: modelConfig.max_tokens
+        }, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 60000
+        }),
+        { priority: 10, metadata: { type: 'chat', model: modelConfig.model } }
+      );
       chatResponse = response;
 
       // Log API response
@@ -1048,34 +1052,103 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
 
     } catch (primaryError) {
-      // Try fallback if primary fails
-      if (apiEndpointConfig?.fallback && !usedFallback) {
-        logger.warn('executor', `Chat API failed: ${primaryError.message}, attempting fallback...`);
-        apiUrl = apiEndpointConfig.fallback;
-        usedFallback = true;
-
+      const errorStatus = primaryError.response?.status || 'unknown';
+      logger.warn('executor', `[CHAT-FALLBACK] Primary request failed with ${errorStatus}: ${primaryError.message}`);
+      
+      // UPDATED 2025-11-10: Try automatic model fallback - find alternative models from API
+      try {
+        logger.info('executor', '[CHAT-FALLBACK] 🔍 Searching for alternative models...');
+        
+        // Get list of available models from API
+        let workingModel = null;
         try {
-          const response = await axios.post(apiUrl, {
-            model: modelConfig.model,
-            messages,
-            temperature: modelConfig.temperature,
-            max_tokens: modelConfig.max_tokens
-          }, {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 60000
-          });
-          chatResponse = response;
-
-          // Log API response
-          const llmAnswer = response.data?.choices?.[0]?.message?.content;
-          logger.system('executor', `[API-RESPONSE FALLBACK] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
-
-        } catch (fallbackError) {
-          logger.error('executor', `Chat API fallback also failed: ${fallbackError.message}`);
-          throw fallbackError;
+          const rateLimiter = getRateLimiter();
+          const modelsResponse = await rateLimiter.call(
+            async () => axios.get('http://localhost:4000/v1/models', { timeout: 5000 }),
+            { priority: 5, metadata: { type: 'models_list' } }
+          );
+          const availableModels = modelsResponse.data?.data || [];
+          
+          if (availableModels.length > 0) {
+            logger.info('executor', `[CHAT-FALLBACK] Found ${availableModels.length} models, testing alternatives...`);
+            
+            // Try up to 5 alternative models
+            const modelsToTry = availableModels
+              .map(m => m.id)
+              .filter(id => id !== modelConfig.model)
+              .slice(0, 5);
+            
+            for (const alternativeModel of modelsToTry) {
+              try {
+                logger.debug('executor', `[CHAT-FALLBACK] Testing model: ${alternativeModel}`);
+                
+                const rateLimiter = getRateLimiter();
+                const testResponse = await rateLimiter.call(
+                  async () => axios.post(apiUrl, {
+                    model: alternativeModel,
+                    messages,
+                    temperature: modelConfig.temperature,
+                    max_tokens: modelConfig.max_tokens
+                  }, {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 15000
+                  }),
+                  { priority: 8, retryable: false, metadata: { type: 'fallback_test', model: alternativeModel } }
+                );
+                
+                if (testResponse.status === 200) {
+                  workingModel = alternativeModel;
+                  chatResponse = testResponse;
+                  logger.info('executor', `[CHAT-FALLBACK] ✅ Success with alternative model: ${workingModel}`);
+                  break;
+                }
+              } catch (testError) {
+                logger.debug('executor', `[CHAT-FALLBACK] Model ${alternativeModel} failed: ${testError.message}`);
+                continue;
+              }
+            }
+          }
+        } catch (modelsError) {
+          logger.warn('executor', `[CHAT-FALLBACK] Could not fetch models list: ${modelsError.message}`);
         }
-      } else {
-        throw primaryError;
+        
+        if (!workingModel) {
+          // Try endpoint fallback if model fallback failed
+          if (apiEndpointConfig?.fallback && !usedFallback) {
+            logger.warn('executor', `[CHAT-FALLBACK] No working model found, trying fallback endpoint...`);
+            apiUrl = apiEndpointConfig.fallback;
+            usedFallback = true;
+
+            const rateLimiter = getRateLimiter();
+            const response = await rateLimiter.call(
+              async () => axios.post(apiUrl, {
+                model: modelConfig.model,
+                messages,
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
+              }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 60000
+              }),
+              { priority: 9, metadata: { type: 'fallback_chat', model: modelConfig.model } }
+            );
+            chatResponse = response;
+          } else {
+            throw primaryError;
+          }
+        }
+      } catch (fallbackError) {
+        logger.error('executor', `[CHAT-FALLBACK] ❌ All fallback attempts failed: ${fallbackError.message}`);
+        // Return a graceful fallback response instead of throwing
+        chatResponse = {
+          data: {
+            choices: [{
+              message: {
+                content: "Вибачте, зараз всі моделі тимчасово недоступні. Спробуйте ще раз за кілька секунд."
+              }
+            }]
+          }
+        };
       }
     }
 
@@ -1136,11 +1209,17 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         // NEW 26.10.2025: Store important information to memory
         try {
           const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
-          await chatMemoryCoordinator.storeMemory({
-            userMessage,
-            assistantResponse: atlasResponse,
-            session
-          });
+          
+          // FIXED 2025-11-08: Check if coordinator is initialized (lazy loading)
+          if (chatMemoryCoordinator && typeof chatMemoryCoordinator.storeMemory === 'function') {
+            await chatMemoryCoordinator.storeMemory({
+              userMessage,
+              assistantResponse: atlasResponse,
+              session
+            });
+          } else {
+            logger.debug('executor', '[CHAT-MEMORY] ⏭️ Memory coordinator not yet initialized (lazy loading)');
+          }
         } catch (storageError) {
           logger.warn('executor', `[CHAT-MEMORY] ⚠️ Memory storage failed: ${storageError.message}`);
         }
@@ -1160,15 +1239,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           stack: chatError.stack
         });
 
-        // Send error message
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: 'Вибачте, виникла помилка при обробці вашого повідомлення.',
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString()
-          });
-        }
+        // FIXED 2025-11-06: Відключено автоматичні error повідомлення в чат
+        // Помилки відображаються тільки в логах, щоб не спамити користувача
+        // if (wsManager) {
+        //   wsManager.broadcastToSubscribers('chat', 'agent_message', {
+        //     content: 'Вибачте, виникла помилка при обробці вашого повідомлення.',
+        //     agent: 'atlas',
+        //     sessionId: session.id,
+        //     timestamp: new Date().toISOString()
+        //   });
+        // }
 
         throw chatError;
       }
@@ -1524,14 +1604,15 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           let suggestedServers = null;
           try {
             if (container.has('routerClassifier')) {
-              const routerClassifier = container.resolve('routerClassifier');
+              // FIXED 2025-11-07: Await async factory resolution
+              const routerClassifier = await container.resolve('routerClassifier');
               const mcpManager = container.resolve('mcpManager');
               
               logger.workflow('stage', 'system', `Router Classifier: Fast filtering for item ${item.id}`, {
                 sessionId: session.id
               });
               
-              // FIXED 2025-11-04: Check if routerClassifier has execute method
+              // Check if routerClassifier has execute method
               if (typeof routerClassifier.execute === 'function') {
                 const routerResult = await routerClassifier.execute({
                   action: item.action,

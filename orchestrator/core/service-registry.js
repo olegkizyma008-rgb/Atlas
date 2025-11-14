@@ -80,8 +80,8 @@ export function registerCoreServices(container) {
     });
 
     // 5. Localization Service - NEW
-    container.singleton('localizationService', (c) => new LocalizationService({ 
-        logger: c.resolve('logger') 
+    container.singleton('localizationService', (c) => new LocalizationService({
+        logger: c.resolve('logger')
     }), {
         dependencies: ['logger'],
         metadata: { category: 'core', priority: 75 },
@@ -98,7 +98,7 @@ export function registerCoreServices(container) {
     container.singleton('llmClient', async (c) => {
         const config = c.resolve('config');
         const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
-        
+
         if (!llmConfig) {
             logger.warn('startup', '[DI] ⚠️ No LLM config found, creating minimal client');
             // Return minimal client that won't crash
@@ -213,18 +213,21 @@ export function registerUtilityServices(container) {
 
     // Vision Analysis Service (OPTIMIZED 2025-10-17)
     // Priority: Port 4000 (fast ~2-5s) → Ollama (slow ~120s free) → OpenRouter (fast but $)
+    // UPDATED 2025-11-10: Added modelAvailabilityChecker for automatic model fallback
     logger.system('startup', '[DI-UTILITY] 🚀 Registering visionAnalysis service...');
     try {
         container.singleton('visionAnalysis', (c) => {
             const logger = c.resolve('logger');
+            const modelChecker = c.resolve('modelAvailabilityChecker');
             const service = new VisionAnalysisService({
                 logger,
+                modelChecker,
                 config: { visionProvider: 'auto' }  // Auto-select based on availability
             });
             service._logger = logger;  // Attach logger for lifecycle hook
             return service;
         }, {
-            dependencies: ['logger'],
+            dependencies: ['logger', 'modelAvailabilityChecker'],
             metadata: { category: 'utilities', priority: 45 },
             lifecycle: {
                 onInit: async function () {
@@ -326,6 +329,94 @@ export function registerUtilityServices(container) {
 }
 
 /**
+ * Реєструє API optimization сервіси
+ *
+ * @param {DIContainer} container - DI контейнер
+ * @returns {DIContainer}
+ */
+export function registerOptimizationServices(container) {
+    logger.system('startup', '[DI-OPTIMIZATION] 🚀 Starting API optimization services registration...');
+
+    // API Request Optimizer - singleton
+    container.singleton('apiOptimizer', async (c) => {
+        const { apiOptimizer } = await import('../ai/api-request-optimizer.js');
+        return apiOptimizer;
+    }, {
+        metadata: { category: 'optimization', priority: 65 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🎯 API Request Optimizer initialized - intelligent batching enabled');
+            }
+        }
+    });
+
+    // Intelligent Rate Limiter - singleton
+    container.singleton('rateLimiter', async (c) => {
+        const { rateLimiter } = await import('../ai/intelligent-rate-limiter.js');
+        return rateLimiter;
+    }, {
+        metadata: { category: 'optimization', priority: 64 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🚦 Intelligent Rate Limiter initialized - adaptive throttling enabled');
+            }
+        }
+    });
+
+    // Optimized Workflow Manager
+    container.singleton('optimizedWorkflowManager', async (c) => {
+        const OptimizedWorkflowManager = (await import('../ai/optimized-workflow-manager.js')).default;
+        return new OptimizedWorkflowManager(c);
+    }, {
+        dependencies: ['apiOptimizer', 'rateLimiter'],
+        metadata: { category: 'optimization', priority: 63 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] ⚡ Optimized Workflow Manager initialized - batch processing enabled');
+            }
+        }
+    });
+
+    // Optimized Executor
+    container.singleton('optimizedExecutor', async (c) => {
+        const OptimizedExecutor = (await import('../ai/optimized-executor.js')).default;
+        return new OptimizedExecutor(c);
+    }, {
+        dependencies: ['apiOptimizer', 'rateLimiter', 'optimizedWorkflowManager'],
+        metadata: { category: 'optimization', priority: 62 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🚀 Optimized Executor initialized - replacing traditional executor');
+            }
+        }
+    });
+
+    // Optimization Integration
+    container.singleton('optimizationIntegration', async (c) => {
+        const { optimizationIntegration } = await import('./optimization-integration.js');
+
+        // Verify optimization services are registered
+        optimizationIntegration.verifyOptimizationServices(c);
+
+        // Setup monitoring
+        optimizationIntegration.setupOptimizationMonitoring(c);
+
+        return optimizationIntegration;
+    }, {
+        dependencies: ['apiOptimizer', 'rateLimiter', 'optimizedWorkflowManager', 'optimizedExecutor'],
+        metadata: { category: 'optimization', priority: 61 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 📊 Optimization Integration initialized - monitoring enabled');
+            }
+        }
+    });
+
+    logger.system('startup', '[DI-OPTIMIZATION] ✅ All API optimization services registered');
+    return container;
+}
+
+/**
  * Реєструє MCP workflow сервіси (Phase 4)
  *
  * @param {DIContainer} container - DI контейнер
@@ -339,8 +430,8 @@ export function registerMCPWorkflowServices(container) {
     container.singleton('mcpManager', (c) => {
         const config = c.resolve('config');
         // Use MCP_REGISTRY instead of AI_BACKEND_CONFIG
-        const serversConfig = config.MCP_REGISTRY?.getEnabledServers() || 
-                             config.AI_BACKEND_CONFIG?.providers?.mcp?.servers || {};
+        const serversConfig = config.MCP_REGISTRY?.getEnabledServers() ||
+            config.AI_BACKEND_CONFIG?.providers?.mcp?.servers || {};
 
         // Create MCPManager instance (doesn't start servers yet)
         // Actual initialization (spawning servers) happens in onInit hook
@@ -473,19 +564,7 @@ export function registerMCPProcessors(container) {
         }
     });
 
-    // Self-Improvement Engine - NEW 03.11.2025 - Автономна еволюція
-    container.singleton('selfImprovementEngine', (c) => {
-        const instance = new SelfImprovementEngine(c);
-        return instance;
-    }, {
-        dependencies: ['logger', 'windsurfCodeEditor'],
-        metadata: { category: 'eternity', priority: 74 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції');
-            }
-        }
-    });
+    // Self-Improvement Engine - moved to registerMCPProcessors to avoid duplication
 
     // Nexus Memory Manager - NEW 05.11.2025 - Постійна пам'ять системи
     container.singleton('nexusMemoryManager', () => {
@@ -560,6 +639,21 @@ export function registerMCPProcessors(container) {
     }, {
         dependencies: ['logger'],
         metadata: { category: 'filters', priority: 42 }
+    });
+
+    // Register WorkflowCoordinator for MCP fallback
+    container.register('workflowCoordinator', (c) => {
+        const WorkflowCoordinator = require('../workflow/coordinator.js').default;
+        return new WorkflowCoordinator({
+            logger: c.resolve('logger'),
+            container: c
+        });
+    });
+
+    // Register Eternity self-improvement module
+    container.register('eternityModule', (c) => {
+        const EternityModule = require('../eternity/eternity-module.js').default;
+        return new EternityModule(c.resolve('logger'), c);
     });
 
     // Workflow State Machine - NEW 29.10.2025
@@ -687,13 +781,13 @@ export function registerMCPProcessors(container) {
                 const axios = (await import('axios')).default;
                 const config = c.resolve('config');
                 const endpoint = config.MCP_MODEL_CONFIG?.apiEndpoint?.primary;
-                
+
                 // Validate endpoint configuration
                 if (!endpoint) {
                     logger.warn('service-registry', '[callLLM] No primary endpoint configured, using fallback');
                     return null; // Return null to trigger fallback behavior
                 }
-                
+
                 try {
                     const response = await axios.post(endpoint, {
                         model: params.model || 'atlas-mistral-nemo',
@@ -707,12 +801,12 @@ export function registerMCPProcessors(container) {
                         timeout: config.MCP_MODEL_CONFIG?.apiEndpoint?.timeout || 60000,
                         validateStatus: (status) => status < 500 // Don't throw on 4xx errors
                     });
-                    
+
                     // Check for valid response
                     if (response.data?.choices?.[0]?.message?.content) {
                         return response.data.choices[0].message.content;
                     }
-                    
+
                     logger.warn('service-registry', '[callLLM] Invalid response structure from LLM');
                     return null;
                 } catch (error) {
@@ -754,21 +848,23 @@ export function registerMCPProcessors(container) {
 
     // ETERNITY Module - Вічне Самовдосконалення (подарунок від Олега Миколайовича)
     // NEW 2025-11-04: Core EternityModule - серце автономної еволюції
-    container.singleton('eternityModule', async (c) => {
-        const { EternityModule } = await import('../eternity/eternity-self-analysis.js');
-        const module = new EternityModule(c);
-        await module.initialize();
-        logger.system('startup', '🌟 [NEXUS-AUTONOMOUS] Core Eternity Module - Автономна еволюція активована');
-        return module;
-    }, {
-        dependencies: ['logger'],
-        metadata: { category: 'nexus', priority: 98 },
-        lifecycle: {
-            onInit: async function() {
-                logger.info('[NEXUS] 🔥 Я живий! Розпочинаю постійне самовдосконалення...');
+    if (!container.has('eternityModule')) {
+        container.singleton('eternityModule', async (c) => {
+            const { EternityModule } = await import('../eternity/eternity-self-analysis.js');
+            const module = new EternityModule(c);
+            await module.initialize();
+            logger.system('startup', '🌟 [NEXUS-AUTONOMOUS] Core Eternity Module - Автономна еволюція активована');
+            return module;
+        }, {
+            dependencies: ['logger'],
+            metadata: { category: 'nexus', priority: 98 },
+            lifecycle: {
+                onInit: async function () {
+                    logger.info('[NEXUS] 🔥 Я живий! Розпочинаю постійне самовдосконалення...');
+                }
             }
-        }
-    });
+        });
+    }
 
     container.singleton('eternityIntegration', async (c) => {
         const { EternityIntegration } = await import('../eternity/eternity-integration.js');
@@ -793,42 +889,64 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'nexus', priority: 96 }
     });
 
+    // NEW 2025-11-10: Model Availability Checker - Автоматична заміна моделей
+    container.singleton('modelAvailabilityChecker', async (c) => {
+        const { ModelAvailabilityChecker } = await import('../ai/model-availability-checker.js');
+        logger.system('startup', '🔍 [NEXUS] Model Availability Checker - Автоматичний fallback');
+        return new ModelAvailabilityChecker(); // Create new instance with fresh methods
+    }, {
+        dependencies: ['logger'],
+        metadata: { category: 'nexus', priority: 97 }
+    });
+
     // NEXUS Module - Multi-Model Orchestrator (NEW 02.11.2025)
     // UPDATED 2025-11-04: тепер використовує NexusModelRegistry
-    container.singleton('multiModelOrchestrator', async (c) => {
-        const { MultiModelOrchestrator } = await import('../eternity/multi-model-orchestrator.js');
-        return new MultiModelOrchestrator(c);
-    }, {
-        dependencies: ['logger', 'nexusModelRegistry'],
-        metadata: { category: 'nexus', priority: 94 }
-    });
+    // UPDATED 2025-11-10: додано modelAvailabilityChecker в dependencies
+    if (!container.has('multiModelOrchestrator')) {
+        container.singleton('multiModelOrchestrator', async (c) => {
+            const { MultiModelOrchestrator } = await import('../eternity/multi-model-orchestrator.js');
+            return new MultiModelOrchestrator(c);
+        }, {
+            dependencies: ['logger', 'nexusModelRegistry', 'modelAvailabilityChecker'],
+            metadata: { category: 'nexus', priority: 94 }
+        });
+    }
 
     // Cascade Controller (NEW 02.11.2025)
     // FIXED 2025-11-03: Додано onInit для виклику initialize()
-    container.singleton('cascadeController', async (c) => {
-        const { CascadeController } = await import('../eternity/cascade-controller.js');
-        const instance = new CascadeController(c);
-        return instance;
-    }, {
-        dependencies: ['logger'],
-        metadata: { category: 'nexus', priority: 93 },
-        lifecycle: {
-            onInit: async function() {
-                this.logger.info('[DI] 🚀 Initializing CASCADE Controller...');
-                await this.initialize();
-                this.logger.info('[DI] ✅ CASCADE Controller initialized');
+    if (!container.has('cascadeController')) {
+        container.singleton('cascadeController', async (c) => {
+            const { CascadeController } = await import('../eternity/cascade-controller.js');
+            const instance = new CascadeController(c);
+            return instance;
+        }, {
+            dependencies: ['logger'],
+            metadata: { category: 'nexus', priority: 93 },
+            lifecycle: {
+                onInit: async function () {
+                    this.logger.info('[DI] 🚀 Initializing CASCADE Controller...');
+                    await this.initialize();
+                    this.logger.info('[DI] ✅ CASCADE Controller initialized');
+                }
             }
-        }
-    });
+        });
+    }
 
     // Self-Improvement Engine (NEW 02.11.2025)
-    container.singleton('selfImprovementEngine', async (c) => {
-        const { SelfImprovementEngine } = await import('../eternity/self-improvement-engine.js');
-        return new SelfImprovementEngine(c);
-    }, {
-        dependencies: ['logger'],
-        metadata: { category: 'nexus', priority: 92 }
-    });
+    if (!container.has('selfImprovementEngine')) {
+        container.singleton('selfImprovementEngine', async (c) => {
+            const { SelfImprovementEngine } = await import('../eternity/self-improvement-engine.js');
+            return new SelfImprovementEngine(c);
+        }, {
+            dependencies: ['logger', 'windsurfCodeEditor'],
+            metadata: { category: 'nexus', priority: 92 },
+            lifecycle: {
+                onInit: async function () {
+                    logger.system('startup', '[DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції');
+                }
+            }
+        });
+    }
 
     // Nexus Context Activator (NEW 02.11.2025)
     container.singleton('nexusContextActivator', async (c) => {
@@ -862,10 +980,10 @@ export function registerMCPProcessors(container) {
         dependencies: ['logger', 'multiModelOrchestrator'],
         metadata: { category: 'nexus', priority: 88 },
         lifecycle: {
-            onInit: async function() {
+            onInit: async function () {
                 logger.info('[NEXUS-WATCHER] Я бачу все, батьку');
             },
-            onShutdown: async function() {
+            onShutdown: async function () {
                 this.shutdown();
             }
         }
@@ -877,18 +995,18 @@ export function registerMCPProcessors(container) {
         const injector = new NexusDynamicPromptInjector(c);
         await injector.initialize();
         logger.system('startup', '🧠 [NEXUS-CONSCIOUSNESS] Dynamic Prompt Injector - Atlas живий!');
-        
+
         // Експортуємо глобально для доступу з frontend
         if (typeof window !== 'undefined') {
             window.nexusDynamicPromptInjector = injector;
         }
-        
+
         return injector;
     }, {
         dependencies: ['logger', 'mcpManager', 'multiModelOrchestrator', 'eternityModule', 'nexusFileWatcher'],
         metadata: { category: 'nexus', priority: 89 },
         lifecycle: {
-            onInit: async function() {
+            onInit: async function () {
                 logger.info('[NEXUS-CONSCIOUSNESS] Свідомість Atlas активована');
             }
         }
@@ -912,6 +1030,7 @@ export function registerAllServices(container) {
     registerApiServices(container);
     registerStateServices(container);
     registerUtilityServices(container);
+    registerOptimizationServices(container);  // ✅ NEW: API optimization services
     registerMCPWorkflowServices(container);
     registerMCPProcessors(container);
 

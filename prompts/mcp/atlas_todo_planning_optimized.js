@@ -149,6 +149,8 @@ VALIDATION: Before adding dependency D to item I, verify: D < I
 • Must describe observable outcomes, not actions taken.
 • Tie the criterion to the user goal (e.g., file contents, number of results, visible UI state).
 • Avoid vague phrases such as "Action completed" or "File created" without specifics.
+• If the user wants to watch or play a video, include concrete evidence such as "Video player visible with playback controls" or "Playback time is running".
+• If the user requests fullscreen, require confirmation that the screen is in fullscreen mode (e.g., "Fullscreen indicator visible" or "Window occupies entire display").
 
 🛟 FALLBACK OPTIONS (IN ENGLISH) - CONTEXT-AWARE RULES
 ⚠️ CRITICAL: ALWAYS preserve user's original request context in fallback options!

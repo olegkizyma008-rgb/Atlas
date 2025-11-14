@@ -683,7 +683,11 @@ export class EternityModule extends EventEmitter {
         this.logger.warn('[ETERNITY] NexusMemoryManager not available');
       }
     } catch (error) {
-      this.logger.error('Failed to save to Nexus Memory:', error.message || error);
+      this.logger.error('Failed to save to Nexus Memory', {
+        error: error.message || String(error),
+        stack: error.stack,
+        category: 'eternity'
+      });
     }
   }
 
@@ -1946,6 +1950,16 @@ export class EternityModule extends EventEmitter {
     }
     
     return 'general';
+  }
+
+  /**
+   * FIXED 2025-11-08: Метод для обмеження значень у діапазоні [0, 1]
+   * @param {number} value - Значення для обмеження
+   * @returns {number} - Значення у діапазоні [0, 1]
+   * @private
+   */
+  _clamp01(value) {
+    return Math.max(0, Math.min(1, value));
   }
 
   shutdown() {

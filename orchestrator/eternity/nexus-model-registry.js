@@ -24,6 +24,12 @@ export class NexusModelRegistry {
         // NEXUS 2025-11-05: Windsurf copilot моделі повертають 500 - блокуємо одразу
         this._blockWindsurfModels();
         
+        // NEXUS 2025-11-08: Виключення Ollama моделей з модуля самовдосконалення
+        this.excludeOllamaModels = process.env.NEXUS_EXCLUDE_OLLAMA === 'true';
+        if (this.excludeOllamaModels) {
+            this.logger.info('🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT)');
+        }
+        
         // Базові налаштування API
         this.apiEndpoint = process.env.CODESTRAL_API_ENDPOINT || 'http://localhost:4000/v1';
         this.updateFrequency = 300000; // 5 хвилин
@@ -169,6 +175,13 @@ export class NexusModelRegistry {
             
             // NEXUS 2025-11-05: Блокуємо ВСІ copilot-* моделі (Windsurf API 500)
             if (this.blockAllCopilotModels && model.id.startsWith('copilot-')) {
+                continue;
+            }
+            
+            // NEXUS 2025-11-08: Блокуємо Ollama моделі для самовдосконалення
+            const modelIdLower = model.id.toLowerCase();
+            if (this.excludeOllamaModels && modelIdLower.includes('ollama')) {
+                this.logger.debug(`[NEXUS-REGISTRY] Пропускаю Ollama модель для самовдосконалення: ${model.id}`);
                 continue;
             }
             

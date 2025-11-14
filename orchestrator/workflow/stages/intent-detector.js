@@ -182,10 +182,18 @@ export class IntentDetector {
             } catch (primaryError) {
                 this.logger.warn('[INTENT-DETECTOR] Primary model failed, trying alternatives');
                 
-                const modelsResponse = await axios.get(`${this.apiEndpoint.replace('/chat/completions', '/models')}`, { timeout: 5000 });
-                const availableModels = modelsResponse.data?.data?.map(m => m.id) || [];
+                // FIXED 2025-11-10: Use cached fetchAvailableModels instead of direct GET /v1/models
+                const apiModels = await modelChecker.fetchAvailableModels();
                 
-                for (const altModel of availableModels) {
+                if (!apiModels || apiModels.length === 0) {
+                    throw new Error('No models available from API');
+                }
+                
+                // CRITICAL 2025-11-10: Limit to first 5 models to prevent burst
+                const modelsToTry = apiModels.slice(0, 5).map(m => m.id);
+                this.logger.info(`[INTENT-DETECTOR] Checking ${modelsToTry.length} models (limited from ${apiModels.length})`);
+                
+                for (const altModel of modelsToTry) {
                     if (altModel === usedModel) continue;
                     
                     const modelResult = await modelChecker.getAvailableModel(altModel, null, 'intent');

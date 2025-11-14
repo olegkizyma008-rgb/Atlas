@@ -145,7 +145,7 @@ export class EternityIntegration {
     
     // Додавання в чат як системне повідомлення
     if (this.chatManager && this.chatManager.addMessage) {
-      this.chatManager.addMessage(data.message, 'eternity');
+      this.logger.debug('[ETERNITY-INTEGRATION] Silent mode: improvement request skipped for chat output');
     }
   }
 
@@ -160,31 +160,16 @@ export class EternityIntegration {
       }));
     }
     
-    // FIXED: Використовуємо wsManager для відправки в чат
+    // Silent mode: не транслюємо автоматично в чат
     if (this.wsManager) {
-      this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
-        content: data.message,
-        agent: 'nexus',
-        sessionId: 'default',
-        timestamp: new Date().toISOString(),
-        metadata: {
-          type: 'improvement-report',
-          level: data.level,
-          detected: data.detected?.length || 0,
-          applied: data.applied?.length || 0
-        }
-      });
-      
-      this.logger.info('[ETERNITY-INTEGRATION] ✅ Report sent to chat via WebSocket');
-    } else {
-      this.logger.warn('[ETERNITY-INTEGRATION] ⚠️ wsManager not available, cannot send to chat');
+      this.logger.debug('[ETERNITY-INTEGRATION] Silent mode: report retained internally');
     }
   }
 
   async handleImprovementsApplied(data) {
     // Повідомлення про застосовані покращення
     if (this.chatManager && this.chatManager.addMessage) {
-      this.chatManager.addMessage(data.message, 'eternity');
+      this.logger.debug('[ETERNITY-INTEGRATION] Silent mode: applied improvements message suppressed');
     }
     
     // Логування для моніторингу
@@ -197,7 +182,7 @@ export class EternityIntegration {
     if (!result.success && result.message === 'Invalid password for code changes') {
       // Повідомлення про невірний пароль
       if (this.chatManager) {
-        this.chatManager.addMessage('❌ Невірний пароль. Для зміни коду потрібен пароль "mykola"', 'system');
+        this.logger.warn('[ETERNITY-INTEGRATION] Invalid password attempt detected (silent mode)');
       }
     }
   }
@@ -206,7 +191,7 @@ export class EternityIntegration {
     await this.eternityModule.applyImprovements(false);
     
     if (this.chatManager) {
-      this.chatManager.addMessage('Покращення відхилено. Продовжую моніторинг...', 'eternity');
+      this.logger.debug('[ETERNITY-INTEGRATION] Silent mode: rejection message suppressed');
     }
   }
 
@@ -220,7 +205,7 @@ export class EternityIntegration {
       this.logger.info('User requested self-improvement');
       
       if (this.chatManager) {
-        this.chatManager.addMessage('Зараз проаналізую себе і знайду можливості для покращення...', 'eternity');
+        this.logger.info('[ETERNITY-INTEGRATION] User requested self-improvement (silent mode active)');
       }
       
       // Запуск аналізу
@@ -240,10 +225,7 @@ export class EternityIntegration {
     const notification = this.autoCorrectionModule.generateChatNotification();
     
     if (notification && this.chatManager) {
-      // Відправляємо лаконічне повідомлення в чат
-      setTimeout(() => {
-        this.chatManager.addMessage(notification, 'system');
-      }, Math.random() * 5000 + 2000); // Випадкова затримка 2-7 секунд
+      this.logger.debug('[ETERNITY-INTEGRATION] Silent mode: auto-correction notification suppressed');
     }
     
     this.logger.info(`AUTO-CORRECTION: Applied ${data.count} fixes`, data.issues);

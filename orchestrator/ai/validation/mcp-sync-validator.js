@@ -8,6 +8,7 @@
 
 import logger from '../../utils/logger.js';
 import { VALIDATION_CONFIG } from '../../../config/validation-config.js';
+import { normalizeToolName, denormalizeToolName } from '../../utils/tool-name-normalizer.js';
 
 /**
  * MCP Sync Validator
@@ -75,32 +76,20 @@ export class MCPSyncValidator {
         continue;
       }
 
-      // FIXED 2025-10-31: Check tool existence with flexible name matching
-      // MCP tools may have different formats:
-      // 1. applescript_execute (server_tool with single _)
-      // 2. applescript__execute (server__tool with double __)
-      // 3. execute (just tool name)
-      let toolExists = serverTools.some(t => t.name === call.tool);
-      
-      // If not found, try without server prefix (after double __)
-      if (!toolExists && call.tool.includes('__')) {
-        const toolNameWithoutPrefix = call.tool.split('__')[1];
-        toolExists = serverTools.some(t => t.name === toolNameWithoutPrefix);
-        
-        // CRITICAL FIX: Also try server_tool format (single underscore)
-        // applescript__execute → look for applescript_execute
-        if (!toolExists) {
-          const serverToolFormat = `${call.server}_${toolNameWithoutPrefix}`;
-          toolExists = serverTools.some(t => t.name === serverToolFormat);
-        }
-      }
-      
-      // If still not found, try with server prefix
-      if (!toolExists && !call.tool.includes('__')) {
-        const toolNameWithPrefix = `${call.server}__${call.tool}`;
-        toolExists = serverTools.some(t => t.name === toolNameWithPrefix);
-      }
-      
+      // CONSOLIDATED 2025-11-14: Use centralized tool name normalizer
+      // Normalize input tool name to internal format (double __)
+      const normalizedToolName = normalizeToolName(call.tool, call.server);
+
+      // Denormalize for MCP server lookup (single _)
+      const mcpToolName = denormalizeToolName(normalizedToolName);
+
+      // Check tool existence with both formats
+      let toolExists = serverTools.some(t =>
+        t.name === mcpToolName ||
+        normalizeToolName(t.name, call.server) === normalizedToolName ||
+        t.name === call.tool
+      );
+
       const toolName = call.tool;
 
       if (!toolExists) {

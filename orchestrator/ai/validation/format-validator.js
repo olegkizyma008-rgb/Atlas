@@ -7,6 +7,7 @@
  */
 
 import logger from '../../utils/logger.js';
+import { normalizeToolName, validateToolNameFormat } from '../../utils/tool-name-normalizer.js';
 
 /**
  * Format Validator
@@ -135,30 +136,23 @@ export class FormatValidator {
         index
       });
     } else {
-      // Check tool name format (should be server__tool)
+      // CONSOLIDATED 2025-11-14: Use centralized tool name validator
       const toolName = call.tool;
-      const hasDoubleUnderscore = toolName.includes('__');
 
-      if (!hasDoubleUnderscore) {
+      // Try to normalize the tool name
+      const normalizedName = normalizeToolName(toolName, call.server);
+
+      // Validate format
+      const formatValidation = validateToolNameFormat(normalizedName, 'normalized');
+
+      if (!formatValidation.valid) {
         errors.push({
           type: 'invalid_tool_format',
-          message: `Tool name must follow format "server__tool", got: "${toolName}"`,
+          message: formatValidation.error,
           toolCall: call,
           index,
-          suggestion: `Did you mean: "${call.server}__${toolName}"?`
+          suggestion: `Did you mean: "${normalizedName}"?`
         });
-      } else {
-        // Check if prefix matches server
-        const [prefix] = toolName.split('__');
-        if (prefix !== call.server) {
-          errors.push({
-            type: 'tool_server_mismatch',
-            message: `Tool prefix "${prefix}" doesn't match server "${call.server}"`,
-            toolCall: call,
-            index,
-            suggestion: `Tool should start with "${call.server}__"`
-          });
-        }
       }
     }
 

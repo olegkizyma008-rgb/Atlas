@@ -46,8 +46,9 @@ export class VisionAnalysisService {
      * @param {Object} dependencies
      * @param {Object} dependencies.logger - Logger instance
      * @param {Object} dependencies.config - Configuration
+     * @param {Object} dependencies.modelChecker - Model availability checker (UPDATED 2025-11-10)
      */
-  constructor({ logger, config = {} }) {
+  constructor({ logger, config = {}, modelChecker: checker }) {
     this.logger = logger;
     this.config = config || {};
 
@@ -59,8 +60,8 @@ export class VisionAnalysisService {
     this.port4000Available = false;
     this.ollamaAvailable = false;
     
-    // ADDED 2025-11-08: Model availability checker for intelligent fallback
-    this.modelChecker = modelChecker;
+    // UPDATED 2025-11-10: Accept modelChecker through DI instead of global import
+    this.modelChecker = checker || modelChecker; // Fallback to global import for backward compatibility
 
     // OPTIMIZED: Add caching for repeated analyses
     this.cache = new Map();
@@ -88,7 +89,7 @@ export class VisionAnalysisService {
         name: 'Ollama-Vision',
         failureThreshold: 2,
         recoveryTimeout: 30000,
-        timeout: 300000
+        timeout: 600000  // FIXED 2025-11-08: Increased to 10 min (was 5 min)
       }),
       openrouter: new CircuitBreaker({
         name: 'OpenRouter-Vision',
@@ -862,7 +863,7 @@ export class VisionAnalysisService {
         images: [base64Image],
         stream: false
       }, {
-        timeout: 300000,  // 5min timeout - Ollama is VERY slow
+        timeout: 600000,  // FIXED 2025-11-08: 10min timeout (was 5min) - Ollama can be VERY slow
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -882,12 +883,12 @@ export class VisionAnalysisService {
       }
 
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        this.logger.error('[OLLAMA] Ollama timeout 300s', {
+        this.logger.error('[OLLAMA] Ollama timeout 600s (10 min)', {
           category: 'vision-analysis',
           note: 'OpenRouter fallback disabled'
         });
         this.ollamaAvailable = false;
-        throw new Error('Ollama timeout. OpenRouter fallback disabled.');
+        throw new Error('Ollama timeout after 10 minutes. OpenRouter fallback disabled.');
       }
 
       throw error;
@@ -907,34 +908,32 @@ export class VisionAnalysisService {
     try {
       this.logger.warn('[VISION] 🆘 Emergency fallback activated - searching for available vision models');
       
-      // STEP 1: Get available models from API (OpenAI standard)
+      // STEP 1: Get available models from ModelAvailabilityChecker (CACHED)
+      // FIXED 2025-11-10: Use cached fetchAvailableModels instead of direct GET /v1/models
       let availableVisionModels = [];
       try {
-        const modelsResponse = await axios.get('http://localhost:4000/v1/models', {
-          timeout: 5000
-        });
+        const apiModels = await this.modelChecker.fetchAvailableModels();
         
-        if (modelsResponse.data && modelsResponse.data.data) {
+        if (apiModels && apiModels.length > 0) {
           // Filter vision models (contain 'vision' in name or known vision models)
-          availableVisionModels = modelsResponse.data.data
+          availableVisionModels = apiModels
             .map(m => m.id)
             .filter(modelId => 
               modelId.includes('vision') || 
               modelId.includes('gpt-4o') ||
               modelId.includes('llama-3.2') ||
               modelId.includes('phi-4-multimodal')
-            );
+            )
+            .slice(0, 3); // CRITICAL 2025-11-10: Limit to 3 vision models to prevent burst
           
-          this.logger.info(`[VISION-EMERGENCY] 📋 Found ${availableVisionModels.length} vision models: ${availableVisionModels.join(', ')}`);
+          this.logger.info(`[VISION-EMERGENCY] 📋 Found ${availableVisionModels.length} vision models (limited)`);
         }
       } catch (error) {
         this.logger.warn('[VISION-EMERGENCY] Failed to fetch models list, using fallback list');
-        // Fallback to known vision models with atlas prefix
+        // Fallback to known vision models with atlas prefix (limited to 3)
         availableVisionModels = [
           'atlas-gpt-4o-mini',
-          'atlas-gpt-4o',
           'atlas-llama-3.2-11b-vision-instruct',
-          'atlas-llama-3.2-90b-vision-instruct',
           'atlas-phi-4-multimodal-instruct'
         ];
       }
@@ -943,25 +942,32 @@ export class VisionAnalysisService {
         throw new Error('No vision models available in API');
       }
       
-      // STEP 2: Try each model with availability check
+      // STEP 2: UPDATED 2025-11-10 - Use findWorkingModelOnError for direct testing
       const emergencyConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_emergency');
       const preferredModel = emergencyConfig.model; // atlas-gpt-4o-mini
       
-      // Prioritize preferred model if it's in the list
-      const modelsToTry = availableVisionModels.includes(preferredModel)
-        ? [preferredModel, ...availableVisionModels.filter(m => m !== preferredModel)]
-        : availableVisionModels;
+      // First try to find working model directly
+      let selectedModel = await this.modelChecker.findWorkingModelOnError(
+        preferredModel, 
+        '500-vision', 
+        'vision'
+      );
       
-      let selectedModel = null;
-      let modelSource = 'unknown';
-      
-      // Try each model until one works
-      for (const model of modelsToTry) {
-        const modelResult = await this.modelChecker.getAvailableModel(model, null, 'vision');
-        if (modelResult.available) {
-          selectedModel = modelResult.model;
-          modelSource = modelResult.source;
-          break;
+      if (!selectedModel) {
+        this.logger.warn('[VISION-EMERGENCY] findWorkingModelOnError returned null, trying manual selection...');
+        
+        // Fallback: Prioritize preferred model if it's in the list
+        const modelsToTry = availableVisionModels.includes(preferredModel)
+          ? [preferredModel, ...availableVisionModels.filter(m => m !== preferredModel)]
+          : availableVisionModels;
+        
+        // Try each model until one works
+        for (const model of modelsToTry) {
+          const modelResult = await this.modelChecker.getAvailableModel(model, null, 'vision');
+          if (modelResult.available) {
+            selectedModel = modelResult.model;
+            break;
+          }
         }
       }
       
@@ -969,7 +975,7 @@ export class VisionAnalysisService {
         throw new Error('All vision models unavailable - failed availability checks');
       }
       
-      this.logger.info(`[VISION-EMERGENCY] 🎯 Using ${selectedModel} (source: ${modelSource})`);
+      this.logger.info(`[VISION-EMERGENCY] 🎯 Using ${selectedModel}`);
       
       // Optimize image for API
       const optimizedImage = this._optimizeImageForAPI(base64Image);

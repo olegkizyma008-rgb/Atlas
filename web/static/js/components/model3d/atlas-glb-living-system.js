@@ -43,7 +43,6 @@ export class AtlasGLBLivingSystem {
       eyeTrackingSpeed: options.eyeTrackingSpeed || 0.08, // Зменшено для плавності
       rotationSmoothness: options.rotationSmoothness || 0.05, // Зменшено для більш природного руху
       emotionIntensity: options.emotionIntensity || 1.0,
-      
       // Обмеження обертання для природності
       maxRotationX: options.maxRotationX || 20, // Максимальний нахил вгору/вниз
       maxRotationY: options.maxRotationY || 35, // Максимальний поворот вліво/вправо
@@ -98,7 +97,7 @@ export class AtlasGLBLivingSystem {
       isSpeaking: false,
       speechIntensity: 0,
       isListening: false,
-      isTyping: false, // ADDED 2025-10-30: Відстеження друку для запобігання смиканню
+      isTyping: false, // Відстеження друку для запобігання смиканню
 
       // Пам'ять і навчання
       interactionHistory: [],
@@ -158,7 +157,7 @@ export class AtlasGLBLivingSystem {
     this.gestureAnimator = null; // Ініціалізується після init, якщо дозволено
     this.gestureDetector = new GestureDetector();
 
-    this.init();
+    this.initializeAsync();
   }
 
   /**
@@ -175,7 +174,7 @@ export class AtlasGLBLivingSystem {
   /**
      * Ініціалізація системи
      */
-  async init() {
+  async initializeAsync() {
     console.log('🧬 Initializing Atlas GLB Living System v4.0...');
 
     try {
@@ -184,12 +183,12 @@ export class AtlasGLBLivingSystem {
       this.hideInteractionPrompt();
       this.startLivingLoop();
       this.setupEventListeners();
-      
+
       // Ініціалізуємо gesture animator після того як система готова (за потреби)
       if (this.config.enableGestures) {
         this.gestureAnimator = new GestureAnimator(this);
       }
-      
+
       this.awaken();
 
       console.log('✨ Atlas helmet is now ALIVE with gestures!');
@@ -238,7 +237,7 @@ export class AtlasGLBLivingSystem {
      * Очікування завантаження GLB моделі
      */
   async waitForModelLoad() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       if (this.modelViewer.loaded) {
         console.log('✅ GLB model already loaded');
         resolve();
@@ -354,19 +353,18 @@ export class AtlasGLBLivingSystem {
      */
   startLivingLoop() {
     let canvasErrorLogged = false; // Щоб не спамити консоль
-    
     const animate = (timestamp) => {
       if (!this.livingState.isAlive) return;
 
       // CRITICAL FIX (30.10.2025): Перевіряємо розмір canvas перед рендерингом
-      // Уникаємо WebGL помилки "Framebuffer has zero size" під час переходів між режимами
+      // Уникаємо WebGL помилку "Framebuffer has zero size" під час переходів між режимами
       if (!this.isCanvasReady()) {
         // Canvas має нульовий розмір - пропускаємо цей кадр
         if (!canvasErrorLogged) {
           const canvas = this.modelViewer?.shadowRoot?.querySelector('canvas');
-          console.warn('⚠️ Canvas check failed:', { 
-            canvas: !!canvas, 
-            width: canvas?.width, 
+          console.warn('⚠️ Canvas check failed:', {
+            canvas: !!canvas,
+            width: canvas?.width,
             height: canvas?.height,
             modelViewer: !!this.modelViewer,
             shadowRoot: !!this.modelViewer?.shadowRoot
@@ -382,7 +380,7 @@ export class AtlasGLBLivingSystem {
         canvasErrorLogged = false;
       }
 
-      const deltaTime = timestamp - (this.lastTimestamp || timestamp);
+      // const deltaTime = timestamp - (this.lastTimestamp || timestamp); // Unused for now
       this.lastTimestamp = timestamp;
 
       // Природні анімації
@@ -420,8 +418,8 @@ export class AtlasGLBLivingSystem {
     this.livingState.breathingPhase = phase;
 
     // Базове дихання - легке масштабування
-    const breathIntensity = this.livingState.isSpeaking ? 0.02 : 0.01;
-    const breathScale = 1 + Math.sin(phase * Math.PI * 2) * breathIntensity;
+    // const breathIntensity = this.livingState.isSpeaking ? 0.02 : 0.01; // Unused for now
+    // const breathScale = 1 + Math.sin(phase * Math.PI * 2) * breathIntensity; // Unused for now
 
     // Під час мовлення - більш інтенсивне дихання
     if (this.livingState.isSpeaking) {
@@ -623,7 +621,7 @@ export class AtlasGLBLivingSystem {
      */
   applyTransformations() {
     // CRITICAL FIX (30.10.2025): Перевіряємо чи canvas має валідний розмір
-    // Уникаємо WebGL помилок під час оновлення camera коли canvas має нульовий розмір
+    // Уникаємо WebGL помилки під час оновлення camera коли canvas має нульовий розмір
     if (!this.isCanvasReady()) {
       return;
     }
@@ -734,13 +732,14 @@ export class AtlasGLBLivingSystem {
       this.recordEmotion(emotion, intensity);
     }
 
-    console.log(`😊 Emotion: ${emotion} (${intensity.toFixed(2)})`);
+    // Reduced logging - only log emotion changes in debug mode
+    // console.log(`😊 Emotion: ${emotion} (${intensity.toFixed(2)})`);
   }
 
   /**
      * Застосування візуальних ефектів емоції
      */
-  applyEmotionVisuals(emotion, intensity) {
+  applyEmotionVisuals(emotion, _intensity) {
     // Видаляємо попередні класи емоцій
     this.modelViewer.classList.remove('speaking', 'listening', 'thinking', 'focused');
 
@@ -778,7 +777,8 @@ export class AtlasGLBLivingSystem {
       // Застосовуємо filter тільки коли canvas готовий і не під час TTS
       this.modelViewer.style.filter = css.filter;
       this.modelViewer.style.transition = css.transition;
-      console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - glow applied`);
+      // Only log significant emotional changes (commented out to reduce console noise)
+      // console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - glow applied`);
     } else {
       console.log(`🎨 Emotional state: ${state.label} (intensity: ${state.intensity.toFixed(2)}) - glow deferred (canvas not ready or speaking)`);
     }
@@ -977,7 +977,7 @@ export class AtlasGLBLivingSystem {
      * Анімація під час мовлення
      * FIXED 2025-11-02: Малий zoom вперед + нахил вуха при відповіді
      */
-  startSpeechAnimation(agent) {
+  startSpeechAnimation(_agent) {
     let speechPhase = 0;
 
     // НОВИНКА 2025-11-02: Малий zoom камери вперед при початку мовлення
@@ -993,7 +993,7 @@ export class AtlasGLBLivingSystem {
       if (!this.livingState.isSpeaking) return;
 
       speechPhase += 0.1;
-      const amplitude = this.config.ttsRotationAmplitude; // Тепер 0.8 замість 1.5
+      const amplitude = this.config.ttsRotationAmplitude; // Тепер 0.8
       
       // Синусоїдальні рухи - ЗМЕНШЕНІ для природності
       const horizontalMove = Math.sin(speechPhase) * amplitude * 0.6; // Було 0.8

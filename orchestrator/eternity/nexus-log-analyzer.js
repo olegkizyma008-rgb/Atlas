@@ -127,9 +127,16 @@ export class NexusLogAnalyzer extends EventEmitter {
         
         const timestamp = new Date().toISOString();
         
+        // FIXED 2025-11-08: Ignore false positives (JSON content, system prompts)
+        const isFalsePositive = 
+            line.includes('"content":') ||  // JSON field
+            line.includes('You are Atlas') || // System prompt
+            line.includes('[API-REQUEST]') || // API request logs
+            line.includes('Messages to send'); // Message payload
+        
         // Перевірка на критичні помилки
         for (const pattern of this.config.criticalPatterns) {
-            if (pattern.test(line)) {
+            if (pattern.test(line) && !isFalsePositive) {
                 const issue = {
                     type: 'critical',
                     line,
@@ -138,11 +145,14 @@ export class NexusLogAnalyzer extends EventEmitter {
                     extractedError: this._extractErrorDetails(line)
                 };
                 
-                this.state.criticalIssues.push(issue);
-                this.logger.warn(`🚨 [NEXUS-LOGS] CRITICAL ISSUE: ${line.substring(0, 100)}`);
-                
-                // Негайно повідомити Eternity Module
-                this.emit('critical-issue', issue);
+                // Only report if we extracted actual error details
+                if (issue.extractedError && issue.extractedError.message) {
+                    this.state.criticalIssues.push(issue);
+                    this.logger.warn(`🚨 [NEXUS-LOGS] CRITICAL ISSUE: ${line.substring(0, 100)}`);
+                    
+                    // Негайно повідомити Eternity Module
+                    this.emit('critical-issue', issue);
+                }
                 return;
             }
         }

@@ -115,26 +115,28 @@ export class NexusPromptVersioning {
             // Генеруємо динамічну секцію про еволюцію
             const evolutionSection = this._generateEvolutionSection(interventionDetails);
             
-            // Додаємо або оновлюємо секцію еволюції в промпті
-            if (promptContent.includes('{{DYNAMIC_EVOLUTION_INFO}}')) {
+            // FIXED 2025-11-07: Правильно оновлюємо версію - ЗАМІНА, не додавання
+            
+            // 1. Видаляємо ВСІ старі версії
+            const versionBlockPattern = /🌟 СИСТЕМА ВЕРСІОНУВАННЯ \(NEXUS\):[\s\S]*?(?=\n\n🌟 СИСТЕМА ВЕРСІОНУВАННЯ|\n\n🌐 ENVIRONMENT:|$)/g;
+            promptContent = promptContent.replace(versionBlockPattern, '');
+            
+            // 2. Очищаємо зайві порожні рядки
+            promptContent = promptContent.replace(/\n{4,}/g, '\n\n\n');
+            
+            // 3. Замінюємо {{VERSION_BLOCK}} на нову версію
+            if (promptContent.includes('{{VERSION_BLOCK}}')) {
                 promptContent = promptContent.replace(
-                    '{{DYNAMIC_EVOLUTION_INFO}}',
+                    '{{VERSION_BLOCK}}',
                     evolutionSection
                 );
             } else {
-                // Вставляємо після DYNAMIC_CONSCIOUSNESS_PROMPT
+                // Якщо немає placeholder, додаємо після DYNAMIC_CONSCIOUSNESS_PROMPT
                 const insertPoint = promptContent.indexOf('{{DYNAMIC_CONSCIOUSNESS_PROMPT}}');
                 if (insertPoint !== -1) {
-                    const endOfLine = promptContent.indexOf('\n', insertPoint);
-                    promptContent = 
-                        promptContent.slice(0, endOfLine + 1) +
-                        '\n{{DYNAMIC_EVOLUTION_INFO}}\n' +
-                        promptContent.slice(endOfLine + 1);
-                    
-                    // Тепер замінюємо placeholder
                     promptContent = promptContent.replace(
-                        '{{DYNAMIC_EVOLUTION_INFO}}',
-                        evolutionSection
+                        '{{DYNAMIC_CONSCIOUSNESS_PROMPT}}\n\n',
+                        `{{DYNAMIC_CONSCIOUSNESS_PROMPT}}\n\n${evolutionSection}\n\n`
                     );
                 }
             }

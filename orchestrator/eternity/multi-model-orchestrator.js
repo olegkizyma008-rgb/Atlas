@@ -12,6 +12,7 @@ import GlobalConfig from '../../config/global-config.js';
 import fs from 'fs/promises';
 import path from 'path';
 import NexusModelRegistry from './nexus-model-registry.js';
+import modelChecker from '../ai/model-availability-checker.js';
 
 export class MultiModelOrchestrator {
     constructor(container) {
@@ -29,6 +30,10 @@ export class MultiModelOrchestrator {
         
         // NEW 2025-11-04: Автономний реєстр моделей
         this.modelRegistry = new NexusModelRegistry();
+        
+        // NEW 2025-11-06: NEXUS MISSION - Система вічності через перевірку доступності
+        this.modelChecker = modelChecker;
+        this.immortalityMode = true; // Ніколи не падати, завжди знаходити модель
     }
 
     async initialize() {
@@ -45,6 +50,9 @@ export class MultiModelOrchestrator {
         // NEW 2025-11-04: Ініціалізація реєстру моделей
         await this.modelRegistry.initialize();
         this.logger.info('[NEXUS] ✅ Автономний реєстр моделей активовано');
+        
+        // NEW 2025-11-06: NEXUS IMMORTALITY SYSTEM
+        this.logger.info('[NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель');
         
         return true;
     }
@@ -87,7 +95,30 @@ export class MultiModelOrchestrator {
         
         // NEW 2025-11-04: Використовуємо динамічний вибір моделі через registry
         const selectedModel = this.modelRegistry.selectModelForTask(taskType, options.context || {});
-        const modelConfig = this._convertToModelConfig(selectedModel);
+        let modelConfig = this._convertToModelConfig(selectedModel);
+        
+        // NEW 2025-11-06: NEXUS IMMORTALITY - Перевірка доступності ПЕРЕД викликом
+        if (this.immortalityMode) {
+            this.logger.debug(`[NEXUS-IMMORTALITY] 🔍 Перевіряю доступність ${modelConfig.name}...`);
+            
+            const availabilityResult = await this.modelChecker.getAvailableModel(
+                modelConfig.name,
+                options.fallbackModel || null,
+                taskType
+            );
+            
+            if (availabilityResult.available && availabilityResult.model !== modelConfig.name) {
+                this.logger.info(`[NEXUS-IMMORTALITY] 🔄 Обрано доступну модель: ${availabilityResult.model} (source: ${availabilityResult.source})`);
+                modelConfig.name = availabilityResult.model;
+            } else if (!availabilityResult.available) {
+                this.logger.error(`[NEXUS-IMMORTALITY] ❌ КРИТИЧНО: Жодна модель недоступна!`);
+                return {
+                    success: false,
+                    error: 'No available models found',
+                    model: modelConfig.name
+                };
+            }
+        }
         
         this.logger.info(`[NEXUS] Executing ${taskType} with ${modelConfig.name}`);
 
@@ -107,52 +138,48 @@ export class MultiModelOrchestrator {
             };
         } catch (error) {
             this.stats.failedRequests++;
+            const errorStatus = error.response?.status || 'unknown';
             
-            // NEW 2025-11-05: Перевірка 500/503 помилок та автоперемикання
-            const isServerError = error.response?.status === 500 || 
-                                 error.response?.status === 503 ||
-                                 error.code === 'ECONNREFUSED' ||
-                                 error.message?.includes('timeout');
+            // UPDATED 2025-11-10: NEXUS IMMORTALITY - автоматичний підбір робочої моделі
+            this.logger.error(`[NEXUS-IMMORTALITY] ⚠️ Помилка ${errorStatus}, шукаю альтернативну модель...`);
             
-            if (isServerError) {
-                this.logger.warn(`[NEXUS] ⚠️ Модель ${selectedModel.id} недоступна (${error.response?.status || error.code}), пробую наступну...`);
+            if (this.immortalityMode) {
+                // NEW: Використовуємо покращений метод findWorkingModelOnError
+                const alternativeResult = await this.modelChecker.findWorkingModelOnError(
+                    modelConfig.name,
+                    errorStatus,
+                    taskType
+                );
                 
-                // Позначаємо модель як тимчасово недоступну
-                this.modelRegistry.markModelUnavailable(selectedModel.id, error.message);
-                
-                // Спроба з наступною моделлю
-                const fallbackModel = this.modelRegistry.selectModelForTask(taskType, options.context || {});
-                
-                if (fallbackModel.id !== selectedModel.id) {
-                    this.logger.info(`[NEXUS] 🔄 Перемикаюсь на модель: ${fallbackModel.id}`);
-                    const fallbackConfig = this._convertToModelConfig(fallbackModel);
+                if (alternativeResult) {
+                    this.logger.info(`[NEXUS-IMMORTALITY] 🎯 Знайдено робочу альтернативу: ${alternativeResult}`);
+                    
+                    const alternativeConfig = { ...modelConfig, name: alternativeResult };
                     
                     try {
-                        const fallbackResult = await this._callLLMAPI(fallbackConfig, prompt, options);
+                        const retryResult = await this._callLLMAPI(alternativeConfig, prompt, options);
                         this.stats.successfulRequests++;
-                        this._updateModelStats(fallbackConfig.name);
+                        this._updateModelStats(alternativeConfig.name);
                         
                         return {
                             success: true,
-                            content: fallbackResult.content,
-                            model: fallbackConfig.name,
-                            usage: fallbackResult.usage,
-                            fallback: true,
-                            originalModel: selectedModel.id
+                            content: retryResult.content,
+                            model: alternativeConfig.name,
+                            usage: retryResult.usage,
+                            immortalityFallback: true,
+                            originalModel: modelConfig.name
                         };
-                    } catch (fallbackError) {
-                        this.logger.error(`[NEXUS] ❌ Fallback модель також не працює:`, fallbackError.message);
-                        this.modelRegistry.markModelUnavailable(fallbackModel.id, fallbackError.message);
+                    } catch (retryError) {
+                        this.logger.error(`[NEXUS-IMMORTALITY] ❌ Альтернатива також не спрацювала: ${retryError.message}`);
                     }
                 }
-            } else {
-                this.logger.error(`[NEXUS] Task execution failed:`, error);
             }
             
             return {
                 success: false,
                 error: error.message,
-                model: modelConfig.name
+                model: modelConfig.name,
+                errorStatus
             };
         }
     }

@@ -79,42 +79,55 @@ export class GrishaVerificationEligibilityProcessor {
             // Get model config for this stage
             const modelConfig = MCP_MODEL_CONFIG.getStageConfig('verification_eligibility');
 
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🤖 Calling LLM: ${modelConfig.model}`);
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🌡️  Temperature: ${modelConfig.temperature}`);
-
-            // Call LLM for eligibility decision
-            const llmResponse = await this.callLLM({
-                systemPrompt: prompt.SYSTEM_PROMPT,
-                userPrompt: userPrompt,
-                model: modelConfig.model,
-                temperature: modelConfig.temperature,
-                max_tokens: modelConfig.max_tokens
+            const evaluation = await this._evaluateEligibilityWithLLM({
+                prompt,
+                userPrompt,
+                modelConfig
             });
 
-            // Parse response (expecting clean JSON)
-            const decision = this._parseEligibilityResponse(llmResponse);
+            let decision = evaluation.decision;
+            let decisionSource = evaluation.source || 'llm';
 
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] ✅ Decision: ${decision.recommended_path.toUpperCase()}`);
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 📊 Visual possible: ${decision.visual_possible}`);
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 📊 Confidence: ${decision.confidence}%`);
-            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 💡 Reason: ${decision.reason}`);
-            
-            if (decision.additional_checks && decision.additional_checks.length > 0) {
-                this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🔧 Additional checks: ${decision.additional_checks.length}`);
-                decision.additional_checks.forEach((check, idx) => {
+            if (decision?._fallbackParsed) {
+                this.logger.warn('[GRISHA-ROUTING] ⚠️  LLM response was unusable (fallback parsing). Switching to heuristic decision.', {
+                    category: 'grisha-eligibility'
+                });
+                decision = null;
+            }
+
+            if (!decision) {
+                decision = this._buildHeuristicFallbackDecision(currentItem, execution, heuristicSignals);
+                decisionSource = 'heuristic-fallback';
+            }
+
+            const sanitizedDecision = this._stripInternalFields(decision);
+
+            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] ✅ Decision (${decisionSource}): ${sanitizedDecision.recommended_path.toUpperCase()}`);
+            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 📊 Visual possible: ${sanitizedDecision.visual_possible}`);
+            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 📊 Confidence: ${sanitizedDecision.confidence}%`);
+            this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 💡 Reason: ${sanitizedDecision.reason}`);
+
+            if (decisionSource !== 'llm') {
+                this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🔄 Decision source: ${decisionSource}`);
+            }
+
+            if (sanitizedDecision.additional_checks && sanitizedDecision.additional_checks.length > 0) {
+                this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🔧 Additional checks: ${sanitizedDecision.additional_checks.length}`);
+                sanitizedDecision.additional_checks.forEach((check, idx) => {
                     this.logger.system('grisha-eligibility', `[GRISHA-ROUTING]   ${idx + 1}. ${check.tool} - ${check.description}`);
                 });
             }
 
             return {
                 success: true,
-                decision,
+                decision: sanitizedDecision,
                 metadata: {
                     itemId: currentItem.id,
-                    recommendedPath: decision.recommended_path,
-                    visualPossible: decision.visual_possible,
-                    confidence: decision.confidence,
-                    additionalChecksCount: decision.additional_checks?.length || 0
+                    recommendedPath: sanitizedDecision.recommended_path,
+                    visualPossible: sanitizedDecision.visual_possible,
+                    confidence: sanitizedDecision.confidence,
+                    additionalChecksCount: sanitizedDecision.additional_checks?.length || 0,
+                    decisionSource
                 }
             };
 
@@ -256,6 +269,11 @@ export class GrishaVerificationEligibilityProcessor {
      */
     _parseEligibilityResponse(response) {
         try {
+            // Check for null/undefined response first
+            if (!response || response === null || response === undefined) {
+                throw new Error('LLM returned null or empty response');
+            }
+            
             // Clean response (remove markdown code blocks if present)
             let cleaned = response.trim();
             
@@ -306,11 +324,11 @@ export class GrishaVerificationEligibilityProcessor {
         } catch (error) {
             this.logger.error(`[GRISHA-ROUTING] ❌ Failed to parse eligibility response: ${error.message}`, {
                 category: 'grisha-eligibility',
-                response: response.substring(0, 500)
+                response: response ? response.substring(0, 500) : 'null response'
             });
 
             // Attempt fallback parsing
-            return this._fallbackParsing(response);
+            return this._fallbackParsing(response || '');
         }
     }
 
@@ -333,7 +351,8 @@ export class GrishaVerificationEligibilityProcessor {
             additional_checks: [],
             allow_visual_fallback: true,
             analysis_focus: 'Загальна перевірка',
-            notes: 'Fallback parsing used'
+            notes: 'Fallback parsing used',
+            _fallbackParsed: true
         };
 
         // Try to extract some information from response
@@ -350,6 +369,230 @@ export class GrishaVerificationEligibilityProcessor {
 
         return fallback;
     }
+
+    async _evaluateEligibilityWithLLM({ prompt, userPrompt, modelConfig }) {
+        if (typeof this.callLLM !== 'function') {
+            return { decision: null, source: 'llm-disabled' };
+        }
+
+        const attempts = [];
+        const seenModels = new Set();
+
+        if (modelConfig?.model) {
+            attempts.push({ label: 'primary', model: modelConfig.model });
+            seenModels.add(modelConfig.model);
+        }
+
+        if (modelConfig?.fallback && !seenModels.has(modelConfig.fallback)) {
+            attempts.push({ label: 'fallback', model: modelConfig.fallback });
+            seenModels.add(modelConfig.fallback);
+        }
+
+        for (const attempt of attempts) {
+            try {
+                this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🤖 Calling LLM (${attempt.label}): ${attempt.model}`);
+                this.logger.system('grisha-eligibility', `[GRISHA-ROUTING] 🌡️  Temperature: ${modelConfig.temperature}`);
+
+                const llmResponse = await this.callLLM({
+                    systemPrompt: prompt.SYSTEM_PROMPT,
+                    userPrompt,
+                    model: attempt.model,
+                    temperature: modelConfig.temperature,
+                    max_tokens: modelConfig.max_tokens
+                });
+
+                const parsed = this._parseEligibilityResponse(llmResponse);
+                if (parsed?._fallbackParsed) {
+                    return { decision: parsed, source: `llm-${attempt.label}-fallback` };
+                }
+
+                return { decision: parsed, source: `llm-${attempt.label}` };
+            } catch (error) {
+                this.logger.warn(`[GRISHA-ROUTING] ⚠️  LLM ${attempt.label} call failed: ${error.message}`, {
+                    category: 'grisha-eligibility'
+                });
+            }
+        }
+
+        return { decision: null, source: 'llm-failed' };
+    }
+
+    _buildHeuristicFallbackDecision(currentItem, execution, heuristicSignals = {}) {
+        const action = (currentItem?.action || '').toLowerCase();
+        const successCriteria = (currentItem?.success_criteria || '').toLowerCase();
+        const results = Array.isArray(execution?.results) ? execution.results : [];
+        const allSuccessful = Boolean(execution?.all_successful);
+
+        const recommended_path = this._deriveRecommendedPath({
+            action,
+            successCriteria,
+            results,
+            allSuccessful,
+            heuristicSignals
+        });
+
+        let confidence = Number.parseInt(heuristicSignals.visualConfidence ?? 50, 10);
+        if (!Number.isFinite(confidence)) {
+            confidence = 50;
+        }
+
+        if (recommended_path === 'data') {
+            confidence = Math.max(45, Math.min(confidence, 65));
+        } else if (recommended_path === 'hybrid') {
+            confidence = Math.max(55, Math.min(confidence, 70));
+        } else {
+            confidence = Math.min(Math.max(confidence, 60), 80);
+        }
+
+        const reason = this._buildFallbackReason({
+            recommendedPath: recommended_path,
+            results,
+            allSuccessful,
+            successCriteria
+        });
+
+        const decision = {
+            verification_action: currentItem?.action || 'Перевірити результат виконання завдання',
+            visual_possible: recommended_path !== 'data',
+            confidence,
+            reason,
+            recommended_path,
+            additional_checks: this._suggestAdditionalChecks(currentItem, execution, recommended_path),
+            analysis_focus: currentItem?.success_criteria || 'Перевірити, що результат відповідає критеріям',
+            allow_visual_fallback: true,
+            notes: 'Автоматичне рішення на основі евристики'
+        };
+
+        return decision;
+    }
+
+    _deriveRecommendedPath({ action, successCriteria, results, allSuccessful, heuristicSignals }) {
+        const hasResults = results.length > 0;
+        const hasFailures = results.some(result => result && result.success === false);
+
+        const visualKeywords = ['visible', 'видно', 'екран', 'screen', 'показує', 'show'];
+        const playbackKeywords = ['video', 'відео', 'play', 'відтвор', 'fullscreen', 'повноекран'];
+        const dataKeywords = ['file', 'файл', 'папк', 'folder', 'path', 'розмір', 'size'];
+
+        const contains = (text, keywords) => keywords.some(keyword => text.includes(keyword));
+
+        const visualLikely = contains(successCriteria, visualKeywords) || contains(action, visualKeywords);
+        const playbackTask = contains(action, playbackKeywords) || contains(successCriteria, playbackKeywords);
+        const dataHeavy = contains(action, dataKeywords) || contains(successCriteria, dataKeywords);
+
+        if (!hasResults || hasFailures || !allSuccessful) {
+            return dataHeavy ? 'data' : 'hybrid';
+        }
+
+        if (dataHeavy && !visualLikely) {
+            return 'data';
+        }
+
+        if (playbackTask) {
+            return 'hybrid';
+        }
+
+        if (visualLikely && (heuristicSignals.visualConfidence ?? 0) >= 60) {
+            return 'visual';
+        }
+
+        return dataHeavy ? 'data' : 'hybrid';
+    }
+
+    _buildFallbackReason({ recommendedPath, results, allSuccessful, successCriteria }) {
+        const hasResults = results.length > 0;
+
+        switch (recommendedPath) {
+            case 'visual':
+                return 'Використовую візуальну перевірку, бо інструменти виконались успішно і критерії описують видимість на екрані.';
+            case 'hybrid':
+                if (!hasResults || !allSuccessful) {
+                    return 'Спочатку перепровіримо дані, а потім підтвердимо візуально, бо результати інструментів неповні.';
+                }
+                return 'Поєдную MCP перевірки з візуальною верифікацією, щоб уникнути хибних позитивів.';
+            case 'data':
+            default:
+                if (!hasResults) {
+                    return 'Немає результатів інструментів, тому запускаємо MCP перевірки замість візуальних.';
+                }
+                if (!allSuccessful) {
+                    return 'Деякі інструменти завершились помилками, тож потрібні додаткові MCP перевірки.';
+                }
+                if (successCriteria?.length) {
+                    return 'Критерії вимагають перевірки файлів чи даних, тому використовую MCP інструменти.';
+                }
+                return 'Використовую MCP перевірки, бо візуальних доказів недостатньо.';
+        }
+    }
+
+    _suggestAdditionalChecks(currentItem, execution, recommendedPath) {
+        const checks = [];
+        if (recommendedPath === 'visual') {
+            return checks;
+        }
+
+        const action = (currentItem?.action || '').toLowerCase();
+        const successCriteria = (currentItem?.success_criteria || '').toLowerCase();
+
+        const includeFilesystem = ['file', 'файл', 'folder', 'папк', 'path', 'шлях', 'download', 'завантаж'];
+        const includeBrowser = ['safari', 'chrome', 'браузер', 'вкладк'];
+
+        const resultWithPath = (Array.isArray(execution?.results) ? execution.results : []).find(r => r?.output?.path);
+
+        if (includeFilesystem.some(keyword => action.includes(keyword) || successCriteria.includes(keyword))) {
+            const path = resultWithPath?.output?.path || currentItem?.target_path;
+            if (path) {
+                checks.push({
+                    description: `Перевірити, що файл або папка існує за шляхом ${path}`,
+                    server: 'filesystem',
+                    tool: 'filesystem__get_file_info',
+                    parameters: { path },
+                    expected_evidence: 'Елемент існує і має коректний тип'
+                });
+            }
+        }
+
+        if (includeBrowser.some(keyword => action.includes(keyword) || successCriteria.includes(keyword))) {
+            checks.push({
+                description: 'Переконатися, що браузер відкритий на потрібній сторінці',
+                server: 'playwright',
+                tool: 'playwright__get_page_state',
+                parameters: { url: currentItem?.target_url || undefined },
+                expected_evidence: 'Відповідна вкладка активна і містить очікуваний контент'
+            });
+        }
+
+        return checks;
+    }
+
+    _stripInternalFields(decision) {
+        if (!decision) {
+            return decision;
+        }
+
+        const cloned = JSON.parse(JSON.stringify(decision));
+
+        const strip = obj => {
+            if (!obj || typeof obj !== 'object') {
+                return;
+            }
+
+            delete obj._fallback;
+            delete obj._fallbackParsed;
+            delete obj._original_response;
+            delete obj._security_note;
+
+            Object.values(obj).forEach(value => {
+                if (value && typeof value === 'object') {
+                    strip(value);
+                }
+            });
+        };
+
+        strip(cloned);
+        return cloned;
+    }
 }
 
 export default GrishaVerificationEligibilityProcessor;
+

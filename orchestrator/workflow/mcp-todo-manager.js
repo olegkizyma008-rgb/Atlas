@@ -17,7 +17,7 @@ import { VisualCaptureService } from '../services/visual-capture-service.js';
 import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
 import { ValidationPipeline } from '../ai/validation/validation-pipeline.js';
 import { postToLLM } from '../utils/llm-api-client.js';
-import { getRateLimiter } from '../utils/api-rate-limiter.js';
+import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 import axios from 'axios';
 
 /**
@@ -86,16 +86,9 @@ export class MCPTodoManager {
     this.wsManager = options.wsManager;
     this.ttsSyncManager = options.ttsSyncManager;
     this.idManager = HierarchicalIdManager;
-    
-    // Initialize rate limiter for API calls
-    this.rateLimiter = getRateLimiter({
-      minDelay: 2000,        // 2 seconds minimum between calls
-      maxDelay: 60000,       // 60 seconds max backoff
-      maxConcurrent: 1,      // Only 1 API call at a time
-      retryAttempts: 2,      // 2 retry attempts for TODO calls
-      burstLimit: 3,         // Max 3 calls per minute
-      burstWindow: 60000     // 1 minute window
-    });
+
+    // Use adaptive throttler for API calls (consolidated rate limiter)
+    this.rateLimiter = adaptiveThrottler;
 
     // Store MCP_MODEL_CONFIG reference (imported at top of file)
     this.mcpModelConfig = MCP_MODEL_CONFIG;
@@ -108,7 +101,7 @@ export class MCPTodoManager {
 
     // Visual capture service (shared for all items)
     this.visualCapture = null;
-    
+
     // ADDED 2025-10-29: ValidationPipeline with self-correction
     // Implements advanced validation from refactor.md
     this.validationPipeline = null;
@@ -133,16 +126,16 @@ export class MCPTodoManager {
     const priority = options.priority || 7;
     const metadata = options.metadata || {};
     const retryable = options.retryable !== false;
-    
+
     return this.rateLimiter.call(
       async () => axios.post(apiUrl, payload, {
         headers: { 'Content-Type': 'application/json' },
         timeout: options.timeout || 30000
       }),
-      { 
-        priority, 
+      {
+        priority,
         retryable,
-        metadata: { type: 'mcp_todo', ...metadata } 
+        metadata: { type: 'mcp_todo', ...metadata }
       }
     );
   }
@@ -237,13 +230,13 @@ export class MCPTodoManager {
     else if (cleanTool.startsWith(`${server}_`)) {
       cleanTool = cleanTool.slice(server.length + 1);
     }
-    
+
     // Special case: if tool still has server name in it (e.g., "applescript_execute" after removing prefix)
     // This handles cases like "applescript__applescript_execute" -> "applescript_execute" -> "execute"
     if (cleanTool.startsWith(`${server}_`)) {
       cleanTool = cleanTool.slice(server.length + 1);
     }
-    
+
     // Return with proper format: server__tool
     return `${server}__${cleanTool}`;
   }
@@ -345,7 +338,7 @@ Analyze feasibility and propose strategy.`
       };
 
       const modelConfig = this._getModelForStage('reasoning');
-      
+
       // FIXED 2025-11-04: Use centralized LLM client helper for authorization handling
       const apiResponse = await postToLLM(
         this.mcpModelConfig.apiEndpoint,
@@ -362,7 +355,7 @@ Analyze feasibility and propose strategy.`
       );
 
       const response = apiResponse.data.choices[0].message.content;
-      
+
       // Parse JSON response
       let cleanResponse = response.trim();
       if (cleanResponse.startsWith('```json')) {
@@ -370,15 +363,15 @@ Analyze feasibility and propose strategy.`
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/i, '').replace(/```\s*$/i, '');
       }
-      
+
       const jsonStart = cleanResponse.indexOf('{');
       const jsonEnd = cleanResponse.lastIndexOf('}');
       if (jsonStart !== -1 && jsonEnd !== -1) {
         cleanResponse = cleanResponse.slice(jsonStart, jsonEnd + 1);
       }
-      
+
       const analysis = JSON.parse(cleanResponse);
-      
+
       return {
         feasible: analysis.feasible !== false, // Default to true
         confidence: analysis.confidence || 75,
@@ -394,7 +387,7 @@ Analyze feasibility and propose strategy.`
         category: 'mcp-todo',
         component: 'mcp-todo'
       });
-      
+
       // Fallback: assume feasible
       return {
         feasible: true,
@@ -470,11 +463,11 @@ Analyze feasibility and propose strategy.`
         }
 
         this.logger.system('mcp-todo', `[TODO] Broadcasting agent message: chat/agent_message (agent: ${agentName})`);
-        
+
         // Translate message for user display
         const translatedMessage = this.localizationService.translateToUser(message);
         const translatedTts = ttsContent ? this.localizationService.translateToUser(ttsContent) : null;
-        
+
         // FIXED 2025-10-21: Add ttsContent for short TTS phrases
         const messageData = {
           content: translatedMessage,
@@ -482,12 +475,12 @@ Analyze feasibility and propose strategy.`
           sessionId: this.currentSessionId,
           timestamp: new Date().toISOString()
         };
-        
+
         // Add ttsContent only if provided (for short TTS instead of full message)
         if (translatedTts) {
           messageData.ttsContent = translatedTts;
         }
-        
+
         this.wsManager.broadcastToSubscribers('chat', 'agent_message', messageData);
       } else {
         // Check if should show system message based on configuration
@@ -495,14 +488,14 @@ Analyze feasibility and propose strategy.`
         if (!this.localizationService.shouldShowMessage(messageLevel)) {
           return; // Skip system message based on configuration
         }
-        
+
         // Send as chat_message (will show as [SYSTEM])
         this.logger.system('mcp-todo', '[TODO] Broadcasting system message: chat/chat_message');
-        
+
         // Translate system message for user
         const translatedMessage = this.localizationService.translateSystemMessage(message, messageLevel);
         if (!translatedMessage) return; // Skip if translation returns null
-        
+
         this.wsManager.broadcastToSubscribers('chat', 'chat_message', {
           content: translatedMessage,
           type: type,
@@ -540,21 +533,21 @@ Analyze feasibility and propose strategy.`
       // CRITICAL 2025-11-03: REASONING STAGE BEFORE TODO CREATION
       // Analyze user request and determine if the goal is achievable
       this.logger.system('mcp-todo', '[TODO] 🧠 Stage 0: Pre-planning reasoning...');
-      
+
       const reasoningAnalysis = await this._analyzeTodoFeasibility(request, context);
-      
+
       this.logger.system('mcp-todo', `[TODO] 🧠 Reasoning result:`);
       this.logger.system('mcp-todo', `[TODO]   Feasible: ${reasoningAnalysis.feasible ? '✅' : '❌'}`);
       this.logger.system('mcp-todo', `[TODO]   Confidence: ${reasoningAnalysis.confidence}%`);
       this.logger.system('mcp-todo', `[TODO]   Strategy: ${reasoningAnalysis.strategy}`);
-      
+
       if (reasoningAnalysis.risks && reasoningAnalysis.risks.length > 0) {
         this.logger.system('mcp-todo', `[TODO]   Risks identified: ${reasoningAnalysis.risks.length}`);
         reasoningAnalysis.risks.forEach((risk, idx) => {
           this.logger.system('mcp-todo', `[TODO]      ${idx + 1}. ${risk}`);
         });
       }
-      
+
       // Store reasoning for use in TODO prompt
       context.reasoning_analysis = reasoningAnalysis;
 
@@ -606,7 +599,7 @@ Analyze feasibility and propose strategy.`
 
       } catch (primaryError) {
         // Try fallback if primary fails AND fallback is properly configured
-        const shouldUseFallback = apiEndpointConfig?.fallback 
+        const shouldUseFallback = apiEndpointConfig?.fallback
           && apiEndpointConfig?.useFallback !== false
           && !usedFallback;
 
@@ -716,7 +709,7 @@ Analyze feasibility and propose strategy.`
       if (!this._phraseRotationIndex) {
         this._phraseRotationIndex = 0;
       }
-      
+
       const introPhrases = [
         'Починаю виконувати завдання',
         'Зрозумів суть завдання, розпочинаю',
@@ -725,7 +718,7 @@ Analyze feasibility and propose strategy.`
         'Приступаю до виконання',
         'Все зрозуміло, починаю'
       ];
-      
+
       const introPhrase = introPhrases[this._phraseRotationIndex % introPhrases.length];
       this._phraseRotationIndex++;
 
@@ -741,7 +734,7 @@ Analyze feasibility and propose strategy.`
       // Send full message with short TTS content
       const itemsList = todo.items.map((item, idx) => `  ${idx + 1}. ${item.action}`).join('\n');
       const todoMessage = `📋 ${todo.mode === 'extended' ? 'Розширений' : 'Стандартний'} план виконання (${todo.items.length} ${this._getPluralForm(todo.items.length, 'пункт', 'пункти', 'пунктів')}):\n\n${itemsList}\n\n⏱️ Орієнтовний час виконання: ${Math.ceil(todo.items.length * 8)} секунд`;
-      
+
       this._sendChatMessage(todoMessage, 'atlas', ttsPhrase);
 
       return todo;
@@ -993,7 +986,7 @@ Analyze feasibility and propose strategy.`
         });
         // Store plan for Atlas replan
         item.last_plan = plan;
-        
+
         // FIXED 2025-10-30: Remove duplicate TTS - executor-v3.js already speaks item.action
         // await this._safeTTSSpeak(plan.tts_phrase, { mode: 'quick', duration: 150, agent: 'tetyana' });
 
@@ -1026,7 +1019,7 @@ Analyze feasibility and propose strategy.`
         // REFACTORED 2025-10-22: Removed duplicate chat messages
         // Chat messages now sent ONLY from executor-v3.js
         // Tetyana TTS is sent from executor after execution completes
-        
+
         // ВИПРАВЛЕНО 21.10.2025: Grisha TTS вже відправляється через WebSocket в grisha-verify-item-processor.js
         // Не потрібно дублювати тут
 
@@ -1178,7 +1171,7 @@ Analyze feasibility and propose strategy.`
      */
   async planTools(currentItem, todo, options = {}) {
     const { toolsSummary, promptOverride, selectedServers, historyContext, historyStats } = options;
-    
+
     // Apply localization to prompts
     const localizationService = this.localizationService;
 
@@ -1187,53 +1180,53 @@ Analyze feasibility and propose strategy.`
     } else if (!currentItem.id) {
       this.logger.error(`[MCP-TODO] Item missing id property entirely`, { category: 'mcp-todo', component: 'mcp-todo', item: JSON.stringify(currentItem) });
     }
-    
+
     this.logger.system('mcp-todo', `[TODO] Planning tools for item ${currentItem.id}`);
 
     // NEW 18.10.2025: Retry with fallback models
     const retryConfig = GlobalConfig.AI_BACKEND_CONFIG.retry.toolPlanning;
     const maxAttempts = retryConfig.maxAttempts;
     const retryDelay = retryConfig.retryDelay;
-    
+
     // Use centralized model config - no hardcoded fallbacks
     const modelSequence = [
       GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools')
     ];
-    
+
     let lastError = null;
-    
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         // Select model for current attempt
         const modelIndex = Math.min(attempt - 1, modelSequence.length - 1);
         const modelConfig = modelSequence[modelIndex];
-        
+
         this.logger.system('mcp-todo', `[TODO] Planning attempt ${attempt}/${maxAttempts} with ${modelConfig.model}`);
-        
+
         const result = await this._planToolsAttempt(currentItem, todo, options, modelConfig);
-        
+
         // Success! Return result
         this.logger.system('mcp-todo', `[TODO] ✅ Planning succeeded on attempt ${attempt}`);
         return result;
-        
+
       } catch (error) {
         lastError = error;
         this.logger.warn(`[TODO] Planning attempt ${attempt}/${maxAttempts} failed: ${error.message}`, {
           category: 'mcp-todo',
           component: 'mcp-todo'
         });
-        
+
         // Wait before retry (except on last attempt)
         if (attempt < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, retryDelay));
         }
       }
     }
-    
+
     // All attempts failed
     throw new Error(`Tool planning failed after ${maxAttempts} attempts: ${lastError.message}`);
   }
-  
+
   /**
    * Single attempt to plan tools (internal)
    * @private
@@ -1338,24 +1331,24 @@ Analyze feasibility and propose strategy.`
 
       // Import Tetyana Plan Tools prompt
       const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-      
+
       // DYNAMIC PROMPT LOADING: Try to load specialized prompts, fallback to universal
       let planPrompt;
       let combinedSystemPrompt = null;
-      
+
       if (Array.isArray(options.promptOverride) && options.promptOverride.length === 2) {
         // Two servers - try to load specialized prompts
         const prompt1 = MCP_PROMPTS[options.promptOverride[0]];
         const prompt2 = MCP_PROMPTS[options.promptOverride[1]];
-        
+
         if (prompt1 && prompt2) {
           // Combine specialized prompts
           const commonHeader = prompt1.SYSTEM_PROMPT.split('\n\n## ')[0];
           const spec1 = prompt1.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## ');
           const spec2 = prompt2.SYSTEM_PROMPT.split('\n\n## ').slice(1).join('\n\n## ');
-          
+
           combinedSystemPrompt = `${commonHeader}\n\n## ПОДВІЙНА СПЕЦІАЛІЗАЦІЯ\n\nТи Тетяна - експерт з ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()} та ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '').toLowerCase()}.\n\n### ${options.promptOverride[0].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec1}\n\n### ${options.promptOverride[1].replace('TETYANA_PLAN_TOOLS_', '')}:\n${spec2}`;
-          
+
           this.logger.system('mcp-todo', `[TODO] 🎯🎯 Using 2 combined specialized prompts: ${options.promptOverride.join(' + ')}`);
         } else {
           // Fallback to universal prompt with available tools
@@ -1372,7 +1365,7 @@ Analyze feasibility and propose strategy.`
       } else {
         // Fallback to universal prompt
         const servers = options.selectedServers || ['all'];
-        
+
         // FIXED 2025-10-29: Handle undefined promptOverride gracefully
         if (options.promptOverride && !MCP_PROMPTS[options.promptOverride]) {
           this.logger.warn(`[MCP-TODO] ⚠️ Prompt ${options.promptOverride} not found in MCP_PROMPTS`, {
@@ -1381,7 +1374,7 @@ Analyze feasibility and propose strategy.`
             availablePrompts: Object.keys(MCP_PROMPTS).join(', ')
           });
         }
-        
+
         this.logger.warn(`[MCP-TODO] ⚠️ Using universal prompt for ${servers.join(', ')}`, {
           category: 'mcp-todo',
           component: 'mcp-todo'
@@ -1427,7 +1420,7 @@ Analyze feasibility and propose strategy.`
         systemPrompt = systemPrompt.replace('{{AVAILABLE_TOOLS}}', toolsSummary);
         this.logger.system('mcp-todo', `[TODO] Substituted {{AVAILABLE_TOOLS}} in prompt`);
       }
-      
+
       // NEW 2025-10-24: Replace {{USER_LANGUAGE}} placeholder with actual user language
       if (systemPrompt.includes('{{USER_LANGUAGE}}')) {
         systemPrompt = this.localizationService.replaceLanguagePlaceholder(systemPrompt);
@@ -1438,7 +1431,7 @@ Analyze feasibility and propose strategy.`
       if (!item || !item.action) {
         throw new Error('Item is undefined or missing required properties (action)');
       }
-      
+
       // CRITICAL FIX 30.10.2025: Provide fallback context when todo is undefined
       const contextInfo = todo ? {
         originalRequest: todo.user_message || todo.request || 'Unknown',
@@ -1485,7 +1478,7 @@ Create precise MCP tool execution plan.
         let model = modelConfig?.model || 'atlas-mistral-small-2503';
         const fallbackModel = modelConfig?.fallback || 'atlas-jamba-1.5-mini';
         let usingFallback = false;
-        
+
         this.logger.system('mcp-todo', `[TODO] Primary model: ${model}, Fallback: ${fallbackModel}`);
 
         // Build request body
@@ -1514,7 +1507,7 @@ Create precise MCP tool execution plan.
           };
           this.logger.system('mcp-todo', `[TODO] ⚡ Forced tool calling: ${options.forcedTool}`);
         }
-        
+
         // Add response_format with JSON Schema if tools are available
         if (toolSchema) {
           requestBody.response_format = {
@@ -1525,7 +1518,7 @@ Create precise MCP tool execution plan.
               schema: toolSchema
             }
           };
-          
+
           // FIXED 2025-10-23: Safe access to nested properties
           const toolCount = toolSchema?.properties?.tool_calls?.items?.properties?.tool?.enum?.length || 0;
           this.logger.system('mcp-todo', `[TODO] 🔒 Using JSON Schema with ${toolCount} valid tool names`);
@@ -1533,7 +1526,7 @@ Create precise MCP tool execution plan.
 
         // Add retry logic for transient failures
         let retryCount = 0;
-        
+
         while (retryCount < maxRetries) {
           try {
             apiResponse = await postToLLM(apiUrl, requestBody, {
@@ -1542,7 +1535,7 @@ Create precise MCP tool execution plan.
               maxBodyLength: 50 * 1024 * 1024,     // 50MB
               validateStatus: (status) => status < 600
             });
-            
+
             // CRITICAL 2025-11-03: Auto-switch to fallback on rate limit
             if (apiResponse.status === 429 || (apiResponse.status === 500 && apiResponse.data?.error?.code === 'RATE_LIMIT')) {
               if (!usingFallback && fallbackModel && fallbackModel !== model) {
@@ -1564,22 +1557,22 @@ Create precise MCP tool execution plan.
               });
               throw new Error('RATE_LIMIT_EXCEEDED');
             }
-            
+
             // Check for other server errors
             if (apiResponse.status >= 500) {
               throw new Error(`Server error: ${apiResponse.status}`);
             }
-            
+
             // Check for client errors (don't retry)
             if (apiResponse.status >= 400 && apiResponse.status < 500) {
               throw new Error(`Client error: ${apiResponse.status} - ${apiResponse.data?.error?.message || 'Unknown error'}`);
             }
-            
+
             break; // Success, exit retry loop
-            
+
           } catch (retryError) {
             retryCount++;
-            
+
             // CRITICAL 2025-11-03: Try fallback after 2 failures on primary
             if (retryCount === 2 && !usingFallback && fallbackModel && fallbackModel !== model) {
               this.logger.warn(`[MCP-TODO] 🔄 2 failures on ${model} - switching to fallback ${fallbackModel}`, {
@@ -1592,28 +1585,28 @@ Create precise MCP tool execution plan.
               await new Promise(resolve => setTimeout(resolve, 2000));
               continue;
             }
-            
+
             if (retryCount >= maxRetries) {
               throw retryError;
             }
-            
+
             // Special handling for rate limits - longer delay
             const isRateLimit = retryError.message === 'RATE_LIMIT_EXCEEDED';
             const baseDelay = isRateLimit ? 10000 : 1000; // FIXED 2025-10-30: 10s for rate limit
             const maxDelay = isRateLimit ? 60000 : 10000; // FIXED 2025-10-30: 60s max for rate limits
             const delay = Math.min(baseDelay * Math.pow(2, retryCount - 1), maxDelay);
-            
+
             this.logger.warn(`[MCP-TODO] ${isRateLimit ? 'Rate limit hit' : 'Retry'} ${retryCount}/${maxRetries} after ${delay}ms: ${retryError.message}`, {
               category: 'mcp-todo',
               component: 'mcp-todo'
             });
-            
+
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
 
         this.logger.system('mcp-todo', `[TODO] LLM API responded successfully`);
-        
+
         // FIXED 2025-11-04: Reduced delay - API can handle faster requests
         const postSuccessDelay = 500; // 0.5 seconds between successful LLM calls
         await new Promise(resolve => setTimeout(resolve, postSuccessDelay));
@@ -1626,7 +1619,7 @@ Create precise MCP tool execution plan.
           code: apiError.code,
           stack: apiError.stack
         });
-        
+
         // Handle specific error cases
         if (apiError.code === 'ECONNREFUSED') {
           // Try fallback endpoints
@@ -1661,11 +1654,11 @@ Create precise MCP tool execution plan.
       this.logger.system('mcp-todo', `[TODO] Parsed plan: ${JSON.stringify(plan, null, 2)}`);
 
       plan.tts_phrase = this._generatePlanTTS(plan, item);
-      
+
       // Check for empty plan
       if (!plan.tool_calls || plan.tool_calls.length === 0) {
         const reasoning = plan.reasoning || '';
-        
+
         // FIXED 2025-10-30: Safe reasoning analysis without hardcoded keywords
         // Use LLM intelligence instead of pattern matching
         if (reasoning && reasoning.length > 10) {
@@ -1676,7 +1669,7 @@ Create precise MCP tool execution plan.
           });
           throw new Error(`Cannot plan tools: ${reasoning}`);
         }
-        
+
         this.logger.warn(`[MCP-TODO] Warning: No tool calls in plan! Plan: ${JSON.stringify(plan)}`, {
           category: 'mcp-todo',
           component: 'mcp-todo',
@@ -1689,7 +1682,7 @@ Create precise MCP tool execution plan.
       // LLM validates its own plan before execution
       if (this.validationPipeline && plan.tool_calls.length > 0) {
         this.logger.system('mcp-todo', `[TODO] 🔍 Running self-correction validation...`);
-        
+
         try {
           const validationResult = await this.validationPipeline.validate(
             plan.tool_calls,
@@ -1701,12 +1694,12 @@ Create precise MCP tool execution plan.
               item: item
             }
           );
-          
+
           if (validationResult.selfCorrection?.success) {
             // Apply corrected plan
             plan.tool_calls = validationResult.toolCalls;
             this.logger.system('mcp-todo', `[TODO] ✅ Self-correction applied (${validationResult.selfCorrection.attempts} attempts)`);
-            
+
             if (validationResult.corrections.length > 0) {
               this.logger.system('mcp-todo', `[TODO] 📝 Corrections: ${validationResult.corrections.map(c => c.message || c).join(', ')}`);
             }
@@ -2404,11 +2397,11 @@ Respond with JSON:
       // FIXED 2025-10-20: Accept 'replanned' as successful completion
       // When item is replanned, new items are inserted and original is effectively completed
       const successStatuses = ['completed', 'replanned'];
-      
+
       if (!depItem || !successStatuses.includes(depItem.status)) {
-        this.logger.warn(`[MCP-TODO] Dependency ${depId} not completed for item ${item.id} (status: ${depItem?.status || 'not found'})`, { 
-          category: 'mcp-todo', 
-          component: 'mcp-todo' 
+        this.logger.warn(`[MCP-TODO] Dependency ${depId} not completed for item ${item.id} (status: ${depItem?.status || 'not found'})`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo'
         });
         return false;
       }
@@ -2444,11 +2437,11 @@ Skipped: ${skippedItems.length}
 Total Attempts: ${totalAttempts}
 
 Results: ${JSON.stringify(todo.items.map(i => ({
-    id: i.id,
-    action: i.action,
-    status: i.status,
-    verification: i.verification
-  })), null, 2)}
+      id: i.id,
+      action: i.action,
+      status: i.status,
+      verification: i.verification
+    })), null, 2)}
 
 Створи підсумковий звіт виконання.
 `;
@@ -2540,21 +2533,21 @@ Context: ${JSON.stringify(context, null, 2)}
           .replace(/^```\s*/i, '')
           .replace(/\s*```$/i, '')
           .trim();
-        
+
         // Step 2: Remove JS-style comments (fix for LLM output)
         cleanResponse = cleanResponse.replace(/\/\*[\s\S]*?\*\//g, '');
-        
+
         // Step 3: Aggressive JSON extraction - find first { to last }
         const firstBrace = cleanResponse.indexOf('{');
         const lastBrace = cleanResponse.lastIndexOf('}');
-        
+
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
           cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
         } else {
           throw new Error('No JSON object found in response (no curly braces)');
         }
       }
-      
+
       let parsed;
       try {
         parsed = JSON.parse(cleanResponse);
@@ -2565,7 +2558,7 @@ Context: ${JSON.stringify(context, null, 2)}
           component: 'mcp-todo',
           errorPosition: parseError.message.match(/position (\d+)/)?.[1] || 'unknown'
         });
-        
+
         try {
           const sanitized = this._sanitizeJsonString(cleanResponse);
           parsed = JSON.parse(sanitized);
@@ -2663,11 +2656,11 @@ Context: ${JSON.stringify(context, null, 2)}
       for (const depId of item.dependencies || []) {
         // Find dependency item index
         const depIndex = todo.items.findIndex(dep => dep.id === depId);
-        
+
         if (depIndex === -1) {
           throw new Error(`Item ${item.id} has invalid dependency ${depId}`);
         }
-        
+
         // Dependency must come BEFORE current item in array (depIndex < i)
         if (depIndex >= i) {
           throw new Error(`Item ${item.id} (index ${i}) has forward/circular dependency ${depId} (index ${depIndex}). Dependencies must reference earlier items.`);
@@ -2708,10 +2701,10 @@ Context: ${JSON.stringify(context, null, 2)}
         const firstBracket = cleanResponse.indexOf('[');
         const lastBrace = cleanResponse.lastIndexOf('}');
         const lastBracket = cleanResponse.lastIndexOf(']');
-        
+
         // Determine if response is an array or object
         const isArray = (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace));
-        
+
         if (isArray && firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
           // Extract array
           cleanResponse = cleanResponse.substring(firstBracket, lastBracket + 1);
@@ -2778,7 +2771,7 @@ Context: ${JSON.stringify(context, null, 2)}
       // FIXED 2025-10-29 - Handle JSON Schema wrapper format
       // FIXED 2025-11-04 - Handle direct array responses
       let actualData = parsed;
-      
+
       // Check if response is a direct array of tool calls
       if (Array.isArray(parsed)) {
         // FIXED 2025-11-04: LLM returns array of objects without server field
@@ -2788,11 +2781,11 @@ Context: ${JSON.stringify(context, null, 2)}
           if (item.server || item.mcp_server) {
             return item;
           }
-          
+
           // Try to infer server from tool name
           const toolName = item.tool || item.tool_name || '';
           let inferredServer = null;
-          
+
           // Check common patterns
           if (toolName.includes('browser') || toolName.includes('navigate') || toolName.includes('playwright')) {
             inferredServer = 'playwright';
@@ -2803,7 +2796,7 @@ Context: ${JSON.stringify(context, null, 2)}
           } else if (toolName.includes('shell') || toolName.includes('command')) {
             inferredServer = 'shell';
           }
-          
+
           if (inferredServer) {
             this.logger.warn(`[MCP-TODO] 🔧 Inferred server "${inferredServer}" from tool "${toolName}"`, {
               category: 'mcp-todo',
@@ -2811,10 +2804,10 @@ Context: ${JSON.stringify(context, null, 2)}
             });
             return { ...item, server: inferredServer };
           }
-          
+
           return item;
         });
-        
+
         actualData = {
           tool_calls: toolCallsWithServer,
           reasoning: ''
@@ -2831,11 +2824,11 @@ Context: ${JSON.stringify(context, null, 2)}
           component: 'mcp-todo'
         });
       }
-      
+
       // FIXED 2025-11-08 - Handle both 'tool_calls' and 'tool_plan' keys from LLM
       // Some models return {"tool_plan": [...]} instead of {"tool_calls": [...]}
       const rawToolCalls = actualData.tool_calls || actualData.tool_plan || [];
-      
+
       // FIXED 2025-11-03 - Filter valid tool calls from metadata elements
       // LLM sometimes returns: [{"server":"...","tool":"..."}, {"reasoning":"...","tts_phrase":"..."}]
       const toolCalls = (Array.isArray(rawToolCalls) ? rawToolCalls : [])
@@ -2844,20 +2837,20 @@ Context: ${JSON.stringify(context, null, 2)}
           // FIXED 2025-11-08 - Handle format where tool is key: {"filesystem_write_file": {...}}
           // Convert to standard format: {server, tool, parameters}
           const keys = Object.keys(call);
-          
+
           // Check if this is the wrong format (tool name as key)
           if (keys.length === 1 && !call.server && !call.tool) {
             const toolKey = keys[0];
             const params = call[toolKey];
-            
+
             // Skip if it's metadata
             if (toolKey === 'reasoning' || toolKey === 'tts_phrase') {
               return null;
             }
-            
+
             // Extract server from tool name (e.g., "filesystem_write_file" -> "filesystem")
             const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
-            
+
             let server = null;
             for (const knownServer of knownServers) {
               if (toolKey.startsWith(knownServer + '_')) {
@@ -2865,7 +2858,7 @@ Context: ${JSON.stringify(context, null, 2)}
                 break;
               }
             }
-            
+
             if (server) {
               return {
                 server,
@@ -2875,7 +2868,7 @@ Context: ${JSON.stringify(context, null, 2)}
             }
             return null;
           }
-          
+
           // Standard format - validate and process
           if (call.server || call.tool || call.mcp_server || call.tool_name) {
             let server = call.server || call.mcp_server || call.server_name;
@@ -2901,11 +2894,11 @@ Context: ${JSON.stringify(context, null, 2)}
               };
             }
           }
-          
+
           return null;
         })
         .filter(call => call !== null);  // Remove nulls
-      
+
       return {
         tool_calls: toolCalls,
         reasoning: actualData.reasoning || actualData.plan_reasoning || ''
@@ -3191,14 +3184,14 @@ Context: ${JSON.stringify(context, null, 2)}
     // FIXED 2025-11-07: Enhanced control character handling
     // Remove all control characters except \n, \r, \t (will be escaped later)
     sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-    
+
     // FIXED 2025-11-05: Remove line continuation backslashes that break JSON
     // LLM sometimes generates: "text\n\more text" which is invalid JSON
     // Pattern: \n\ (escaped newline + continuation backslash + real newline) -> \n
     sanitized = sanitized.replace(/\\n\\\n/g, '\\n');
     sanitized = sanitized.replace(/\\r\\\n/g, '\\r');
     sanitized = sanitized.replace(/\\t\\\n/g, '\\t');
-    
+
     // Also handle backslash continuation without escaped newline
     sanitized = sanitized.replace(/\\\n\s*/g, '');
 
@@ -3208,19 +3201,19 @@ Context: ${JSON.stringify(context, null, 2)}
     sanitized = sanitized.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
       // First, handle already escaped sequences
       let escaped = content;
-      
+
       // Only escape unescaped quotes (not already escaped)
       escaped = escaped.replace(/(?<!\\)"/g, '\\"');
-      
+
       // Escape real newlines/tabs/returns (not already escaped)
       escaped = escaped
         .replace(/(?<!\\)\n/g, '\\n')   // Real newline -> \\n
         .replace(/(?<!\\)\r/g, '\\r')   // Real carriage return -> \\r
         .replace(/(?<!\\)\t/g, '\\t');  // Real tab -> \\t
-      
+
       // Remove other control characters except already escaped ones
       escaped = escaped.replace(/(?<!\\)[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
-      
+
       return `"${escaped}"`;
     });
 
@@ -3237,14 +3230,14 @@ Context: ${JSON.stringify(context, null, 2)}
 
     // FIXED 19.10.2025 - Ultra-aggressive trailing comma removal
     // Handle all cases: single-line, multi-line, nested structures
-    
+
     // Pass 1: Remove trailing commas in multiline arrays/objects
     // Handles: ,\n  ] or ,\n}
     sanitized = sanitized.replace(/,\s*([\r\n]+\s*)([}\]])/g, '$1$2');
-    
+
     // Pass 2: Remove trailing commas with any whitespace before closing
     sanitized = sanitized.replace(/,(\s*[}\]])/g, '$1');
-    
+
     // Pass 3: Handle nested cases - comma + newlines + whitespace + closing bracket
     sanitized = sanitized.replace(/,([\s\r\n\t]*([}\]]))(?!:)/g, '$2');
 
@@ -3448,13 +3441,13 @@ Context: ${JSON.stringify(context, null, 2)}
   _getModelForStage(stageName) {
     // Fallback to GlobalConfig if mcpModelConfig not loaded yet
     const config = this.mcpModelConfig || GlobalConfig.MCP_MODEL_CONFIG;
-    
+
     if (!config || !config.stages) {
       this.logger.warn(`[MCP-TODO] MCP_MODEL_CONFIG not available for stage: ${stageName}`, {
         category: 'mcp-todo',
         component: 'mcp-todo'
       });
-      
+
       // Return safe defaults
       return {
         model: 'atlas-mistral-medium-2505',
@@ -3462,23 +3455,23 @@ Context: ${JSON.stringify(context, null, 2)}
         max_tokens: 4000
       };
     }
-    
+
     // Get stage config
     const stageConfig = config.stages[stageName];
-    
+
     if (!stageConfig) {
       this.logger.warn(`[MCP-TODO] No config found for stage: ${stageName}, using defaults`, {
         category: 'mcp-todo',
         component: 'mcp-todo'
       });
-      
+
       return {
         model: 'atlas-mistral-medium-2505',
         temperature: 0.3,
         max_tokens: 4000
       };
     }
-    
+
     return {
       model: stageConfig.model,
       temperature: stageConfig.temperature,
@@ -3529,7 +3522,7 @@ Context: ${JSON.stringify(context, null, 2)}
         }
         return `${t.server}__${toolName}`;
       });
-    
+
     // Extract valid server names
     const validServerNames = [...new Set(availableTools
       .filter(t => t && typeof t === 'object' && t.server)
@@ -4072,7 +4065,7 @@ Select 1-2 most relevant servers.
    */
   _createUniversalPrompt(servers) {
     const serverList = servers.join(', ');
-    
+
     // Use imported universal prompt and replace placeholders
     return {
       SYSTEM_PROMPT: universalMcpPrompt.SYSTEM_PROMPT.replace('{{SERVER_LIST}}', serverList),
@@ -4089,17 +4082,17 @@ Select 1-2 most relevant servers.
       'http://localhost:11434/v1/chat/completions',  // Ollama
       'https://openrouter.ai/api/v1/chat/completions'  // OpenRouter
     ];
-    
+
     for (const endpoint of fallbackEndpoints) {
       try {
         this.logger.system('mcp-todo', `[TODO] Trying fallback LLM endpoint: ${endpoint}`);
-        
+
         const response = await this._makeApiCall(endpoint, requestBody, {
           timeout: 30000,
           metadata: { type: 'fallback_llm', endpoint },
           priority: 5
         });
-        
+
         if (response.status === 200) {
           this.logger.system('mcp-todo', `[TODO] Fallback LLM succeeded: ${endpoint}`);
           return response;
@@ -4111,10 +4104,10 @@ Select 1-2 most relevant servers.
         });
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Generate fallback plan for common operations
    * @private
@@ -4215,16 +4208,16 @@ Select 1-2 most relevant servers.
     try {
       this.logger.system('mcp-todo', '[UNIFIED-MCP] Starting unified MCP verification workflow');
       this.logger.system('mcp-todo', `[UNIFIED-MCP] Item: ${verificationItem.action}`);
-      
+
       // Stage 2.0: Server Selection
       let selectedServers = verificationItem.mcp_servers || [];
       let selectedPrompts = [];
-      
+
       if (selectedServers.length === 0) {
         // Need to select servers
-        const serverSelectionProcessor = session?.processors?.serverSelection || 
-                                        this.container?.resolve('serverSelectionProcessor');
-        
+        const serverSelectionProcessor = session?.processors?.serverSelection ||
+          this.container?.resolve('serverSelectionProcessor');
+
         if (serverSelectionProcessor) {
           this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.0: Server Selection...');
           const selectionResult = await serverSelectionProcessor.execute({
@@ -4234,7 +4227,7 @@ Select 1-2 most relevant servers.
             atlasRecommendation: verificationItem.mcp_servers,
             session: session
           });
-          
+
           if (selectionResult.success && selectionResult.selected_servers) {
             selectedServers = selectionResult.selected_servers;
             selectedPrompts = selectionResult.selected_prompts || [];
@@ -4246,11 +4239,11 @@ Select 1-2 most relevant servers.
           selectedServers = serverSelection.selected_servers || [];
         }
       }
-      
+
       // Stage 2.1: Plan Tools
-      const tetyanaPlanProcessor = session?.processors?.tetyanaPlan || 
-                                  this.container?.resolve('tetyanaPlanToolsProcessor');
-      
+      const tetyanaPlanProcessor = session?.processors?.tetyanaPlan ||
+        this.container?.resolve('tetyanaPlanToolsProcessor');
+
       let plannedTools = [];
       if (tetyanaPlanProcessor) {
         this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.1: Plan Tools...');
@@ -4260,7 +4253,7 @@ Select 1-2 most relevant servers.
           selected_prompts: selectedPrompts,
           session: session
         });
-        
+
         if (planResult.success && planResult.plan && planResult.plan.tool_calls) {
           // FIXED 2025-10-29: Use plan.tool_calls, not planned_tools
           plannedTools = planResult.plan.tool_calls;
@@ -4278,11 +4271,11 @@ Select 1-2 most relevant servers.
         });
         plannedTools = plan.tool_calls || [];
       }
-      
+
       // Stage 2.2: Execute Tools
-      const tetyanaExecuteProcessor = session?.processors?.tetyanaExecute || 
-                                     this.container?.resolve('tetyanaExecuteToolsProcessor');
-      
+      const tetyanaExecuteProcessor = session?.processors?.tetyanaExecute ||
+        this.container?.resolve('tetyanaExecuteToolsProcessor');
+
       let executionResults = { all_successful: false, results: [] };
       if (tetyanaExecuteProcessor) {
         this.logger.system('mcp-todo', '[UNIFIED-MCP] Stage 2.2: Execute Tools...');
@@ -4292,7 +4285,7 @@ Select 1-2 most relevant servers.
           plan: { tool_calls: plannedTools },
           session: session
         });
-        
+
         if (execResult.success) {
           executionResults = execResult.execution || { all_successful: false, results: [] };
           this.logger.system('mcp-todo', `[UNIFIED-MCP] Executed: ${executionResults.all_successful ? '✅' : '❌'}`);
@@ -4302,7 +4295,7 @@ Select 1-2 most relevant servers.
         const execution = await this.executeTools({ tool_calls: plannedTools }, verificationItem);
         executionResults = execution;
       }
-      
+
       // Return unified result structure
       return {
         success: executionResults.all_successful,
@@ -4314,13 +4307,13 @@ Select 1-2 most relevant servers.
           unified_workflow: true
         }
       };
-      
+
     } catch (error) {
       this.logger.error(`[UNIFIED-MCP] Workflow failed: ${error.message}`, {
         category: 'mcp-todo',
         error: error.stack
       });
-      
+
       return {
         success: false,
         execution: { all_successful: false, results: [], error: error.message },

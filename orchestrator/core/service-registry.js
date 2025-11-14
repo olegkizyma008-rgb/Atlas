@@ -350,15 +350,15 @@ export function registerOptimizationServices(container) {
         }
     });
 
-    // Intelligent Rate Limiter - singleton
+    // Adaptive Request Throttler - singleton (consolidated rate limiter)
     container.singleton('rateLimiter', async (c) => {
-        const { rateLimiter } = await import('../ai/intelligent-rate-limiter.js');
-        return rateLimiter;
+        const adaptiveThrottler = await import('../utils/adaptive-request-throttler.js');
+        return adaptiveThrottler.default;
     }, {
         metadata: { category: 'optimization', priority: 64 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] 🚦 Intelligent Rate Limiter initialized - adaptive throttling enabled');
+                logger.system('startup', '[DI] 🚦 Adaptive Request Throttler initialized - unified rate limiting enabled');
             }
         }
     });

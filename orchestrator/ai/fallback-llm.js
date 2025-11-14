@@ -9,16 +9,16 @@ import logger from '../utils/logger.js';
 import * as agentProtocol from '../agents/agent-protocol.js';
 import GlobalConfig from '../../config/atlas-config.js';
 import modelChecker from './model-availability-checker.js';
-import { getRateLimiter } from '../utils/api-rate-limiter.js';
+import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 
 // Model registry - dynamically built from GlobalConfig (lazy loaded)
 let MODELS_CACHE = null;
 
 function getAvailableModels() {
   if (MODELS_CACHE) return MODELS_CACHE;
-  
+
   const models = [];
-  
+
   try {
     // Add models from AI_MODEL_CONFIG
     if (GlobalConfig.AI_MODEL_CONFIG?.models) {
@@ -28,7 +28,7 @@ function getAvailableModels() {
         }
       });
     }
-    
+
     // Add models from MCP_MODEL_CONFIG
     if (GlobalConfig.MCP_MODEL_CONFIG?.stages) {
       Object.values(GlobalConfig.MCP_MODEL_CONFIG.stages).forEach(config => {
@@ -40,12 +40,12 @@ function getAvailableModels() {
   } catch (error) {
     logger.warn('[FALLBACK-LLM] Failed to load models from GlobalConfig, using defaults');
   }
-  
+
   // Fallback to basic models if config failed
   if (models.length === 0) {
     models.push('atlas-ministral-3b', 'atlas-gpt-4o-mini');
   }
-  
+
   MODELS_CACHE = models;
   return models;
 }
@@ -114,8 +114,7 @@ export async function chatCompletion(messages, options = {}) {
   }
 
   try {
-    const rateLimiter = getRateLimiter();
-    const response = await rateLimiter.call(
+    const response = await adaptiveThrottler.throttledRequest(
       async () => axios.post(`${baseUrl}/v1/chat/completions`, {
         model,
         messages: effectiveMessages,
@@ -150,29 +149,28 @@ export async function chatCompletion(messages, options = {}) {
     // UPDATED 2025-11-10: Try alternative models via ModelAvailabilityChecker (CACHED)
     if (error.response?.status === 429 || error.response?.status >= 500 || error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') {
       console.log('[FALLBACK-LLM] 🔄 Trying alternative models...');
-      
+
       try {
         // FIXED 2025-11-10: Use cached fetchAvailableModels instead of direct GET /v1/models
         const apiModels = await modelChecker.fetchAvailableModels();
-        
+
         if (!apiModels || apiModels.length === 0) {
           throw new Error('No models available from API');
         }
-        
+
         // CRITICAL 2025-11-10: Limit to first 5 models to prevent burst
         const modelsToTry = apiModels.slice(0, 5).map(m => m.id);
         console.log(`[FALLBACK-LLM] 🔍 Checking ${modelsToTry.length} models (limited from ${apiModels.length})`);
-        
+
         // Try each available model with delays
         for (const altModel of modelsToTry) {
           if (altModel === model) continue; // Skip the failed model
-          
+
           const modelResult = await modelChecker.getAvailableModel(altModel, null, 'general');
           if (modelResult.available) {
             console.log(`[FALLBACK-LLM] ✅ Trying alternative model: ${altModel}`);
-            
-            const rateLimiter = getRateLimiter();
-            const retryResponse = await rateLimiter.call(
+
+            const retryResponse = await adaptiveThrottler.throttledRequest(
               async () => axios.post(`${baseUrl}/v1/chat/completions`, {
                 model: altModel,
                 messages: effectiveMessages,
@@ -185,7 +183,7 @@ export async function chatCompletion(messages, options = {}) {
               }),
               { priority: 8, retryable: false, metadata: { type: 'fallback_retry', model: altModel } }
             );
-            
+
             return {
               id: retryResponse.data.id,
               object: retryResponse.data.object,

@@ -9,7 +9,7 @@
  */
 
 import { apiOptimizer } from '../ai/api-request-optimizer.js';
-import { rateLimiter } from '../ai/intelligent-rate-limiter.js';
+import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from '../ai/optimized-workflow-manager.js';
 import OptimizedExecutor from '../ai/optimized-executor.js';
 import logger from '../utils/logger.js';

@@ -13,7 +13,7 @@ import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 // import { BaseAgentProcessor } from './stages/agents/base-agent-processor.js'; // Not used, commented out
 import { EternityIntegration } from '../eternity/eternity-integration.js';
 import { NexusContextActivator } from '../eternity/nexus-context-activator.js';
-import { getRateLimiter } from '../utils/api-rate-limiter.js';
+import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
@@ -46,14 +46,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   }
 
   const container = diContainer;
-  
+
   // Create simple session object without SessionStore
   const session = {
     id: 'default',
     chatThread: { messages: [], lastTopic: undefined },
     lastInteraction: Date.now()
   };
-  
+
   logger.workflow('init', 'mcp', 'Starting MCP Dynamic TODO Workflow', {
     sessionId: session.id,
     userMessage: userMessage.substring(0, 100)
@@ -69,12 +69,12 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // DISABLED: Nexus interceptor conflicts with DEV self-analysis workflow
     // DEV mode needs devSelfAnalysisProcessor for real code analysis and intervention
     // Nexus stubs don't provide the functionality needed for self-improvement
-    
+
     // TODO: Re-enable when:
     // 1. Real multi-model orchestration implemented (not stubs)
     // 2. Integration with devSelfAnalysisProcessor added
     // 3. Proper mode coordination established
-    
+
     /*
     const nexusActivator = await container.resolve('nexusContextActivator');
     await nexusActivator.initialize();
@@ -83,7 +83,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       // Nexus execution code...
     }
     */
-    
+
     // Якщо Nexus не потрібен - продовжуємо стандартний workflow
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
@@ -103,7 +103,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // Check if session is awaiting password for DEV mode OR if user requests intervention after analysis
     const normalizedMessage = userMessage.trim().toLowerCase();
     const isPasswordProvided = session.awaitingDevPassword && normalizedMessage === 'mykola';
-    
+
     // Also check if password is provided in the message (e.g., "виправ з паролем mykola")
     const passwordInMessage = normalizedMessage.includes('mykola') || normalizedMessage.includes('з паролем') || normalizedMessage.includes('with password');
     const isInterventionRequest = session.lastDevAnalysis && (
@@ -113,7 +113,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       userMessage.toLowerCase().includes('застосуй') ||
       userMessage.toLowerCase().includes('apply')
     );
-    
+
     // CRITICAL DEBUG: Log session state for DEV mode detection
     logger.system('executor', `[DEV-CHECK] Session state check:`, {
       sessionId: session.id,
@@ -125,26 +125,26 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       isInterventionRequest,
       lastDevAnalysisTimestamp: session.lastDevAnalysis?.timestamp
     });
-    
+
     if (isPasswordProvided || (isInterventionRequest && passwordInMessage)) {
       logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention with password requested'}, continuing DEV mode`, {
         sessionId: session.id,
         passwordProvided: isPasswordProvided,
         passwordInMessage: passwordInMessage
       });
-      
+
       // If intervention requested but no password yet, show dialog and wait
       if (isInterventionRequest && !isPasswordProvided && !passwordInMessage) {
         session.awaitingDevPassword = true;
         session.devOriginalMessage = session.lastDevAnalysisMessage || 'Проаналізуй себе';
-        
+
         // Re-send analysis with password request
         const analysisData = session.lastDevAnalysis;
         const findings = analysisData?.findings || {};
-        
+
         const passwordMessage = `🔐 **Потрібна авторизація для втручання**\n\nЯ готовий внести виправлення в свій код. Для безпеки мені потрібен пароль "mykola".\n\n**Що буде виправлено:**\n${findings.critical_issues?.length || 0} критичних проблем\n${findings.performance_bottlenecks?.length || 0} проблем продуктивності\n\nВведи пароль щоб продовжити.`;
         const localizedMessage = localizationService.translateToUser(passwordMessage);
-        
+
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: localizedMessage,
@@ -155,7 +155,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             mode: 'dev',
             requiresAuth: true
           });
-          
+
           // Trigger password dialog
           wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
             sessionId: session.id,
@@ -166,16 +166,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             }
           });
         }
-        
+
         return { success: false, requiresAuth: true };
       }
-      
+
       // Password provided - execute intervention
       const devProcessor = container.resolve('devSelfAnalysisProcessor');
-      
+
       // Extract actual password from message if it's a password submission
       const actualPassword = isPasswordProvided ? userMessage.trim() : 'mykola';
-      
+
       const analysisResult = await devProcessor.execute({
         userMessage: session.devOriginalMessage || session.lastDevAnalysisMessage || 'Виправ себе',
         session,
@@ -183,7 +183,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         password: actualPassword,
         container
       });
-      
+
       // Clear password state only after successful intervention
       if (analysisResult.success || analysisResult.transitionToTask) {
         session.awaitingDevPassword = false;
@@ -191,17 +191,17 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         session.devOriginalMessage = null;
         // Keep lastDevAnalysis for context
       }
-      
+
       // Check if transitioning to TASK mode
       if (analysisResult.transitionToTask && analysisResult.taskContext) {
         logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode after password', {
           sessionId: session.id,
           tasksCount: analysisResult.taskContext.tasks?.length || 0
         });
-        
+
         // Store transition context
         session.devTransitionContext = analysisResult.taskContext;
-        
+
         // Send transition message
         const transitionMessage = analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...';
         if (wsManager) {
@@ -215,14 +215,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             transitionFromDev: true
           });
         }
-        
+
         // Continue to TASK mode execution below
         mode = 'task';
       } else {
         // Send intervention result
         const interventionMessage = analysisResult.intervention?.message || analysisResult.message || 'Аналіз завершено!';
         const localizedMessage = localizationService.translateToUser(interventionMessage);
-        
+
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: localizedMessage,
@@ -234,7 +234,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             interventionComplete: true
           });
         }
-        
+
         return analysisResult;
       }
     }
@@ -306,25 +306,25 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       try {
         // Resolve DEV self-analysis processor
         const devProcessor = container.resolve('devSelfAnalysisProcessor');
-        
+
         // Check if user is providing password for pending DEV intervention
-        const isPasswordProvided = session.awaitingDevPassword && 
-                                  (userMessage.toLowerCase() === 'mykola' || 
-                                   userMessage.toLowerCase() === 'микола' ||
-                                   userMessage.toLowerCase().trim() === 'mykola' ||
-                                   userMessage.toLowerCase().trim() === 'микола');
-        
+        const isPasswordProvided = session.awaitingDevPassword &&
+          (userMessage.toLowerCase() === 'mykola' ||
+            userMessage.toLowerCase() === 'микола' ||
+            userMessage.toLowerCase().trim() === 'mykola' ||
+            userMessage.toLowerCase().trim() === 'микола');
+
         // Check if user is requesting intervention after analysis
-        const isInterventionRequest = session.lastDevAnalysis && 
-                                      (userMessage.toLowerCase().includes('виправ') ||
-                                       userMessage.toLowerCase().includes('внеси зміни') ||
-                                       userMessage.toLowerCase().includes('fix') ||
-                                       userMessage.toLowerCase().includes('make changes'));
-        
+        const isInterventionRequest = session.lastDevAnalysis &&
+          (userMessage.toLowerCase().includes('виправ') ||
+            userMessage.toLowerCase().includes('внеси зміни') ||
+            userMessage.toLowerCase().includes('fix') ||
+            userMessage.toLowerCase().includes('make changes'));
+
         // Check if password is included in intervention request
-        const passwordInMessage = userMessage.toLowerCase().includes('mykola') || 
-                                 userMessage.toLowerCase().includes('микола');
-        
+        const passwordInMessage = userMessage.toLowerCase().includes('mykola') ||
+          userMessage.toLowerCase().includes('микола');
+
         // Execute self-analysis with container for MCP access
         const analysisResult = await devProcessor.execute({
           userMessage,
@@ -333,7 +333,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           password: isPasswordProvided ? userMessage.trim() : null, // Will prompt for password if needed
           container // Pass container for MCP filesystem access
         });
-        
+
         logger.system('executor', `[DEV-MODE] Analysis complete, requiresAuth: ${analysisResult.requiresAuth}`, {
           sessionId: session.id
         });
@@ -347,9 +347,9 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // Build detailed message with metrics table
         const metrics = analysisResult.analysis?.metrics || {};
-        
+
         let message = '🔬 **Аналіз системи**\n\n';
-        
+
         // Add metrics table - оптимізовано для TTS
         if (metrics.error_count !== undefined || metrics.warning_count !== undefined) {
           message += '**📊 Стан системи:**\n';
@@ -358,18 +358,18 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           message += `Попереджень:    ${metrics.warning_count || 0}\n`;
           message += `Здоров'я:       ${metrics.system_health || 'невідомо'}%\n`;
           // Безпечне форматування uptime
-          const uptimeMinutes = (typeof metrics.uptime === 'number' && !isNaN(metrics.uptime)) 
-            ? Math.floor(metrics.uptime / 60) 
+          const uptimeMinutes = (typeof metrics.uptime === 'number' && !isNaN(metrics.uptime))
+            ? Math.floor(metrics.uptime / 60)
             : 0;
           message += `Працює:         ${uptimeMinutes} хвилин\n`;
           message += '```\n\n';
         }
-        
+
         // Add summary
         if (summary) {
           message += summary + '\n\n';
         }
-        
+
         // Add critical issues with evidence
         if (findings.critical_issues?.length > 0) {
           message += `🔴 **Критичні проблеми (${findings.critical_issues.length}):**\n`;
@@ -384,7 +384,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           });
           message += '\n';
         }
-        
+
         // Add performance bottlenecks
         if (findings.performance_bottlenecks?.length > 0) {
           message += `\n⚡ **Проблеми продуктивності (${findings.performance_bottlenecks.length}):**\n`;
@@ -396,7 +396,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             }
           });
         }
-        
+
         // Add improvement suggestions
         if (findings.improvement_suggestions?.length > 0) {
           message += `\n💡 **Рекомендації (${findings.improvement_suggestions.length}):**\n`;
@@ -408,20 +408,20 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             }
           });
         }
-        
+
         // Add TODO list - українською для TTS
         const todoList = analysisResult.analysis?.todo_list || [];
         if (todoList.length > 0) {
           message += `\n\n📋 **План дій:**\n`;
           todoList.forEach((item, idx) => {
-            const priority = item.priority === 'critical' ? '🔴' : 
-                           item.priority === 'high' ? '🟠' : 
-                           item.priority === 'medium' ? '🟡' : '🟢';
+            const priority = item.priority === 'critical' ? '🔴' :
+              item.priority === 'high' ? '🟠' :
+                item.priority === 'medium' ? '🟡' : '🟢';
             message += `${idx + 1}. ${priority} ${item.action}\n`;
             if (item.details) message += `   → ${item.details}\n`;
           });
         }
-        
+
         // Intervention results - пряма мова для TTS
         if (analysisResult.intervention) {
           const filesModified = analysisResult.intervention.files_modified || [];
@@ -437,11 +437,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             message += `  • План створено, чекаю команди\n`;
           }
         }
-        
+
         // Add deep targeted analysis if available
         if (deepTargetedAnalysis) {
           message += `\n🎯 **Глибокий цільовий аналіз:**\n`;
-          
+
           if (deepTargetedAnalysis.rootCauses?.length > 0) {
             message += `\n**Корінні причини:**\n`;
             deepTargetedAnalysis.rootCauses.forEach(rc => {
@@ -450,14 +450,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               message += `  • ${rc.issue}: ${cause} (впевненість: ${(confidence * 100).toFixed(0)}%)\n`;
             });
           }
-          
+
           if (deepTargetedAnalysis.impactAnalysis?.length > 0) {
             message += `\n**Аналіз впливу:**\n`;
             deepTargetedAnalysis.impactAnalysis.forEach(impact => {
               message += `  • ${impact.issue}: впливає на ${impact.affectedComponents.join(', ')}\n`;
             });
           }
-          
+
           if (deepTargetedAnalysis.recommendations?.length > 0) {
             message += `\n**Цільові рекомендації:**\n`;
             deepTargetedAnalysis.recommendations.forEach(rec => {
@@ -465,7 +465,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             });
           }
         }
-        
+
         // Add focused area analysis if available
         if (detailedAnalysis.focusAreaAnalysis) {
           const focus = detailedAnalysis.focusAreaAnalysis;
@@ -482,13 +482,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             });
           }
         }
-        
+
         // Deep understanding - пряма мова, природно для TTS
         message += `\n🧠 **Мій висновок:**\n`;
-        
+
         const criticalCount = findings.critical_issues?.length || 0;
         const perfCount = findings.performance_bottlenecks?.length || 0;
-        
+
         if (criticalCount === 0 && perfCount === 0) {
           message += `Я ретельно перевірив усі системи. Все працює стабільно, критичних проблем не виявлено. `;
           message += `Завжди є простір для вдосконалення, але зараз можна сказати що система в доброму стані.`;
@@ -496,14 +496,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           message += `Я знайшов ${criticalCount > 0 ? `${criticalCount} критичн${criticalCount === 1 ? 'у проблему' : criticalCount < 5 ? 'і проблеми' : 'их проблем'}` : ''}`;
           if (criticalCount > 0 && perfCount > 0) message += ` та `;
           message += `${perfCount > 0 ? `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності` : ''}. `;
-          
+
           // FIXED 03.11.2025: Перевіряємо чи Nexus СПРАВДІ виконав зміни
           // Перевіряємо не тільки success, а й чи є реально застосовані fixes
           const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
-          const reallyExecuted = analysisResult.metadata?.realExecution && 
-                                analysisResult.intervention?.success && 
-                                hasAppliedFixes;
-          
+          const reallyExecuted = analysisResult.metadata?.realExecution &&
+            analysisResult.intervention?.success &&
+            hasAppliedFixes;
+
           if (reallyExecuted) {
             const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
             message += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус.`;
@@ -515,7 +515,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             message += `Готовий приступити до виправлення.`;
           }
         }
-        
+
         // Add interactive mode prompt if enabled
         if (interactiveMode) {
           message += `\n\n💬 **Інтерактивний режим активний**\n`;
@@ -527,23 +527,23 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         const warningCount = metrics.warning_count || 0;
         const uptime = Math.floor((metrics.uptime || 0) / 60);
         let ttsContent = '';
-        
+
         // Початок - привітання та контекст
         ttsContent += `Олег Миколайович, я завершив аналіз системи. `;
-        
+
         // Стан системи
         if (metrics.system_health) {
           const health = metrics.system_health;
           const healthWord = health >= 90 ? 'відмінному' : health >= 70 ? 'доброму' : health >= 50 ? 'задовільному' : 'поганому';
           ttsContent += `Здоров'я системи ${health} відсотків, це ${healthWord} стан. `;
         }
-        
+
         // Безпечне форматування uptime
         const safeUptime = (typeof uptime === 'number' && !isNaN(uptime)) ? uptime : 0;
         if (safeUptime > 0) {
           ttsContent += `Працюю вже ${safeUptime} ${safeUptime === 1 ? 'хвилину' : safeUptime < 5 ? 'хвилини' : 'хвилин'}. `;
         }
-        
+
         // Результати аналізу
         if (criticalCount === 0 && perfCount === 0) {
           ttsContent += `Все працює стабільно. Критичних проблем не виявив. `;
@@ -552,31 +552,31 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           }
         } else {
           ttsContent += `Виявив `;
-          
+
           if (criticalCount > 0) {
             ttsContent += `${criticalCount} ${criticalCount === 1 ? 'критичну проблему' : criticalCount < 5 ? 'критичні проблеми' : 'критичних проблем'}`;
-            
+
             // Перша критична проблема
             if (findings.critical_issues && findings.critical_issues[0]) {
               const issue = findings.critical_issues[0];
               ttsContent += `. Найважливіша: ${issue.description}`;
             }
           }
-          
+
           if (perfCount > 0) {
             if (criticalCount > 0) ttsContent += ` та `;
             ttsContent += `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності`;
           }
-          
+
           ttsContent += `. `;
         }
-        
+
         // FIXED 03.11.2025: Дії що виконані або плануються - використовуємо ту саму логіку що й у текстовому повідомленні
         const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
-        const reallyExecutedTts = analysisResult.metadata?.realExecution && 
-                                  analysisResult.intervention?.success && 
-                                  hasAppliedFixes;
-        
+        const reallyExecutedTts = analysisResult.metadata?.realExecution &&
+          analysisResult.intervention?.success &&
+          hasAppliedFixes;
+
         if (reallyExecutedTts) {
           const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
           ttsContent += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус. Зміни вже застосовані. `;
@@ -587,7 +587,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         } else if (criticalCount > 0 || perfCount > 0) {
           ttsContent += `Можу приступити до виправлення, якщо ти даси команду. `;
         }
-        
+
         const baseTtsMessage = ttsContent;
 
         if (!analysisResult.success && analysisResult.requiresAuth) {
@@ -615,7 +615,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               interactiveMode,
               requiresAuth: true
             });
-            
+
             // Trigger password dialog with analysis data
             wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
               sessionId: session.id,
@@ -658,7 +658,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             summary
           };
           session.lastDevAnalysisMessage = userMessage;
-          
+
           logger.system('executor', `[DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=${session.id}`);
 
           return {
@@ -718,7 +718,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             }
           })}\n\n`);
         }
-        
+
         // Store analysis in session for context
         session.lastDevAnalysis = {
           timestamp: new Date().toISOString(),
@@ -731,20 +731,20 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           analysisDepth: analysisResult.metadata?.analysisDepth
         };
         session.lastDevAnalysisMessage = userMessage; // CRITICAL: Save original message for intervention context
-        
+
         logger.system('executor', `[DEV-MODE] ✅ Analysis context saved: lastDevAnalysis + lastDevAnalysisMessage`, {
           sessionId: session.id,
           hasFindings: !!findings,
           criticalIssues: findings?.critical_issues?.length || 0
         });
-        
+
         // Check if DEV mode wants to transition to TASK mode
         if (analysisResult.transitionToTask && analysisResult.taskContext) {
           logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode', {
             sessionId: session.id,
             tasksCount: analysisResult.taskContext.tasks?.length || 0
           });
-          
+
           // Send transition message
           if (wsManager) {
             wsManager.broadcastToSubscribers('chat', 'agent_message', {
@@ -756,32 +756,32 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               mode: 'task_transition'
             });
           }
-          
+
           // Update session for TASK mode
           session.mode = 'task';
           session.devTransitionContext = analysisResult.taskContext;
           session.autoExecuteTasks = true;
-          
+
           // Continue to TASK mode processing
           mode = 'task';
           userMessage = analysisResult.taskContext.tasks
             .map(t => t.action)
             .join('; ');
-          
+
           logger.system('executor', '[DEV→TASK] Session updated for TASK mode execution', {
             sessionId: session.id,
             mode: 'task',
             autoExecute: true
           });
-          
+
           // Don't return here - continue to TASK mode processing below
         } else {
           return analysisResult;
         }
-        
+
       } catch (error) {
         logger.error(`[DEV-MODE] Self-analysis failed: ${error.message}`);
-        
+
         if (wsManager) {
           wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: `❌ Помилка самоаналізу: ${error.message}`,
@@ -790,7 +790,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             timestamp: new Date().toISOString()
           });
         }
-        
+
         return {
           success: false,
           error: error.message
@@ -839,12 +839,12 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // FIXED 16.10.2025 - Add current user message to session history BEFORE building context
         logger.system('executor', `[CHAT-DEBUG] Step 7: Adding user message to history`);
-        
+
         // CRITICAL FIX: Check if chatThread.messages exists
         if (!session.chatThread.messages) {
           session.chatThread.messages = [];
         }
-        
+
         session.chatThread.messages.push({
           role: 'user',
           content: userMessage,
@@ -872,7 +872,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         }
 
         // NEW 2025-11-05: Detect self-analysis requests in CHAT mode and trigger NEXUS in background
-        const isSelfAnalysisRequest = 
+        const isSelfAnalysisRequest =
           userMessage.toLowerCase().includes('проаналізуй себе') ||
           userMessage.toLowerCase().includes('виправ себе') ||
           userMessage.toLowerCase().includes('твій код') ||
@@ -887,30 +887,30 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         if (isSelfAnalysisRequest) {
           logger.system('executor', '[NEXUS-CHAT] 🔍 Self-analysis request detected in CHAT mode - triggering NEXUS in background');
-          
+
           // Trigger NEXUS in background (non-blocking)
           setImmediate(async () => {
             try {
               const multiModelOrchestrator = container.resolve('multiModelOrchestrator');
               if (multiModelOrchestrator) {
                 logger.system('executor', '[NEXUS-CHAT] 🚀 Starting background NEXUS analysis...');
-                
+
                 // Collect system context
                 const systemContext = {
                   userRequest: userMessage,
                   timestamp: new Date().toISOString(),
                   sessionId: session.id
                 };
-                
+
                 // Execute NEXUS analysis in background
                 const nexusResult = await multiModelOrchestrator.executeTask(
                   'system-health-check',
                   `Analyze Atlas system health based on user request: ${userMessage}`,
                   { context: systemContext }
                 );
-                
+
                 logger.system('executor', '[NEXUS-CHAT] ✅ Background NEXUS analysis complete');
-                
+
                 // Store results for next user query
                 session.lastNexusAnalysis = {
                   timestamp: new Date().toISOString(),
@@ -950,19 +950,19 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // NEW 26.10.2025: INTELLIGENT MEMORY INTEGRATION
         logger.system('executor', '[CHAT-MEMORY] 🧠 Checking if long-term memory is needed...');
-        
+
         let memoryContext = null;
         try {
           // Resolve Chat Memory Coordinator from DI Container
           const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
-          
+
           // Process message with memory integration
           const memoryResult = await chatMemoryCoordinator.processMessage({
             userMessage,
             session,
             recentMessages
           });
-          
+
           if (memoryResult.memoryUsed && memoryResult.memoryContext) {
             memoryContext = memoryResult.memoryContext;
             logger.system('executor', `[CHAT-MEMORY] ✅ Memory retrieved: ${memoryContext.count} entities (${memoryResult.processingTime}ms)`);
@@ -1000,7 +1000,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         // FIXED 16.10.2025 - Use system prompt from prompts directory (not hardcoded)
         let systemPrompt = chatPrompt.SYSTEM_PROMPT;
-        
+
         // NEW 26.10.2025: Inject memory context if available
         if (memoryContext && memoryContext.hasMemory) {
           systemPrompt = systemPrompt + '\n\n' + memoryContext.contextText;
@@ -1009,148 +1009,144 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
         logger.system('executor', `[SYSTEM-PROMPT] Using prompt from prompts/mcp/atlas_chat.js`);
 
-    // Call LLM for chat response with fallback support
-    let chatResponse;
-    let usedFallback = false;
+        // Call LLM for chat response with fallback support
+        let chatResponse;
+        let usedFallback = false;
 
-    try {
-      // Build messages for LLM
-      // NEXUS: Inject dynamic consciousness prompt into system prompt
-      const enhancedSystemPrompt = chatPrompt.SYSTEM_PROMPT
-        .replace('{{USER_LANGUAGE}}', GlobalConfig.USER_LANGUAGE || 'uk')
-        .replace('{{DYNAMIC_CONSCIOUSNESS_PROMPT}}', dynamicPrompt || '');
-      
-      const messages = [
-        {
-          role: 'system',
-          content: enhancedSystemPrompt
-        },
-        ...recentMessages
-      ];
-
-      // Log what we're sending to LLM
-      logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messages, null, 2)}`);
-      logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
-
-      const rateLimiter = getRateLimiter();
-      const response = await rateLimiter.call(
-        async () => axios.post(apiUrl, {
-          model: modelConfig.model,
-          messages,
-          temperature: modelConfig.temperature,
-          max_tokens: modelConfig.max_tokens
-        }, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 60000
-        }),
-        { priority: 10, metadata: { type: 'chat', model: modelConfig.model } }
-      );
-      chatResponse = response;
-
-      // Log API response
-      const llmAnswer = response.data?.choices?.[0]?.message?.content;
-      logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
-
-    } catch (primaryError) {
-      const errorStatus = primaryError.response?.status || 'unknown';
-      logger.warn('executor', `[CHAT-FALLBACK] Primary request failed with ${errorStatus}: ${primaryError.message}`);
-      
-      // UPDATED 2025-11-10: Try automatic model fallback - find alternative models from API
-      try {
-        logger.info('executor', '[CHAT-FALLBACK] 🔍 Searching for alternative models...');
-        
-        // Get list of available models from API
-        let workingModel = null;
         try {
-          const rateLimiter = getRateLimiter();
-          const modelsResponse = await rateLimiter.call(
-            async () => axios.get('http://localhost:4000/v1/models', { timeout: 5000 }),
-            { priority: 5, metadata: { type: 'models_list' } }
+          // Build messages for LLM
+          // NEXUS: Inject dynamic consciousness prompt into system prompt
+          const enhancedSystemPrompt = chatPrompt.SYSTEM_PROMPT
+            .replace('{{USER_LANGUAGE}}', GlobalConfig.USER_LANGUAGE || 'uk')
+            .replace('{{DYNAMIC_CONSCIOUSNESS_PROMPT}}', dynamicPrompt || '');
+
+          const messages = [
+            {
+              role: 'system',
+              content: enhancedSystemPrompt
+            },
+            ...recentMessages
+          ];
+
+          // Log what we're sending to LLM
+          logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messages, null, 2)}`);
+          logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
+
+          const response = await adaptiveThrottler.throttledRequest(
+            async () => axios.post(apiUrl, {
+              model: modelConfig.model,
+              messages,
+              temperature: modelConfig.temperature,
+              max_tokens: modelConfig.max_tokens
+            }, {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 60000
+            }),
+            { priority: 10, metadata: { type: 'chat', model: modelConfig.model } }
           );
-          const availableModels = modelsResponse.data?.data || [];
-          
-          if (availableModels.length > 0) {
-            logger.info('executor', `[CHAT-FALLBACK] Found ${availableModels.length} models, testing alternatives...`);
-            
-            // Try up to 5 alternative models
-            const modelsToTry = availableModels
-              .map(m => m.id)
-              .filter(id => id !== modelConfig.model)
-              .slice(0, 5);
-            
-            for (const alternativeModel of modelsToTry) {
-              try {
-                logger.debug('executor', `[CHAT-FALLBACK] Testing model: ${alternativeModel}`);
-                
-                const rateLimiter = getRateLimiter();
-                const testResponse = await rateLimiter.call(
+          chatResponse = response;
+
+          // Log API response
+          const llmAnswer = response.data?.choices?.[0]?.message?.content;
+          logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
+
+        } catch (primaryError) {
+          const errorStatus = primaryError.response?.status || 'unknown';
+          logger.warn('executor', `[CHAT-FALLBACK] Primary request failed with ${errorStatus}: ${primaryError.message}`);
+
+          // UPDATED 2025-11-10: Try automatic model fallback - find alternative models from API
+          try {
+            logger.info('executor', '[CHAT-FALLBACK] 🔍 Searching for alternative models...');
+
+            // Get list of available models from API
+            let workingModel = null;
+            try {
+              const modelsResponse = await adaptiveThrottler.throttledRequest(
+                async () => axios.get('http://localhost:4000/v1/models', { timeout: 5000 }),
+                { priority: 5, metadata: { type: 'models_list' } }
+              );
+              const availableModels = modelsResponse.data?.data || [];
+
+              if (availableModels.length > 0) {
+                logger.info('executor', `[CHAT-FALLBACK] Found ${availableModels.length} models, testing alternatives...`);
+
+                // Try up to 5 alternative models
+                const modelsToTry = availableModels
+                  .map(m => m.id)
+                  .filter(id => id !== modelConfig.model)
+                  .slice(0, 5);
+
+                for (const alternativeModel of modelsToTry) {
+                  try {
+                    logger.debug('executor', `[CHAT-FALLBACK] Testing model: ${alternativeModel}`);
+
+                    const testResponse = await adaptiveThrottler.throttledRequest(
+                      async () => axios.post(apiUrl, {
+                        model: alternativeModel,
+                        messages,
+                        temperature: modelConfig.temperature,
+                        max_tokens: modelConfig.max_tokens
+                      }, {
+                        headers: { 'Content-Type': 'application/json' },
+                        timeout: 15000
+                      }),
+                      { priority: 8, retryable: false, metadata: { type: 'fallback_test', model: alternativeModel } }
+                    );
+
+                    if (testResponse.status === 200) {
+                      workingModel = alternativeModel;
+                      chatResponse = testResponse;
+                      logger.info('executor', `[CHAT-FALLBACK] ✅ Success with alternative model: ${workingModel}`);
+                      break;
+                    }
+                  } catch (testError) {
+                    logger.debug('executor', `[CHAT-FALLBACK] Model ${alternativeModel} failed: ${testError.message}`);
+                    continue;
+                  }
+                }
+              }
+            } catch (modelsError) {
+              logger.warn('executor', `[CHAT-FALLBACK] Could not fetch models list: ${modelsError.message}`);
+            }
+
+            if (!workingModel) {
+              // Try endpoint fallback if model fallback failed
+              if (apiEndpointConfig?.fallback && !usedFallback) {
+                logger.warn('executor', `[CHAT-FALLBACK] No working model found, trying fallback endpoint...`);
+                apiUrl = apiEndpointConfig.fallback;
+                usedFallback = true;
+
+                const response = await adaptiveThrottler.throttledRequest(
                   async () => axios.post(apiUrl, {
-                    model: alternativeModel,
+                    model: modelConfig.model,
                     messages,
                     temperature: modelConfig.temperature,
                     max_tokens: modelConfig.max_tokens
                   }, {
                     headers: { 'Content-Type': 'application/json' },
-                    timeout: 15000
+                    timeout: 60000
                   }),
-                  { priority: 8, retryable: false, metadata: { type: 'fallback_test', model: alternativeModel } }
+                  { priority: 9, metadata: { type: 'fallback', model: modelConfig.model } }
                 );
-                
-                if (testResponse.status === 200) {
-                  workingModel = alternativeModel;
-                  chatResponse = testResponse;
-                  logger.info('executor', `[CHAT-FALLBACK] ✅ Success with alternative model: ${workingModel}`);
-                  break;
-                }
-              } catch (testError) {
-                logger.debug('executor', `[CHAT-FALLBACK] Model ${alternativeModel} failed: ${testError.message}`);
-                continue;
+                chatResponse = response;
+              } else {
+                throw primaryError;
               }
             }
-          }
-        } catch (modelsError) {
-          logger.warn('executor', `[CHAT-FALLBACK] Could not fetch models list: ${modelsError.message}`);
-        }
-        
-        if (!workingModel) {
-          // Try endpoint fallback if model fallback failed
-          if (apiEndpointConfig?.fallback && !usedFallback) {
-            logger.warn('executor', `[CHAT-FALLBACK] No working model found, trying fallback endpoint...`);
-            apiUrl = apiEndpointConfig.fallback;
-            usedFallback = true;
-
-            const rateLimiter = getRateLimiter();
-            const response = await rateLimiter.call(
-              async () => axios.post(apiUrl, {
-                model: modelConfig.model,
-                messages,
-                temperature: modelConfig.temperature,
-                max_tokens: modelConfig.max_tokens
-              }, {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 60000
-              }),
-              { priority: 9, metadata: { type: 'fallback_chat', model: modelConfig.model } }
-            );
-            chatResponse = response;
-          } else {
-            throw primaryError;
-          }
-        }
-      } catch (fallbackError) {
-        logger.error('executor', `[CHAT-FALLBACK] ❌ All fallback attempts failed: ${fallbackError.message}`);
-        // Return a graceful fallback response instead of throwing
-        chatResponse = {
-          data: {
-            choices: [{
-              message: {
-                content: "Вибачте, зараз всі моделі тимчасово недоступні. Спробуйте ще раз за кілька секунд."
+          } catch (fallbackError) {
+            logger.error('executor', `[CHAT-FALLBACK] ❌ All fallback attempts failed: ${fallbackError.message}`);
+            // Return a graceful fallback response instead of throwing
+            chatResponse = {
+              data: {
+                choices: [{
+                  message: {
+                    content: "Вибачте, зараз всі моделі тимчасово недоступні. Спробуйте ще раз за кілька секунд."
+                  }
+                }]
               }
-            }]
+            };
           }
-        };
-      }
-    }
+        }
 
         // Handle both OpenAI format (message.content) and Ollama format (text)
         const atlasResponse = chatResponse.data?.choices?.[0]?.message?.content
@@ -1194,7 +1190,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           if (!session.chatThread.messages) {
             session.chatThread.messages = [];
           }
-          
+
           session.chatThread.messages.push({
             role: 'assistant',
             content: atlasResponse,
@@ -1205,11 +1201,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           // DIAGNOSTIC 16.10.2025
           logger.system('executor', `[CHAT-CONTEXT] Assistant response added. Total messages now: ${session.chatThread.messages.length}`);
         }
-        
+
         // NEW 26.10.2025: Store important information to memory
         try {
           const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
-          
+
           // FIXED 2025-11-08: Check if coordinator is initialized (lazy loading)
           if (chatMemoryCoordinator && typeof chatMemoryCoordinator.storeMemory === 'function') {
             await chatMemoryCoordinator.storeMemory({
@@ -1271,7 +1267,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       if (enrichmentResult.success && enrichmentResult.enriched_message) {
         enrichedMessage = enrichmentResult.enriched_message;
         enrichmentMetadata = enrichmentResult.metadata;
-        
+
         logger.system('executor', `[STAGE-0.5-MCP] ✅ Context enriched`);
         logger.system('executor', `[STAGE-0.5-MCP]    Original: "${userMessage}"`);
         logger.system('executor', `[STAGE-0.5-MCP]    Enriched: "${enrichedMessage}"`);
@@ -1297,7 +1293,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         sessionId: session.id,
         tasksCount: session.devTransitionContext.tasks?.length || 0
       });
-      
+
       // Create TODO from DEV context
       todoResult = {
         success: true,
@@ -1314,7 +1310,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         },
         summary: `Виконую ${session.devTransitionContext.tasks?.length || 0} завдань з DEV аналізу`
       };
-      
+
       // Clear transition context after use
       delete session.devTransitionContext;
     } else {
@@ -1372,10 +1368,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     let i = 0;
     let lastItemCompletionTime = 0;
     const MIN_DELAY_BETWEEN_ITEMS = 3000; // 3 seconds minimum between items
-    
+
     while (i < todo.items.length) {
       const item = todo.items[i];
-      
+
       // Add delay between items to prevent rate limiting
       const timeSinceLastItem = Date.now() - lastItemCompletionTime;
       if (lastItemCompletionTime > 0 && timeSinceLastItem < MIN_DELAY_BETWEEN_ITEMS) {
@@ -1383,7 +1379,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.system('executor', `[RATE-LIMIT] Waiting ${delayNeeded}ms before processing item ${item.id}`);
         await new Promise(resolve => setTimeout(resolve, delayNeeded));
       }
-      
+
       // Skip items that were already processed (completed, failed, replanned, skipped)
       if (item.status === 'completed' || item.status === 'failed' || item.status === 'skipped') {
         logger.system('executor', `[SKIP] Item ${item.id} already processed (status: ${item.status})`);
@@ -1391,7 +1387,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         i++;
         continue;
       }
-      
+
       // FIXED 2025-10-23: Skip items marked as 'replanned' - new items will replace them
       if (item.status === 'replanned') {
         logger.system('executor', `[SKIP] Item ${item.id} was replanned, new items will be processed`);
@@ -1399,7 +1395,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         i++;
         continue;
       }
-      
+
       logger.info(`Processing TODO item ${i + 1}/${todo.items.length}: ${item.action}`, {
         sessionId: session.id,
         itemId: item.id
@@ -1416,25 +1412,25 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           item.blocked_check_count = 0;
         }
         item.blocked_check_count++;
-        
+
         // Check explicit dependencies
         const unresolvedDependencies = dependencies
           .map(depId => todo.items.find(todoItem => String(todoItem.id) === String(depId)))
           .filter(depItem => depItem && depItem.status !== 'completed');
-        
+
         // ENHANCED 2025-10-23: Also check if any parent is replanned or blocked
         // If parent is replanned, children must complete first
         const parentBlocked = dependencies.some(depId => {
           const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
           if (!depItem) return false;
-          
+
           // If dependency is replanned, check if its children are complete
           if (depItem.status === 'replanned') {
             const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
             const incompleteChildren = children.filter(child => child.status !== 'completed');
             return incompleteChildren.length > 0; // Block if children incomplete
           }
-          
+
           return false;
         });
 
@@ -1445,21 +1441,21 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               sessionId: session.id,
               itemId: item.id
             });
-            
+
             // FIXED 2025-11-03: Try to resolve blocked dependencies
             let dependenciesUpdated = false;
             const newDependencies = [];
-            
+
             for (const depId of dependencies) {
               const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
-              
+
               // CRITICAL FIX: Remove skipped dependencies
               if (depItem && depItem.status === 'skipped') {
                 dependenciesUpdated = true;
                 logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing skipped dependency ${depId}`);
                 continue; // Skip adding this dependency
               }
-              
+
               // Replace replanned dependencies with children
               if (depItem && depItem.status === 'replanned') {
                 const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
@@ -1481,7 +1477,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing missing dependency ${depId}`);
               }
             }
-            
+
             if (dependenciesUpdated) {
               item.dependencies = newDependencies;
               item.blocked_check_count = 0; // Reset counter
@@ -1489,17 +1485,17 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               // Continue to re-check with new dependencies
               continue;
             }
-            
+
             // If can't resolve after 10 checks, skip item
             if (item.blocked_check_count >= 10) {
               logger.error(`Item ${item.id} blocked ${item.blocked_check_count} times - SKIPPING to prevent infinite loop`, {
                 sessionId: session.id,
                 itemId: item.id
               });
-              
+
               item.status = 'skipped';
               item.skip_reason = 'Blocked too many times - infinite loop protection';
-              
+
               if (wsManager) {
                 try {
                   wsManager.broadcastToSubscribers('chat', 'chat_message', {
@@ -1512,16 +1508,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                   logger.warn(`Failed to send skip WebSocket message: ${error.message}`);
                 }
               }
-              
+
               continue;
             }
           }
-          
+
           const unresolvedSummary = unresolvedDependencies
             .map(depItem => `#${depItem.id} (${depItem.status || 'unknown'})`)
             .join(', ');
-          
-          const blockReason = parentBlocked 
+
+          const blockReason = parentBlocked
             ? 'Parent replanned - waiting for replacement items'
             : `Dependencies not completed: ${unresolvedSummary}`;
 
@@ -1573,7 +1569,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       // UPDATED 19.10.2025: 1 спроба виконання, 3 спроби перепланування
       const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
       const maxReplanningAttempts = GlobalConfig.AI_BACKEND_CONFIG.retry.replanning.maxAttempts;
-      
+
       let replanningAttempts = 0;
       let lastPlanResult = null;
       let lastExecResult = null;
@@ -1592,7 +1588,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           });
           await new Promise(resolve => setTimeout(resolve, backoffDelay));
         }
-        
+
         // FIXED 2025-10-23: Log attempt details for debugging sequential execution
         logger.system('executor', `[EXEC] Item ${item.id} attempt ${attempt}/${maxAttempts}: "${item.action}"`);
         if (dependencies.length > 0) {
@@ -1607,11 +1603,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               // FIXED 2025-11-07: Await async factory resolution
               const routerClassifier = await container.resolve('routerClassifier');
               const mcpManager = container.resolve('mcpManager');
-              
+
               logger.workflow('stage', 'system', `Router Classifier: Fast filtering for item ${item.id}`, {
                 sessionId: session.id
               });
-              
+
               // Check if routerClassifier has execute method
               if (typeof routerClassifier.execute === 'function') {
                 const routerResult = await routerClassifier.execute({
@@ -1619,13 +1615,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                   context: todo,
                   availableServers: Array.from(mcpManager.servers.keys())
                 });
-                
+
                 if (routerResult.success && routerResult.selectedServers) {
                   suggestedServers = routerResult.selectedServers;
                   logger.system('executor', `[ROUTER] Pre-filtered to: ${suggestedServers.join(', ')}`);
                 }
               } else {
-                logger.warn('Router classifier does not have execute method, skipping', { 
+                logger.warn('Router classifier does not have execute method, skipping', {
                   methods: Object.getOwnPropertyNames(Object.getPrototypeOf(routerClassifier)).filter(m => typeof routerClassifier[m] === 'function')
                 });
               }
@@ -1663,13 +1659,13 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             logger.warn(`Server selection failed for item ${item.id}: ${selectionError.message}. Using all servers with fallback prompts.`, {
               sessionId: session.id
             });
-            
+
             // Assign fallback prompts when server selection fails
             if (!selectedPrompts) {
               // Intelligently select fallback prompt based on task content
               const taskAction = item.action.toLowerCase();
               let fallbackPrompt = 'TETYANA_PLAN_TOOLS_PLAYWRIGHT'; // Default for web tasks
-              
+
               if (taskAction.includes('файл') || taskAction.includes('зберегти') || taskAction.includes('створити') || taskAction.includes('file')) {
                 fallbackPrompt = 'TETYANA_PLAN_TOOLS_FILESYSTEM';
               } else if (taskAction.includes('команд') || taskAction.includes('запустити') || taskAction.includes('command') || taskAction.includes('shell')) {
@@ -1678,7 +1674,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 fallbackPrompt = 'TETYANA_PLAN_TOOLS_MEMORY';
               }
               // Default remains playwright for web scraping, price collection, etc.
-              
+
               selectedPrompts = [fallbackPrompt];
               logger.system('executor', `[FALLBACK] Auto-assigned intelligent fallback prompt: ${selectedPrompts.join(', ')} (based on task: "${item.action}")`);
             }
@@ -1735,7 +1731,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             try {
               // Speak full action as-is from TODO
               const fullAction = item.action.toLowerCase();
-              
+
               logger.system('executor', `[TTS] 🔊 Tetyana START: "${fullAction}"`);
               await ttsSyncManager.speak(fullAction, {
                 mode: 'normal',
@@ -1834,10 +1830,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                   'Зроблено',
                   'Завершено'
                 ];
-                
+
                 const selectedPhrase = successPhrases[phraseRotation.tetyanaSuccess % successPhrases.length];
                 phraseRotation.tetyanaSuccess++;
-                
+
                 logger.system('executor', `[TTS] 🔊 Tetyana SUCCESS: "${selectedPhrase}"`);
                 await ttsSyncManager.speak(selectedPhrase, {
                   mode: 'normal',
@@ -1941,7 +1937,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               // FIXED 2025-10-23: Generate hierarchical IDs (2 → 2.1, 2.2, 2.3)
               const parentId = String(item.id);
               logger.system('executor', `[REPLAN] Generating child IDs for parent ${parentId}`);
-              
+
               replanResult.new_items.forEach((newItem, idx) => {
                 // Generate next child ID (2.1, 2.2, etc. or 2.2.1, 2.2.2 for nested)
                 const childId = HierarchicalIdManager.generateChildId(parentId, todo.items.concat(replanResult.new_items.slice(0, idx)));
@@ -1950,7 +1946,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 newItem.attempt = 0;
                 newItem.max_attempts = newItem.max_attempts || item.max_attempts || 2;
                 newItem.parent_id = parentId; // Track parent for debugging
-                
+
                 logger.system('executor', `[REPLAN]   Generated child ID: ${childId}`);
               });
 
@@ -1962,7 +1958,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 logger.info(`TODO list updated: ${todo.items.length} total items`, {
                   sessionId: session.id
                 });
-                
+
                 // FIXED 2025-10-23: Log new items with hierarchical structure
                 logger.system('executor', `[REPLAN] Inserted ${replanResult.new_items.length} new items after position ${currentIndex}:`);
                 replanResult.new_items.forEach((newItem, idx) => {
@@ -2031,11 +2027,11 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
             } else {
               // No replan - retry with simple adjustment
               replanningAttempts++;
-              
+
               // FIXED 2025-10-23: Log replanning attempt
               logger.system('executor', `[REPLAN-RETRY] Item ${item.id} replanning attempt ${replanningAttempts}/${maxReplanningAttempts}`);
-              
-              
+
+
               logger.workflow('stage', 'atlas', `Stage 3-MCP: Simple adjustment for item ${item.id} (attempt ${replanningAttempts}/${maxReplanningAttempts})`, {
                 sessionId: session.id
               });
@@ -2045,10 +2041,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                 logger.warn(`Item ${item.id}: Max replanning attempts (${maxReplanningAttempts}) reached, skipping`, {
                   sessionId: session.id
                 });
-                
+
                 item.status = 'skipped';
                 item.skip_reason = `Не вдалося виконати після ${maxReplanningAttempts} спроб перепланування`;
-                
+
                 // Send TTS for failure/skip
                 if (wsManager && item.tts?.failure) {
                   try {
@@ -2064,7 +2060,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                     logger.warn(`Failed to send TTS failure message: ${error.message}`);
                   }
                 }
-                
+
                 // Send skip update to frontend
                 if (res.writable && !res.writableEnded) {
                   res.write(`data: ${JSON.stringify({
@@ -2075,7 +2071,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
                     }
                   })}\n\n`);
                 }
-                
+
                 break; // Exit retry loop
               }
             }
@@ -2151,10 +2147,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
           })}\n\n`);
         }
       }
-      
+
       // Update completion time for rate limiting
       lastItemCompletionTime = Date.now();
-      
+
       // FIXED 2025-10-23: Move to next item in main loop
       i++;
     }
@@ -2174,7 +2170,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     const completedCount = todo.items.filter(item => item.status === 'completed').length;
     const totalCount = todo.items.length;
     const successRate = Math.round((completedCount / totalCount) * 100);
-    
+
     let atlasFinalMessage;
     let atlasTTS;
     if (summaryResult.success && successRate === 100) {
@@ -2225,7 +2221,7 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     if (!session.history) {
       session.history = [];
     }
-    
+
     session.history.push({
       role: 'assistant',
       content: summaryResult.summary,
@@ -2342,7 +2338,7 @@ function _getVerificationDelay(execution, item) {
         'safari', 'chrome', 'firefox',
         'finder', 'notes', 'mail', 'calendar'
       ];
-      
+
       for (const appName of appNames) {
         if (actionLower.includes(appName)) {
           return DELAY_APP_LAUNCH;
@@ -2364,7 +2360,7 @@ export async function executeStepByStepWorkflow(userMessage, session, res, _opti
   if (!session.history) {
     session.history = [];
   }
-  
+
   session.history.push({
     role: 'user',
     content: userMessage,
@@ -2401,13 +2397,13 @@ export async function executeStepByStepWorkflow(userMessage, session, res, _opti
 
     // Execute MCP Dynamic TODO Workflow
     const mcpTodoManager = container.resolve('mcpTodoManager');
-    
+
     // Step 1: Create TODO from user message
     const todo = await mcpTodoManager.createTodo(userMessage, { sessionId: session.id });
-    
+
     // Step 2: Execute the TODO
     const results = await mcpTodoManager.executeTodo(todo);
-    
+
     return {
       success: true,
       mode: 'task',
@@ -2482,7 +2478,7 @@ export class WorkflowExecutor {
     } catch (error) {
       this.logger.warn('ETERNITY module not available:', error.message);
     }
-    
+
     return this;
   }
 }

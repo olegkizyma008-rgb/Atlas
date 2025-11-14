@@ -24,7 +24,6 @@ import webIntegration from '../api/web-integration.js';
 import WebSocketManager from '../api/websocket-manager.js';
 import logger from '../utils/logger.js';
 import { configureAxios } from '../utils/axios-config.js';
-import { initializeRateLimiter } from '../utils/rate-limiter-init.js';
 import setupHealthRoutes from '../api/routes/health.routes.js';
 import setupChatRoutes from '../api/routes/chat.routes.js';
 import setupWebRoutes from '../api/routes/web.routes.js';
@@ -106,13 +105,13 @@ export class Application {
 
         // Налаштовуємо routes (передаємо DI container для MCP workflow)
         setupHealthRoutes(this.app, { configInitialized: this.configInitialized, networkConfig: this.networkConfig });
-        setupChatRoutes(this.app, { 
-            sessions: this.sessions, 
+        setupChatRoutes(this.app, {
+            sessions: this.sessions,
             networkConfig: this.networkConfig,
             container: this.container  // ✅ NEW: Pass DI container for MCP workflow
         });
         setupWebRoutes(this.app);
-        
+
         // Nexus Eternity and Cascade API routes
         setupEternityRoutes(this.app, { container: this.container });
         setupCascadeRoutes(this.app, { container: this.container });
@@ -207,10 +206,7 @@ export class Application {
      */
     async start() {
         try {
-            // Initialize rate limiter first (before any API calls)
-            initializeRateLimiter();
-            
-            // Initialize services
+            // Initialize services (rate limiter is now part of DI container)
             await this.initializeServices();
 
             // Setup Express and routes
@@ -236,7 +232,7 @@ export class Application {
                     capabilities: cascadeController.capabilities
                 });
             }
-            
+
             // Initialize Eternity self-improvement module
             try {
                 const eternityModule = this.container.resolve('eternityModule');

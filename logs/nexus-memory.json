@@ -1,31 +1,31 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-11-14T13:21:14.194Z",
+  "lastUpdated": "2025-11-14T13:21:35.248Z",
   "state": {
     "evolutionLevel": 1,
     "totalImprovements": 0,
     "cyclesCompleted": 1,
     "testsRun": 0,
     "testsPassed": 0,
-    "errorsFixed": 26,
+    "errorsFixed": 28,
     "mode": "autonomous",
-    "lastUpdate": 1763126474194,
+    "lastUpdate": 1763126495248,
     "extra": {
       "reason": "auto-fix",
       "fix": {
-        "id": "fix_1763126184997_blcwxmtd1",
+        "id": "fix_1763126190998_8tet0prfa",
         "error": {
           "type": "error",
-          "line": "2025-11-14 15:16:24 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {\"metadata\":{\"error\":\"messages is not defined\",\"newDelay\":10000}}",
+          "line": "2025-11-14 15:16:30 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {\"metadata\":{\"error\":\"messages is not defined\",\"newDelay\":10000}}",
           "pattern": "ERROR",
-          "timestamp": "2025-11-14T13:16:24.997Z",
+          "timestamp": "2025-11-14T13:16:30.998Z",
           "extractedError": {
             "message": null,
             "component": "WARN",
             "stackTrace": null
           }
         },
-        "timestamp": "2025-11-14T13:16:24.997Z",
+        "timestamp": "2025-11-14T13:16:30.998Z",
         "status": "completed",
         "attempts": 1,
         "maxAttempts": 3,
@@ -68,7 +68,7 @@
             "summary": "Частковий аналіз виконано. Виявлено помилку: Request failed with status code 500"
           },
           "metadata": {
-            "timestamp": "2025-11-14T13:21:14.189Z",
+            "timestamp": "2025-11-14T13:21:35.244Z",
             "partial": true,
             "error": "Request failed with status code 500"
           }
@@ -7175,6 +7175,146 @@
             },
             "metadata": {
               "timestamp": "2025-11-14T13:21:14.189Z",
+              "partial": true,
+              "error": "Request failed with status code 500"
+            }
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2025-11-14T13:21:25.023Z",
+      "role": "auto-fixer",
+      "message": "Fixed: Missing import or module",
+      "response": null,
+      "metadata": {
+        "fix": {
+          "id": "fix_1763126187998_tf1wdsiq5",
+          "error": {
+            "type": "error",
+            "line": "2025-11-14 15:16:27 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {\"metadata\":{\"error\":\"messages is not defined\",\"newDelay\":10000}}",
+            "pattern": "ERROR",
+            "timestamp": "2025-11-14T13:16:27.998Z",
+            "extractedError": {
+              "message": null,
+              "component": "WARN",
+              "stackTrace": null
+            }
+          },
+          "timestamp": "2025-11-14T13:16:27.998Z",
+          "status": "completed",
+          "attempts": 1,
+          "maxAttempts": 3,
+          "solution": {
+            "canFix": true,
+            "type": "missing_import",
+            "description": "Missing import or module",
+            "actions": [
+              {
+                "type": "add_import",
+                "module": null
+              }
+            ],
+            "confidence": 0.8
+          },
+          "result": {
+            "success": true,
+            "analysis": {
+              "findings": {
+                "critical_issues": [
+                  {
+                    "type": "analysis_error",
+                    "description": "Помилка під час аналізу: Request failed with status code 500",
+                    "location": "dev-self-analysis-processor",
+                    "severity": "high"
+                  }
+                ],
+                "performance_bottlenecks": [],
+                "deprecated_patterns": [],
+                "improvement_suggestions": [
+                  {
+                    "area": "error_handling",
+                    "suggestion": "Покращити обробку помилок в системі самоаналізу",
+                    "priority": "high"
+                  }
+                ]
+              },
+              "todo_list": [],
+              "intervention_required": false,
+              "summary": "Частковий аналіз виконано. Виявлено помилку: Request failed with status code 500"
+            },
+            "metadata": {
+              "timestamp": "2025-11-14T13:21:25.023Z",
+              "partial": true,
+              "error": "Request failed with status code 500"
+            }
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2025-11-14T13:21:35.244Z",
+      "role": "auto-fixer",
+      "message": "Fixed: Missing import or module",
+      "response": null,
+      "metadata": {
+        "fix": {
+          "id": "fix_1763126190998_8tet0prfa",
+          "error": {
+            "type": "error",
+            "line": "2025-11-14 15:16:30 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {\"metadata\":{\"error\":\"messages is not defined\",\"newDelay\":10000}}",
+            "pattern": "ERROR",
+            "timestamp": "2025-11-14T13:16:30.998Z",
+            "extractedError": {
+              "message": null,
+              "component": "WARN",
+              "stackTrace": null
+            }
+          },
+          "timestamp": "2025-11-14T13:16:30.998Z",
+          "status": "completed",
+          "attempts": 1,
+          "maxAttempts": 3,
+          "solution": {
+            "canFix": true,
+            "type": "missing_import",
+            "description": "Missing import or module",
+            "actions": [
+              {
+                "type": "add_import",
+                "module": null
+              }
+            ],
+            "confidence": 0.8
+          },
+          "result": {
+            "success": true,
+            "analysis": {
+              "findings": {
+                "critical_issues": [
+                  {
+                    "type": "analysis_error",
+                    "description": "Помилка під час аналізу: Request failed with status code 500",
+                    "location": "dev-self-analysis-processor",
+                    "severity": "high"
+                  }
+                ],
+                "performance_bottlenecks": [],
+                "deprecated_patterns": [],
+                "improvement_suggestions": [
+                  {
+                    "area": "error_handling",
+                    "suggestion": "Покращити обробку помилок в системі самоаналізу",
+                    "priority": "high"
+                  }
+                ]
+              },
+              "todo_list": [],
+              "intervention_required": false,
+              "summary": "Частковий аналіз виконано. Виявлено помилку: Request failed with status code 500"
+            },
+            "metadata": {
+              "timestamp": "2025-11-14T13:21:35.244Z",
               "partial": true,
               "error": "Request failed with status code 500"
             }

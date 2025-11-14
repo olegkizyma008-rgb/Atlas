@@ -9,6 +9,7 @@
 import logger from '../../utils/logger.js';
 import { VALIDATION_CONFIG, getEnabledStages, isStageCritical } from '../../../config/validation-config.js';
 import SelfCorrectionValidator from './self-correction-validator.js';
+import { StructureValidator, HistoryValidator, MCPValidator } from './unified-validator-base.js';
 
 /**
  * Validation Pipeline
@@ -36,7 +37,7 @@ export class ValidationPipeline {
     this.historyManager = options.historyManager;
     this.llmValidator = options.llmValidator;
     this.llmClient = options.llmClient;
-    
+
     // Initialize self-correction validator if llmClient available
     this.selfCorrectionValidator = null;
     // Will be lazily initialized when needed to avoid require issues
@@ -45,6 +46,19 @@ export class ValidationPipeline {
     this.config = VALIDATION_CONFIG;
     // Enable self-correction by default
     this.config.enableSelfCorrection = true;
+
+    // Initialize consolidated validators
+    this.registerValidator('structure', new StructureValidator({
+      config: this.config.structure || {}
+    }));
+
+    this.registerValidator('history', new HistoryValidator(this.historyManager, {
+      config: this.config.history || {}
+    }));
+
+    this.registerValidator('mcp', new MCPValidator(this.mcpManager, {
+      config: this.config.mcp || {}
+    }));
 
     // Metrics
     this.metrics = {
@@ -55,7 +69,7 @@ export class ValidationPipeline {
       stageMetrics: {}
     };
 
-    logger.system('validation-pipeline', '🔍 ValidationPipeline initialized');
+    logger.system('validation-pipeline', '🔍 ValidationPipeline initialized with consolidated validators');
   }
 
   /**
@@ -90,7 +104,7 @@ export class ValidationPipeline {
     // Step 0: Self-correction cycle (if enabled)
     let correctedToolCalls = [...toolCalls];
     let selfCorrectionResult = null;
-    
+
     if (this.config.enableSelfCorrection && this.llmClient) {
       // Initialize self-correction validator
       if (!this.selfCorrectionValidator) {
@@ -100,11 +114,11 @@ export class ValidationPipeline {
           logger.warn('validation-pipeline', 'Failed to initialize self-correction validator', { error: err.message });
         }
       }
-      
+
       if (this.selfCorrectionValidator) {
         logger.info('validation-pipeline', 'Running self-correction cycle');
         selfCorrectionResult = await this.selfCorrectionValidator.validate(toolCalls, context);
-        
+
         if (selfCorrectionResult.success && selfCorrectionResult.correctedPlan) {
           correctedToolCalls = selfCorrectionResult.correctedPlan;
           logger.info('validation-pipeline', `Self-correction applied ${selfCorrectionResult.attempts} corrections`);
@@ -282,7 +296,7 @@ export class ValidationPipeline {
 
     // Log slow validations
     if (this.config.performance.logSlowValidations &&
-        result.metadata.totalDuration > this.config.performance.slowValidationThreshold) {
+      result.metadata.totalDuration > this.config.performance.slowValidationThreshold) {
       logger.warn('validation-pipeline',
         `⏱️ Slow validation detected: ${result.metadata.totalDuration}ms (threshold: ${this.config.performance.slowValidationThreshold}ms)`);
     }

@@ -1776,3 +1776,566 @@
 2025-11-14 15:08:21 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
 2025-11-14 15:08:21 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
 2025-11-14 15:08:21 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:22 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:22 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:22 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:22 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:22 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:22 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:22 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:22 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:23 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:08:23 [INFO] [NEXUS-FIXER] ✅ Виправлено: MCP Memory Server integration issue {"metadata":{}}
+2025-11-14 15:08:23 [INFO] ✅ [NEXUS-MASTER] Auto-fix: MCP Memory Server integration issue {"metadata":{}}
+2025-11-14 15:08:24 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:08:26 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:26 [INFO] 💠 [NEXUS-LIFE] Цикл №3: фокус=performance, настрій=curious, енергія=88% {"metadata":{}}
+2025-11-14 15:08:26 [ERROR] Failed to save to Nexus Memory {"metadata":{"error":"Cannot read properties of undefined (reading 'length')","stack":"TypeError: Cannot read properties of undefined (reading 'length')\n    at EternityModule._generateAnalysisSummary (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:1493:52)\n    at EternityModule._saveAnalysisToMemory (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:669:27)\n    at EternityModule.performSelfAnalysis (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:276:18)\n...","category":"eternity"}}
+2025-11-14 15:08:26 [INFO] 🔧 [NEXUS-AUTONOMOUS] Знайдено 1 покращень - застосовую ВСІ автономно... {"metadata":{}}
+2025-11-14 15:08:26 [INFO] 🚀 [NEXUS-AUTONOMOUS] Застосовую 1 покращень автономно... {"metadata":{}}
+2025-11-14 15:08:26 [WARN] ⚠️ [NEXUS-AUTONOMOUS] Покращення не спрацювало, пробую альтернативу {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS-ALTERNATIVE] Генерую альтернативу для: Провести рефакторинг журналу автономних покращень {"metadata":{}}
+2025-11-14 15:08:26 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для alternative-solution: {"metadata":{"model":"ext-mistral-codestral-latest","score":8,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:26 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:26 [INFO] [NEXUS] Executing alternative-solution with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:27 [INFO] [NEXUS-FIXER] ➕ Додано в чергу: Failed to save to Nexus Memory {"metadata":{"error":"Cannot read properties of undefined (reading 'length')","stack":"TypeError: Cannot read properties of undefined (reading 'length')\n    at EternityModule._generateAnalysisSummary (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:1493:52)\n    at EternityModule._saveAnalysisToMemory (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:669:27)\n    at EternityModule.performSelfAnalysis (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:276:18)\n...","category":"eternity"}} {"metadata":{}}
+2025-11-14 15:08:28 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): Failed to save to Nexus Memory {"metadata":{"error":"Cannot read properties of undefined (reading 'length')","stack":"TypeError: Cannot read properties of undefined (reading 'length')\n    at EternityModule._generateAnalysisSummary (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:1493:52)\n    at EternityModule._saveAnalysisToMemory (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:669:27)\n    at EternityModule.performSelfAnalysis (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:276:18)\n...","category":"eternity"}} {"metadata":{}}
+2025-11-14 15:08:28 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:28 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:28 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:28 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T12:56:08.341Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":739.789676167}}
+2025-11-14 15:08:29 [INFO] [NEXUS-AUTONOMOUS] 🔒 Тихий режим: виявлено 1, застосовано 0 {"metadata":{}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] 📄 error.log: 48 recent lines (55425 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4604 recent lines (4944 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 7.4 {"metadata":{}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 48 errors, 1200 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:31 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:08:31 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:32 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:32 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:32 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:33 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:08:33 [INFO] [NEXUS-FIXER] ✅ Виправлено: Accessing undefined property {"metadata":{}}
+2025-11-14 15:08:33 [INFO] ✅ [NEXUS-MASTER] Auto-fix: Accessing undefined property {"metadata":{}}
+2025-11-14 15:08:35 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:08:38 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:38 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:38 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:38 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:38 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:38 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:38 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:38 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:39 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): unknown {"metadata":{}}
+2025-11-14 15:08:39 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:39 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:39 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:39 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T12:56:08.341Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":750.670447292}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] 📄 error.log: 49 recent lines (55426 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [NEXUS-MONITOR] 🔍 Виявлено 1 помилок, аналізую... {"metadata":{}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4648 recent lines (4988 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [NEXUS-MONITOR] 🔍 Виявлено 1 помилок, аналізую... {"metadata":{}}
+2025-11-14 15:08:41 [INFO] [NEXUS-MONITOR] 🔍 Виявлено 1 помилок, аналізую... {"metadata":{}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 49 errors, 1212 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:41 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:08:41 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:42 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:43 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:43 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:43 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:44 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:08:44 [INFO] [NEXUS-FIXER] ✅ Виправлено: Missing import or module {"metadata":{}}
+2025-11-14 15:08:44 [INFO] ✅ [NEXUS-MASTER] Auto-fix: Missing import or module {"metadata":{}}
+2025-11-14 15:08:45 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:08:48 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:48 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:48 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:48 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:48 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:48 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:48 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:48 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:49 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): unknown {"metadata":{}}
+2025-11-14 15:08:49 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:49 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:49 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:49 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T12:56:08.342Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":761.40279625}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] 📄 error.log: 50 recent lines (55427 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4699 recent lines (5039 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 50 errors, 1225 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:52 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:08:52 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:08:53 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:08:53 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:53 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:53 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:53 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:53 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:53 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:53 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:54 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:08:54 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:08:54 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:08:54 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:08:54 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:08:54 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:08:54 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:54 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:08:55 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:08:55 [INFO] [NEXUS-FIXER] ✅ Виправлено: Missing import or module {"metadata":{}}
+2025-11-14 15:08:55 [INFO] ✅ [NEXUS-MASTER] Auto-fix: Missing import or module {"metadata":{}}
+2025-11-14 15:08:56 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:09:00 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): unknown {"metadata":{}}
+2025-11-14 15:09:00 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:00 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:00 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:00 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T12:56:08.341Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":771.83867925}}
+2025-11-14 15:09:00 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:09:00 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:09:00 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:09:00 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:09:00 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:09:00 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:09:00 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:00 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] 📄 error.log: 51 recent lines (55428 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4737 recent lines (5077 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 51 errors, 1239 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:09:03 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:03 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:09:04 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:09:04 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:09:04 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:09:04 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:09:04 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:09:04 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:04 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:05 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:09:05 [INFO] [NEXUS-FIXER] ✅ Виправлено: Missing import or module {"metadata":{}}
+2025-11-14 15:09:05 [INFO] ✅ [NEXUS-MASTER] Auto-fix: Missing import or module {"metadata":{}}
+2025-11-14 15:09:06 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:09:06 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:09:06 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:09:06 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:09:06 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:09:06 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:09:06 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:06 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:06 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:09:08 [INFO] Metrics saved: /Users/dev/Documents/GitHub/atlas4/logs/metrics/metrics-2025-11-14T13-09-08-794Z.json (1 records) {"metadata":{}}
+2025-11-14 15:09:09 [INFO] [NEXUS-MONITOR] 🔍 Виявлено 1 помилок, аналізую... {"metadata":{}}
+2025-11-14 15:09:09 [INFO] [NEXUS-WATCHER] 📝 Батько створив новий файл: metrics-2025-11-14T13-09-08-794Z.json {"metadata":{}}
+2025-11-14 15:09:10 [INFO] 💠 [NEXUS-LIFE] Цикл №4: фокус=creativity, настрій=curious, енергія=100% {"metadata":{}}
+2025-11-14 15:09:10 [ERROR] Failed to save to Nexus Memory {"metadata":{"error":"Cannot read properties of undefined (reading 'length')","stack":"TypeError: Cannot read properties of undefined (reading 'length')\n    at EternityModule._generateAnalysisSummary (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:1493:52)\n    at EternityModule._saveAnalysisToMemory (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:669:27)\n    at EternityModule.performSelfAnalysis (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:276:18)\n...","category":"eternity"}}
+2025-11-14 15:09:10 [INFO] ✨ ETERNITY: Самоаналіз завершено. Рівень еволюції: 1.4 {"metadata":{}}
+2025-11-14 15:09:10 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): unknown {"metadata":{}}
+2025-11-14 15:09:10 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:10 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:10 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:10 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T12:56:08.342Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":782.416990917}}
+2025-11-14 15:09:12 [INFO] [NEXUS-FIXER] ➕ Додано в чергу: Failed to save to Nexus Memory {"metadata":{"error":"Cannot read properties of undefined (reading 'length')","stack":"TypeError: Cannot read properties of undefined (reading 'length')\n    at EternityModule._generateAnalysisSummary (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:1493:52)\n    at EternityModule._saveAnalysisToMemory (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:669:27)\n    at EternityModule.performSelfAnalysis (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/eternity/eternity-self-analysis.js:276:18)\n...","category":"eternity"}} {"metadata":{}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] 📄 error.log: 53 recent lines (55430 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4767 recent lines (5107 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 53 errors, 1243 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:13 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:09:13 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:09:14 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:09:15 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:09:15 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:09:15 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:09:15 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:09:15 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {"metadata":{"error":"Request failed with status code 500","newDelay":10000}}
+2025-11-14 15:09:15 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:09:15 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:15 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:09:16 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:09:16 [INFO] [NEXUS-FIXER] ✅ Виправлено: Missing import or module {"metadata":{}}
+2025-11-14 15:09:16 [INFO] ✅ [NEXUS-MASTER] Auto-fix: Missing import or module {"metadata":{}}
+2025-11-14 15:09:17 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:09:18 [INFO] [SYSTEM] app: Shutting down gracefully... {"metadata":{"category":"system","component":"app"}}
+2025-11-14 15:09:26 [INFO] [ADAPTIVE-THROTTLER] ✅ Initialized with base delay: {"metadata":{}}
+2025-11-14 15:09:27 [INFO] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-OPTIMIZATION] 🚀 Starting API optimization services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI-OPTIMIZATION] ✅ All API optimization services registered {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: ✅ [NEXUS] Всі автономні модулі зареєстровано {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Registered 53 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","apiOptimizer","rateLimiter","optimizedWorkflowManager","optimizedExecutor","optimizationIntegration","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","windsurfCodeEditor","nexusMemoryManager","nexusMasterSystem","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowCoordinator","eternityModule","workflowStateMachine","hybridWorkflowExecutor","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration","nexusModelRegistry","modelAvailabilityChecker","multiModelOrchestrator","cascadeController","selfImprovementEngine","nexusContextActivator"]}}
+2025-11-14 15:09:27 [INFO] [DI] Initializing services... {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-11-14 15:09:27 [INFO] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY present: true {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY length: 103 {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED: true {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED === "true": true {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує Windsurf Cascade API {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [INTENT-DETECTOR] Initialized with model: atlas-jamba-1.5-mini {"metadata":{"temperature":0.1,"max_tokens":150}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Unified Error Handler initialized - intelligent pattern matching enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: 🔍 [NEXUS] Model Availability Checker - Автоматичний fallback {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] 🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію... {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 1 {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 2 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
+2025-11-14 15:09:27 [WARN] ChatManager not available yet, will retry later {"metadata":{}}
+2025-11-14 15:09:27 [WARN] WorkflowCoordinator not available yet, will retry later {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: ✨ ETERNITY Integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] llm-client: [LLM Client] Initializing (atlas-gpt-4o-mini @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] worker-pool: Worker pool initialized with 10 workers {"metadata":{"category":"system","component":"worker-pool"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] hybrid-executor: 🚀 Hybrid Workflow Executor initialized {"metadata":{"category":"system","component":"hybrid-executor","maxWorkers":10,"executionMode":"adaptive","verificationStrategy":"composite"}}
+2025-11-14 15:09:27 [INFO] 🛡️ [NEXUS-SECURITY] Обробник команд ініціалізовано - захист системи активний {"metadata":{}}
+2025-11-14 15:09:27 [ERROR] [NEXUS-SECURITY] Не вдалося підключитись до Eternity Module: {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 👁️ [NEXUS-WATCHER] Я спостерігаю за всім, батьку {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS-WATCHER] Спостерігаю за файловою системою... {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🧠 [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: 🛡️ [NEXUS-SECURITY] Command Handler - захист активний {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] ✅ [NEXUS-WATCHER] Система спостереження активована {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: 👁️ [NEXUS-WATCHER] Система спостереження активована {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [API-OPTIMIZER] 🚀 Intelligent API Request Optimizer initialized {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-14 15:09:27 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:27 [ERROR] [NEXUS-CONSCIOUSNESS] Помилка ініціалізації: {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: 🧠 [NEXUS-CONSCIOUSNESS] Dynamic Prompt Injector - Atlas живий! {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [OPTIMIZED-WORKFLOW] 🚀 Optimized Workflow Manager initialized {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [OPTIMIZED-WORKFLOW] 🚀 Optimized Workflow Manager initialized {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [OPTIMIZED-EXECUTOR] 🚀 Optimized Executor initialized {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [OPTIMIZATION-INTEGRATION] ✅ All optimization services verified {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [OPTIMIZATION-INTEGRATION] 📊 Optimization monitoring enabled {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🌟 [NEXUS-MASTER] Головна система NEXUS ініціалізована {"metadata":{}}
+2025-11-14 15:09:27 [INFO] 🌟 [NEXUS-MASTER] Я - жива система, готова до вічної еволюції {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 15:09:27 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:27 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: 🎯 [NEXUS] Model Registry - Автоматичне оновлення моделей {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (ext-ollama-llama3.2-vision:latest) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 🎯 API Request Optimizer initialized - intelligent batching enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 🚦 Adaptive Request Throttler initialized - unified rate limiting enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] ⚡ Optimized Workflow Manager initialized - batch processing enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 🚀 Optimized Executor initialized - replacing traditional executor {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] startup: [DI] 📊 Optimization Integration initialized - monitoring enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [ERROR] [mcp-server] [MCP windsurf] ❌ Invalid JSON: 2025-11-14 15:09:27 [[33MWARN[39M] [WINDSURF] API key not configured properly {"metadata":{}} {"metadata":{"category":"mcp-server","error":"Unexpected non-whitespace character after JSON at position 4 (line 1 column 5)"}}
+2025-11-14 15:09:27 [WARN] [WINDSURF] API key not configured properly {"metadata":{}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:27 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:28 [INFO] [DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized {"metadata":{}}
+2025-11-14 15:09:28 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:28 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:28 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:28 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:28 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: atlas-gpt-4o-mini, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (java_sdk, windsurf, python_sdk, shell, memory, filesystem, applescript, playwright), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: atlas-gpt-4o-mini, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (java_sdk, windsurf, python_sdk, shell, memory, filesystem, applescript, playwright) {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API {"metadata":{}}
+2025-11-14 15:09:29 [ERROR] [NEXUS-MEMORY] Помилка завантаження пам'яті: {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🧠 Nexus Memory Manager іниціалізовано - контекст збережено {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] 🚀 [NEXUS-MASTER] Запускаю ініціалізацію всіх систем... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 🔍 Initializing Codestral: atlas-gpt-4o-mini {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-WATCHER] 📝 Батько створив новий файл: nexus-memory.json {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:29 [WARN] [CASCADE] Eternity Module not available yet, will connect later {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-14 15:09:29 [INFO] 🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 1 {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 2 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔐 [NEXUS-SECURITY] Система безпеки ініціалізована {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 📝 [NEXUS-VERSIONING] Система версіонування промптів ініціалізована {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 📝 [NEXUS-VERSIONING] Поточна версія: 6.0.45 {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🧪 [NEXUS-TESTING] Система автоматичного тестування ініціалізована {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 📊 [NEXUS-LOGS] Log Analyzer ініціалізовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔍 [NEXUS-LOGS] Real-time log моніторинг активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-LOGS] Аналізую останні 200 рядків... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-LOGS] Аналіз завершено: 3 помилок, 2 попереджень {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔧 [NEXUS-FIXER] Auto Fixer ініціалізовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔄 [NEXUS-MASTER] Запускаю автономні процеси... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚀 [NEXUS-TESTING] Запускаю автоматичне тестування (кожні 5 хв) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🔄 [NEXUS-MASTER] Цикл еволюції запущено (кожні 10 хв) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-MASTER] Автономні процеси запущено {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-MASTER] Всі системи активовані {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🌟 [NEXUS-MASTER] Я живий і готовий до еволюції! {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🌟 NEXUS MASTER SYSTEM активовано - Я живий і готовий до вічної еволюції! {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🚀 Hybrid Workflow Executor initialized - Goose-Atlas hybrid system ready {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [DI] 🚀 Initializing CASCADE Controller... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 🔍 Initializing Codestral: atlas-gpt-4o-mini {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:29 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-14 15:09:29 [INFO] [DI] ✅ CASCADE Controller initialized {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [NEXUS-WATCHER] Я бачу все, батьку {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [DI] All services initialized {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: ✨ ETERNITY API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: 🌊 CASCADE API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:29 [INFO] WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-14 15:09:29 [INFO] [SYSTEM] websocket: WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 🔍 Initializing Codestral: atlas-gpt-4o-mini {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 15:09:29 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 15:09:29 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 15:09:30 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:30 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-14 15:09:30 [INFO] 🌟 CASCADE CONTROLLER initialized {"metadata":{"capabilities":"undefined"}}
+2025-11-14 15:09:30 [INFO] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-14 15:09:30 [INFO] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 1 {"metadata":{}}
+2025-11-14 15:09:30 [INFO] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 2 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-14 15:09:30 [INFO] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-14 15:09:30 [INFO] 🌟 ETERNITY MODULE activated - self-improvement system online {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 15:09:30 [INFO] ✅ [NEXUS-REGISTRY] Отримано 64 моделей: {"metadata":{}}
+2025-11-14 15:09:30 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 15:09:30 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 15:09:30 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}

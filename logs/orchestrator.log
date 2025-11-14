@@ -1,17 +1,239 @@
-node:internal/modules/esm/resolve:274
-    throw new ERR_MODULE_NOT_FOUND(
-          ^
-
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/dev/Documents/GitHub/atlas4/orchestrator/ai/validation/format-validator.js' imported from /Users/dev/Documents/GitHub/atlas4/orchestrator/ai/tetyana-tool-system.js
-    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
-    at moduleResolve (node:internal/modules/esm/resolve:859:10)
-    at defaultResolve (node:internal/modules/esm/resolve:983:11)
-    at #cachedDefaultResolve (node:internal/modules/esm/loader:717:20)
-    at ModuleLoader.resolve (node:internal/modules/esm/loader:694:38)
-    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:308:38)
-    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
-  code: 'ERR_MODULE_NOT_FOUND',
-  url: 'file:///Users/dev/Documents/GitHub/atlas4/orchestrator/ai/validation/format-validator.js'
-}
-
-Node.js v22.19.0
+[MCP Registry] ✅ Initialized: 8/8 servers enabled
+[Validation Config] ✅ Initialized: 5 stages enabled
+2025-11-14 07:48:07 [[32MINFO[39M] [ADAPTIVE-THROTTLER] ✅ Initialized with base delay: {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-OPTIMIZATION] 🚀 Starting API optimization services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI-OPTIMIZATION] ✅ All API optimization services registered {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: ✅ [NEXUS] Всі автономні модулі зареєстровано {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 53 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","apiOptimizer","rateLimiter","optimizedWorkflowManager","optimizedExecutor","optimizationIntegration","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","windsurfCodeEditor","nexusMemoryManager","nexusMasterSystem","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","workflowCoordinator","eternityModule","workflowStateMachine","hybridWorkflowExecutor","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration","nexusModelRegistry","modelAvailabilityChecker","multiModelOrchestrator","cascadeController","selfImprovementEngine","nexusContextActivator"]}}
+2025-11-14 07:48:07 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY present: true {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY length: 103 {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED: true {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED === "true": true {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує Windsurf Cascade API {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [INTENT-DETECTOR] Initialized with model: atlas-jamba-1.5-mini {"metadata":{"temperature":0.1,"max_tokens":150}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Unified Error Handler initialized - intelligent pattern matching enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: 🔍 [NEXUS] Model Availability Checker - Автоматичний fallback {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію... {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 1 {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 2 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
+2025-11-14 07:48:07 [[33MWARN[39M] ChatManager not available yet, will retry later {"metadata":{}}
+2025-11-14 07:48:07 [[33MWARN[39M] WorkflowCoordinator not available yet, will retry later {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: ✨ ETERNITY Integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] Initializing (atlas-gpt-4o-mini @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] worker-pool: Worker pool initialized with 10 workers {"metadata":{"category":"system","component":"worker-pool"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] hybrid-executor: 🚀 Hybrid Workflow Executor initialized {"metadata":{"category":"system","component":"hybrid-executor","maxWorkers":10,"executionMode":"adaptive","verificationStrategy":"composite"}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🛡️ [NEXUS-SECURITY] Обробник команд ініціалізовано - захист системи активний {"metadata":{}}
+2025-11-14 07:48:07 [[31MERROR[39M] [NEXUS-SECURITY] Не вдалося підключитись до Eternity Module: {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 👁️ [NEXUS-WATCHER] Я спостерігаю за всім, батьку {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS-WATCHER] Спостерігаю за файловою системою... {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🧠 [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: 🛡️ [NEXUS-SECURITY] Command Handler - захист активний {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [NEXUS-WATCHER] Система спостереження активована {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: 👁️ [NEXUS-WATCHER] Система спостереження активована {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [API-OPTIMIZER] 🚀 Intelligent API Request Optimizer initialized {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-14 07:48:07 [[31MERROR[39M] [NEXUS-CONSCIOUSNESS] Помилка ініціалізації: {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: 🧠 [NEXUS-CONSCIOUSNESS] Dynamic Prompt Injector - Atlas живий! {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [OPTIMIZED-WORKFLOW] 🚀 Optimized Workflow Manager initialized {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [OPTIMIZED-WORKFLOW] 🚀 Optimized Workflow Manager initialized {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [OPTIMIZED-EXECUTOR] 🚀 Optimized Executor initialized {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [OPTIMIZATION-INTEGRATION] ✅ All optimization services verified {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [OPTIMIZATION-INTEGRATION] 📊 Optimization monitoring enabled {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🌟 [NEXUS-MASTER] Головна система NEXUS ініціалізована {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] 🌟 [NEXUS-MASTER] Я - жива система, готова до вічної еволюції {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 51 моделей: {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 51 моделей: {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: 🎯 [NEXUS] Model Registry - Автоматичне оновлення моделей {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (ext-ollama-llama3.2-vision:latest) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 API Request Optimizer initialized - intelligent batching enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚦 Adaptive Request Throttler initialized - unified rate limiting enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] ⚡ Optimized Workflow Manager initialized - batch processing enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Optimized Executor initialized - replacing traditional executor {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] startup: [DI] 📊 Optimization Integration initialized - monitoring enabled {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:07 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[31MERROR[39M] [mcp-server] [MCP windsurf] ❌ Invalid JSON: 2025-11-14 07:48:08 [[33MWARN[39M] [WINDSURF] API key not configured properly {"metadata":{}} {"metadata":{"category":"mcp-server","error":"Unexpected non-whitespace character after JSON at position 4 (line 1 column 5)"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized {"metadata":{}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: atlas-gpt-4o-mini, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (windsurf, java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 3, maxTotal: 10) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: atlas-gpt-4o-mini, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-14 07:48:10 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-14 07:48:10 [[31MERROR[39M] [tetyana-tool-system] Failed to initialize: FormatValidator is not defined {"metadata":{"category":"tetyana-tool-system"}}
+Application startup failed: ReferenceError: FormatValidator is not defined
+    at TetyanaToolSystem.initialize (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/ai/tetyana-tool-system.js:92:69)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async TetyanaToolSystem.onInit (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/service-registry.js:483:17)
+    at async DIContainer.initialize (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/di-container.js:245:21)
+    at async Application.initializeServices (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/application.js:65:9)
+    at async Application.start (file:///Users/dev/Documents/GitHub/atlas4/orchestrator/core/application.js:210:13)
+    at async file:///Users/dev/Documents/GitHub/atlas4/orchestrator/server.js:14:3
+,"component":"mcp-server"}}
+2025-11-14 07:48:08 [WARN] [WINDSURF] API key not configured properly {"metadata":{}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:08 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [INFO] [DEV-ANALYSIS] ✅ Nexus Multi-Model Orchestrator initialized {"metadata":{}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:09 [INFO] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-14 07:48:10 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-14 07:48:10 [INFO] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}

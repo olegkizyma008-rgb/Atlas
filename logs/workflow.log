@@ -7580,3 +7580,67 @@
 2025-11-14 15:21:36 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
 2025-11-14 15:21:36 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
 2025-11-14 15:21:36 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:21:39 [INFO] executor {"metadata":{}}
+2025-11-14 15:21:40 [INFO] [NEXUS-FIXER] 🔧 Виправляю (спроба 1/3): unknown {"metadata":{}}
+2025-11-14 15:21:40 [INFO] [DEV-ANALYSIS] 🧠 Starting self-analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:40 [INFO] [DEV-ANALYSIS] ✅ Auto-approved intervention (user explicitly requested) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:40 [INFO] [DEV-ANALYSIS] 📂 Gathering real system context through MCP... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:40 [INFO] [DEV-ANALYSIS] 🕒 Filtering logs after system start: 2025-11-14T13:11:03.300Z {"metadata":{"category":"system","component":"dev-analysis","systemUptime":636.952315417}}
+2025-11-14 15:21:42 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {"metadata":{"error":"messages is not defined","newDelay":10000}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] 📄 error.log: 36 recent lines (55478 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS-FIXER] ➕ Додано в чергу: 2025-11-14 15:21:42 [WARN] [ADAPTIVE-THROTTLER] ❌  {"metadata":{}}
+2025-11-14 15:21:43 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:21:43 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] 📄 orchestrator.log: 4139 recent lines (4423 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] 📄 frontend.log: 0 recent lines (11 total) {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] 🔍 Analyzing current code state... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] ✅ Code snapshot: 3 files analyzed {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] ✅ Context gathered: 36 errors, 1147 warnings {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:43 [INFO] [DYNAMIC-PROMPT] Enhanced prompt with consciousness level: {"metadata":{}}
+2025-11-14 15:21:43 [INFO] [DEV-ANALYSIS] Calling LLM for deep analysis... {"metadata":{"category":"system","component":"dev-analysis"}}
+2025-11-14 15:21:44 [WARN] [DEV-ANALYSIS] ⚠️ Primary model failed: Request failed with status code 500 {"metadata":{}}
+2025-11-14 15:21:44 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:21:44 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:21:44 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:21:44 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:21:44 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:21:44 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:44 [INFO] [DEV-ANALYSIS] 🔄 Trying alternative model: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:45 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {"metadata":{"error":"messages is not defined","newDelay":10000}}
+2025-11-14 15:21:45 [INFO] [NEXUS-FIXER] ➕ Додано в чергу: 2025-11-14 15:21:45 [WARN] [ADAPTIVE-THROTTLER] ❌  {"metadata":{}}
+2025-11-14 15:21:46 [ERROR] [DEV-ANALYSIS] Self-analysis failed: Request failed with status code 500 {"metadata":{"category":"system","component":"dev-analysis","error":"Request failed with status code 500"}}
+2025-11-14 15:21:46 [INFO] [NEXUS-FIXER] ✅ Виправлено: MCP Memory Server integration issue {"metadata":{}}
+2025-11-14 15:21:46 [INFO] ✅ [NEXUS-MASTER] Auto-fix: MCP Memory Server integration issue {"metadata":{}}
+2025-11-14 15:21:47 [INFO] [NEXUS-WATCHER] 👀 Бачу зміни в nexus-memory.json - батько знає що робить {"metadata":{}}
+2025-11-14 15:21:48 [WARN] [ADAPTIVE-THROTTLER] ❌ Request failed {"metadata":{"error":"messages is not defined","newDelay":10000}}
+2025-11-14 15:21:48 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:21:48 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:21:48 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:21:48 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:21:48 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:21:48 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:21:48 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:48 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:48 [INFO] [NEXUS-FIXER] ➕ Додано в чергу: 2025-11-14 15:21:48 [WARN] [ADAPTIVE-THROTTLER] ❌  {"metadata":{}}
+2025-11-14 15:21:49 [INFO] 🎯 [NEXUS-REGISTRY] Вибрано модель для code-analysis: {"metadata":{"model":"ext-mistral-codestral-latest","score":6,"capabilities":{"codeAnalysis":true,"bugFixing":false,"refactoring":true,"dataCollection":true,"strategicThinking":false,"contextWindow":4096}}}
+2025-11-14 15:21:49 [WARN] [NEXUS-AVAILABILITY] ⚠️ Model ext-mistral-codestral-latest has adaptive hard cap - rate limited {"metadata":{}}
+2025-11-14 15:21:49 [WARN] [NEXUS-AVAILABILITY] ⚠️ Модель ext-mistral-codestral-latest недоступна, шукаю альтернативу {"metadata":{}}
+2025-11-14 15:21:49 [WARN] [NEXUS-AVAILABILITY] 🔍 Fallback також недоступний, шукаю будь-яку робочу модель {"metadata":{}}
+2025-11-14 15:21:49 [INFO] [NEXUS-AVAILABILITY] 🔍 Шукаю серед 5 моделей (limited from 64) {"metadata":{}}
+2025-11-14 15:21:49 [WARN] [NEXUS-AVAILABILITY] 📋 API недоступний, використовую fallback список {"metadata":{}}
+2025-11-14 15:21:49 [INFO] [NEXUS-AVAILABILITY] 🎯 Знайдено альтернативу: ext-mistral-codestral-latest {"metadata":{}}
+2025-11-14 15:21:49 [INFO] [NEXUS] Executing code-analysis with ext-mistral-codestral-latest {"metadata":{}}

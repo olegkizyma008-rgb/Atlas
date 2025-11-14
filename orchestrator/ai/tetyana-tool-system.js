@@ -88,13 +88,9 @@ export class TetyanaToolSystem {
                 llmValidator: this.llmValidator
             });
 
-            // Register validators
-            this.validationPipeline.registerValidator('format', new FormatValidator());
-            this.validationPipeline.registerValidator('history', new HistoryValidator(this.historyManager));
-            this.validationPipeline.registerValidator('schema', new SchemaValidator(this.mcpManager));
-            this.validationPipeline.registerValidator('mcpSync', new MCPSyncValidator(this.mcpManager));
-
-            logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized (4 validators registered)');
+            // Validators are now consolidated in ValidationPipeline
+            // No need to register them separately - they're initialized internally
+            logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized with consolidated validators');
 
             // STEP 6: Initialize Dispatcher
             // FIXED 2025-11-03: Pass mcpManager instead of extensionManager

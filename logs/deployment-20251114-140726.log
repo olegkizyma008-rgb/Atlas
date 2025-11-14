@@ -1,0 +1,34 @@
+[0;34m[2025-11-14 14:07:26][0m Step 1: Pre-deployment Checks
+[0;34m[2025-11-14 14:07:26][0m ==============================
+[0;34m[2025-11-14 14:07:26][0m Checking Node.js...
+[0;32m✅ Node.js found: v22.19.0[0m
+[0;34m[2025-11-14 14:07:26][0m Checking npm...
+[0;32m✅ npm found: 10.9.3[0m
+[0;34m[2025-11-14 14:07:26][0m Checking Python...
+[0;32m✅ Python found: Python 3.11.13[0m
+[0;34m[2025-11-14 14:07:26][0m 
+[0;34m[2025-11-14 14:07:26][0m Step 2: Verifying Refactoring
+[0;34m[2025-11-14 14:07:26][0m =============================
+[0;34m[2025-11-14 14:07:26][0m Checking unified modules...
+[0;32m✅ Adaptive Request Throttler found[0m
+[0;32m✅ Unified Error Handler found[0m
+[0;32m✅ Unified Validator Base found[0m
+[0;34m[2025-11-14 14:07:26][0m 
+[0;34m[2025-11-14 14:07:26][0m Step 3: Creating Backup
+[0;34m[2025-11-14 14:07:26][0m =======================
+[0;34m[2025-11-14 14:07:26][0m Creating backup directory: /Users/dev/Documents/GitHub/atlas4/backups/20251114-140726
+[0;34m[2025-11-14 14:07:26][0m Backing up orchestrator...
+[0;32m✅ Orchestrator backed up[0m
+[0;34m[2025-11-14 14:07:26][0m Backing up configuration...
+[0;32m✅ Configuration backed up[0m
+[0;34m[2025-11-14 14:07:26][0m Backing up .env...
+[0;32m✅ .env backed up[0m
+[0;34m[2025-11-14 14:07:26][0m 
+[0;34m[2025-11-14 14:07:26][0m Step 4: Installing Dependencies
+[0;34m[2025-11-14 14:07:26][0m ===============================
+[0;34m[2025-11-14 14:07:26][0m Installing npm packages...
+[0;32m✅ Dependencies installed[0m
+[0;34m[2025-11-14 14:07:26][0m 
+[0;34m[2025-11-14 14:07:26][0m Step 5: Running Tests
+[0;34m[2025-11-14 14:07:26][0m ====================
+[0;34m[2025-11-14 14:07:26][0m Running unit tests...

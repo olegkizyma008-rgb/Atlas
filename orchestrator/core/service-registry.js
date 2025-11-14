@@ -7,7 +7,7 @@
  */
 
 import logger from '../utils/logger.js';
-import errorHandler from '../errors/error-handler.js';
+import errorHandler from '../errors/unified-error-handler.js';
 import telemetry from '../utils/telemetry.js';
 import wsManager from '../api/websocket-manager.js';
 import webIntegration from '../api/web-integration.js';
@@ -57,13 +57,13 @@ export function registerCoreServices(container) {
         }
     });
 
-    // 3. Error Handler - обробка помилок
+    // 3. Unified Error Handler - обробка помилок з інтелектуальним розпізнаванням
     container.singleton('errorHandler', () => errorHandler, {
         dependencies: ['logger'],
         metadata: { category: 'infrastructure', priority: 85 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] Error handler initialized');
+                logger.system('startup', '[DI] Unified Error Handler initialized - intelligent pattern matching enabled');
             }
         }
     });

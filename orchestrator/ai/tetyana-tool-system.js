@@ -20,10 +20,6 @@ import { ToolInspectionManager } from './tool-inspection-manager.js';
 import { RepetitionInspector } from './inspectors/repetition-inspector.js';
 import { LLMToolValidator } from './llm-tool-selector.js';  // Renamed from LLMToolSelector
 import { ValidationPipeline } from './validation/validation-pipeline.js';
-import { FormatValidator } from './validation/format-validator.js';
-import { HistoryValidator } from './validation/history-validator.js';
-import { SchemaValidator } from './validation/schema-validator.js';
-import { MCPSyncValidator } from './validation/mcp-sync-validator.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -97,7 +93,7 @@ export class TetyanaToolSystem {
             this.validationPipeline.registerValidator('history', new HistoryValidator(this.historyManager));
             this.validationPipeline.registerValidator('schema', new SchemaValidator(this.mcpManager));
             this.validationPipeline.registerValidator('mcpSync', new MCPSyncValidator(this.mcpManager));
-            
+
             logger.system('tetyana-tool-system', '🔍 ValidationPipeline initialized (4 validators registered)');
 
             // STEP 6: Initialize Dispatcher
@@ -110,11 +106,11 @@ export class TetyanaToolSystem {
 
             this.initialized = true;
 
-            logger.system('tetyana-tool-system', 
+            logger.system('tetyana-tool-system',
                 `✅ Tetyana Tool System ready: ${this.extensionManager.getTotalToolCount()} tools available`);
 
         } catch (error) {
-            logger.error('tetyana-tool-system', 
+            logger.error('tetyana-tool-system',
                 `Failed to initialize: ${error.message}`);
             throw error;
         }
@@ -148,11 +144,11 @@ export class TetyanaToolSystem {
             mode: this.mode
         });
 
-        logger.system('tetyana-tool-system', 
+        logger.system('tetyana-tool-system',
             `📋 Prepared ${prepared.tools.length} tools from ${prepared.metadata.servers.length} servers`);
 
         if (selectedServers) {
-            logger.system('tetyana-tool-system', 
+            logger.system('tetyana-tool-system',
                 `🎯 Filtered to servers: ${selectedServers.join(', ')}`);
         }
 
@@ -231,9 +227,9 @@ export class TetyanaToolSystem {
 
         // Handle denied tools from repetition inspector
         if (inspectionResults.denied && inspectionResults.denied.length > 0) {
-            logger.warn('tetyana-tool-system', 
+            logger.warn('tetyana-tool-system',
                 `⛔ ${inspectionResults.denied.length} tool(s) denied by repetition inspector`);
-            
+
             const deniedResults = inspectionResults.denied.map(call => ({
                 success: false,
                 error: 'Denied by security inspection',
@@ -259,7 +255,7 @@ export class TetyanaToolSystem {
         // STEP 2: Run LLM validation (ALWAYS ACTIVE if available)
         if (this.llmValidator) {
             logger.system('tetyana-tool-system', '🛡️ Running LLM validation...');
-            
+
             try {
                 const validationResults = await this.llmValidator.validateToolCalls(toolCalls, {
                     userIntent: context.userIntent || context.itemAction || 'Unknown',
@@ -270,9 +266,9 @@ export class TetyanaToolSystem {
 
                 // BLOCK high-risk tools
                 if (validationCheck.shouldBlock) {
-                    logger.error('tetyana-tool-system', 
+                    logger.error('tetyana-tool-system',
                         `🚫 LLM Validator BLOCKED execution: ${validationCheck.summary}`);
-                    
+
                     const blockedResults = validationCheck.highRisk.map(v => ({
                         success: false,
                         error: `BLOCKED by LLM Validator: ${v.reasoning}`,
@@ -299,15 +295,15 @@ export class TetyanaToolSystem {
 
                 // WARN about medium-risk tools but continue
                 if (validationCheck.shouldWarn) {
-                    logger.warn('tetyana-tool-system', 
+                    logger.warn('tetyana-tool-system',
                         `⚠️ LLM Validator warnings: ${validationCheck.summary}`);
                 }
 
-                logger.system('tetyana-tool-system', 
+                logger.system('tetyana-tool-system',
                     `✅ LLM validation passed: ${validationCheck.summary}`);
 
             } catch (error) {
-                logger.error('tetyana-tool-system', 
+                logger.error('tetyana-tool-system',
                     `LLM validation error: ${error.message} - continuing with execution`);
             }
         }
@@ -334,10 +330,10 @@ export class TetyanaToolSystem {
             for (let i = 0; i < result.results.length; i++) {
                 const toolCall = toolCalls[i];
                 const toolResult = result.results[i];
-                
+
                 if (toolCall) {
                     const duration = toolResult.duration || (Date.now() - startTime) / toolCalls.length;
-                    
+
                     // UPDATED 2025-10-23: Use recordExecution with proper metadata
                     this.historyManager.recordExecution(toolCall, {
                         success: toolResult.success || false,
@@ -349,7 +345,7 @@ export class TetyanaToolSystem {
             }
         }
 
-        logger.system('tetyana-tool-system', 
+        logger.system('tetyana-tool-system',
             `✅ Execution completed: ${result.successful_calls}/${toolCalls.length} successful`);
 
         return result;
@@ -374,9 +370,9 @@ export class TetyanaToolSystem {
 
         // Handle denied tools from repetition inspector
         if (inspectionResults.denied && inspectionResults.denied.length > 0) {
-            logger.warn('tetyana-tool-system', 
+            logger.warn('tetyana-tool-system',
                 `⛔ ${inspectionResults.denied.length} tool(s) denied by repetition inspector`);
-            
+
             const deniedResults = inspectionResults.denied.map(call => ({
                 success: false,
                 error: 'Denied by security inspection',
@@ -402,7 +398,7 @@ export class TetyanaToolSystem {
         // STEP 2: Run LLM validation (ALWAYS ACTIVE if available)
         if (this.llmValidator) {
             logger.system('tetyana-tool-system', '🛡️ Running LLM validation...');
-            
+
             try {
                 const validationResults = await this.llmValidator.validateToolCalls(toolCalls, {
                     userIntent: context.userIntent || context.currentItem?.action || 'Unknown',
@@ -413,9 +409,9 @@ export class TetyanaToolSystem {
 
                 // BLOCK high-risk tools
                 if (validationCheck.shouldBlock) {
-                    logger.error('tetyana-tool-system', 
+                    logger.error('tetyana-tool-system',
                         `🚫 LLM Validator BLOCKED execution: ${validationCheck.summary}`);
-                    
+
                     const blockedResults = validationCheck.highRisk.map(v => ({
                         success: false,
                         error: `BLOCKED by LLM Validator: ${v.reasoning}`,
@@ -442,15 +438,15 @@ export class TetyanaToolSystem {
 
                 // WARN about medium-risk tools but continue
                 if (validationCheck.shouldWarn) {
-                    logger.warn('tetyana-tool-system', 
+                    logger.warn('tetyana-tool-system',
                         `⚠️ LLM Validator warnings: ${validationCheck.summary}`);
                 }
 
-                logger.system('tetyana-tool-system', 
+                logger.system('tetyana-tool-system',
                     `✅ LLM validation passed: ${validationCheck.summary}`);
 
             } catch (error) {
-                logger.error('tetyana-tool-system', 
+                logger.error('tetyana-tool-system',
                     `LLM validation error: ${error.message} - continuing with execution`);
             }
         }
@@ -477,10 +473,10 @@ export class TetyanaToolSystem {
             for (let i = 0; i < result.results.length; i++) {
                 const toolCall = toolCalls[i];
                 const toolResult = result.results[i];
-                
+
                 if (toolCall) {
                     const duration = toolResult.duration || (Date.now() - startTime) / toolCalls.length;
-                    
+
                     // Record execution in history
                     this.historyManager.recordExecution(toolCall, {
                         success: toolResult.success || false,
@@ -492,7 +488,7 @@ export class TetyanaToolSystem {
             }
         }
 
-        logger.system('tetyana-tool-system', 
+        logger.system('tetyana-tool-system',
             `✅ Execution completed: ${result.successful_calls}/${toolCalls.length} successful`);
 
         return result;
@@ -533,7 +529,7 @@ export class TetyanaToolSystem {
      */
     setMode(mode) {
         this.mode = mode;
-        
+
         if (this.inspectionManager) {
             this.inspectionManager.updatePermissionMode(mode);
         }
@@ -612,7 +608,7 @@ export class TetyanaToolSystem {
             this.inspectionManager.resetAll();
             logger.debug('tetyana-tool-system', 'Enhanced inspection manager reset');
         }
-        
+
         // Reset legacy inspector
         if (this.inspectionManager) {
             const repetitionInspector = this.inspectionManager.getInspector('repetition');

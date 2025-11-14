@@ -13,7 +13,7 @@
 
 import logger from '../utils/logger.js';
 import { apiOptimizer } from './api-request-optimizer.js';
-import { rateLimiter } from './intelligent-rate-limiter.js';
+import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from './optimized-workflow-manager.js';
 import GlobalConfig from '../../config/global-config.js';
 
@@ -22,11 +22,11 @@ export class OptimizedExecutor {
         this.container = container;
         this.logger = logger;
         this.apiOptimizer = apiOptimizer;
-        this.rateLimiter = rateLimiter;
-        
+        this.rateLimiter = adaptiveThrottler;
+
         // Initialize optimized workflow manager
         this.workflowManager = new OptimizedWorkflowManager(container);
-        
+
         // Performance tracking
         this.executionStats = {
             totalExecutions: 0,
@@ -35,7 +35,7 @@ export class OptimizedExecutor {
             averageExecutionTime: 0,
             apiCallsSaved: 0
         };
-        
+
         this.logger.info('[OPTIMIZED-EXECUTOR] 🚀 Optimized Executor initialized');
     }
 
@@ -46,7 +46,7 @@ export class OptimizedExecutor {
     async executeWorkflow(userMessage, context = {}) {
         const startTime = Date.now();
         this.executionStats.totalExecutions++;
-        
+
         try {
             // Enhanced context with optimization metadata
             const optimizedContext = {
@@ -60,37 +60,37 @@ export class OptimizedExecutor {
                     cacheEnabled: true
                 }
             };
-            
+
             this.logger.info('[OPTIMIZED-EXECUTOR] 🎯 Starting optimized workflow execution', {
                 sessionId: optimizedContext.sessionId,
                 messageLength: userMessage.length
             });
-            
+
             // Use optimized workflow manager
             const result = await this.workflowManager.processOptimizedWorkflow(
-                userMessage, 
+                userMessage,
                 optimizedContext
             );
-            
+
             // Track optimization success
             this.executionStats.optimizedExecutions++;
             this.executionStats.apiCallsSaved += result.optimization?.requestsSaved || 0;
-            
+
             // Update execution time
             const executionTime = Date.now() - startTime;
             this._updateExecutionTimeStats(executionTime);
-            
+
             this.logger.info('[OPTIMIZED-EXECUTOR] ✅ Optimized execution completed', {
                 mode: result.mode,
                 executionTime: executionTime,
                 requestsSaved: result.optimization?.requestsSaved || 0
             });
-            
+
             return this._formatExecutionResult(result, executionTime);
-            
+
         } catch (error) {
             this.logger.error('[OPTIMIZED-EXECUTOR] ❌ Optimized execution failed:', error.message);
-            
+
             // Fallback to traditional execution
             return await this._fallbackExecution(userMessage, context, startTime);
         }
@@ -104,7 +104,7 @@ export class OptimizedExecutor {
         try {
             // Use batch system selection from API optimizer
             const batchResult = await this.apiOptimizer.batchSystemSelection(userMessage, context);
-            
+
             return {
                 mode: batchResult.mode,
                 confidence: batchResult.modeConfidence,
@@ -114,10 +114,10 @@ export class OptimizedExecutor {
                 optimized: true,
                 requestsSaved: batchResult.optimization?.requests_saved || 2
             };
-            
+
         } catch (error) {
             this.logger.warn('[OPTIMIZED-EXECUTOR] ⚠️ Batch selection failed, using fallback');
-            
+
             // Fallback to individual mode selection
             return await this._fallbackModeSelection(userMessage, context);
         }
@@ -128,7 +128,7 @@ export class OptimizedExecutor {
      */
     async executeOptimizedChat(userMessage, systemSelection, context) {
         const chatPrompt = this._buildChatPrompt(userMessage, context);
-        
+
         // Use rate-limited API call
         const response = await this.rateLimiter.executeRequest(
             async () => {
@@ -139,12 +139,12 @@ export class OptimizedExecutor {
                     max_tokens: 1000
                 });
             },
-            { 
+            {
                 priority: this.rateLimiter.priorityLevels.HIGH,
                 metadata: { type: 'chat', sessionId: context.sessionId }
             }
         );
-        
+
         return {
             type: 'chat',
             response: response.choices?.[0]?.message?.content || 'No response generated',
@@ -159,15 +159,15 @@ export class OptimizedExecutor {
      */
     async executeOptimizedTask(userMessage, systemSelection, context) {
         const toolCalls = systemSelection.toolPlanning?.tool_calls || [];
-        
+
         if (toolCalls.length === 0) {
             this.logger.warn('[OPTIMIZED-EXECUTOR] No tools planned, switching to chat');
             return await this.executeOptimizedChat(userMessage, systemSelection, context);
         }
-        
+
         // Get MCP manager
         const mcpManager = this.container.resolve('mcpManager');
-        
+
         // Execute tools with rate limiting
         const results = [];
         for (const toolCall of toolCalls) {
@@ -180,23 +180,23 @@ export class OptimizedExecutor {
                             toolCall.parameters
                         );
                     },
-                    { 
+                    {
                         priority: this.rateLimiter.priorityLevels.HIGH,
-                        metadata: { 
-                            type: 'mcp_tool', 
+                        metadata: {
+                            type: 'mcp_tool',
                             tool: toolCall.tool,
                             server: toolCall.server
                         }
                     }
                 );
-                
+
                 results.push({
                     tool: toolCall.tool,
                     server: toolCall.server,
                     success: true,
                     result: result
                 });
-                
+
             } catch (error) {
                 this.logger.error('[OPTIMIZED-EXECUTOR] Tool execution failed:', error.message);
                 results.push({
@@ -207,7 +207,7 @@ export class OptimizedExecutor {
                 });
             }
         }
-        
+
         return {
             type: 'task',
             toolsExecuted: results.length,
@@ -222,25 +222,25 @@ export class OptimizedExecutor {
      */
     async _fallbackExecution(userMessage, context, startTime) {
         this.executionStats.fallbackExecutions++;
-        
+
         this.logger.info('[OPTIMIZED-EXECUTOR] 🔄 Using fallback execution');
-        
+
         try {
             // Get traditional executor
             const traditionalExecutor = this.container.resolve('executor');
-            
+
             const result = await traditionalExecutor.processWorkflow(userMessage, context);
-            
+
             const executionTime = Date.now() - startTime;
             this._updateExecutionTimeStats(executionTime);
-            
+
             return {
                 ...result,
                 optimized: false,
                 fallback: true,
                 executionTime: executionTime
             };
-            
+
         } catch (error) {
             this.logger.error('[OPTIMIZED-EXECUTOR] ❌ Fallback execution also failed:', error.message);
             throw error;
@@ -250,12 +250,12 @@ export class OptimizedExecutor {
     async _fallbackModeSelection(userMessage, context) {
         // Use traditional mode selection processor
         const modeProcessor = this.container.resolve('modeSelectionProcessor');
-        
+
         const result = await modeProcessor.process({
             userMessage: userMessage,
             context: context
         });
-        
+
         return {
             mode: result.mode || 'chat',
             confidence: result.confidence || 0.5,
@@ -309,8 +309,8 @@ Provide a helpful, concise response to the user's message.`;
     _updateExecutionTimeStats(executionTime) {
         const currentAvg = this.executionStats.averageExecutionTime;
         const totalExecutions = this.executionStats.totalExecutions;
-        
-        this.executionStats.averageExecutionTime = 
+
+        this.executionStats.averageExecutionTime =
             (currentAvg * (totalExecutions - 1) + executionTime) / totalExecutions;
     }
 
@@ -329,15 +329,15 @@ Provide a helpful, concise response to the user's message.`;
     /**
      * PUBLIC API
      */
-    
+
     /**
      * Get executor statistics
      */
     getExecutorStats() {
         return {
             ...this.executionStats,
-            optimizationRatio: this.executionStats.totalExecutions > 0 
-                ? this.executionStats.optimizedExecutions / this.executionStats.totalExecutions 
+            optimizationRatio: this.executionStats.totalExecutions > 0
+                ? this.executionStats.optimizedExecutions / this.executionStats.totalExecutions
                 : 0,
             apiOptimizer: this.apiOptimizer.getStats(),
             rateLimiter: this.rateLimiter.getMetrics(),
@@ -352,12 +352,12 @@ Provide a helpful, concise response to the user's message.`;
         const apiHealth = await this.apiOptimizer.healthCheck();
         const rateLimiterHealth = this.rateLimiter.getHealthStatus();
         const workflowHealth = await this.workflowManager.healthCheck();
-        
+
         const overallStatus = [apiHealth.status, rateLimiterHealth.status, workflowHealth.status]
-            .includes('unhealthy') ? 'unhealthy' : 
+            .includes('unhealthy') ? 'unhealthy' :
             [apiHealth.status, rateLimiterHealth.status, workflowHealth.status]
-            .includes('degraded') ? 'degraded' : 'healthy';
-        
+                .includes('degraded') ? 'degraded' : 'healthy';
+
         return {
             status: overallStatus,
             components: {
@@ -376,12 +376,12 @@ Provide a helpful, concise response to the user's message.`;
         this.apiOptimizer.clearCache();
         this.rateLimiter.reset();
         this.workflowManager.clearOptimizationCache();
-        
+
         // Reset local stats
         Object.keys(this.executionStats).forEach(key => {
             this.executionStats[key] = 0;
         });
-        
+
         this.logger.info('[OPTIMIZED-EXECUTOR] 🔄 All optimization components reset');
     }
 }

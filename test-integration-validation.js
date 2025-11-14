@@ -12,7 +12,7 @@
 
 import { DIContainer } from './orchestrator/core/di-container.js';
 import { apiOptimizer } from './orchestrator/ai/api-request-optimizer.js';
-import { rateLimiter } from './orchestrator/ai/intelligent-rate-limiter.js';
+import adaptiveThrottler from './orchestrator/utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from './orchestrator/ai/optimized-workflow-manager.js';
 import OptimizedExecutor from './orchestrator/ai/optimized-executor.js';
 import { setupOptimizationIntegration } from './orchestrator/core/optimization-integration.js';
@@ -89,21 +89,21 @@ async function runValidationTests() {
     // Test 3: Configuration Compatibility
     console.log('\n⚙️ Testing Configuration Compatibility...');
     test('API endpoint configuration', () => {
-        return GlobalConfig.API_ENDPOINTS && 
-               typeof GlobalConfig.getApiUrl === 'function';
+        return GlobalConfig.API_ENDPOINTS &&
+            typeof GlobalConfig.getApiUrl === 'function';
     });
 
     test('Model configuration access', () => {
-        return GlobalConfig.AI_MODEL_CONFIG && 
-               GlobalConfig.AI_MODEL_CONFIG.apiEndpoint;
+        return GlobalConfig.AI_MODEL_CONFIG &&
+            GlobalConfig.AI_MODEL_CONFIG.apiEndpoint;
     });
 
     // Test 4: Optimization Integration Setup
     console.log('\n🔧 Testing Optimization Integration...');
     test('Optimization integration setup', () => {
         setupOptimizationIntegration(container);
-        return container.has('optimizedExecutor') && 
-               container.has('optimizedWorkflowManager');
+        return container.has('optimizedExecutor') &&
+            container.has('optimizedWorkflowManager');
     });
 
     // Test 5: Component Initialization
@@ -129,7 +129,7 @@ async function runValidationTests() {
 
     test('Batch capability detection', () => {
         return apiOptimizer._canBatch('mode_selection') === true &&
-               apiOptimizer._canBatch('invalid_type') === false;
+            apiOptimizer._canBatch('invalid_type') === false;
     });
 
     test('Model selection logic', () => {
@@ -142,12 +142,12 @@ async function runValidationTests() {
     console.log('\n🚦 Testing Rate Limiter Logic...');
     test('Rate limiter initialization', () => {
         return rateLimiter.maxConcurrentRequests > 0 &&
-               rateLimiter.baseDelay > 0;
+            rateLimiter.baseDelay > 0;
     });
 
     test('Priority queue functionality', () => {
         return Array.isArray(rateLimiter.requestQueue) &&
-               typeof rateLimiter._addToQueue === 'function';
+            typeof rateLimiter._addToQueue === 'function';
     });
 
     // Test 8: Statistics and Monitoring
@@ -155,13 +155,13 @@ async function runValidationTests() {
     test('API optimizer statistics', () => {
         const stats = apiOptimizer.getStats();
         return stats && typeof stats.totalRequests === 'number' &&
-               typeof stats.cacheHits === 'number';
+            typeof stats.cacheHits === 'number';
     });
 
     test('Rate limiter statistics', () => {
         const stats = rateLimiter.getStats();
         return stats && typeof stats.requestsProcessed === 'number' &&
-               typeof stats.averageResponseTime === 'number';
+            typeof stats.averageResponseTime === 'number';
     });
 
     // Test 9: Health Check Functionality
@@ -192,7 +192,7 @@ async function runValidationTests() {
         console.log('4. Monitor performance improvements');
     } else {
         console.log('\n⚠️ Some integration tests failed. Please review the issues above.');
-        
+
         // Show failed tests
         const failedTests = results.tests.filter(t => t.status.includes('FAIL'));
         if (failedTests.length > 0) {

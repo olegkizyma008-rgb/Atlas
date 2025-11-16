@@ -179,12 +179,24 @@ export class Application {
      */
     async startWebSocket() {
         try {
+            console.log('[SERVER] startWebSocket() called');
+            console.error('[SERVER] DEBUG: this.logger =', !!this.logger);
+            console.error('[SERVER] DEBUG: this.wsManager =', !!this.wsManager);
+            console.error('[SERVER] DEBUG: this.networkConfig =', !!this.networkConfig);
+
             this.logger.system('websocket', 'Attempting to start WebSocket server...');
             const wsPort = this.networkConfig.services.recovery.port;
+            console.log(`[SERVER] WebSocket port configured: ${wsPort}`);
             this.logger.system('websocket', `WebSocket port configured: ${wsPort}`);
-            this.wsManager.start(wsPort);
+
+            // Start the WebSocket server
+            console.error('[SERVER] DEBUG: About to call wsManager.start()');
+            const wss = this.wsManager.start(wsPort);
+            console.error('[SERVER] DEBUG: wsManager.start() returned:', !!wss);
+            console.log(`[SERVER] ✅ WebSocket server started on port ${wsPort}`);
             this.logger.system('websocket', `✅ WebSocket server running on port ${wsPort}`);
         } catch (error) {
+            console.error(`[SERVER] Failed to start WebSocket server:`, error);
             this.logger.error('Failed to start WebSocket server', {
                 error: error.message,
                 stack: error.stack,
@@ -212,6 +224,15 @@ export class Application {
                     this.logger.system('startup', `🚀 ATLAS Orchestrator v4.0 running on port ${PORT}`);
                     this.logger.system('features', 'DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring');
                     this.logger.system('config', `Configuration loaded: ${Object.keys(this.config.AGENTS).length} agents, ${this.config.WORKFLOW_STAGES.length} stages`);
+
+                    // Start WebSocket server immediately after HTTP server is ready
+                    console.log('[SERVER] Starting WebSocket server...');
+                    setImmediate(() => {
+                        this.startWebSocket().catch(err => {
+                            console.error('[SERVER] WebSocket startup error:', err);
+                        });
+                    });
+
                     resolve();
                 });
 
@@ -234,47 +255,68 @@ export class Application {
     async start() {
         try {
             console.log('[SERVER] Application.start() called');
-            
+
             // 1. Initialize services
+            console.log('[SERVER] Step 1: Initializing services...');
             await this.initializeServices();
-            
+            console.log('[SERVER] Step 1: Services initialized');
+
             // 2. Initialize configuration
+            console.log('[SERVER] Step 2: Initializing configuration...');
             await this.initializeConfig();
-            
+            console.log('[SERVER] Step 2: Configuration initialized');
+
             // 3. Setup Express application
+            console.log('[SERVER] Step 3: Setting up Express application...');
             await this.setupApplication();
-            
+            console.log('[SERVER] Step 3: Express application set up');
+
             // 4. Start session cleanup
+            console.log('[SERVER] Step 4: Starting session cleanup...');
             this.startSessionCleanup();
-            
-            // 5. Start WebSocket server
-            await this.startWebSocket();
-            
-            // 6. Start HTTP server
+            console.log('[SERVER] Step 4: Session cleanup started');
+
+            // 5. Start HTTP server (WebSocket will be started after HTTP server is ready)
+            console.log('[SERVER] Step 5: Starting HTTP server...');
             await this.startServer();
-            
-            // 7. Configure graceful shutdown hooks
+            console.log('[SERVER] Step 5: HTTP server started');
+
+            // 6. Configure graceful shutdown hooks
+            console.log('[SERVER] Step 6: Setting up shutdown handlers...');
             this.setupShutdownHandlers();
+            console.log('[SERVER] Step 6: Shutdown handlers set up');
 
-            // 8. Initialize Cascade Controller
-            const cascadeController = this.container.resolve('cascadeController');
-            if (cascadeController) {
-                await cascadeController.initialize();
-                this.logger.info('🌟 CASCADE CONTROLLER initialized', {
-                    capabilities: cascadeController.capabilities
-                });
-            }
-
-            // 9. Initialize Eternity self-improvement module
-            try {
-                const eternityModule = this.container.resolve('eternityModule');
-                if (eternityModule) {
-                    await eternityModule.initialize();
-                    this.logger.info('🌟 ETERNITY MODULE activated - self-improvement system online');
+            // 7. Initialize Cascade Controller (non-blocking)
+            console.log('[SERVER] Step 7: Initializing Cascade Controller...');
+            setImmediate(async () => {
+                try {
+                    const cascadeController = this.container.resolve('cascadeController');
+                    if (cascadeController) {
+                        await cascadeController.initialize();
+                        this.logger.info('🌟 CASCADE CONTROLLER initialized', {
+                            capabilities: cascadeController.capabilities
+                        });
+                    }
+                } catch (err) {
+                    console.error('[SERVER] Cascade Controller error:', err);
                 }
-            } catch (eternityError) {
-                this.logger.warn(`Eternity module initialization failed: ${eternityError.message}`);
-            }
+            });
+            console.log('[SERVER] Step 7: Cascade Controller queued');
+
+            // 8. Initialize Eternity self-improvement module (non-blocking)
+            console.log('[SERVER] Step 8: Initializing Eternity module...');
+            setImmediate(async () => {
+                try {
+                    const eternityModule = this.container.resolve('eternityModule');
+                    if (eternityModule) {
+                        await eternityModule.initialize();
+                        this.logger.info('🌟 ETERNITY MODULE activated - self-improvement system online');
+                    }
+                } catch (eternityError) {
+                    this.logger.warn(`Eternity module initialization failed: ${eternityError.message}`);
+                }
+            });
+            console.log('[SERVER] Step 8: Eternity module queued');
 
             this.logger.system('startup', '✅ ATLAS Orchestrator fully initialized with DI Container');
         } catch (error) {

@@ -229,6 +229,65 @@ export class Application {
     }
 
     /**
+     * Запуск всього додатку
+     */
+    async start() {
+        try {
+            console.log('[SERVER] Application.start() called');
+            
+            // 1. Initialize services
+            await this.initializeServices();
+            
+            // 2. Initialize configuration
+            await this.initializeConfig();
+            
+            // 3. Setup Express application
+            await this.setupApplication();
+            
+            // 4. Start session cleanup
+            this.startSessionCleanup();
+            
+            // 5. Start WebSocket server
+            await this.startWebSocket();
+            
+            // 6. Start HTTP server
+            await this.startServer();
+            
+            // 7. Configure graceful shutdown hooks
+            this.setupShutdownHandlers();
+
+            // 8. Initialize Cascade Controller
+            const cascadeController = this.container.resolve('cascadeController');
+            if (cascadeController) {
+                await cascadeController.initialize();
+                this.logger.info('🌟 CASCADE CONTROLLER initialized', {
+                    capabilities: cascadeController.capabilities
+                });
+            }
+
+            // 9. Initialize Eternity self-improvement module
+            try {
+                const eternityModule = this.container.resolve('eternityModule');
+                if (eternityModule) {
+                    await eternityModule.initialize();
+                    this.logger.info('🌟 ETERNITY MODULE activated - self-improvement system online');
+                }
+            } catch (eternityError) {
+                this.logger.warn(`Eternity module initialization failed: ${eternityError.message}`);
+            }
+
+            this.logger.system('startup', '✅ ATLAS Orchestrator fully initialized with DI Container');
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Application startup failed', { error: error.message });
+            } else {
+                console.error('Application startup failed:', error);
+            }
+            throw error;
+        }
+    }
+
+    /**
      * Graceful shutdown
      */
     async shutdown() {
@@ -249,55 +308,6 @@ export class Application {
         } catch (error) {
             console.error('Error during shutdown:', error);
             throw error;
-        }
-    }
-
-    /**
-                try {
-                    if (this.wsManager) {
-                        const wsPort = this.networkConfig.services.recovery.port;
-                        this.wsManager.start(wsPort);
-                        this.logger.system('websocket', `✅ WebSocket server running on port ${wsPort}`);
-                    }
-                } catch (error) {
-                    this.logger.error('WebSocket startup error', {
-                        error: error.message,
-                        stack: error.stack
-                    });
-                }
-            });
-
-            // Configure graceful shutdown hooks
-            this.setupShutdownHandlers();
-
-            // Initialize Cascade Controller
-            const cascadeController = this.container.resolve('cascadeController');
-            if (cascadeController) {
-                await cascadeController.initialize();
-                this.logger.info('🌟 CASCADE CONTROLLER initialized', {
-                    capabilities: cascadeController.capabilities
-                });
-            }
-
-            // Initialize Eternity self-improvement module
-            try {
-                const eternityModule = this.container.resolve('eternityModule');
-                if (eternityModule) {
-                    await eternityModule.initialize();
-                    this.logger.info('🌟 ETERNITY MODULE activated - self-improvement system online');
-                }
-            } catch (eternityError) {
-                this.logger.warn(`Eternity module initialization failed: ${eternityError.message}`);
-            }
-
-            this.logger.system('startup', '✅ ATLAS Orchestrator fully initialized with DI Container');
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Application startup failed', { error: error.message });
-            } else {
-                console.error('Application startup failed:', error);
-            }
-            process.exit(1);
         }
     }
 

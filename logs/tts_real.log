@@ -1,12 +1,12 @@
-2025-11-16 23:37:44,101 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
-2025-11-16 23:37:44,101 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
-2025-11-16 23:37:44,101 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
-2025-11-16 23:37:44,101 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
+2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
+2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
+2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
+2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/pyworld/__init__.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
   return self.fget.__get__(instance, owner)()
-2025-11-16 23:37:46,994 [stanza] INFO: Loading these models for language: uk (Ukrainian):
+2025-11-16 23:41:03,460 [stanza] INFO: Loading these models for language: uk (Ukrainian):
 =========================
 | Processor | Package   |
 -------------------------
@@ -15,22 +15,22 @@
 | pos       | iu_charlm |
 =========================
 
-2025-11-16 23:37:46,994 [stanza] INFO: Using device: cpu
-2025-11-16 23:37:46,994 [stanza] INFO: Loading: tokenize
-2025-11-16 23:37:47,140 [stanza] INFO: Loading: mwt
-2025-11-16 23:37:47,143 [stanza] INFO: Loading: pos
-2025-11-16 23:37:48,104 [stanza] INFO: Done loading processors!
-2025-11-16 23:37:48,149 [root] INFO: Vocabulary size: 48
+2025-11-16 23:41:03,460 [stanza] INFO: Using device: cpu
+2025-11-16 23:41:03,460 [stanza] INFO: Loading: tokenize
+2025-11-16 23:41:03,610 [stanza] INFO: Loading: mwt
+2025-11-16 23:41:03,613 [stanza] INFO: Loading: pos
+2025-11-16 23:41:04,560 [stanza] INFO: Done loading processors!
+2025-11-16 23:41:04,605 [root] INFO: Vocabulary size: 48
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:30: UserWarning: torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.
   warnings.warn("torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.")
-2025-11-16 23:37:48,941 [root] INFO: Extractor:
+2025-11-16 23:41:05,398 [root] INFO: Extractor:
 LogMelFbank(
   (stft): Stft(n_fft=1024, win_length=1024, hop_length=256, center=True, normalized=False, onesided=True)
   (logmel): LogMel(sr=22050, n_fft=1024, n_mels=80, fmin=80, fmax=7600, htk=False)
 )
-2025-11-16 23:37:48,941 [root] INFO: Normalizer:
+2025-11-16 23:41:05,398 [root] INFO: Normalizer:
 GlobalMVN(stats_file=feats_stats.npz, norm_means=True, norm_vars=True)
-2025-11-16 23:37:48,943 [root] INFO: TTS:
+2025-11-16 23:41:05,400 [root] INFO: TTS:
 JointText2Wav(
   (generator): ModuleDict(
     (text2mel): Tacotron2(
@@ -478,11 +478,11 @@ JointText2Wav(
     )
   )
 )
-2025-11-16 23:37:49,421 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
-2025-11-16 23:37:49,421 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
-2025-11-16 23:37:49,421 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
-2025-11-16 23:37:49,422 [ukrainian-tts-server] INFO: TTS ready: True
-2025-11-16 23:37:49,422 [ukrainian-tts-server] INFO: Device: mps
+2025-11-16 23:41:05,853 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
+2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
+2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
+2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: TTS ready: True
+2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Device: mps
 downloading https://github.com/robinhad/ukrainian-tts/releases/download/v6.0.0
 Found ../model.pth. Skipping download...
 Found ../config.yaml. Skipping download...
@@ -491,6 +491,8 @@ Found ../feats_stats.npz. Skipping download...
 downloaded.
  * Serving Flask app 'tts_server'
  * Debug mode: off
-2025-11-16 23:37:49,436 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-11-16 23:41:05,871 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:3001
-2025-11-16 23:37:49,436 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+2025-11-16 23:41:05,871 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+2025-11-16 23:41:39,785 [werkzeug] INFO: 127.0.0.1 - - [16/Nov/2025 23:41:39] "OPTIONS /health HTTP/1.1" 200 -
+2025-11-16 23:41:39,787 [werkzeug] INFO: 127.0.0.1 - - [16/Nov/2025 23:41:39] "GET /health HTTP/1.1" 200 -

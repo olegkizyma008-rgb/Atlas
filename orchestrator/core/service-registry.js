@@ -958,24 +958,25 @@ export function registerMCPProcessors(container) {
     });
 
     // NEW 2025-11-04: File Watcher - спостереження за змінами батька
-    container.singleton('nexusFileWatcher', async (c) => {
-        const { NexusFileWatcher } = await import('../eternity/nexus-file-watcher.js');
-        const watcher = new NexusFileWatcher(c);
-        await watcher.initialize();
-        logger.system('startup', '👁️ [NEXUS-WATCHER] Система спостереження активована');
-        return watcher;
-    }, {
-        dependencies: ['logger', 'multiModelOrchestrator'],
-        metadata: { category: 'nexus', priority: 88 },
-        lifecycle: {
-            onInit: async function () {
-                logger.info('[NEXUS-WATCHER] Я бачу все, батьку');
-            },
-            onShutdown: async function () {
-                this.shutdown();
-            }
-        }
-    });
+    // DISABLED 2025-11-16: Блокує запуск системи - буде ініціалізовано асинхронно після запуску
+    // container.singleton('nexusFileWatcher', async (c) => {
+    //     const { NexusFileWatcher } = await import('../eternity/nexus-file-watcher.js');
+    //     const watcher = new NexusFileWatcher(c);
+    //     await watcher.initialize();
+    //     logger.system('startup', '👁️ [NEXUS-WATCHER] Система спостереження активована');
+    //     return watcher;
+    // }, {
+    //     dependencies: ['logger', 'multiModelOrchestrator'],
+    //     metadata: { category: 'nexus', priority: 88 },
+    //     lifecycle: {
+    //         onInit: async function () {
+    //             logger.info('[NEXUS-WATCHER] Я бачу все, батьку');
+    //         },
+    //         onShutdown: async function () {
+    //             this.shutdown();
+    //         }
+    //     }
+    // });
 
     // NEW 2025-11-04: Dynamic Prompt Injector - живе спілкування Atlas
     container.singleton('nexusDynamicPromptInjector', async (c) => {

@@ -224,17 +224,28 @@ export class DIContainer {
         const logger = this.has('logger') ? this.resolve('logger') : console;
 
         logger.info?.('[DI] Initializing services...');
+        console.log('[DI] Initializing services...');
 
         // Резолвимо всі singletons для ініціалізації
+        console.log('[DI] Resolving singleton services...');
         for (const [name, service] of this.services.entries()) {
             if (service.singleton && !this.singletons.has(name)) {
-                this.resolve(name);
+                console.log(`[DI] Resolving singleton: ${name}`);
+                try {
+                    this.resolve(name);
+                    console.log(`[DI] ✓ Resolved singleton: ${name}`);
+                } catch (err) {
+                    console.error(`[DI] ✗ Error resolving singleton ${name}:`, err.message);
+                }
             }
         }
+        console.log('[DI] All singletons resolved');
 
         // Викликаємо onInit hooks
+        console.log('[DI] Calling onInit hooks...');
         for (const [name, hooks] of this.lifecycleHooks.entries()) {
             if (hooks.onInit) {
+                console.log(`[DI] Calling onInit for: ${name}`);
                 let instance = this.singletons.get(name);
                 if (instance) {
                     // Якщо singleton — це Promise (async factory), дочекатися резолва
@@ -253,11 +264,13 @@ export class DIContainer {
 
                     await hooks.onInit.call(instance);
                     logger.debug?.(`[DI] Initialized: ${name}`);
+                    console.log(`[DI] ✓ onInit completed for: ${name}`);
                 }
             }
         }
 
         logger.info?.('[DI] All services initialized');
+        console.log('[DI] All services initialized');
     }
 
     /**

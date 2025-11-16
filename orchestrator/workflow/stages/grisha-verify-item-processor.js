@@ -137,14 +137,14 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[GRISHA]   Total tools planned: ${executionAnalysis.total_planned}`);
             this.logger.system('grisha-verify-item', `[GRISHA]   Successfully executed: ${executionAnalysis.successful_tools.length}`);
             this.logger.system('grisha-verify-item', `[GRISHA]   Failed/Denied: ${executionAnalysis.failed_tools.length}`);
-            
+
             if (executionAnalysis.successful_tools.length > 0) {
                 this.logger.system('grisha-verify-item', `[GRISHA]   ✅ Executed tools:`);
                 executionAnalysis.successful_tools.forEach(tool => {
                     this.logger.system('grisha-verify-item', `[GRISHA]      • ${tool.name}`);
                 });
             }
-            
+
             if (executionAnalysis.failed_tools.length > 0) {
                 this.logger.system('grisha-verify-item', `[GRISHA]   ❌ Failed/Denied:`);
                 executionAnalysis.failed_tools.forEach(tool => {
@@ -157,7 +157,7 @@ export class GrishaVerifyItemProcessor {
 
             // STEP 1: Determine verification strategy (heuristic-based)
             const strategy = this.verificationStrategy.determineStrategy(currentItem, execution);
-            
+
             this.logger.system('grisha-verify-item', `[GRISHA] 🎯 Heuristic strategy: ${strategy.method.toUpperCase()}`);
             this.logger.system('grisha-verify-item', `[GRISHA] 📊 Heuristic confidence: ${strategy.confidence}%`);
             this.logger.system('grisha-verify-item', `[GRISHA] 💡 Reason: ${strategy.reason}`);
@@ -182,7 +182,7 @@ export class GrishaVerifyItemProcessor {
                         // LLM only overrides when heuristic is uncertain (<80% confidence)
                         const heuristicIsStrong = strategy.confidence >= 80;
                         const llmIsStronger = eligibilityDecision.confidence > strategy.confidence + 20;
-                        
+
                         if (heuristicIsStrong && !llmIsStronger) {
                             this.logger.system('grisha-verify-item', `[GRISHA] 💪 Keeping heuristic decision (high confidence: ${strategy.confidence}% vs LLM: ${eligibilityDecision.confidence}%)`);
                             // Keep heuristic strategy, but store LLM decision for fallback
@@ -190,7 +190,7 @@ export class GrishaVerifyItemProcessor {
                         } else {
                             // LLM overrides when heuristic is weak OR LLM is much more confident
                             this.logger.system('grisha-verify-item', `[GRISHA] 🤖 Using LLM decision (heuristic: ${strategy.confidence}%, LLM: ${eligibilityDecision.confidence}%)`);
-                            
+
                             if (eligibilityDecision.recommended_path === 'data' || eligibilityDecision.recommended_path === 'hybrid') {
                                 strategy.method = 'mcp';
                                 strategy.reason = `LLM decision: ${eligibilityDecision.reason}`;
@@ -214,46 +214,46 @@ export class GrishaVerifyItemProcessor {
 
             // STEP 3: Execute verification based on final strategy
             let verification;
-            
+
             if (strategy.method === 'visual') {
                 // ARCHITECTURE 2025-10-22: 2-attempt visual verification with model escalation
                 // Attempt 1: Fast/cheap model (phi-3.5-vision)
                 this.logger.system('grisha-verify-item', '[GRISHA] 🎯 Visual attempt 1/2 (fast model)');
                 verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 1);
-                
+
                 // Attempt 2: If first failed, retry with stronger model (llama-3.2-90b-vision)
                 if (!verification.verified) {
                     this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual attempt 1 failed, trying attempt 2/2 (90b model)');
                     verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 2);
                 }
-                
+
                 // If BOTH visual attempts failed → automatically fallback to MCP verification
                 if (!verification.verified) {
                     this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ Both visual attempts failed, falling back to MCP verification...');
-                    
+
                     // Create simple MCP strategy for fallback
                     const mcpStrategy = {
                         method: 'mcp',
                         confidence: 80,
                         reason: 'Visual verification failed after 2 attempts, using data verification'
                     };
-                    
+
                     // Create minimal eligibility decision with server hints to avoid invalid tool names
                     // FIXED 2025-10-24: Provide explicit server hints for common verification tasks
                     const fallbackEligibility = {
                         verification_action: this._transformActionToVerification(currentItem.action),
                         additional_checks: this._generateFallbackChecks(currentItem)
                     };
-                    
+
                     // Try MCP verification with fallback eligibility hints
                     try {
                         const mcpVerification = await this._executeMcpVerification(
-                            currentItem, 
-                            execution, 
-                            mcpStrategy, 
+                            currentItem,
+                            execution,
+                            mcpStrategy,
                             fallbackEligibility  // Provide hints to guide server selection
                         );
-                        
+
                         if (mcpVerification.verified) {
                             this.logger.system('grisha-verify-item', '[GRISHA] ✅ MCP verification succeeded after visual failures');
                             verification = mcpVerification;
@@ -273,12 +273,12 @@ export class GrishaVerifyItemProcessor {
             } else if (strategy.method === 'mcp') {
                 // MCP verification (primary) - use additional_checks from eligibility
                 verification = await this._executeMcpVerification(currentItem, execution, strategy, eligibilityDecision);
-                
+
                 // If MCP failed and visual fallback is available
                 if (!verification.verified && strategy.fallbackToVisual) {
                     this.logger.system('grisha-verify-item', '[GRISHA] 🔄 MCP verification failed, trying visual fallback...');
                     const visualVerification = await this._executeVisualVerification(currentItem, execution, todo, strategy);
-                    
+
                     if (visualVerification.verified) {
                         this.logger.system('grisha-verify-item', '[GRISHA] ✅ Visual fallback verification succeeded');
                         verification = visualVerification;
@@ -293,7 +293,7 @@ export class GrishaVerifyItemProcessor {
 
             // Generate TTS phrase for executor
             verification.tts_phrase = this._generateTtsPhrase(verification.verified);
-            
+
             this.logger.system('grisha-verify-item', '[GRISHA] ✅ Verification complete');
 
             // Determine next action
@@ -360,7 +360,7 @@ export class GrishaVerifyItemProcessor {
             // Step 1: Determine target app for window screenshot
             // ENHANCED 2025-10-22: Use context to persist targetApp across items in same session
             let targetApp = this._detectTargetApp(currentItem.action, execution.results);
-            
+
             // If not detected in current item, check if we have it from previous items in this TODO
             if (!targetApp && todo && todo.id) {
                 // Check if previous items in same TODO had a target app
@@ -374,7 +374,7 @@ export class GrishaVerifyItemProcessor {
                     }
                 }
             }
-            
+
             if (targetApp) {
                 this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🎯 Target app detected: ${targetApp}`);
             } else {
@@ -454,7 +454,7 @@ export class GrishaVerifyItemProcessor {
             // FIXED 2025-10-29: Add TODO context for mathematical operations
             // CRITICAL 2025-11-03: Add execution analysis so vision knows WHAT ACTUALLY HAPPENED
             const executionAnalysis = currentItem._execution_analysis || this._analyzeExecutionDetails(execution);
-            
+
             const analysisContext = {
                 action: currentItem.action,
                 executionResults: execution.results || [],
@@ -527,7 +527,7 @@ export class GrishaVerifyItemProcessor {
                     security_note: 'Fallback responses always fail verification to prevent false positives'
                 });
             }
-            
+
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Vision analysis complete (confidence: ${visionAnalysis.confidence}%)`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Model used: ${this.visionAnalysis.config.visionModel || 'unknown'}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Verified: ${visionAnalysis.verified}`);
@@ -538,7 +538,7 @@ export class GrishaVerifyItemProcessor {
             const minConfidence = this._calculateMinimumConfidence(currentItem, visionAnalysis);
             let verified = visionAnalysis.verified && visionAnalysis.confidence >= minConfidence;
             let rejectionReason = null;
-            
+
             // SECURITY CHECK 1: Reject fallback responses (no structured JSON from vision model)
             if (visionAnalysis._fallback === true) {
                 verified = false;
@@ -548,7 +548,7 @@ export class GrishaVerifyItemProcessor {
                     reason: rejectionReason
                 });
             }
-            
+
             // SECURITY CHECK 2: Require matches_criteria to be explicitly true
             // FIXED 2025-11-04: Skip this check for markdown-parsed responses
             if (verified && !visionAnalysis._markdown_parsed && visionAnalysis.visual_evidence?.matches_criteria !== true) {
@@ -560,7 +560,7 @@ export class GrishaVerifyItemProcessor {
                     matches_criteria: visionAnalysis.visual_evidence?.matches_criteria
                 });
             }
-            
+
             // INTELLIGENT CHECK 3: Dynamic confidence threshold based on task complexity
             if (visionAnalysis.verified && visionAnalysis.confidence < minConfidence) {
                 this.logger.warn(`[VISUAL-GRISHA] ⚠️  Low confidence verification rejected (${visionAnalysis.confidence}% < ${minConfidence}%)`, {
@@ -569,7 +569,7 @@ export class GrishaVerifyItemProcessor {
                     required_confidence: minConfidence
                 });
             }
-            
+
             const verification = {
                 verified: verified,
                 confidence: visionAnalysis.confidence,
@@ -588,7 +588,7 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ${status}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   Reason: ${verification.reason}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   Visual Evidence: ${verification.visual_evidence.observed}`);
-            
+
             // SECURITY CHECK 4: Log evidence validation details
             if (verification.verified) {
                 this.logger.system('grisha-verify-item', `[VISUAL-GRISHA]   ✅ Evidence validation passed:`);
@@ -734,7 +734,7 @@ export class GrishaVerifyItemProcessor {
             // REFACTORED 2025-10-29: Use unified MCP workflow instead of calling processors directly
             // This ensures both Grisha and Tetyana use the same workflow code
             // Benefits: no duplication, easier maintenance, same capabilities for both agents
-            
+
             if (!this.container) {
                 throw new Error('DI Container not available for MCP verification');
             }
@@ -749,13 +749,33 @@ export class GrishaVerifyItemProcessor {
             // FIXED 2025-10-23: Use verification_action from eligibilityDecision (LLM transforms action)
             // CRITICAL FIX 2025-10-23: Smart fallback transforms action verbs (create→verify existence)
             const verificationAction = eligibilityDecision?.verification_action || this._transformActionToVerification(currentItem.action);
-            
+
+            // Determine MCP servers for verification:
+            // 1) Prefer Stage 2.0 selection stored on original item (strict reuse)
+            // 2) Fallback to eligibility hints (additional_checks)
+            // 3) Let unified workflow perform its own selection as last resort
+            let verificationServers = [];
+
+            if (Array.isArray(currentItem._mcp_selected_servers) && currentItem._mcp_selected_servers.length > 0) {
+                verificationServers = [...currentItem._mcp_selected_servers];
+                this.logger.system('grisha-verify-item', `[MCP-GRISHA] 🔒 Using persisted Stage 2.0 servers for verification: ${verificationServers.join(', ')}`);
+            } else if (eligibilityDecision?.additional_checks) {
+                verificationServers = eligibilityDecision.additional_checks
+                    .map(c => c.server)
+                    .filter(Boolean)
+                    .filter((v, i, a) => a.indexOf(v) === i);
+
+                if (verificationServers.length > 0) {
+                    this.logger.system('grisha-verify-item', `[MCP-GRISHA] 🎯 Using eligibility-based server hints: ${verificationServers.join(', ')}`);
+                }
+            }
+
             const verificationItem = {
                 id: `verify_${currentItem.id}_${Date.now()}`,
                 action: verificationAction,
                 success_criteria: currentItem.success_criteria,
-                // Hint from eligibility (optional) - Stage 2.0 will validate
-                mcp_servers: eligibilityDecision?.additional_checks?.map(c => c.server).filter((v, i, a) => a.indexOf(v) === i) || [],
+                // Strict server reuse from Stage 2.0 when available
+                mcp_servers: verificationServers,
                 parameters: {},
                 max_attempts: 1,
                 dependencies: []
@@ -797,12 +817,12 @@ export class GrishaVerifyItemProcessor {
             this.logger.system('grisha-verify-item', `[MCP-GRISHA]   Servers: ${metadata.selected_servers?.join(', ') || 'auto'}`);
             this.logger.system('grisha-verify-item', `[MCP-GRISHA]   Tools: ${metadata.planned_tools?.length || 0}`);
             this.logger.system('grisha-verify-item', `[MCP-GRISHA]   Success: ${verificationResults.all_successful ? '✅' : '❌'}`);
-            
+
             // Log detailed results for analysis
             this.logger.system('grisha-verify-item', '[MCP-GRISHA] 📊 Verification execution results:');
             this.logger.system('grisha-verify-item', `[MCP-GRISHA]   All successful: ${verificationResults.all_successful}`);
             this.logger.system('grisha-verify-item', `[MCP-GRISHA]   Tool count: ${verificationResults.results?.length || 0}`);
-            
+
             if (verificationResults.results && verificationResults.results.length > 0) {
                 verificationResults.results.forEach((result, idx) => {
                     const status = result.success ? '✅' : '❌';
@@ -874,10 +894,10 @@ export class GrishaVerifyItemProcessor {
         // CRITICAL FIX 2025-10-29: Handle both object and array results
         // TetyanaToolSystem returns {all_successful, results: [...]}
         // But sometimes results might be passed directly as array
-        
+
         let resultsArray;
         let allSuccessful;
-        
+
         if (Array.isArray(results)) {
             // Direct array of results
             resultsArray = results;
@@ -915,13 +935,13 @@ export class GrishaVerifyItemProcessor {
 
         // Check for file/directory existence verification
         // CRITICAL FIX 30.10.2025: Only check filesystem if criteria explicitly mentions files/folders
-        const isFileSystemCriteria = criteriaLower.includes('файл') || 
-                                      criteriaLower.includes('папк') || 
-                                      criteriaLower.includes('директорі') ||
-                                      criteriaLower.includes('file') ||
-                                      criteriaLower.includes('folder') ||
-                                      criteriaLower.includes('directory');
-        
+        const isFileSystemCriteria = criteriaLower.includes('файл') ||
+            criteriaLower.includes('папк') ||
+            criteriaLower.includes('директорі') ||
+            criteriaLower.includes('file') ||
+            criteriaLower.includes('folder') ||
+            criteriaLower.includes('directory');
+
         if (isFileSystemCriteria && (criteriaLower.includes('існує') || criteriaLower.includes('знайдено') || criteriaLower.includes('наявний'))) {
             // Look for filesystem operations in results
             const filesystemResults = resultsArray.filter(r =>
@@ -937,10 +957,10 @@ export class GrishaVerifyItemProcessor {
             } else {
                 // FIXED 2025-11-04: Enhanced confidence calculation with better criteria matching
                 const dataAnalysis = this._analyzeDataQuality(resultsArray);
-        
+
                 // Check if results actually match the success criteria
                 const criteriaMatched = this._checkCriteriaMatch(successCriteria, dataAnalysis, resultsArray);
-        
+
                 if (criteriaMatched.matched) {
                     return {
                         success: true,
@@ -949,7 +969,7 @@ export class GrishaVerifyItemProcessor {
                         details: this._extractExecutionDetails(resultsArray)
                     };
                 }
-        
+
                 // If criteria not matched but tools executed successfully
                 return {
                     success: false,
@@ -963,10 +983,10 @@ export class GrishaVerifyItemProcessor {
         // FIXED 2025-11-04: CRITICAL - ALWAYS check if results match success criteria
         // Don't just check if tools executed - verify the ACTUAL result matches what was expected!
         const dataAnalysis = this._analyzeDataQuality(resultsArray);
-        
+
         // Check if results actually match the success criteria
         const criteriaMatched = this._checkCriteriaMatch(successCriteria, dataAnalysis, resultsArray);
-        
+
         if (criteriaMatched.matched) {
             return {
                 success: true,
@@ -975,7 +995,7 @@ export class GrishaVerifyItemProcessor {
                 details: this._extractExecutionDetails(resultsArray)
             };
         }
-        
+
         // If criteria not matched, return failure even if tools executed successfully
         // This is the key fix - tools can execute but not achieve the goal!
         return {
@@ -1014,23 +1034,23 @@ export class GrishaVerifyItemProcessor {
             { patterns: ['створити файл', 'зробити файл', 'create file'], replacement: 'Перевірити існування файлу' },
             { patterns: ['зберегти файл', 'записати файл', 'save file', 'write file'], replacement: 'Перевірити існування файлу' },
             { patterns: ['зберегти результат', 'записати результат'], replacement: 'Перевірити збережений результат' },
-            
+
             // Download operations
             { patterns: ['завантажити фото', 'download photo', 'download image'], replacement: 'Перевірити наявність фото' },
             { patterns: ['завантажити файл', 'download file'], replacement: 'Перевірити наявність файлу' },
             { patterns: ['завантажити з інтернету', 'download from'], replacement: 'Перевірити завантажений файл' },
-            
+
             // Application operations
             { patterns: ['відкрити програму', 'відкрити додаток', 'launch app', 'open app'], replacement: 'Перевірити що відкрито програму' },
             { patterns: ['запустити програму', 'start program'], replacement: 'Перевірити що запущено програму' },
-            
+
             // Calculation operations - UNIVERSAL: just verify result without mentioning operation details
             { patterns: ['виконати обчислення', 'порахувати', 'calculate', 'compute'], replacement: 'Перевірити результат' },
             { patterns: ['помножити', 'multiply'], replacement: 'Перевірити результат' },
             { patterns: ['додати', 'add'], replacement: 'Перевірити результат' },
             { patterns: ['відняти', 'subtract'], replacement: 'Перевірити результат' },
             { patterns: ['округлити', 'round'], replacement: 'Перевірити результат' },
-            
+
             // System operations
             { patterns: ['встановити', 'install', 'set', 'change'], replacement: 'Перевірити встановлення' },
             { patterns: ['налаштувати', 'configure'], replacement: 'Перевірити налаштування' }
@@ -1043,7 +1063,7 @@ export class GrishaVerifyItemProcessor {
                     // Extract object/target after pattern
                     const patternIndex = actionLower.indexOf(pattern);
                     const afterPattern = action.substring(patternIndex + pattern.length).trim();
-                    
+
                     // Return transformed action
                     if (afterPattern) {
                         return `${transform.replacement} ${afterPattern}`;
@@ -1072,7 +1092,7 @@ export class GrishaVerifyItemProcessor {
         if (!this._verifyPhraseIndex) {
             this._verifyPhraseIndex = 0;
         }
-        
+
         const verifySuccessPhrases = [
             'Підтверджено',
             'Все правильно',
@@ -1081,7 +1101,7 @@ export class GrishaVerifyItemProcessor {
             'Результат вірний',
             'Все на місці'
         ];
-        
+
         const verifyFailurePhrases = [
             'Не підтверджено',
             'Є проблема',
@@ -1090,7 +1110,7 @@ export class GrishaVerifyItemProcessor {
             'Виявлено помилку',
             'Не відповідає очікуванням'
         ];
-        
+
         let shortTTS;
         if (verified) {
             shortTTS = verifySuccessPhrases[this._verifyPhraseIndex % verifySuccessPhrases.length];
@@ -1098,7 +1118,7 @@ export class GrishaVerifyItemProcessor {
             shortTTS = verifyFailurePhrases[this._verifyPhraseIndex % verifyFailurePhrases.length];
         }
         this._verifyPhraseIndex++;
-        
+
         return shortTTS;
     }
 
@@ -1512,7 +1532,7 @@ export class GrishaVerifyItemProcessor {
             if (failedTools.length > 0) {
                 const firstFailure = failedTools[0];
                 const errorMsg = (firstFailure.error || '').toLowerCase();
-                
+
                 if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
                     return 'missing_prerequisite';
                 }
@@ -1549,11 +1569,11 @@ export class GrishaVerifyItemProcessor {
         if (reason.includes('не відповідає') || reason.includes('mismatch')) {
             return 'unrealistic_criteria';
         }
-        
+
         if (reason.includes('не існує') || reason.includes('does not exist')) {
             return 'missing_prerequisite';
         }
-        
+
         if (reason.includes('fallback') || reason.includes('unstructured')) {
             return 'vision_model_failure';
         }
@@ -1563,15 +1583,15 @@ export class GrishaVerifyItemProcessor {
         if (visualEvidence) {
             const observed = (visualEvidence.observed || '').toLowerCase();
             const details = (visualEvidence.details || '').toLowerCase();
-            
+
             if (observed.includes('empty') || observed.includes('порожньо') || observed.includes('nothing')) {
                 return 'missing_prerequisite';
             }
-            
+
             if (details.includes('error') || details.includes('помилка')) {
                 return 'execution_error_visible';
             }
-            
+
             if (details.includes('different') || details.includes('інший')) {
                 return 'wrong_approach';
             }
@@ -1617,22 +1637,22 @@ export class GrishaVerifyItemProcessor {
 
             case 'unclear_state':
                 return 'split_into_smaller_items';
-                
+
             case 'missing_prerequisite':
                 return 'add_prerequisite_step';
-                
+
             case 'permission_issue':
                 return 'fix_permissions';
-                
+
             case 'vision_model_failure':
                 return 'retry_with_mcp_verification';
-                
+
             case 'execution_error_visible':
                 return 'fix_execution_error';
-                
+
             case 'tools_succeeded_but_wrong_result':
                 return 'change_approach_or_tools';
-                
+
             case 'verification_criteria_not_met':
                 return 'adjust_criteria_or_approach';
 
@@ -1653,7 +1673,7 @@ export class GrishaVerifyItemProcessor {
     _detectTargetApp(action, executionResults) {
         const actionLower = (action || '').toLowerCase();
         let targetApp = null;
-        
+
         // UNIVERSAL: Extract from AppleScript execution
         if (executionResults && executionResults.length > 0) {
             for (const result of executionResults) {
@@ -1665,10 +1685,10 @@ export class GrishaVerifyItemProcessor {
                     if (appMatch && appMatch[1]) {
                         targetApp = appMatch[1].trim();
                         // Capitalize properly
-                        targetApp = targetApp.split(/\s+/).map(w => 
+                        targetApp = targetApp.split(/\s+/).map(w =>
                             w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
                         ).join(' ');
-                        this.logger.system('grisha-verify-item', 
+                        this.logger.system('grisha-verify-item',
                             `[VISUAL-GRISHA] 🎯 App extracted from AppleScript: ${targetApp}`
                         );
                         return targetApp;
@@ -1676,28 +1696,28 @@ export class GrishaVerifyItemProcessor {
                 }
             }
         }
-        
+
         // UNIVERSAL: Extract app name from action text using patterns
         const appPatterns = [
             /(?:відкрити|запустити|launch|open|activate)\s+["']?([a-zа-яії\s\-\.]+?)["']?(?:\s|$|,|\.)/i,
             /(?:програм[аи]|додаток|app|application)\s+["']?([a-zа-яії\s\-\.]+?)["']?(?:\s|$|,|\.)/i,
             /["']?([a-zа-яії\s\-\.]+?)["']?\s+(?:відкрито|запущено|активовано|running|active|launched)/i
         ];
-        
+
         for (const pattern of appPatterns) {
             const match = action.match(pattern);
             if (match && match[1]) {
-                targetApp = match[1].trim().split(/\s+/).map(w => 
+                targetApp = match[1].trim().split(/\s+/).map(w =>
                     w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
                 ).join(' ');
-                
-                this.logger.system('grisha-verify-item', 
+
+                this.logger.system('grisha-verify-item',
                     `[VISUAL-GRISHA] 🎯 App extracted from text: ${targetApp}`
                 );
                 return targetApp;
             }
         }
-        
+
         // No target app detected - use full screen
         return null;
     }
@@ -1710,26 +1730,26 @@ export class GrishaVerifyItemProcessor {
     _intelligentCaptureModeFallback(item, targetApp, attempt) {
         // PURE INTELLIGENCE: Analyze context to determine best capture mode
         const action = (item?.action || '').toLowerCase();
-        
+
         // Intelligent mode selection based on verification needs
         let mode = 'full_screen'; // Safe default - captures everything
         let confidence = 0.5;
         let reasoning = 'Default full screen capture for complete context';
-        
+
         // If we have evidence of app interaction, prefer active window
         if (targetApp || this._detectsAppInteraction(action)) {
             mode = 'active_window';
             confidence = 0.7;
             reasoning = 'App interaction detected - capturing active window';
         }
-        
+
         // If verifying desktop state, use desktop_only
         if (this._detectsDesktopVerification(action)) {
             mode = 'desktop_only';
             confidence = 0.6;
             reasoning = 'Desktop state verification - capturing desktop only';
         }
-        
+
         // For retries, switch strategy
         if (attempt > 1) {
             if (mode === 'active_window') {
@@ -1741,7 +1761,7 @@ export class GrishaVerifyItemProcessor {
             }
             confidence *= 0.8; // Lower confidence for retries
         }
-        
+
         return {
             mode,
             target_app: targetApp || null,
@@ -1752,7 +1772,7 @@ export class GrishaVerifyItemProcessor {
             confidence
         };
     }
-    
+
     /**
      * Detect if action involves app interaction
      * 
@@ -1767,10 +1787,10 @@ export class GrishaVerifyItemProcessor {
             /натисн|click|press|клік/,
             /введ|type|enter|набер/
         ];
-        
+
         return interactionPatterns.some(pattern => pattern.test(action));
     }
-    
+
     /**
      * Detect if action involves desktop verification
      * 
@@ -1784,10 +1804,10 @@ export class GrishaVerifyItemProcessor {
             /екран|screen|display|монітор/,
             /роздільн|resolution/
         ];
-        
+
         return desktopPatterns.some(pattern => pattern.test(action));
     }
-    
+
     /**
      * Extract target app from action text
      * INTELLIGENT: Works for any language without hardcoding specific apps
@@ -1796,16 +1816,16 @@ export class GrishaVerifyItemProcessor {
      */
     _extractTargetApp(action) {
         if (!action) return null;
-        
+
         const actionLower = action.toLowerCase();
-        
+
         // Intelligent app extraction patterns
         const appPatterns = [
             /(?:відкрити|open|запустити|launch|start|активувати)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i,
             /(?:в|in|у|at)\s+([\w\s]+?)(?:\s+програм|\s+app|\s+додатк|$|,|\.|;)/i,
             /(?:програма|application|app|додаток)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i
         ];
-        
+
         for (const pattern of appPatterns) {
             const match = action.match(pattern);
             if (match && match[1]) {
@@ -1816,10 +1836,10 @@ export class GrishaVerifyItemProcessor {
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Check if word is a common non-app word
      * 
@@ -1834,10 +1854,10 @@ export class GrishaVerifyItemProcessor {
             // Common verbs that aren't apps
             'це', 'є', 'this', 'is', 'are', 'be'
         ];
-        
+
         return commonWords.includes(word.toLowerCase());
     }
-    
+
     /**
      * Normalize app name intelligently
      * 
@@ -1845,11 +1865,11 @@ export class GrishaVerifyItemProcessor {
      */
     _normalizeAppName(appName) {
         // Capitalize first letter of each word
-        return appName.split(/\s+/).map(word => 
+        return appName.split(/\s+/).map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     }
-    
+
     /**
      * Get appropriate render delay for app
      * 
@@ -1858,30 +1878,30 @@ export class GrishaVerifyItemProcessor {
     _getAppRenderDelay(targetApp, action) {
         // Intelligent delay based on app complexity
         const actionLower = action.toLowerCase();
-        
+
         // Heavy apps need more time
-        if (targetApp && (targetApp.includes('Xcode') || targetApp.includes('Photoshop') || 
+        if (targetApp && (targetApp.includes('Xcode') || targetApp.includes('Photoshop') ||
             targetApp.includes('Final Cut') || targetApp.includes('Logic'))) {
             return 3000;
         }
-        
+
         // Medium apps
-        if (targetApp && (targetApp.includes('Safari') || targetApp.includes('Chrome') || 
-            targetApp.includes('Chromium') || targetApp.includes('Firefox') || 
-            targetApp.includes('Pages') || targetApp.includes('Numbers') || 
+        if (targetApp && (targetApp.includes('Safari') || targetApp.includes('Chrome') ||
+            targetApp.includes('Chromium') || targetApp.includes('Firefox') ||
+            targetApp.includes('Pages') || targetApp.includes('Numbers') ||
             targetApp.includes('Keynote'))) {
             return 2000;
         }
-        
+
         // Light apps or general GUI operations
         if (this._detectsAppInteraction(actionLower)) {
             return 1500;
         }
-        
+
         // No delay needed
         return 0;
     }
-    
+
     /**
      * Extract app name from action for MCP checks
      * 
@@ -1894,7 +1914,7 @@ export class GrishaVerifyItemProcessor {
             /([\w\s]+?)\s+(?:програм|app|додаток)/i,
             /(?:в|in|у)\s+([\w\s]+?)(?:\s|$|,|\.|;)/i
         ];
-        
+
         for (const pattern of patterns) {
             const match = actionLower.match(pattern);
             if (match && match[1]) {
@@ -1904,7 +1924,7 @@ export class GrishaVerifyItemProcessor {
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -1916,9 +1936,9 @@ export class GrishaVerifyItemProcessor {
     _generateFallbackChecks(currentItem) {
         const actionLower = (currentItem.action || '').toLowerCase();
         const checks = [];
-        
+
         // File/folder operations → filesystem server
-        if (actionLower.includes('файл') || actionLower.includes('file') || 
+        if (actionLower.includes('файл') || actionLower.includes('file') ||
             actionLower.includes('папк') || actionLower.includes('folder') ||
             actionLower.includes('директор') || actionLower.includes('directory') ||
             actionLower.includes('зберегти') || actionLower.includes('save')) {
@@ -1928,7 +1948,7 @@ export class GrishaVerifyItemProcessor {
                 description: 'Check file existence and content'
             });
         }
-        
+
         // App window state verification → AppleScript
         const appName = this._extractAppNameFromAction(actionLower);
         if (appName) {
@@ -1941,9 +1961,9 @@ export class GrishaVerifyItemProcessor {
                 }
             });
         }
-        
+
         // UNIVERSAL: Math operations → detect from context, not hardcode
-        if (actionLower.match(/[\d\+\-\*\/\=]/) || 
+        if (actionLower.match(/[\d\+\-\*\/\=]/) ||
             actionLower.match(/помнож|множ|додай|відн|поділ|обчисл|результат|multiply|add|subtract|divide|calculate|result/i)) {
             checks.push({
                 server: 'applescript',
@@ -1951,7 +1971,7 @@ export class GrishaVerifyItemProcessor {
                 description: 'Check application state via AppleScript'
             });
         }
-        
+
         // Download/web operations → playwright server
         if (actionLower.includes('завантаж') || actionLower.includes('download') ||
             actionLower.includes('інтернет') || actionLower.includes('internet') ||
@@ -1962,7 +1982,7 @@ export class GrishaVerifyItemProcessor {
                 description: 'Check web/download operation'
             });
         }
-        
+
         // System operations → shell server
         if (actionLower.match(/встановити|install|set|change|system|display|екран|монітор/)) {
             checks.push({
@@ -1971,7 +1991,7 @@ export class GrishaVerifyItemProcessor {
                 reason: 'Check system settings'
             });
         }
-        
+
         // Default fallback: filesystem (most common verification)
         if (checks.length === 0) {
             checks.push({
@@ -1980,7 +2000,7 @@ export class GrishaVerifyItemProcessor {
                 description: 'Generic verification check'
             });
         }
-        
+
         return checks;
     }
 
@@ -1997,7 +2017,7 @@ export class GrishaVerifyItemProcessor {
      */
     _buildEnrichedContext(currentItem, execution, todo, baseContext = {}) {
         const enrichedContext = { ...baseContext };
-        
+
         // UNIVERSAL: Build context from ALL previous items
         if (todo && todo.items) {
             const previousItems = todo.items.filter(item => {
@@ -2005,16 +2025,16 @@ export class GrishaVerifyItemProcessor {
                 const isBefore = this._isItemBefore(item, currentItem, todo.items);
                 return isBefore && item.status === 'completed';
             });
-            
+
             if (previousItems.length > 0) {
                 // Build execution history from ALL previous items
                 const historyLines = [];
                 const contextActions = [];
-                
+
                 previousItems.forEach(item => {
                     // Add action to context
                     contextActions.push(`Step ${item.id}: ${item.action}`);
-                    
+
                     // Add execution results if available
                     if (item.execution_results && Array.isArray(item.execution_results)) {
                         const tools = item.execution_results.map(r => r.tool || 'unknown').join(', ');
@@ -2023,23 +2043,23 @@ export class GrishaVerifyItemProcessor {
                         historyLines.push(item.action);
                     }
                 });
-                
+
                 // Add universal context for ANY workflow
                 enrichedContext.previous_actions = contextActions.join('\n');
                 enrichedContext.execution_history = historyLines.join('\n');
-                
+
                 // Extract specific context based on patterns
                 enrichedContext.workflow_context = this._extractWorkflowContext(previousItems, currentItem);
-                
-                this.logger.system('grisha-verify-item', 
+
+                this.logger.system('grisha-verify-item',
                     `[VISUAL-GRISHA] 📊 Context from ${previousItems.length} previous items`
                 );
             }
         }
-        
+
         return enrichedContext;
     }
-    
+
     /**
      * Check if item is before another in execution order
      * Handles hierarchical IDs (1, 1.1, 1.1.1, etc.)
@@ -2051,30 +2071,30 @@ export class GrishaVerifyItemProcessor {
         if (typeof item1.id === 'number' && typeof item2.id === 'number') {
             return item1.id < item2.id;
         }
-        
+
         // String ID comparison (handles hierarchical)
         const id1 = String(item1.id);
         const id2 = String(item2.id);
-        
+
         // Check if item1 is parent of item2
         if (id2.startsWith(id1 + '.')) {
             return true;
         }
-        
+
         // Check if they share parent and item1 comes before
         const parts1 = id1.split('.');
         const parts2 = id2.split('.');
-        
+
         for (let i = 0; i < Math.min(parts1.length, parts2.length); i++) {
             const num1 = parseInt(parts1[i]);
             const num2 = parseInt(parts2[i]);
             if (num1 < num2) return true;
             if (num1 > num2) return false;
         }
-        
+
         return parts1.length < parts2.length;
     }
-    
+
     /**
      * Extract workflow-specific context from previous items
      * UNIVERSAL: Works for any type of workflow
@@ -2084,14 +2104,14 @@ export class GrishaVerifyItemProcessor {
     _extractWorkflowContext(previousItems, currentItem) {
         const context = [];
         const actionLower = (currentItem.action || '').toLowerCase();
-        
+
         // Math operations context
         if (actionLower.match(/[\d\+\-\*\/\=]|результат|result|обчисл|calculate/)) {
             const mathItems = previousItems.filter(item => {
                 const act = (item.action || '').toLowerCase();
                 return act.match(/[\d\+\-\*\/\=]|помнож|додай|відн|поділ/);
             });
-            
+
             if (mathItems.length > 0) {
                 const operations = mathItems.map(item => {
                     const nums = item.action.match(/\d+/g);
@@ -2106,14 +2126,14 @@ export class GrishaVerifyItemProcessor {
                 context.push(`Math operations: ${operations.join(', ')}`);
             }
         }
-        
+
         // File operations context
         if (actionLower.match(/файл|папк|folder|file|збереж|save/)) {
             const fileItems = previousItems.filter(item => {
                 const act = (item.action || '').toLowerCase();
                 return act.match(/файл|папк|folder|file|створ|збереж|create|save/);
             });
-            
+
             if (fileItems.length > 0) {
                 const paths = fileItems.map(item => {
                     const pathMatch = item.action.match(/["']([^"']+)["']/);
@@ -2122,7 +2142,7 @@ export class GrishaVerifyItemProcessor {
                 context.push(`File operations: ${paths.join(', ')}`);
             }
         }
-        
+
         // App operations context
         const appMatch = actionLower.match(/(?:в|у|in)\s+([\w\s]+?)(?:\s|$|,|\.)/i);
         if (appMatch) {
@@ -2131,12 +2151,12 @@ export class GrishaVerifyItemProcessor {
                 const act = (item.action || '').toLowerCase();
                 return act.includes(appName.toLowerCase());
             });
-            
+
             if (appItems.length > 0) {
                 context.push(`${appName} operations: ${appItems.map(i => i.action).join('; ')}`);
             }
         }
-        
+
         return context.length > 0 ? context.join('\n') : null;
     }
 
@@ -2152,7 +2172,7 @@ export class GrishaVerifyItemProcessor {
     _calculateMinimumConfidence(item, visionAnalysis) {
         const taskType = this._getTaskType(item);
         const hasNumericalData = this._hasNumericalData(item, visionAnalysis);
-        
+
         // FIXED 2025-11-04: Lower thresholds for markdown-parsed responses
         // If response was parsed from markdown, accept lower confidence
         if (visionAnalysis._markdown_parsed) {
@@ -2175,31 +2195,31 @@ export class GrishaVerifyItemProcessor {
             // Default with markdown parsing
             return 30; // Lowered from 70
         }
-        
+
         // Mathematical operations require highest confidence
         if (taskType === 'mathematical' || hasNumericalData) {
             return 85; // High confidence for math - no room for errors
         }
-        
+
         // File/folder operations - moderate confidence
         if (taskType === 'file_operation') {
             return 75;
         }
-        
+
         // UI operations - lower confidence acceptable
         if (taskType === 'ui_operation') {
             return 65;
         }
-        
+
         // Visual changes - lowest confidence acceptable
         if (taskType === 'visual_change') {
             return 60;
         }
-        
+
         // Default moderate confidence
         return 70;
     }
-    
+
     /**
      * Determine task type from item action
      * 
@@ -2209,30 +2229,30 @@ export class GrishaVerifyItemProcessor {
      */
     _getTaskType(item) {
         const action = (item?.action || '').toLowerCase();
-        
+
         // Mathematical operations
         if (action.match(/множ|додай|відн|поділ|округл|результат|обчисл|calculate|multiply|add|subtract|divide|\d+\s*[\+\-\*\/]\s*\d+/)) {
             return 'mathematical';
         }
-        
+
         // File operations
         if (action.match(/файл|папк|збереж|створ|folder|file|save|create|directory/)) {
             return 'file_operation';
         }
-        
+
         // UI operations
         if (action.match(/відкр|закр|натисн|клік|open|close|click|press/)) {
             return 'ui_operation';
         }
-        
+
         // Visual changes
         if (action.match(/фото|зображ|photo|image|visual|візуальн/)) {
             return 'visual_change';
         }
-        
+
         return 'general';
     }
-    
+
     /**
      * Check if verification involves numerical data
      * 
@@ -2247,22 +2267,22 @@ export class GrishaVerifyItemProcessor {
         if (/\d+/.test(action)) {
             return true;
         }
-        
+
         // Check vision analysis for numerical evidence
         const observed = visionAnalysis?.visual_evidence?.observed || '';
         if (/\d+/.test(observed)) {
             return true;
         }
-        
+
         // Check success criteria for numerical expectations
         const criteria = item?.success_criteria || '';
         if (/\d+/.test(criteria)) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Calculate execution confidence based on MCP results
      * INTELLIGENT CONFIDENCE 2025-10-24: Dynamic calculation
@@ -2275,33 +2295,33 @@ export class GrishaVerifyItemProcessor {
         if (!results || results.length === 0) {
             return 50; // Low confidence for empty results
         }
-        
+
         let baseConfidence = 60;
         let bonusPoints = 0;
-        
+
         // Analyze each result
         results.forEach(result => {
             if (result.success) {
                 bonusPoints += 10;
-                
+
                 // Extra points for specific confirmations
                 if (result.data?.exists === true) {
                     bonusPoints += 15; // File/folder confirmed to exist
                 }
-                
+
                 if (result.data?.content && typeof result.data.content === 'string') {
                     // Check if content contains expected numerical result
                     const numbers = result.data.content.match(/\d+\.?\d*/g);
                     if (numbers && numbers.length > 0) {
                         bonusPoints += 10; // Has numerical content
-                        
+
                         // Verify mathematical correctness if possible
                         if (this._verifyMathematicalResult(result.data.content)) {
                             bonusPoints += 20; // Mathematically correct
                         }
                     }
                 }
-                
+
                 if (result.data?.size > 0) {
                     bonusPoints += 5; // File has content
                 }
@@ -2309,13 +2329,13 @@ export class GrishaVerifyItemProcessor {
                 bonusPoints -= 20; // Penalty for failed operations
             }
         });
-        
+
         // Calculate final confidence
         const finalConfidence = Math.min(95, Math.max(30, baseConfidence + bonusPoints));
-        
+
         return finalConfidence;
     }
-    
+
     /**
      * Verify mathematical result correctness
      * INTELLIGENT VERIFICATION 2025-10-24: No hardcoded values
@@ -2330,11 +2350,11 @@ export class GrishaVerifyItemProcessor {
         if (!numbers || numbers.length === 0) {
             return false;
         }
-        
+
         const result = parseFloat(numbers[0]);
-        
+
         // INTELLIGENT CHECKS - No hardcoded expected values
-        
+
         // Check 1: Result should be a reasonable number
         if (isNaN(result) || !isFinite(result)) {
             this.logger.warn('[GRISHA] ⚠️ Invalid mathematical result', {
@@ -2343,7 +2363,7 @@ export class GrishaVerifyItemProcessor {
             });
             return false;
         }
-        
+
         // Check 2: Percentage in math result is suspicious
         if (content.includes('%') && !content.toLowerCase().includes('percent')) {
             this.logger.warn('[GRISHA] ⚠️ Mathematical result contains unexpected percentage', {
@@ -2353,7 +2373,7 @@ export class GrishaVerifyItemProcessor {
             });
             return false;
         }
-        
+
         // Check 3: Result should be within reasonable bounds
         // Most numerical results are between -1,000,000 and 1,000,000
         if (Math.abs(result) > 1000000) {
@@ -2363,7 +2383,7 @@ export class GrishaVerifyItemProcessor {
             });
             // Still might be valid for large calculations
         }
-        
+
         // Check 4: For decimal results, check precision
         const decimalPlaces = (numbers[0].split('.')[1] || '').length;
         if (decimalPlaces > 10) {
@@ -2372,7 +2392,7 @@ export class GrishaVerifyItemProcessor {
                 decimal_places: decimalPlaces
             });
         }
-        
+
         // Check 5: Content structure validation
         // Valid formats: pure numbers, "Result: number", etc.
         // Invalid formats: unexpected percentage symbols
@@ -2383,9 +2403,9 @@ export class GrishaVerifyItemProcessor {
             /answer[:\s]+\d+\.?\d*/i,         // Answer: number
             /total[:\s]+\d+\.?\d*/i           // Total: number
         ];
-        
+
         const hasValidFormat = validPatterns.some(pattern => pattern.test(content.trim()));
-        
+
         if (!hasValidFormat && content.includes('%')) {
             // Percentage without proper context is likely an error
             this.logger.warn('[GRISHA] ⚠️ Suspicious format with percentage', {
@@ -2394,11 +2414,11 @@ export class GrishaVerifyItemProcessor {
             });
             return false;
         }
-        
+
         // If all checks pass, consider it valid
         return true;
     }
-    
+
     /**
      * Analyze execution details - WHAT ACTUALLY HAPPENED
      * CRITICAL 2025-11-03: Understand which tools executed vs failed
@@ -2434,7 +2454,7 @@ export class GrishaVerifyItemProcessor {
 
             if (result.success) {
                 analysis.successful_tools.push(toolInfo);
-                
+
                 // Extract what action was taken
                 if (toolInfo.name.includes('navigate')) {
                     analysis.actions_taken.push('Opened webpage');
@@ -2473,11 +2493,11 @@ export class GrishaVerifyItemProcessor {
             failed: 0,
             key_findings: []
         };
-        
+
         results.forEach(result => {
             if (result.success) {
                 details.successful++;
-                
+
                 // Extract key findings
                 if (result.data?.exists !== undefined) {
                     details.key_findings.push(`File exists: ${result.data.exists}`);
@@ -2496,7 +2516,7 @@ export class GrishaVerifyItemProcessor {
                 }
             }
         });
-        
+
         return details;
     }
 
@@ -2512,24 +2532,24 @@ export class GrishaVerifyItemProcessor {
      */
     _checkCriteriaMatch(criteria, dataAnalysis, results) {
         const criteriaLower = criteria.toLowerCase();
-        
+
         // FIXED 2025-11-04: Check for specific patterns in criteria
-        if (criteriaLower.includes('відкрит') || criteriaLower.includes('open') || 
+        if (criteriaLower.includes('відкрит') || criteriaLower.includes('open') ||
             criteriaLower.includes('запущен') || criteriaLower.includes('launched') ||
             criteriaLower.includes('видим') || criteriaLower.includes('visible') ||
             criteriaLower.includes('активн') || criteriaLower.includes('active')) {
-            
+
             // Application/browser opening - check if AppleScript executed successfully
-            const hasAppleScriptCheck = results.some(r => 
-                r.tool?.includes('applescript') && 
-                r.success && 
+            const hasAppleScriptCheck = results.some(r =>
+                r.tool?.includes('applescript') &&
+                r.success &&
                 (r.data || r.output || r.content)
             );
-            
+
             if (hasAppleScriptCheck || dataAnalysis.hasState) {
                 return { matched: true, confidence: 90, reason: 'Програму відкрито успішно (підтверджено через AppleScript)' };
             }
-            
+
             // CRITICAL FIX 2025-11-04: If no tools were executed (tool count = 0), 
             // but execution was successful, assume the check passed
             // This handles cases where verification item doesn't generate tools
@@ -2537,33 +2557,33 @@ export class GrishaVerifyItemProcessor {
                 // This is a verification check that didn't execute tools - likely the original action already succeeded
                 return { matched: true, confidence: 75, reason: 'Верифікація не потребує додаткових інструментів - дія вже виконана' };
             }
-            
+
             // CRITICAL FIX 2025-11-04: Even if just AppleScript executed without errors, consider it success
             // This handles "Safari відкрито та видимий" - if activate succeeded, app is visible
             if (results.some(r => r.tool?.includes('applescript') && r.success)) {
                 return { matched: true, confidence: 90, reason: 'AppleScript виконано успішно - програма відкрита і видима' };
             }
         }
-        
+
         if (criteriaLower.includes('результат') || criteriaLower.includes('result')) {
             // Calculation/operation result
             if (dataAnalysis.hasNumbers || dataAnalysis.hasContent) {
                 return { matched: true, confidence: 80, reason: 'Результат отримано' };
             }
         }
-        
+
         if (criteriaLower.includes('створен') || criteriaLower.includes('create')) {
             // File/folder creation
             if (dataAnalysis.hasFiles) {
                 return { matched: true, confidence: 90, reason: 'Файл/папку створено' };
             }
         }
-        
+
         // Default: if we have any meaningful data, consider it a partial match
         if (dataAnalysis.hasContent || dataAnalysis.hasState) {
             return { matched: true, confidence: 70, reason: 'Операція виконана' };
         }
-        
+
         return { matched: false, confidence: 30, reason: 'Критерії не підтверджено' };
     }
 
@@ -2577,20 +2597,20 @@ export class GrishaVerifyItemProcessor {
      */
     _calculateExecutionConfidence(results) {
         if (!results || results.length === 0) return 0;
-        
+
         const successCount = results.filter(r => r.success).length;
         const totalCount = results.length;
         const successRate = successCount / totalCount;
-        
+
         // Base confidence on success rate
         let confidence = Math.round(successRate * 100);
-        
+
         // Adjust based on data quality
         const hasData = results.some(r => r.data && Object.keys(r.data).length > 0);
         if (hasData) {
             confidence = Math.min(confidence + 10, 95);
         }
-        
+
         return confidence;
     }
 

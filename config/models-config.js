@@ -324,7 +324,7 @@ export const MCP_MODEL_CONFIG = {
     },
     vision_emergency: {
       get model() {
-        return env.MCP_MODEL_VISION_EMERGENCY || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_VISION_EMERGENCY || 'copilot-gpt-4o';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_EMERGENCY || '0.2');

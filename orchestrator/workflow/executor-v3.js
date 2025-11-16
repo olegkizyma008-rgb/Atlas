@@ -1695,6 +1695,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
               if (selectedPrompts) {
                 logger.system('executor', `[STAGE-2.0-MCP] Auto-assigned prompts: ${Array.isArray(selectedPrompts) ? selectedPrompts.join(', ') : selectedPrompts}`);
               }
+
+              // NEW 2025-11-17: Persist Stage 2.0 selection on item for downstream stages
+              // This allows Grisha's MCP verification to reuse the exact same server set
+              // instead of performing an independent server selection.
+              item._mcp_selected_servers = Array.isArray(selectedServers)
+                ? [...selectedServers]
+                : [];
+              item._mcp_selected_prompts = selectedPrompts;
             }
           } catch (selectionError) {
             logger.warn(`Server selection failed for item ${item.id}: ${selectionError.message}. Using all servers with fallback prompts.`, {

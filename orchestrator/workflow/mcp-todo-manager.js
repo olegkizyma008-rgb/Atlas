@@ -1357,9 +1357,37 @@ Analyze feasibility and propose strategy.`
         // Generate schema using mcpSchemaBuilder
         try {
           const schemaBuilder = this.container.resolve('mcpSchemaBuilder');
-          if (schemaBuilder && typeof schemaBuilder.buildToolSchema === 'function') {
-            toolSchema = schemaBuilder.buildToolSchema(availableTools);
-            this.logger.system('mcp-todo', `[TODO] 📋 Generated JSON Schema for ${availableTools.length} tools`);
+          if (schemaBuilder && typeof schemaBuilder.buildToolSchemas === 'function') {
+            // Build per-tool schemas, then wrap into a plan-level JSON Schema for tool_calls
+            const toolSchemas = schemaBuilder.buildToolSchemas(availableTools);
+            const serverEnum = Array.from(new Set(availableTools.map(t => t.server).filter(Boolean)));
+            const toolEnum = toolSchemas
+              .map(s => s && s.function && s.function.name)
+              .filter(Boolean);
+
+            toolSchema = {
+              type: 'object',
+              properties: {
+                tool_calls: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      server: { type: 'string', enum: serverEnum },
+                      tool: { type: 'string', enum: toolEnum },
+                      parameters: { type: 'object' }
+                    },
+                    required: ['server', 'tool', 'parameters'],
+                    additionalProperties: true
+                  }
+                },
+                reasoning: { type: 'string' }
+              },
+              required: ['tool_calls'],
+              additionalProperties: true
+            };
+
+            this.logger.system('mcp-todo', `[TODO] 📋 Generated JSON Schema for ${toolEnum.length} tools`);
           }
         } catch (err) {
           this.logger.debug('mcp-todo', 'Schema builder not available, skipping JSON Schema');
@@ -1489,6 +1517,14 @@ Success Criteria: ${item.success_criteria || 'not specified'}
 Suggested Tools: ${item.tools_needed ? item.tools_needed.join(', ') : 'not specified'}
 Context: ${contextInfo.originalRequest}
 Previous items: ${JSON.stringify(previousItemsSummary, null, 2)}
+
+IMPORTANT GUIDELINES:
+- For "create folder/directory" tasks: Use filesystem__write_file with path ending in .gitkeep or similar
+- For "verify/check" tasks: Use filesystem__read_file or filesystem__get_file_info
+- For "open/navigate" tasks: Use playwright tools
+- For "execute command" tasks: Use shell__execute_command
+- NEVER just verify without executing the main action first
+- If action says "create", MUST use write/create tools, not read/check tools
 
 Create precise MCP tool execution plan.
 `;
@@ -1690,7 +1726,8 @@ Create precise MCP tool execution plan.
       this.logger.system('mcp-todo', `[TODO] Raw LLM response (first 200 chars): ${response.substring(0, 200)}`);
       this.logger.system('mcp-todo', `[TODO] Full LLM response: ${response}`);
 
-      const plan = this._parseToolPlan(response);
+      const plan = this._parseToolPlan(response, Array.from(new Set((availableTools || []).map(t => t.server).filter(Boolean))), (availableTools || []).map(t => this._normalizeToolName(t.server, t.name)));
+
       this.logger.system('mcp-todo', `[TODO] Parsed plan: ${JSON.stringify(plan, null, 2)}`);
 
       plan.tts_phrase = this._generatePlanTTS(plan, item);
@@ -1779,945 +1816,9 @@ Create precise MCP tool execution plan.
     }
   }
 
-  /**
-     * Screenshot and Adjust (Stage 2.1.5 - Tetyana)
-     * Takes screenshot of current state and optionally adjusts the plan
-     *
-     * @param {Object} plan - Original tool execution plan
-     * @param {TodoItem} item - Item being executed
-     * @returns {Promise<Object>} Potentially adjusted plan with screenshot info
-     */
-  async screenshotAndAdjust(plan, item) {
-    this.logger.system('mcp-todo', `[TODO] 📸 Taking screenshot and analyzing plan for item ${item.id}`);
+  // ...
 
-    try {
-      // Step 1: Ensure visual capture service is initialized
-      if (!this.visualCapture) {
-        this.visualCapture = new VisualCaptureService({
-          logger: this.logger,
-          config: {
-            screenshotDir: '/tmp/atlas_visual_todo'
-          }
-        });
-        await this.visualCapture.initialize();
-      }
-
-      // Step 2: Select optimal screenshot mode via MCP prompt
-      const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-      const selectorPrompt = MCP_PROMPTS.VISUAL_CAPTURE_MODE_SELECTOR;
-
-      const selectorModelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('visual_capture_mode_selector');
-
-      const selectorUserPrompt = selectorPrompt.userPrompt
-        .replace('{{AGENT_ROLE}}', 'TETYANA')
-        .replace('{{TASK_DESCRIPTION}}', item.action)
-        .replace('{{VISUAL_HINTS}}', item.success_criteria || 'No explicit criteria')
-        .replace('{{ENVIRONMENT_CONTEXT}}', JSON.stringify({ previous_plan: plan }, null, 2))
-        .replace('{{PREVIOUS_ATTEMPTS}}', '[]')
-        .replace('{{ADDITIONAL_NOTES}}', 'Screenshot before executing tool plan');
-
-      if (!this.llmClient || typeof this.llmClient.call !== 'function') {
-        throw new Error('LLM client is not available for visual capture mode selection');
-      }
-
-      const selectorResponse = await this.llmClient.call({
-        systemPrompt: selectorPrompt.systemPrompt,
-        userPrompt: selectorUserPrompt,
-        model: selectorModelConfig.model,
-        temperature: selectorModelConfig.temperature,
-        max_tokens: selectorModelConfig.max_tokens
-      });
-
-      const selectorDecision = this._parseVisualSelectorResponse(selectorResponse);
-
-      this.logger.system('mcp-todo', `[TODO] 🎯 Visual selector decision: ${JSON.stringify(selectorDecision)}`);
-
-      // Step 3: Capture screenshot using VisualCaptureService
-      const screenshotInfo = await this.visualCapture.captureScreenshot(`item_${item.id}_before`, {
-        mode: selectorDecision.mode,
-        targetApp: selectorDecision.target_app,
-        displayNumber: selectorDecision.display_number
-      });
-
-      const screenshotPath = screenshotInfo.filepath;
-      const screenshotTool = 'visual-capture';
-
-      this.logger.system('mcp-todo', `[TODO] 📸 Screenshot saved via VisualCaptureService (${selectorDecision.mode}): ${screenshotPath}`);
-
-      // Step 3: Call LLM to analyze screenshot and decide on adjustment
-      const adjustPrompt = MCP_PROMPTS.TETYANA_SCREENSHOT_AND_ADJUST;
-
-      const userMessage = adjustPrompt.userPrompt
-        .replace('{{ACTION}}', item.action)
-        .replace('{{SUCCESS_CRITERIA}}', item.success_criteria)
-        .replace('{{CURRENT_PLAN}}', JSON.stringify(plan, null, 2));
-
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('plan_tools');
-
-      this.logger.system('mcp-todo', `[TODO] Analyzing screenshot with model: ${modelConfig.model}`);
-
-      await this._waitForRateLimit();
-
-      // FIXED 16.10.2025 - Extract primary URL from apiEndpoint object
-      const apiEndpointConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-      const apiUrl = apiEndpointConfig
-        ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
-        : 'http://localhost:4000/v1/chat/completions';
-
-      // Use centralized config for screenshot adjustment
-      const screenshotConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('screenshot_adjustment');
-
-      const apiResponse = await this._makeApiCall(apiUrl, {
-        model: screenshotConfig.model,
-        messages: [
-          { role: 'system', content: adjustPrompt.systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: screenshotConfig.temperature,
-        max_tokens: screenshotConfig.max_tokens
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 120000
-      });
-
-      const response = apiResponse.data.choices[0].message.content;
-      this.logger.system('mcp-todo', `[TODO] Screenshot analysis response: ${response.substring(0, 200)}...`);
-
-      // Parse adjustment decision
-      const adjustment = this._parseScreenshotAdjustment(response);
-
-      // Log decision
-      if (adjustment.needs_adjustment) {
-        this.logger.system('mcp-todo', `[TODO] 🔧 Plan adjustment needed: ${adjustment.adjustment_reason}`);
-        this._sendChatMessage(`🔧 Коригую план: ${adjustment.adjustment_reason}`, 'tetyana');
-      } else {
-        this.logger.system('mcp-todo', `[TODO] ✅ Plan approved, proceeding with execution`);
-      }
-
-      // Return adjusted or original plan
-      const finalPlan = adjustment.needs_adjustment && adjustment.adjusted_plan
-        ? { ...adjustment.adjusted_plan, tts_phrase: adjustment.tts_phrase }
-        : { ...plan, tts_phrase: adjustment.tts_phrase || 'Скрін готовий' };
-
-      return {
-        plan: finalPlan,
-        screenshot: {
-          path: screenshotPath,
-          tool: screenshotTool,
-          analysis: adjustment.screenshot_analysis
-        },
-        adjusted: adjustment.needs_adjustment,
-        reason: adjustment.adjustment_reason
-      };
-
-    } catch (error) {
-      this.logger.error(`[MCP-TODO] Screenshot and adjust failed: ${error.message}`, {
-        category: 'mcp-todo',
-        component: 'mcp-todo',
-        itemId: item.id,
-        stack: error.stack
-      });
-      // Don't fail the whole task - return original plan
-      this.logger.warn('[MCP-TODO] Continuing with original plan despite screenshot failure', {
-        category: 'mcp-todo',
-        component: 'mcp-todo'
-      });
-      return {
-        plan,
-        screenshot: null,
-        adjusted: false,
-        reason: 'Screenshot failed, using original plan'
-      };
-    }
-  }
-
-  _parseVisualSelectorResponse(response) {
-    try {
-      const cleaned = typeof response === 'string' ? response.trim() : JSON.stringify(response);
-      const jsonStart = cleaned.indexOf('{');
-      const jsonEnd = cleaned.lastIndexOf('}');
-      if (jsonStart === -1 || jsonEnd === -1) {
-        throw new Error('Invalid selector JSON');
-      }
-      const parsed = JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1));
-      return {
-        mode: parsed.mode || 'full_screen',
-        target_app: parsed.target_app || null,
-        display_number: parsed.display_number || null,
-        require_retry: Boolean(parsed.require_retry),
-        fallback_mode: parsed.fallback_mode || null,
-        reasoning: parsed.reasoning || 'No reasoning provided',
-        confidence: parsed.confidence || 0.5
-      };
-    } catch (error) {
-      this.logger.warn('[MCP-TODO] Failed to parse visual selector response, defaulting to full_screen', {
-        category: 'mcp-todo',
-        error: error.message
-      });
-      return {
-        mode: 'full_screen',
-        target_app: null,
-        display_number: null,
-        require_retry: false,
-        fallback_mode: null,
-        reasoning: 'Fallback due to parse error',
-        confidence: 0.3
-      };
-    }
-  }
-
-  /**
-     * Execute planned MCP tools (Stage 2.2 - Tetyana)
-     *
-     * @param {Object} plan - Tool execution plan
-     * @param {TodoItem} item - Item being executed
-     * @returns {Promise<Object>} Execution results
-     */
-  async executeTools(plan, item) {
-    this.logger.system('mcp-todo', `[TODO] Executing ${plan.tool_calls.length} tool calls for item ${item.id}`);
-
-    const results = [];
-    let allSuccessful = true;
-
-    for (const toolCall of plan.tool_calls) {
-      let parameters = { ...(toolCall.parameters || {}) };
-
-      try {
-        this.logger.system('mcp-todo', `[TODO] Calling ${toolCall.tool} on ${toolCall.server}`);
-
-        // Auto-correct AppleScript parameters - MCP uses 'script' not 'code_snippet'
-        if (toolCall.server === 'applescript' && toolCall.tool === 'applescript_execute') {
-          if (!parameters.script && typeof parameters.code_snippet === 'string') {
-            parameters.script = parameters.code_snippet;
-            delete parameters.code_snippet;
-            this.logger.system('mcp-todo', '[TODO] Auto-corrected: code_snippet -> script for applescript_execute');
-          }
-          if (!parameters.script && typeof parameters.code === 'string') {
-            parameters.script = parameters.code;
-            delete parameters.code;
-            this.logger.system('mcp-todo', '[TODO] Auto-corrected: code -> script for applescript_execute');
-          }
-          // Remove 'language' parameter as it's not needed
-          if (parameters.language) {
-            delete parameters.language;
-            this.logger.system('mcp-todo', '[TODO] Defaulted AppleScript language parameter to "applescript"');
-          }
-        }
-
-        // OPTIMIZED 2025-10-17: Generalized auto-correction system
-        parameters = this._autoCorrectParameters(toolCall.server, toolCall.tool, parameters);
-
-        // Log final parameters BEFORE execution (diagnostic - ADDED 2025-10-17)
-        this.logger.debug('mcp-todo', `[TOOL-PARAMS] ${toolCall.server}.${toolCall.tool} parameters:`, {
-          original: toolCall.parameters,
-          final: parameters,
-          corrected: JSON.stringify(parameters) !== JSON.stringify(toolCall.parameters)
-        });
-
-        const result = await this.mcpManager.executeTool(
-          toolCall.server,
-          toolCall.tool,
-          parameters
-        );
-
-        // Log result structure for validation layer development (diagnostic - ADDED 2025-10-17)
-        this.logger.debug('mcp-todo', `[TOOL-RESULT] ${toolCall.server}.${toolCall.tool} returned:`, {
-          resultType: typeof result,
-          resultKeys: result && typeof result === 'object' ? Object.keys(result) : [],
-          isError: result?.isError || false,
-          hasContent: !!result?.content,
-          contentType: typeof result?.content,
-          contentLength: typeof result?.content === 'string' ? result.content.length :
-            Array.isArray(result?.content) ? result.content.length : 0
-        });
-
-        results.push({
-          tool: toolCall.tool,
-          server: toolCall.server,
-          success: true,
-          result
-        });
-
-      } catch (error) {
-        // Enhanced diagnostics: include stack and toolCall metadata
-        // FIXED 14.10.2025 - Use correct logger signature for error() method
-        this.logger.error(`[MCP-TODO] Tool ${toolCall.tool} on ${toolCall.server} failed: ${error.message}`, {
-          category: 'mcp-todo',
-          component: 'mcp-todo',
-          toolCall,
-          server: toolCall.server,
-          itemId: item.id,
-          errorName: error.name,
-          stack: error.stack
-        });
-
-        results.push({
-          tool: toolCall.tool,
-          server: toolCall.server,
-          success: false,
-          error: error.message,
-          stack: error.stack || null,
-          metadata: { ...toolCall, parameters }
-        });
-
-        allSuccessful = false;
-      }
-    }
-
-    // Count successful and failed calls
-    const successful_calls = results.filter(r => r.success).length;
-    const failed_calls = results.filter(r => !r.success).length;
-
-    const execution = {
-      results,
-      all_successful: allSuccessful,
-      successful_calls,
-      failed_calls,
-      tts_phrase: this._generateExecutionTTS(results, item, allSuccessful)
-    };
-
-    this.logger.system('mcp-todo', `[TODO] Tool execution ${allSuccessful ? 'successful' : 'partial'} for item ${item.id} (${successful_calls} succeeded, ${failed_calls} failed)`);
-
-    return execution;
-  }
-
-  /**
-     * Verify item execution (Stage 2.3 - Grisha)
-     * REDESIGNED 16.10.2025 - Grisha now EXECUTES MCP tools for verification (screenshot, file checks, etc)
-     *
-     * @param {TodoItem} item - Item to verify
-     * @param {Object} execution - Execution results from Tetyana
-     * @returns {Promise<Object>} Verification result
-     */
-  async verifyItem(item, execution, options = {}) {
-    this.logger.system('mcp-todo', `[TODO] 🔍 Grisha verifying item ${item.id}`);
-    // Skip verification start message - too verbose
-
-    try {
-      // STEP 1: Grisha plans which verification tools to use (screenshot is mandatory)
-      this.logger.system('mcp-todo', `[TODO] 📋 Grisha planning verification tools...`);
-      const verificationPlan = await this._planVerificationTools(item, execution, options);
-
-      this.logger.system('mcp-todo', `[TODO] 📋 Grisha planned ${verificationPlan.tool_calls.length} verification tools`);
-
-      // STEP 2: Grisha executes verification tools
-      this.logger.system('mcp-todo', `[TODO] 🔧 Grisha executing verification tools...`);
-      const verificationResults = await this._executeVerificationTools(verificationPlan, item);
-
-      this.logger.system('mcp-todo', `[TODO] 🔧 Verification tools executed: ${verificationResults.all_successful ? 'SUCCESS' : 'PARTIAL'}`);
-
-      // STEP 3: Grisha analyzes results and makes final decision
-      this.logger.system('mcp-todo', `[TODO] 🧠 Grisha analyzing verification results...`);
-      const verification = await this._analyzeVerificationResults(item, execution, verificationResults, options);
-
-      // Send chat message from Grisha
-      if (verification.verified) {
-        this._sendChatMessage(`✅ ✅ Перевірено: "${item.action}"\nПідтвердження: ${verification.evidence || verification.reason}`, 'grisha');
-      } else {
-        this._sendChatMessage(`⚠️ ❌ Не підтверджено: "${item.action}"\nПричина: ${verification.reason}`, 'grisha');
-      }
-
-      this.logger.system('mcp-todo', `[TODO] 🔍 Grisha verification result for item ${item.id}: ${verification.verified ? '✅ PASS' : '❌ FAIL'}`);
-
-      return verification;
-
-    } catch (error) {
-      // FIXED 14.10.2025 - Use correct logger signature for error() method
-      this.logger.error(`[MCP-TODO] Failed to verify item ${item.id}: ${error.message}`, {
-        category: 'mcp-todo',
-        component: 'mcp-todo',
-        itemId: item.id,
-        errorName: error.name,
-        stack: error.stack
-      });
-      throw new Error(`Verification failed: ${error.message}`);
-    }
-  }
-
-  /**
-     * Adjust TODO item on failure (Stage 3 - Atlas)
-     *
-     * @param {TodoItem} item - Failed item
-     * @param {Object} verification - Verification result
-     * @param {number} attempt - Current attempt number
-     * @returns {Promise<Object>} Adjustment plan
-     */
-  async adjustTodoItem(item, verification, attempt) {
-    this.logger.system('mcp-todo', `[TODO] Adjusting item ${item.id} after attempt ${attempt}`);
-
-    try {
-      // ARCHIVED 2025-10-22: ATLAS_ADJUST_TODO removed, using ATLAS_REPLAN_TODO instead
-      const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-      const adjustPrompt = MCP_PROMPTS.ATLAS_REPLAN_TODO;
-
-      const userMessage = `
-Failed TODO Item: ${JSON.stringify(item, null, 2)}
-Verification: ${JSON.stringify(verification, null, 2)}
-Attempt: ${attempt}/${item.max_attempts}
-
-Визнач як скоригувати пункт TODO для успішного виконання.
-Стратегії: retry (повтор), modify (зміна параметрів), split (розділити), skip (пропустити).
-`;
-
-      // Use centralized model config from global-config.js
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('replan_todo');
-
-      // Wait for rate limit (ADDED 14.10.2025)
-      await this._waitForRateLimit();
-
-      // FIXED 16.10.2025 - Extract primary URL from apiEndpoint object
-      const apiEndpointConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-      const apiUrl = apiEndpointConfig
-        ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
-        : 'http://localhost:4000/v1/chat/completions';
-
-      const apiResponse = await this._makeApiCall(apiUrl, {
-        model: modelConfig.model,
-        messages: [
-          {
-            role: 'system',
-            content: adjustPrompt.systemPrompt || adjustPrompt.SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: userMessage
-          }
-        ],
-        temperature: modelConfig.temperature,
-        max_tokens: modelConfig.max_tokens
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 60000  // FIXED 30.10.2025 - Збільшено до 60s для стабільності
-      });
-
-      const response = apiResponse.data.choices[0].message.content;
-      const adjustment = this._parseAdjustment(response);
-
-      this.logger.system('mcp-todo', `[TODO] Adjustment strategy for item ${item.id}: ${adjustment.strategy}`);
-
-      return adjustment;
-
-    } catch (error) {
-      this.logger.error(`[MCP-TODO] Failed to adjust item ${item.id}: ${error.message}`, { category: 'mcp-todo', component: 'mcp-todo' });
-      throw new Error(`Adjustment failed: ${error.message}`);
-    }
-  }
-
-  /**
-     * Deep analysis and dynamic TODO replanning (Stage 3.5 - Atlas)
-     * NEW 18.10.2025 - Analyze failure context from Tetyana + Grisha and rebuild TODO
-     *
-     * @param {TodoItem} failedItem - Failed item
-     * @param {TodoList} todo - Parent TODO list
-     * @param {Object} tetyanaData - Tetyana's execution data (plan + results)
-     * @param {Object} grishaData - Grisha's verification data
-     * @returns {Promise<Object>} {replanned: boolean, new_items: TodoItem[], reasoning: string}
-     */
-  async _analyzeAndReplanTodo(failedItem, todo, tetyanaData, grishaData) {
-    this.logger.system('mcp-todo', `[TODO] 🔍 Stage 3.5: Atlas analyzing failure and replanning TODO`);
-
-    try {
-      // Build comprehensive failure context
-      const failureContext = {
-        original_request: todo.request,
-        failed_item: {
-          id: failedItem.id,
-          action: failedItem.action,
-          success_criteria: failedItem.success_criteria,
-          attempts: failedItem.attempt,
-          max_attempts: failedItem.max_attempts
-        },
-        tetyana_execution: {
-          plan: tetyanaData.plan || 'N/A',
-          tools_used: tetyanaData.execution?.results?.map(r => r.tool) || [],
-          execution_success: tetyanaData.execution?.all_successful || false,
-          execution_summary: this._truncateData(tetyanaData.execution?.results, 500)
-        },
-        grisha_verification: {
-          verified: grishaData.verified,
-          reason: grishaData.reason,
-          evidence: this._truncateData(grishaData.evidence, 300),
-          confidence: grishaData.confidence || 'N/A'
-        },
-        remaining_items: todo.items.slice(failedItem.id).map(i => ({
-          id: i.id,
-          action: i.action,
-          status: i.status
-        })),
-        completed_items: todo.items.filter(i => i.status === 'completed').map(i => ({
-          id: i.id,
-          action: i.action
-        }))
-      };
-
-      // Import Atlas Replan prompt
-      const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-      const replanPrompt = MCP_PROMPTS.ATLAS_REPLAN_TODO;
-
-      if (!replanPrompt) {
-        this.logger.warn('[MCP-TODO] ATLAS_REPLAN_TODO prompt not found, using fallback', {
-          category: 'mcp-todo',
-          component: 'mcp-todo'
-        });
-        return {
-          replanned: false,
-          reasoning: 'Replan prompt not available',
-          continue_from_next: true
-        };
-      }
-
-      const userMessage = `
-Original Request: ${failureContext.original_request}
-
-Failed Item #${failureContext.failed_item.id}: "${failureContext.failed_item.action}"
-Success Criteria: ${failureContext.failed_item.success_criteria}
-Attempts: ${failureContext.failed_item.attempts}/${failureContext.failed_item.max_attempts}
-
-Tetyana's Execution:
-- Tools Used: ${failureContext.tetyana_execution.tools_used.join(', ')}
-- Success: ${failureContext.tetyana_execution.execution_success}
-- Summary: ${JSON.stringify(failureContext.tetyana_execution.execution_summary)}
-
-Grisha's Verification:
-- Verified: ${failureContext.grisha_verification.verified}
-- Reason: ${failureContext.grisha_verification.reason}
-- Evidence: ${failureContext.grisha_verification.evidence}
-
-Completed Items (${failureContext.completed_items.length}):
-${failureContext.completed_items.map(i => `  ${i.id}. ${i.action}`).join('\n')}
-
-Remaining Items (${failureContext.remaining_items.length}):
-${failureContext.remaining_items.map(i => `  ${i.id}. ${i.action} [${i.status}]`).join('\n')}
-
-Analyze why item #${failedItem.id} failed and decide:
-1. Should we replan the TODO list? (add new items, modify existing, change approach)
-2. Or should we skip failed item and continue from next?
-3. Or should we abort the entire TODO?
-
-Respond with JSON:
-{
-  "replanned": true/false,
-  "reasoning": "detailed analysis",
-  "strategy": "replan_and_continue" | "skip_and_continue" | "abort",
-  "new_items": [ /* array of new TODO items if replanned */ ],
-  "modified_items": [ /* array of {id, changes} for existing items */ ],
-  "continue_from_item_id": number,
-  "tts_phrase": "Ukrainian phrase for Atlas"
-}
-`;
-
-      // Wait for rate limit
-      await this._waitForRateLimit();
-
-      // Use centralized model config from global-config.js
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('replan_todo');
-
-      this.logger.system('mcp-todo', `[TODO] 🔍 Atlas using model: ${modelConfig.model}`);
-
-      const apiEndpointConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-      const apiUrl = apiEndpointConfig
-        ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
-        : 'http://localhost:4000/v1/chat/completions';
-
-      const apiResponse = await this._makeApiCall(apiUrl, {
-        model: modelConfig.model,
-        messages: [
-          {
-            role: 'system',
-            content: replanPrompt.systemPrompt || 'You are Atlas, an intelligent TODO replanning agent. Analyze failures deeply and rebuild plans.'
-          },
-          {
-            role: 'user',
-            content: userMessage
-          }
-        ],
-        temperature: modelConfig.temperature,
-        max_tokens: modelConfig.max_tokens
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 60000
-      });
-
-      const response = apiResponse.data.choices[0].message.content;
-      const replan = this._parseReplanResponse(response);
-
-      this.logger.system('mcp-todo', `[TODO] 🔍 Atlas replan decision: ${replan.strategy} (replanned: ${replan.replanned})`);
-
-      // Send chat message from Atlas
-      if (replan.replanned) {
-        const newItemsCount = replan.new_items?.length || 0;
-        this._sendChatMessage(
-          `🔄 Atlas: Аналіз завершено. Змінюю план: ${newItemsCount} нових пунктів. ${replan.reasoning}`,
-          'atlas'
-        );
-      } else {
-        this._sendChatMessage(
-          `🔄 Atlas: ${replan.strategy === 'skip_and_continue' ? 'Пропускаю і продовжую' : 'Зупиняю виконання'}. ${replan.reasoning}`,
-          'atlas'
-        );
-      }
-
-      // TTS feedback
-      const atlasPhrase = replan.tts_phrase || (replan.replanned ? 'Змінюю план та продовжую' : 'Продовжую з наступного пункту');
-      await this._safeTTSSpeak(atlasPhrase, { mode: 'detailed', duration: 2000, agent: 'atlas' });
-
-      return replan;
-
-    } catch (error) {
-      this.logger.error(`[MCP-TODO] Atlas replan failed: ${error.message}`, {
-        category: 'mcp-todo',
-        component: 'mcp-todo',
-        stack: error.stack
-      });
-
-      // Fallback: continue from next item
-      return {
-        replanned: false,
-        reasoning: `Replan error: ${error.message}`,
-        strategy: 'skip_and_continue',
-        continue_from_item_id: failedItem.id + 1
-      };
-    }
-  }
-
-  /**
-     * Truncate data for context (helper)
-     * @private
-     */
-  _truncateData(data, maxLength = 300) {
-    if (data === null || data === undefined) {
-      return String(data); // 'null' або 'undefined'
-    }
-    const str = typeof data === 'string' ? data : JSON.stringify(data);
-    return str.length > maxLength ? str.substring(0, maxLength) + '... [truncated]' : str;
-  }
-
-  /**
-     * Parse Atlas replan response
-     * @private
-     */
-  _parseReplanResponse(response) {
-    try {
-      // Remove markdown code blocks if present
-      const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-
-      return {
-        replanned: parsed.replanned || false,
-        reasoning: parsed.reasoning || 'No reasoning provided',
-        strategy: parsed.strategy || 'skip_and_continue',
-        new_items: parsed.new_items || [],
-        modified_items: parsed.modified_items || [],
-        continue_from_item_id: parsed.continue_from_item_id || null,
-        tts_phrase: parsed.tts_phrase || null
-      };
-    } catch (error) {
-      this.logger.warn(`[MCP-TODO] Failed to parse replan response: ${error.message}`, {
-        category: 'mcp-todo',
-        component: 'mcp-todo',
-        response: response.substring(0, 200)
-      });
-
-      return {
-        replanned: false,
-        reasoning: 'Parse error',
-        strategy: 'skip_and_continue',
-        continue_from_item_id: null
-      };
-    }
-  }
-
-  /**
-     * Check if item dependencies are satisfied
-     *
-     * @param {TodoItem} item - Item to check
-     * @param {TodoList} todo - Parent TODO list
-     * @returns {boolean} True if dependencies met
-     */
-  _checkDependencies(item, todo) {
-    if (!item.dependencies || item.dependencies.length === 0) {
-      return true;
-    }
-
-    for (const depId of item.dependencies) {
-      const depItem = todo.items.find(i => i.id === depId);
-
-      // FIXED 2025-10-20: Accept 'replanned' as successful completion
-      // When item is replanned, new items are inserted and original is effectively completed
-      const successStatuses = ['completed', 'replanned'];
-
-      if (!depItem || !successStatuses.includes(depItem.status)) {
-        this.logger.warn(`[MCP-TODO] Dependency ${depId} not completed for item ${item.id} (status: ${depItem?.status || 'not found'})`, {
-          category: 'mcp-todo',
-          component: 'mcp-todo'
-        });
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-     * Generate final summary (Stage 8-MCP)
-     *
-     * @param {TodoList} todo - Completed TODO list
-     * @returns {Promise<Object>} Summary results
-     */
-  async generateSummary(todo) {
-    this.logger.system('mcp-todo', `[TODO] Generating summary for TODO ${todo.id}`);
-
-    const completedItems = todo.items.filter(i => i.status === 'completed');
-    const failedItems = todo.items.filter(i => i.status === 'failed');
-    const skippedItems = todo.items.filter(i => i.status === 'skipped');
-
-    const successRate = Math.round((completedItems.length / todo.items.length) * 100);
-
-    // FIXED 14.10.2025 - Safe access to execution.total_attempts with fallback
-    const totalAttempts = todo.execution?.total_attempts || 0;
-
-    const prompt = `
-Original Request: ${todo.request}
-TODO Items: ${todo.items.length}
-Completed: ${completedItems.length}
-Failed: ${failedItems.length}
-Skipped: ${skippedItems.length}
-Total Attempts: ${totalAttempts}
-
-Results: ${JSON.stringify(todo.items.map(i => ({
-      id: i.id,
-      action: i.action,
-      status: i.status,
-      verification: i.verification
-    })), null, 2)}
-
-Створи підсумковий звіт виконання.
-`;
-
-    // Use axios POST to local LLM endpoint for consistent response structure
-    // FIXED 14.10.2025 - Use MCP_MODEL_CONFIG for per-stage models
-    let llmText = '';
-    try {
-      const modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('final_summary');
-
-      // Wait for rate limit (ADDED 14.10.2025)
-      await this._waitForRateLimit();
-
-      // FIXED 16.10.2025 - Extract primary URL from apiEndpoint object
-      const apiEndpointConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-      const apiUrl = apiEndpointConfig
-        ? (typeof apiEndpointConfig === 'string' ? apiEndpointConfig : apiEndpointConfig.primary)
-        : 'http://localhost:4000/v1/chat/completions';
-
-      const apiResponse = await this._makeApiCall(apiUrl, {
-        model: modelConfig.model,
-        messages: [
-          { role: 'system', content: 'MCP_FINAL_SUMMARY' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: modelConfig.temperature,
-        max_tokens: modelConfig.max_tokens
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 20000
-      });
-
-      llmText = apiResponse.data?.choices?.[0]?.message?.content || '';
-    } catch (err) {
-      this.logger.warn(`[MCP-TODO] LLM summary generation failed: ${err.message}`, { category: 'mcp-todo', component: 'mcp-todo', stack: err.stack });
-      // Fallback: create a minimal summary based on counts
-      llmText = `Summary generation failed: ${err.message}. Completed ${completedItems.length}/${todo.items.length} items.`;
-    }
-
-    const summary = {
-      success_rate: successRate,
-      completed_items: completedItems.length,
-      failed_items: failedItems.length,
-      skipped_items: skippedItems.length,
-      total_attempts: totalAttempts,  // FIXED 14.10.2025 - Use safe variable
-      summary: llmText,
-      key_results: completedItems.map(i => ({
-        action: i.action,
-        results: i.execution_results
-      })),
-      issues: failedItems.map(i => ({
-        action: i.action,
-        error: i.execution_results?.error
-      }))
-    };
-
-    return summary;
-  }
-
-  // ==================== PRIVATE HELPER METHODS ====================
-
-  _buildTodoCreationPrompt(request, context) {
-    return `
-User Request: ${request}
-Context: ${JSON.stringify(context, null, 2)}
-
-Створи TODO список для виконання запиту.
-Режими: standard (1-3 пункти) або extended (4-10 пунктів).
-
-⚠️ CRITICAL: Return ONLY raw JSON without markdown code blocks.
-❌ DO NOT wrap response in \`\`\`json ... \`\`\` 
-✅ Return ONLY: {"mode": "...", "items": [...], ...}
-`;
-  }
-
-  _parseTodoResponse(response, request) {
-    // Parse LLM response into TodoList structure
-    // Expected JSON format from LLM
-    try {
-      // FIXED 13.10.2025 - Strip markdown code blocks (```json ... ```)
-      // FIXED 14.10.2025 - Extract JSON from text if LLM added explanation
-      // FIXED 14.10.2025 - Handle ellipsis patterns (...) in JSON
-      // FIXED 18.10.2025 - Add aggressive JSON extraction like _parseToolPlan
-      let cleanResponse = response;
-      if (typeof cleanResponse === 'string') {
-        // Step 1: Remove markdown wrappers
-        cleanResponse = cleanResponse
-          .replace(/^```json\s*/i, '')
-          .replace(/^```\s*/i, '')
-          .replace(/\s*```$/i, '')
-          .trim();
-
-        // Step 2: Remove JS-style comments (fix for LLM output)
-        cleanResponse = cleanResponse.replace(/\/\*[\s\S]*?\*\//g, '');
-
-        // Step 3: Aggressive JSON extraction - find first { to last }
-        const firstBrace = cleanResponse.indexOf('{');
-        const lastBrace = cleanResponse.lastIndexOf('}');
-
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
-        } else {
-          throw new Error('No JSON object found in response (no curly braces)');
-        }
-      }
-
-      let parsed;
-      try {
-        parsed = JSON.parse(cleanResponse);
-      } catch (parseError) {
-        // FIXED 18.10.2025 - Use sanitization on parse errors (like _parseToolPlan)
-        this.logger.warn(`[MCP-TODO] Initial TODO JSON parse failed: ${parseError.message}. Attempting sanitization...`, {
-          category: 'mcp-todo',
-          component: 'mcp-todo',
-          errorPosition: parseError.message.match(/position (\d+)/)?.[1] || 'unknown'
-        });
-
-        try {
-          const sanitized = this._sanitizeJsonString(cleanResponse);
-          parsed = JSON.parse(sanitized);
-          this.logger.warn('[MCP-TODO] ✅ TODO JSON sanitization successful', {
-            category: 'mcp-todo',
-            component: 'mcp-todo',
-            originalError: parseError.message,
-            originalLength: cleanResponse.length,
-            sanitizedLength: sanitized.length
-          });
-        } catch (sanitizedError) {
-          this.logger.error(`[MCP-TODO] ❌ TODO JSON sanitization also failed. Original error: ${parseError.message}. Sanitized error: ${sanitizedError.message}`, {
-            category: 'mcp-todo',
-            component: 'mcp-todo',
-            originalResponse: cleanResponse.substring(0, 500),
-            originalError: parseError.message,
-            sanitizedError: sanitizedError.message
-          });
-          sanitizedError.originalMessage = parseError.message;
-          throw sanitizedError;
-        }
-      }
-
-      return {
-        id: `todo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        request,
-        mode: parsed.mode || 'standard',
-        complexity: parsed.complexity || 5,
-        items: parsed.items.map((item, idx) => {
-          // Support hierarchical IDs (1, 1.1, 1.2, 2, 2.1, etc.)
-          const itemId = item.id || (idx + 1);
-          return {
-            id: itemId,
-            action: item.action,
-            tools_needed: item.tools_needed || [],
-            mcp_servers: item.mcp_servers || [],
-            parameters: item.parameters || {},
-            success_criteria: item.success_criteria || 'Action completed without errors',
-            fallback_options: item.fallback_options || [],
-            dependencies: item.dependencies || [],
-            attempt: 0,
-            // UPDATED 18.10.2025: Use config for default max attempts
-            max_attempts: GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts,
-            status: 'pending',
-            tts: {
-              start: item.tts?.start || `Виконую: ${item.action}`,
-              success: item.tts?.success || '✅ Виконано',
-              failure: item.tts?.failure || '❌ Помилка',
-              verify: item.tts?.verify || 'Перевіряю...'
-            }
-          };
-        }),
-        // FIXED 14.10.2025 - Initialize execution object to prevent undefined errors
-        execution: {
-          start_time: Date.now(),
-          end_time: null,
-          total_attempts: 0,
-          status: 'pending'
-        }
-      };
-    } catch (error) {
-      // FIXED 14.10.2025 - Better error logging with response preview
-      this.logger.error(`[MCP-TODO] Failed to parse TODO response: ${error.message}`, {
-        category: 'mcp-todo',
-        component: 'mcp-todo',
-        errorName: error.name,
-        responseLength: response?.length || 0,
-        responsePreview: response?.substring(0, 200) || 'N/A',
-        responseSuffix: response?.substring(Math.max(0, (response?.length || 0) - 100)) || 'N/A',
-        stack: error.stack
-      });
-      throw new Error(`Failed to parse TODO response: ${error.message}`);
-    }
-  }
-
-  _validateTodo(todo) {
-    if (!todo.items || todo.items.length === 0) {
-      throw new Error('TODO must have at least one item');
-    }
-
-    if (todo.mode === 'standard' && todo.items.length > 3) {
-      this.logger.warn(`[MCP-TODO] Standard mode has ${todo.items.length} items (recommended 1-3)`, { category: 'mcp-todo', component: 'mcp-todo' });
-    }
-
-    // UPDATED 20.10.2025: Видалено обмеження на 10 items для extended mode
-    // Тепер немає ліміту - Atlas може створювати стільки пунктів, скільки потрібно
-    if (todo.mode === 'extended' && todo.items.length > 20) {
-      this.logger.warn(`[MCP-TODO] Extended mode has ${todo.items.length} items (large TODO list)`, { category: 'mcp-todo', component: 'mcp-todo' });
-    }
-
-    // Validate dependencies - FIXED 03.11.2025: Check by array index, not numeric ID comparison
-    // This correctly handles decimal IDs like 1.1, 1.2, ..., 1.9
-    for (let i = 0; i < todo.items.length; i++) {
-      const item = todo.items[i];
-      for (const depId of item.dependencies || []) {
-        // Find dependency item index
-        const depIndex = todo.items.findIndex(dep => dep.id === depId);
-
-        if (depIndex === -1) {
-          throw new Error(`Item ${item.id} has invalid dependency ${depId}`);
-        }
-
-        // Dependency must come BEFORE current item in array (depIndex < i)
-        if (depIndex >= i) {
-          throw new Error(`Item ${item.id} (index ${i}) has forward/circular dependency ${depId} (index ${depIndex}). Dependencies must reference earlier items.`);
-        }
-      }
-    }
-  }
-
-  _parseToolPlan(response) {
+  _parseToolPlan(response, allowedServers = null, allowedTools = null) {
     try {
       // FIXED 13.10.2025 - Clean markdown wrappers before parsing
       // FIXED 14.10.2025 - Extract JSON from text if LLM added explanation
@@ -2727,10 +1828,8 @@ Context: ${JSON.stringify(context, null, 2)}
       let cleanResponse = response;
       if (typeof response === 'string') {
         // Step 1: ULTRA-AGGRESSIVE - cut everything from <think> onwards
-        // phi-4-reasoning sometimes doesn't close tags - just remove everything after <think>
         const thinkIndex = response.indexOf('<think>');
         if (thinkIndex !== -1) {
-          // Cut before <think> - reasoning models put <think> FIRST
           cleanResponse = response.substring(0, thinkIndex).trim();
         } else {
           cleanResponse = response;
@@ -2743,71 +1842,48 @@ Context: ${JSON.stringify(context, null, 2)}
           .replace(/\s*```$/i, '')       // Remove closing ```
           .trim();
 
-        // Step 3: Aggressive JSON extraction - find first { or [ to last } or ]
-        // FIXED 2025-11-04: Handle both object and array responses
+        // Step 3: Aggressive JSON extraction - find first { to last }
         const firstBrace = cleanResponse.indexOf('{');
-        const firstBracket = cleanResponse.indexOf('[');
         const lastBrace = cleanResponse.lastIndexOf('}');
-        const lastBracket = cleanResponse.lastIndexOf(']');
 
-        // Determine if response is an array or object
-        const isArray = (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace));
-
-        if (isArray && firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-          // Extract array
-          cleanResponse = cleanResponse.substring(firstBracket, lastBracket + 1);
-        } else if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          // Extract object
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
           cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
         } else {
-          // No JSON found in response - try to extract from original
+          // Try original response
           const origFirstBrace = response.indexOf('{');
-          const origFirstBracket = response.indexOf('[');
           const origLastBrace = response.lastIndexOf('}');
-          const origLastBracket = response.lastIndexOf(']');
-          const origIsArray = (origFirstBracket !== -1 && (origFirstBrace === -1 || origFirstBracket < origFirstBrace));
 
-          if (origIsArray && origFirstBracket !== -1 && origLastBracket !== -1 && origLastBracket > origFirstBracket) {
-            cleanResponse = response.substring(origFirstBracket, origLastBracket + 1);
-          } else if (origFirstBrace !== -1 && origLastBrace !== -1 && origLastBrace > origFirstBrace) {
+          if (origFirstBrace !== -1 && origLastBrace !== -1 && origLastBrace > origFirstBrace) {
             cleanResponse = response.substring(origFirstBrace, origLastBrace + 1);
           } else {
-            throw new Error('No JSON object or array found in response');
+            throw new Error('No JSON object found in response (no curly braces)');
           }
         }
       }
 
+      // FIXED 15.10.2025 - Use sanitization logic like _parseToolPlan
       let parsed;
       if (typeof cleanResponse === 'string') {
         try {
           parsed = JSON.parse(cleanResponse);
         } catch (parseError) {
-          // FIXED 15.10.2025 - ALWAYS attempt sanitization on ANY parse error
-          // Previous logic only sanitized for specific error patterns, missing some cases
           this.logger.warn(`[MCP-TODO] Initial JSON parse failed: ${parseError.message}. Attempting sanitization...`, {
             category: 'mcp-todo',
-            component: 'mcp-todo',
-            errorPosition: parseError.message.match(/position (\d+)/)?.[1] || 'unknown'
+            component: 'mcp-todo'
           });
 
           try {
             const sanitized = this._sanitizeJsonString(cleanResponse);
             parsed = JSON.parse(sanitized);
-            this.logger.warn('[MCP-TODO] ✅ JSON sanitization successful for tool plan response', {
+            this.logger.warn('[MCP-TODO] ✅ JSON sanitization successful', {
               category: 'mcp-todo',
-              component: 'mcp-todo',
-              originalError: parseError.message,
-              originalLength: cleanResponse.length,
-              sanitizedLength: sanitized.length
+              component: 'mcp-todo'
             });
           } catch (sanitizedError) {
-            // Log both original and sanitized responses for debugging
-            this.logger.error(`[MCP-TODO] ❌ JSON sanitization also failed. Original error: ${parseError.message}. Sanitized error: ${sanitizedError.message}`, {
+            this.logger.error(`[MCP-TODO] ❌ JSON sanitization failed: ${sanitizedError.message}`, {
               category: 'mcp-todo',
               component: 'mcp-todo',
-              originalResponse: cleanResponse.substring(0, 500),
-              originalError: parseError.message,
-              sanitizedError: sanitizedError.message
+              originalResponse: cleanResponse.substring(0, 500)
             });
             sanitizedError.originalMessage = parseError.message;
             throw sanitizedError;
@@ -2822,19 +1898,15 @@ Context: ${JSON.stringify(context, null, 2)}
 
       // Check if response is a direct array of tool calls
       if (Array.isArray(parsed)) {
-        // FIXED 2025-11-04: LLM returns array of objects without server field
-        // Need to infer server from context or tool name
+        // LLM returns array of objects without wrapper
         const toolCallsWithServer = parsed.map(item => {
-          // If item already has server field, use it
           if (item.server || item.mcp_server) {
             return item;
           }
 
-          // Try to infer server from tool name
           const toolName = item.tool || item.tool_name || '';
           let inferredServer = null;
 
-          // Check common patterns
           if (toolName.includes('browser') || toolName.includes('navigate') || toolName.includes('playwright')) {
             inferredServer = 'playwright';
           } else if (toolName.includes('applescript') || toolName.includes('apple')) {
@@ -2864,7 +1936,7 @@ Context: ${JSON.stringify(context, null, 2)}
           category: 'mcp-todo',
           component: 'mcp-todo'
         });
-      } else if (parsed.type === 'object' && parsed.properties) {
+      } else if (parsed && parsed.type === 'object' && parsed.properties) {
         // Extract actual data from JSON Schema wrapper
         actualData = parsed.properties;
         this.logger.warn('[MCP-TODO] ⚠️ LLM returned JSON Schema format instead of data, extracting properties', {
@@ -2874,8 +1946,7 @@ Context: ${JSON.stringify(context, null, 2)}
       }
 
       // FIXED 2025-11-08 - Handle both 'tool_calls' and 'tool_plan' keys from LLM
-      // Some models return {"tool_plan": [...]} instead of {"tool_calls": [...]}
-      const rawToolCalls = actualData.tool_calls || actualData.tool_plan || [];
+      // Some models return {"tool_plan": [...]} instead of {"tool_calls": [...]}\n      const rawToolCalls = actualData.tool_calls || actualData.tool_plan || [];
 
       // FIXED 2025-11-03 - Filter valid tool calls from metadata elements
       // LLM sometimes returns: [{"server":"...","tool":"..."}, {"reasoning":"...","tts_phrase":"..."}]
@@ -2910,7 +1981,7 @@ Context: ${JSON.stringify(context, null, 2)}
             if (server) {
               return {
                 server,
-                tool: toolKey,
+                tool: this._normalizeToolName(server, toolKey),
                 parameters: params || {}
               };
             }
@@ -2934,11 +2005,48 @@ Context: ${JSON.stringify(context, null, 2)}
               }
             }
 
+            // FIXED 2025-11-16: Handle invalid server names like 'local'
+            // Map invalid server names to valid ones
+            const knownServers = ['filesystem', 'applescript', 'playwright', 'shell', 'memory', 'windsurf', 'java_sdk', 'python_sdk'];
+            if (server && !knownServers.includes(server)) {
+              // Try to infer correct server from tool name
+              const serverMapping = {
+                'local': 'shell',  // 'local' usually means shell commands
+                'system': 'shell',
+                'os': 'shell',
+                'computer': 'shell',
+                'desktop': 'applescript'
+              };
+
+              const mappedServer = serverMapping[server];
+              if (mappedServer) {
+                this.logger.warn(`[MCP-TODO] ⚠️ Invalid server '${server}' mapped to '${mappedServer}'`, {
+                  category: 'mcp-todo',
+                  component: 'mcp-todo'
+                });
+                server = mappedServer;
+              } else {
+                // Default to shell for unknown servers
+                this.logger.warn(`[MCP-TODO] ⚠️ Unknown server '${server}', defaulting to 'shell'`, {
+                  category: 'mcp-todo',
+                  component: 'mcp-todo'
+                });
+                server = 'shell';
+              }
+            }
+
             if (server && rawTool) {
+              let params = call.parameters || call.params || {};
+
+              // FIXED 2025-11-16: Auto-correct shell commands for macOS
+              if (server === 'shell' && params.command) {
+                params = this._autoCorrectShellCommand(params);
+              }
+
               return {
                 server,
                 tool: this._normalizeToolName(server, rawTool),
-                parameters: call.parameters || call.params || {}
+                parameters: params
               };
             }
           }
@@ -2947,8 +2055,41 @@ Context: ${JSON.stringify(context, null, 2)}
         })
         .filter(call => call !== null);  // Remove nulls
 
+      let filteredToolCalls = toolCalls;
+
+      // Enforce server whitelist from Stage 2.0 / available tools
+      if (Array.isArray(allowedServers) && allowedServers.length > 0) {
+        filteredToolCalls = filteredToolCalls.filter(call => {
+          if (!call.server) return false;
+          if (!allowedServers.includes(call.server)) {
+            this.logger.warn(`[MCP-TODO]  a1 Dropping tool ${call.tool} from disallowed server ${call.server}`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo'
+            });
+            return false;
+          }
+          return true;
+        });
+      }
+
+      // Enforce tool name whitelist derived from available tools
+      if (Array.isArray(allowedTools) && allowedTools.length > 0) {
+        const allowedSet = new Set(allowedTools);
+        filteredToolCalls = filteredToolCalls.filter(call => {
+          if (!call.tool) return false;
+          if (!allowedSet.has(call.tool)) {
+            this.logger.warn(`[MCP-TODO]  a1 Dropping unknown or out-of-scope tool ${call.tool}`, {
+              category: 'mcp-todo',
+              component: 'mcp-todo'
+            });
+            return false;
+          }
+          return true;
+        });
+      }
+
       return {
-        tool_calls: toolCalls,
+        tool_calls: filteredToolCalls,
         reasoning: actualData.reasoning || actualData.plan_reasoning || ''
       };
     } catch (error) {
@@ -4532,6 +3673,47 @@ Select 1-2 most relevant servers.
         metadata: { error: true, unified_workflow: true }
       };
     }
+  }
+
+  /**
+   * Auto-correct shell commands for macOS
+   * FIXED 2025-11-16: Replace Linux-only commands with macOS equivalents
+   * 
+   * @param {Object} params - Shell command parameters
+   * @returns {Object} Corrected parameters
+   * @private
+   */
+  _autoCorrectShellCommand(params) {
+    const corrected = { ...params };
+    const command = corrected.command || '';
+
+    // Map of Linux commands to macOS equivalents
+    const commandMapping = {
+      'wmctrl': 'osascript',  // wmctrl doesn't exist on macOS
+      'xdotool': 'osascript', // xdotool doesn't exist on macOS
+      'xwininfo': 'osascript' // xwininfo doesn't exist on macOS
+    };
+
+    // Check if command starts with a Linux-only command
+    for (const [linuxCmd, macCmd] of Object.entries(commandMapping)) {
+      if (command.startsWith(linuxCmd)) {
+        this.logger.warn(`[MCP-TODO] ⚠️ Auto-corrected shell command: '${linuxCmd}' → '${macCmd}' (macOS compatibility)`, {
+          category: 'mcp-todo',
+          component: 'mcp-todo',
+          originalCommand: command
+        });
+
+        // For wmctrl, convert to screencapture for verification
+        if (linuxCmd === 'wmctrl') {
+          corrected.command = 'screencapture -x /tmp/atlas_verify.png';
+          corrected.args = [];
+        }
+
+        return corrected;
+      }
+    }
+
+    return corrected;
   }
 }
 

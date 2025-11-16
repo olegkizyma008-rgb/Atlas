@@ -59,8 +59,8 @@ export class TetyanaToolSystem {
             // STEP 2: Initialize Enhanced Inspection Manager with RepetitionInspector
             this.inspectionManager = new ToolInspectionManager();
             const repetitionInspector = new RepetitionInspector({
-                maxConsecutiveRepetitions: 3,
-                maxTotalCalls: 10
+                maxConsecutiveRepetitions: 50,  // FIXED 2025-11-17: Increased from 3 to allow complex workflows
+                maxTotalCalls: 100  // FIXED 2025-11-17: Increased from 10 to allow more iterations
             });
             this.inspectionManager.addInspector(repetitionInspector);
             logger.system('tetyana-tool-system', '🔍 Enhanced Inspection Manager initialized');
@@ -85,7 +85,8 @@ export class TetyanaToolSystem {
             this.validationPipeline = new ValidationPipeline({
                 mcpManager: this.mcpManager,
                 historyManager: this.historyManager,
-                llmValidator: this.llmValidator
+                llmValidator: this.llmValidator,
+                llmClient: this.llmClient
             });
 
             // Validators are now consolidated in ValidationPipeline
@@ -279,7 +280,7 @@ export class TetyanaToolSystem {
                         successful_calls: 0,
                         failed_calls: blockedResults.length,
                         inspection: {
-                            repetition: { allowed: processedResults.allowed.length },
+                            repetition: { allowed: inspectionResults.approved?.length || 0 },
                             llmValidation: {
                                 blocked: validationCheck.highRisk.length,
                                 summary: validationCheck.summary,
@@ -422,7 +423,7 @@ export class TetyanaToolSystem {
                         successful_calls: 0,
                         failed_calls: blockedResults.length,
                         inspection: {
-                            repetition: { allowed: processedResults.allowed.length },
+                            repetition: { allowed: inspectionResults.approved?.length || 0 },
                             llmValidation: {
                                 blocked: validationCheck.highRisk.length,
                                 summary: validationCheck.summary,

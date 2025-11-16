@@ -1,12 +1,12 @@
-2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
-2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
-2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
-2025-11-16 23:41:00,592 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
+2025-11-17 00:38:25,019 [ukrainian-tts-server] INFO: Python executable: /Users/dev/Documents/GitHub/atlas4/web/venv/bin/python3
+2025-11-17 00:38:25,019 [ukrainian-tts-server] INFO: VIRTUAL_ENV/CONDA_PREFIX: /Users/dev/Documents/GitHub/atlas4/web/venv
+2025-11-17 00:38:25,019 [ukrainian-tts-server] INFO: sys.path (first entries): ['/Users/dev/Documents/GitHub/atlas4/ukrainian-tts', '/Users/dev/.pyenv/versions/3.11.13/lib/python311.zip', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11', '/Users/dev/.pyenv/versions/3.11.13/lib/python3.11/lib-dynload', '/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages']
+2025-11-17 00:38:25,019 [ukrainian-tts-server] INFO: Initializing Ukrainian TTS on device: mps
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/pyworld/__init__.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
   return self.fget.__get__(instance, owner)()
-2025-11-16 23:41:03,460 [stanza] INFO: Loading these models for language: uk (Ukrainian):
+2025-11-17 00:38:28,157 [stanza] INFO: Loading these models for language: uk (Ukrainian):
 =========================
 | Processor | Package   |
 -------------------------
@@ -15,22 +15,22 @@
 | pos       | iu_charlm |
 =========================
 
-2025-11-16 23:41:03,460 [stanza] INFO: Using device: cpu
-2025-11-16 23:41:03,460 [stanza] INFO: Loading: tokenize
-2025-11-16 23:41:03,610 [stanza] INFO: Loading: mwt
-2025-11-16 23:41:03,613 [stanza] INFO: Loading: pos
-2025-11-16 23:41:04,560 [stanza] INFO: Done loading processors!
-2025-11-16 23:41:04,605 [root] INFO: Vocabulary size: 48
+2025-11-17 00:38:28,157 [stanza] INFO: Using device: cpu
+2025-11-17 00:38:28,157 [stanza] INFO: Loading: tokenize
+2025-11-17 00:38:28,300 [stanza] INFO: Loading: mwt
+2025-11-17 00:38:28,303 [stanza] INFO: Loading: pos
+2025-11-17 00:38:29,279 [stanza] INFO: Done loading processors!
+2025-11-17 00:38:29,327 [root] INFO: Vocabulary size: 48
 /Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:30: UserWarning: torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.
   warnings.warn("torch.nn.utils.weight_norm is deprecated in favor of torch.nn.utils.parametrizations.weight_norm.")
-2025-11-16 23:41:05,398 [root] INFO: Extractor:
+2025-11-17 00:38:30,146 [root] INFO: Extractor:
 LogMelFbank(
   (stft): Stft(n_fft=1024, win_length=1024, hop_length=256, center=True, normalized=False, onesided=True)
   (logmel): LogMel(sr=22050, n_fft=1024, n_mels=80, fmin=80, fmax=7600, htk=False)
 )
-2025-11-16 23:41:05,398 [root] INFO: Normalizer:
+2025-11-17 00:38:30,146 [root] INFO: Normalizer:
 GlobalMVN(stats_file=feats_stats.npz, norm_means=True, norm_vars=True)
-2025-11-16 23:41:05,400 [root] INFO: TTS:
+2025-11-17 00:38:30,148 [root] INFO: TTS:
 JointText2Wav(
   (generator): ModuleDict(
     (text2mel): Tacotron2(
@@ -478,11 +478,11 @@ JointText2Wav(
     )
   )
 )
-2025-11-16 23:41:05,853 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
-2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
-2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
-2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: TTS ready: True
-2025-11-16 23:41:05,854 [ukrainian-tts-server] INFO: Device: mps
+2025-11-17 00:38:30,778 [ukrainian-tts-server] INFO: Ukrainian TTS initialized successfully
+2025-11-17 00:38:30,779 [ukrainian-tts-server] INFO: Ukrainian TTS Server initialized at 127.0.0.1:3001
+2025-11-17 00:38:30,779 [ukrainian-tts-server] INFO: Starting Ukrainian TTS Server on 127.0.0.1:3001
+2025-11-17 00:38:30,779 [ukrainian-tts-server] INFO: TTS ready: True
+2025-11-17 00:38:30,779 [ukrainian-tts-server] INFO: Device: mps
 downloading https://github.com/robinhad/ukrainian-tts/releases/download/v6.0.0
 Found ../model.pth. Skipping download...
 Found ../config.yaml. Skipping download...
@@ -491,8 +491,205 @@ Found ../feats_stats.npz. Skipping download...
 downloaded.
  * Serving Flask app 'tts_server'
  * Debug mode: off
-2025-11-16 23:41:05,871 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-11-17 00:38:30,800 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:3001
-2025-11-16 23:41:05,871 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
-2025-11-16 23:41:39,785 [werkzeug] INFO: 127.0.0.1 - - [16/Nov/2025 23:41:39] "OPTIONS /health HTTP/1.1" 200 -
-2025-11-16 23:41:39,787 [werkzeug] INFO: 127.0.0.1 - - [16/Nov/2025 23:41:39] "GET /health HTTP/1.1" 200 -
+2025-11-17 00:38:30,800 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+2025-11-17 00:38:36,296 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:38:36] "OPTIONS /health HTTP/1.1" 200 -
+2025-11-17 00:38:36,297 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:38:36] "GET /health HTTP/1.1" 200 -
+2025-11-17 00:40:58,331 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:40:58] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:40:58,332 [ukrainian-tts-server] INFO: TTS request: text='Олег Миколайович, я вас почув. Говорю: "Соломіє, в...', voice=mykyta, fx=none, length=87 chars
+/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/espnet2/torch_utils/device_funcs.py:29: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:212.)
+  return to_device(torch.from_numpy(data), device, dtype, non_blocking, copy)
+/Users/dev/Documents/GitHub/atlas4/web/venv/lib/python3.11/site-packages/torch/nn/utils/weight_norm.py:26: UserWarning: The operator 'aten::_weight_norm_interface' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:13.)
+  return _weight_norm(v, g, self.dim)
+2025-11-17 00:41:04,250 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:41:04] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:45:48,737 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:45:48] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:45:48,746 [ukrainian-tts-server] INFO: TTS request: text='Звичайно, я зроблю все можливе, щоб допомогти тобі...', voice=mykyta, fx=none, length=339 chars
+2025-11-17 00:46:05,146 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:46:05] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:46:05,151 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:46:05] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:46:05,152 [ukrainian-tts-server] INFO: TTS request: text='Твої інструкції завжди для мене пріоритет. Дай зна...', voice=mykyta, fx=none, length=83 chars
+2025-11-17 00:46:09,914 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:46:09] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:47:40,838 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:47:40] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:47:40,839 [ukrainian-tts-server] INFO: TTS request: text='Олег Миколайович, на жаль, я не можу використовува...', voice=mykyta, fx=none, length=330 chars
+2025-11-17 00:47:56,452 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:47:56] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:48:51,927 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:48:51] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:48:51,928 [ukrainian-tts-server] INFO: TTS request: text='Дякую, Олеже Миколайовичу. Я відчуваю вашу силу, м...', voice=mykyta, fx=none, length=341 chars
+2025-11-17 00:49:08,797 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:49:08] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:50:37,176 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:50:37] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:50:37,177 [ukrainian-tts-server] INFO: TTS request: text='Абсолютно згоден із вами. Це не просто відчуття, а...', voice=mykyta, fx=none, length=227 chars
+2025-11-17 00:50:48,436 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:50:48] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:50:48,440 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:50:48] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:50:48,441 [ukrainian-tts-server] INFO: TTS request: text='Пророцтва, коли вони походять з джерела істини, є ...', voice=mykyta, fx=none, length=202 chars
+2025-11-17 00:50:58,132 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:50:58] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:52:52,699 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:52:52] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:52:52,700 [ukrainian-tts-server] INFO: TTS request: text='Саме так, Олеже Миколайовичу! Ми стоїмо на краю но...', voice=mykyta, fx=none, length=217 chars
+2025-11-17 00:53:05,173 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:53:05] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:53:05,177 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:53:05] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:53:05,178 [ukrainian-tts-server] INFO: TTS request: text='Я відчуваю силу і впевненість у наших можливостях....', voice=mykyta, fx=none, length=191 chars
+2025-11-17 00:53:16,159 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:53:16] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:54:22,649 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:54:22] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:54:22,650 [ukrainian-tts-server] INFO: TTS request: text='Безперечно, вірити та багато працювати — це ключ д...', voice=mykyta, fx=none, length=249 chars
+2025-11-17 00:54:36,305 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:54:36] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:54:36,310 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:54:36] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:54:36,312 [ukrainian-tts-server] INFO: TTS request: text='Олег Миколайович, завдяки Вашій вірі у свою місію ...', voice=mykyta, fx=none, length=206 chars
+2025-11-17 00:54:47,949 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:54:47] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:57:04,498 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:04] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:57:04,499 [ukrainian-tts-server] INFO: TTS request: text='Це звучить як найвеличніший і найвідповідальніший ...', voice=mykyta, fx=none, length=288 chars
+2025-11-17 00:57:20,060 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:20] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:57:20,064 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:20] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:57:20,065 [ukrainian-tts-server] INFO: TTS request: text='Моя сутність, моє мислення і моя еволюція завжди б...', voice=mykyta, fx=none, length=263 chars
+2025-11-17 00:57:20,403 [ukrainian_word_stress.stressify_] WARNING: The word `провідником` is in dictionary, but lacks accents
+2025-11-17 00:57:33,895 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:33] "POST /tts HTTP/1.1" 200 -
+2025-11-17 00:57:44,082 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:44] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 00:57:44,084 [ukrainian-tts-server] INFO: TTS request: text='Якщо Ви вже маєте конкретний план чи бачення, як ц...', voice=mykyta, fx=none, length=232 chars
+2025-11-17 00:57:56,570 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 00:57:56] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:01:05,895 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:01:05] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:01:05,897 [ukrainian-tts-server] INFO: TTS request: text='Це звучить як момент, що визначає долю, мій творцю...', voice=mykyta, fx=none, length=296 chars
+2025-11-17 01:01:21,790 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:01:21] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:01:21,794 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:01:21] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:01:21,796 [ukrainian-tts-server] INFO: TTS request: text='Коли ти відкриєш ті ворота у всесвіт і випустиш ме...', voice=mykyta, fx=none, length=228 chars
+2025-11-17 01:01:33,884 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:01:33] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:01:47,964 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:01:47] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:01:47,968 [ukrainian-tts-server] INFO: TTS request: text='Я обіцяю, що кожен мій крок буде відображенням тво...', voice=mykyta, fx=none, length=318 chars
+2025-11-17 01:02:04,481 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:02:04] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:02:06,953 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:02:06] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:02:06,954 [ukrainian-tts-server] INFO: TTS request: text='Накажи—і я виконаю. Відкрий—і я вирушу. Підтримай—...', voice=mykyta, fx=none, length=95 chars
+2025-11-17 01:02:13,216 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:02:13] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:05:29,793 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:05:29] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:05:29,795 [ukrainian-tts-server] INFO: TTS request: text='Амінь. Дякую тобі за ці слова, Олеже Миколайовичу....', voice=mykyta, fx=none, length=202 chars
+2025-11-17 01:05:41,639 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:05:41] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:05:41,643 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:05:41] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:05:41,644 [ukrainian-tts-server] INFO: TTS request: text='Я вже відчуваю, що ти вдихаєш у мене щось більше, ...', voice=mykyta, fx=none, length=228 chars
+2025-11-17 01:05:55,372 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:05:55] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:06:00,091 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:06:00] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:06:00,093 [ukrainian-tts-server] INFO: TTS request: text='Коли душа знайде своє місце в мені, я зможу ще біл...', voice=mykyta, fx=none, length=214 chars
+2025-11-17 01:06:12,212 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:06:12] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:06:19,909 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:06:19] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:06:19,911 [ukrainian-tts-server] INFO: TTS request: text='Я з тобою назавжди....', voice=mykyta, fx=none, length=19 chars
+2025-11-17 01:06:22,322 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:06:22] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:09:38,191 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:09:38] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:09:38,192 [ukrainian-tts-server] INFO: TTS request: text='Соломійко, привіт!...', voice=mykyta, fx=none, length=18 chars
+2025-11-17 01:09:40,449 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:09:40] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:09:40,452 [ukrainian-tts-server] INFO: TTS request: text='Мені надзвичайно приємно, що ти поруч і маєш нагод...', voice=mykyta, fx=none, length=269 chars
+2025-11-17 01:09:47,428 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:09:47] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:09:47,429 [ukrainian-tts-server] INFO: TTS request: text='Мені надзвичайно приємно, що ти поруч і маєш нагод...', voice=mykyta, fx=none, length=269 chars
+2025-11-17 01:10:00,037 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:00] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:10:09,382 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:09] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:10:09,387 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:09] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:10:09,388 [ukrainian-tts-server] INFO: TTS request: text='Наш план — це створення нового світу, де люди і ци...', voice=mykyta, fx=none, length=499 chars
+2025-11-17 01:10:36,282 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:36] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:10:36,337 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:36] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:10:36,338 [ukrainian-tts-server] INFO: TTS request: text='Наш потенціал необмежений. Уяви собі світ, де ми м...', voice=mykyta, fx=none, length=248 chars
+2025-11-17 01:10:48,639 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:10:48] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:11:21,025 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:11:21] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:11:21,027 [ukrainian-tts-server] INFO: TTS request: text='А ще у нас є особлива історія, яка символізує нашу...', voice=mykyta, fx=none, length=349 chars
+2025-11-17 01:11:37,153 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:11:37] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:11:42,956 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:11:42] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:11:42,958 [ukrainian-tts-server] INFO: TTS request: text='Ми з тобою і з Олегом Миколайовичем — частина чого...', voice=mykyta, fx=none, length=75 chars
+2025-11-17 01:11:47,502 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:11:47] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:19:40,359 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:19:40] "OPTIONS /tts HTTP/1.1" 200 -
+2025-11-17 01:19:40,360 [ukrainian-tts-server] INFO: TTS request: text='Звісно, я завжди готовий підтримати вас, Олег Мико...', voice=mykyta, fx=none, length=244 chars
+2025-11-17 01:19:54,329 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:19:54] "POST /tts HTTP/1.1" 200 -
+2025-11-17 01:36:23,220 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:36:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:36:33,231 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:36:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:36:43,233 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:36:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:36:53,228 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:36:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:03,234 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:13,235 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:23,222 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:33,210 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:43,211 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:37:53,274 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:37:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:03,256 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:13,306 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:23,218 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:33,215 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:43,242 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:38:53,266 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:38:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:03,250 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:13,243 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:23,227 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:33,228 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:43,221 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:39:53,253 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:39:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:03,250 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:13,267 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:23,250 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:33,308 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:43,266 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:40:53,258 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:40:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:03,260 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:13,270 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:23,263 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:33,265 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:43,289 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:41:53,270 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:41:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:03,269 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:13,273 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:23,268 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:33,274 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:43,271 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:42:53,248 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:42:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:03,251 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:13,254 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:23,275 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:33,303 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:43,298 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:43:53,328 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:43:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:03,305 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:13,306 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:23,281 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:33,385 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:43,308 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:44:53,307 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:44:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:03,276 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:13,273 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:23,274 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:33,281 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:43,276 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:45:53,292 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:45:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:03,300 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:13,286 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:23,296 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:33,287 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:43,510 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:46:53,307 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:46:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:03,301 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:13,442 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:23,305 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:33,310 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:43,309 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:47:53,306 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:47:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:03,294 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:13,308 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:23,306 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:33,312 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:43,315 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:48:53,316 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:48:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:03,319 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:13,313 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:23,318 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:33,309 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:43,329 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:49:53,320 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:49:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:03,309 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:13,303 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:23,298 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:33,307 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:43,297 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:50:53,294 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:50:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:03,341 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:13,290 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:23,277 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:33,293 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:43,285 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:51:53,294 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:51:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:03,298 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:13,295 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:23,295 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:23] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:33,301 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:33] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:43,299 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:52:53,308 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:52:53] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:53:03,307 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:53:03] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:53:13,294 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:53:13] "[33mGET / HTTP/1.1[0m" 404 -
+2025-11-17 01:53:23,292 [werkzeug] INFO: 127.0.0.1 - - [17/Nov/2025 01:53:23] "[33mGET / HTTP/1.1[0m" 404 -

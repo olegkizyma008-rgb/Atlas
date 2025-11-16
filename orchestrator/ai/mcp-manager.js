@@ -608,6 +608,46 @@ export class MCPManager {
         }
       }
 
+      // FIXED 2025-11-16: Handle shell command parameters - convert string args to array
+      if (serverName === 'shell' && parameters && typeof parameters === 'object') {
+        callParams = { ...parameters };
+        // If 'args' is a string, split it into an array
+        if (typeof callParams.args === 'string') {
+          // Parse shell command string into array
+          // Handle quoted arguments properly
+          const args = [];
+          let current = '';
+          let inQuotes = false;
+          let quoteChar = '';
+
+          for (let i = 0; i < callParams.args.length; i++) {
+            const char = callParams.args[i];
+
+            if ((char === '"' || char === "'") && !inQuotes) {
+              inQuotes = true;
+              quoteChar = char;
+            } else if (char === quoteChar && inQuotes) {
+              inQuotes = false;
+              quoteChar = '';
+            } else if (char === ' ' && !inQuotes) {
+              if (current) {
+                args.push(current);
+                current = '';
+              }
+            } else {
+              current += char;
+            }
+          }
+
+          if (current) {
+            args.push(current);
+          }
+
+          callParams.args = args;
+          logger.debug('mcp-manager', `[MCP Manager] ✅ Converted shell args from string to array: ${JSON.stringify(args)}`);
+        }
+      }
+
       // IMPORTANT: Use the original MCP tool name from server.tools for the actual call
       // `tool.name` is what the MCP server advertised in tools/list (e.g. read_file, write_file, execute_command)
       // `mcpToolName` (e.g. filesystem_read_file) may NOT exist on the server and would cause "Unknown tool" errors

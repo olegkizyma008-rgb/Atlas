@@ -35,7 +35,7 @@ export default class SelfCorrectionValidator {
 
     while (attempts < this.maxCorrectionAttempts) {
       attempts++;
-      
+
       // Step 1: Analyze current plan for issues
       const analysis = await this._analyzePlan(currentPlan, context);
       validationHistory.push(analysis);
@@ -45,7 +45,7 @@ export default class SelfCorrectionValidator {
           attempts,
           duration: Date.now() - startTime
         });
-        
+
         return {
           success: true,
           validated: true,
@@ -62,7 +62,7 @@ export default class SelfCorrectionValidator {
           attempts,
           errors: analysis.errors
         });
-        
+
         return {
           success: false,
           validated: false,
@@ -145,7 +145,7 @@ export default class SelfCorrectionValidator {
         if (toolSchema && toolSchema.inputSchema) {
           const required = toolSchema.inputSchema.required || [];
           const provided = Object.keys(tool.parameters || {});
-          
+
           for (const param of required) {
             if (!provided.includes(param)) {
               errors.push({
@@ -166,8 +166,8 @@ export default class SelfCorrectionValidator {
       if (tool.server === 'filesystem' && tool.parameters) {
         if (tool.parameters.path) {
           // Check for relative paths
-          if (tool.parameters.path.startsWith('./') || 
-              tool.parameters.path.startsWith('../')) {
+          if (tool.parameters.path.startsWith('./') ||
+            tool.parameters.path.startsWith('../')) {
             errors.push({
               type: 'RELATIVE_PATH',
               tool: tool.tool,
@@ -178,8 +178,8 @@ export default class SelfCorrectionValidator {
           }
 
           // Check for placeholder paths
-          if (tool.parameters.path.includes('<') || 
-              tool.parameters.path.includes('username')) {
+          if (tool.parameters.path.includes('<') ||
+            tool.parameters.path.includes('username')) {
             errors.push({
               type: 'PLACEHOLDER_PATH',
               tool: tool.tool,
@@ -227,20 +227,27 @@ export default class SelfCorrectionValidator {
    */
   async _requestCorrection(toolPlan, errors, context) {
     const prompt = this._buildCorrectionPrompt(toolPlan, errors, context);
-    
+
     try {
-      const response = await this.llmClient.generateResponse({
+      if (!this.llmClient) {
+        this.logger.warn('Self-correction LLM client not available, skipping correction');
+        return { success: false, error: 'LLM client not available' };
+      }
+
+      const apiResponse = await this.llmClient.chat({
         model: this.correctionModel,
         messages: [
           { role: 'system', content: prompt.system },
           { role: 'user', content: prompt.user }
         ],
         temperature: this.correctionTemperature,
+        max_tokens: 400,
         response_format: { type: 'json_object' }
       });
 
-      const correctionData = JSON.parse(response.content);
-      
+      const content = apiResponse?.choices?.[0]?.message?.content || '{}';
+      const correctionData = JSON.parse(content);
+
       if (!correctionData.corrected_plan || !Array.isArray(correctionData.corrected_plan)) {
         throw new Error('Invalid correction response format');
       }
@@ -308,42 +315,42 @@ Return JSON in this format:
    */
   _checkLogicalSequence(toolPlan) {
     const issues = [];
-    
+
     // Check: Create directory before writing files
-    const writeOps = toolPlan.filter(t => 
+    const writeOps = toolPlan.filter(t =>
       t.tool && t.tool.includes('write_file'));
-    const createDirOps = toolPlan.filter(t => 
+    const createDirOps = toolPlan.filter(t =>
       t.tool && t.tool.includes('create_directory'));
-    
+
     for (const writeOp of writeOps) {
       if (writeOp.parameters && writeOp.parameters.path) {
-        const dirPath = writeOp.parameters.path.substring(0, 
+        const dirPath = writeOp.parameters.path.substring(0,
           writeOp.parameters.path.lastIndexOf('/'));
-        
-        const hasDirCreate = createDirOps.some(dirOp => 
+
+        const hasDirCreate = createDirOps.some(dirOp =>
           dirOp.parameters && dirOp.parameters.path === dirPath);
-        
-        if (!hasDirCreate && !dirPath.includes('/Desktop') && 
-            !dirPath.includes('/Documents') && !dirPath.includes('/Downloads')) {
+
+        if (!hasDirCreate && !dirPath.includes('/Desktop') &&
+          !dirPath.includes('/Documents') && !dirPath.includes('/Downloads')) {
           issues.push(`Writing to ${writeOp.parameters.path} without creating parent directory`);
         }
       }
     }
 
     // Check: Read after write in same plan
-    const readOps = toolPlan.filter(t => 
+    const readOps = toolPlan.filter(t =>
       t.tool && t.tool.includes('read_file'));
-    
+
     for (let i = 0; i < readOps.length; i++) {
       const readOp = readOps[i];
       const readIndex = toolPlan.indexOf(readOp);
-      
+
       const writeBeforeRead = writeOps.find(writeOp => {
         const writeIndex = toolPlan.indexOf(writeOp);
-        return writeIndex < readIndex && 
-               writeOp.parameters?.path === readOp.parameters?.path;
+        return writeIndex < readIndex &&
+          writeOp.parameters?.path === readOp.parameters?.path;
       });
-      
+
       if (writeBeforeRead) {
         issues.push(`Reading file immediately after writing at ${readOp.parameters.path}`);
       }
@@ -368,17 +375,17 @@ Return JSON in this format:
    */
   _findToolSchema(toolName, availableTools) {
     if (!toolName || !availableTools) return null;
-    
+
     return availableTools.find(tool => {
       // Match exact name
       if (tool.name === toolName) return true;
-      
+
       // Match with server prefix
       const parts = toolName.split('__');
       if (parts.length === 2) {
         return tool.name === parts[1] && tool.server === parts[0];
       }
-      
+
       return false;
     });
   }

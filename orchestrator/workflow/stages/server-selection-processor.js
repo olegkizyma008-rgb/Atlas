@@ -326,6 +326,10 @@ export class ServerSelectionProcessor {
                     .replace(/,\s*}/g, '}')  // Remove trailing commas
                     .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
 
+                // FIXED 2025-11-16: Handle incomplete fractional numbers (e.g., "0." at end)
+                // Replace incomplete numbers like "0." with "0"
+                fixedJson = fixedJson.replace(/:\s*(\d+)\.\s*([,}\]])/g, ': $1$2');
+
                 // Handle incomplete JSON by trying to complete it
                 if (!fixedJson.endsWith('}') && !fixedJson.endsWith(']')) {
                     // Try to find the last complete structure

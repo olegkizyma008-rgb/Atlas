@@ -78,9 +78,9 @@ export class HierarchicalIdManager {
     static generateChildId(parentId, existingItems = []) {
         const parentIdStr = String(parentId);
 
-        // FIXED 2025-11-07: Prevent infinite recursion - limit depth to 10 levels (increased from 5)
+        // FIXED 2025-11-17: Prevent infinite recursion - limit depth to 20 levels (increased from 10)
         const parentDepth = parentIdStr.split('.').length;
-        const MAX_DEPTH = 10; // Maximum nesting levels (increased to allow complex workflows)
+        const MAX_DEPTH = 20; // Maximum nesting levels (increased to allow complex workflows with many replans)
 
         if (parentDepth >= MAX_DEPTH) {
             throw new Error(`Maximum nesting depth (${MAX_DEPTH}) reached. Cannot create child for ${parentIdStr}`);

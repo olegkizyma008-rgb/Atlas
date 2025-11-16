@@ -265,10 +265,13 @@ export class RepetitionInspector {
             return guiActions.some(action => toolName.includes(action));
         }
 
-        // FIXED 2025-11-04: Allow filesystem verification tools (commonly repeated for checks)
-        if (toolCall.server === 'filesystem' &&
-            (toolCall.tool.includes('get_file_info') || toolCall.tool.includes('read_file'))) {
-            return true; // Allow repetitive file checks for verification
+        // FIXED 2025-11-17: Allow filesystem verification tools (commonly repeated for checks)
+        if (toolCall.server === 'filesystem') {
+            const verificationTools = ['get_file_info', 'read_file', 'list_directory', 'list_allowed_directories'];
+            const toolName = toolCall.tool.toLowerCase();
+            if (verificationTools.some(tool => toolName.includes(tool))) {
+                return true; // Allow repetitive file checks for verification
+            }
         }
 
         return false;

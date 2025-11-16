@@ -23,17 +23,20 @@ class WebSocketManager {
      */
   start(port = 5102) {
     try {
+      console.error('[WS-MANAGER] start() called with port:', port);
       this.wss = new WebSocketServer({
         port,
         perMessageDeflate: false,
         maxPayload: 1024 * 1024 // 1MB
       });
+      console.error('[WS-MANAGER] WebSocketServer created');
 
       this.wss.on('connection', (ws, req) => {
         this.handleConnection(ws, req);
       });
 
       this.wss.on('error', (error) => {
+        console.error('[WS-MANAGER] Server error:', error);
         logger.error('WebSocket Server error', {
           error: error.message,
           stack: error.stack
@@ -43,6 +46,7 @@ class WebSocketManager {
       // Запуск heartbeat
       this.startHeartbeat();
 
+      console.error('[WS-MANAGER] ✅ WebSocket server started on port', port);
       logger.info(`✅ WebSocket server started on port ${port}`, {
         port,
         heartbeatInterval: this.heartbeatInterval
@@ -50,6 +54,7 @@ class WebSocketManager {
 
       return this.wss;
     } catch (error) {
+      console.error('[WS-MANAGER] Failed to start WebSocket server:', error);
       logger.error('Failed to start WebSocket server', {
         port,
         error: error.message,

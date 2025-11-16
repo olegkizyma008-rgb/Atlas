@@ -29,11 +29,11 @@ export class ChatMemoryCoordinator {
         this.logger = loggerInstance || logger;
         this.mcpManager = mcpManager;
         this.memoryEligibilityProcessor = memoryEligibilityProcessor;
-        
+
         // Cache для memory results
         this.memoryCache = new Map();
         this.cacheTTL = 300000; // 5 хвилин
-        
+
         // Statistics
         this.stats = {
             totalRequests: 0,
@@ -73,7 +73,7 @@ export class ChatMemoryCoordinator {
                     processingTime: Date.now() - startTime
                 };
             }
-            
+
             // STEP 1: Check if memory is needed (fast)
             const eligibilityResult = await this.memoryEligibilityProcessor.execute({
                 userMessage,
@@ -83,7 +83,7 @@ export class ChatMemoryCoordinator {
 
             if (!eligibilityResult.needsMemory) {
                 this.logger.system('chat-memory', `[CHAT-MEMORY] ⏭️ Skipping memory (${eligibilityResult.reasoning})`);
-                
+
                 return {
                     success: true,
                     memoryUsed: false,
@@ -95,7 +95,7 @@ export class ChatMemoryCoordinator {
 
             // STEP 2: Retrieve memory (if needed)
             this.logger.system('chat-memory', `[CHAT-MEMORY] 📚 Retrieving memory (confidence: ${eligibilityResult.confidence})...`);
-            
+
             const memoryContext = await this._retrieveMemory({
                 userMessage,
                 triggers: eligibilityResult.triggers,
@@ -103,7 +103,7 @@ export class ChatMemoryCoordinator {
             });
 
             this.stats.memoryRetrievals++;
-            
+
             const processingTime = Date.now() - startTime;
             this._updateRetrievalTime(processingTime);
 
@@ -120,7 +120,7 @@ export class ChatMemoryCoordinator {
 
         } catch (error) {
             this.logger.error(`[CHAT-MEMORY] ❌ Memory processing failed: ${error.message}`);
-            
+
             // Fallback: continue without memory
             return {
                 success: true,
@@ -141,7 +141,7 @@ export class ChatMemoryCoordinator {
         // Check cache first
         const cacheKey = this._generateMemoryCacheKey(userMessage, triggers);
         const cached = this._getCachedMemory(cacheKey);
-        
+
         if (cached) {
             this.stats.cacheHits++;
             this.logger.system('chat-memory', '[CHAT-MEMORY] 💾 Using cached memory');
@@ -150,7 +150,7 @@ export class ChatMemoryCoordinator {
 
         // Get Memory MCP Server
         const memoryServer = this.mcpManager.servers.get('memory');
-        
+
         if (!memoryServer || !memoryServer.ready) {
             this.logger.warn('chat-memory', '[CHAT-MEMORY] ⚠️ Memory MCP Server not available');
             return this._emptyMemoryContext();
@@ -159,7 +159,7 @@ export class ChatMemoryCoordinator {
         try {
             // Build search query
             const searchQuery = this._buildSearchQuery(userMessage, triggers);
-            
+
             this.logger.system('chat-memory', `[CHAT-MEMORY] 🔍 Searching memory: "${searchQuery}"`);
 
             // FIXED 2025-11-03: Call correct memory tool (search_nodes, not memory__search_nodes)
@@ -170,10 +170,10 @@ export class ChatMemoryCoordinator {
 
             // Parse and format results
             const memoryContext = this._formatMemoryContext(searchResult);
-            
+
             // Cache the result
             this._cacheMemory(cacheKey, memoryContext);
-            
+
             return memoryContext;
 
         } catch (error) {
@@ -199,7 +199,7 @@ export class ChatMemoryCoordinator {
         try {
             // Analyze if this exchange is worth storing
             const shouldStore = this._shouldStoreExchange(userMessage, assistantResponse);
-            
+
             if (!shouldStore.store) {
                 this.logger.system('chat-memory', `[CHAT-MEMORY] ⏭️ Skipping storage (${shouldStore.reasoning})`);
                 return { success: true, stored: false, reasoning: shouldStore.reasoning };
@@ -207,7 +207,7 @@ export class ChatMemoryCoordinator {
 
             // Extract entities and observations
             const entities = this._extractEntities(userMessage, assistantResponse);
-            
+
             if (entities.length === 0) {
                 this.logger.system('chat-memory', '[CHAT-MEMORY] ⏭️ No entities to store');
                 return { success: true, stored: false, reasoning: 'No entities extracted' };
@@ -215,9 +215,9 @@ export class ChatMemoryCoordinator {
 
             // Store to Memory MCP
             await this._callMemoryTool('memory__create_entities', { entities });
-            
+
             this.stats.memoryStorages++;
-            
+
             this.logger.system('chat-memory', `[CHAT-MEMORY] ✅ Stored ${entities.length} entities to memory`);
 
             return {
@@ -239,21 +239,21 @@ export class ChatMemoryCoordinator {
      */
     async _callMemoryTool(toolName, parameters) {
         const memoryServer = this.mcpManager.servers.get('memory');
-        
+
         if (!memoryServer || !memoryServer.ready) {
             throw new Error('Memory MCP Server not available');
         }
 
         // Find tool
         const tool = memoryServer.tools.find(t => t.name === toolName || t.name === toolName.replace('memory__', ''));
-        
+
         if (!tool) {
             throw new Error(`Tool ${toolName} not found in Memory MCP Server`);
         }
 
-        // Call tool via MCP protocol
-        const result = await memoryServer.callTool(tool.name, parameters);
-        
+        // Call tool via MCP protocol using MCPServer.call
+        const result = await memoryServer.call(tool.name, parameters);
+
         return result;
     }
 
@@ -264,10 +264,10 @@ export class ChatMemoryCoordinator {
     _buildSearchQuery(userMessage, triggers) {
         // Extract key entities and topics
         const messageLower = userMessage.toLowerCase();
-        
+
         // Common entities
         const entities = [];
-        
+
         if (messageLower.includes('проєкт') || messageLower.includes('project')) {
             entities.push('project');
         }
@@ -277,7 +277,7 @@ export class ChatMemoryCoordinator {
         if (messageLower.includes('налаштування') || messageLower.includes('settings') || messageLower.includes('preferences')) {
             entities.push('preferences');
         }
-        
+
         // Use triggers as hints
         if (triggers.includes('project_context')) {
             entities.push('project architecture');
@@ -305,8 +305,8 @@ export class ChatMemoryCoordinator {
         }
 
         try {
-            const data = typeof searchResult.content === 'string' 
-                ? JSON.parse(searchResult.content) 
+            const data = typeof searchResult.content === 'string'
+                ? JSON.parse(searchResult.content)
                 : searchResult.content;
 
             const entities = data.nodes || data.entities || [];
@@ -337,10 +337,10 @@ export class ChatMemoryCoordinator {
         if (entities.length === 0) return '';
 
         const lines = ['📚 LONG-TERM MEMORY CONTEXT:', ''];
-        
+
         for (const entity of entities.slice(0, 5)) { // Top 5 most relevant
             lines.push(`• ${entity.name} (${entity.entityType || 'entity'})`);
-            
+
             if (entity.observations && entity.observations.length > 0) {
                 entity.observations.slice(0, 3).forEach(obs => {
                     lines.push(`  - ${obs}`);
@@ -366,9 +366,9 @@ export class ChatMemoryCoordinator {
     _shouldStoreExchange(userMessage, assistantResponse) {
         const messageLower = userMessage.toLowerCase();
         const responseLower = assistantResponse.toLowerCase();
-        
+
         // CRITICAL: NEVER store prompts or system instructions
-        if (responseLower.includes('you are atlas') || 
+        if (responseLower.includes('you are atlas') ||
             responseLower.includes('system prompt') ||
             responseLower.includes('instructions:') ||
             responseLower.includes('critical rules') ||
@@ -376,7 +376,7 @@ export class ChatMemoryCoordinator {
             responseLower.includes('📚 long-term memory')) {
             return { store: false, reasoning: 'System prompt or instructions - NEVER store' };
         }
-        
+
         // Skip simple greetings and casual chat
         const casualPatterns = [
             'привіт', 'hello', 'hi', 'hey',
@@ -385,13 +385,13 @@ export class ChatMemoryCoordinator {
             'добре', 'fine', 'good',
             'котовий', 'кіт', 'cat'
         ];
-        
+
         if (casualPatterns.some(pattern => messageLower.includes(pattern))) {
             return { store: false, reasoning: 'Casual conversation - not worth storing' };
         }
-        
+
         // Store ONLY if user explicitly asks to remember
-        if (messageLower.includes('запам\'ятай') || messageLower.includes('remember this') || 
+        if (messageLower.includes('запам\'ятай') || messageLower.includes('remember this') ||
             messageLower.includes('збережи') || messageLower.includes('save this')) {
             return { store: true, reasoning: 'Explicit storage request' };
         }
@@ -405,7 +405,7 @@ export class ChatMemoryCoordinator {
         // Store if discussing project architecture or decisions
         if ((messageLower.includes('проєкт') || messageLower.includes('project')) &&
             (messageLower.includes('архітектура') || messageLower.includes('architecture') ||
-             messageLower.includes('рішення') || messageLower.includes('decision'))) {
+                messageLower.includes('рішення') || messageLower.includes('decision'))) {
             return { store: true, reasoning: 'Project architecture discussion' };
         }
 
@@ -419,10 +419,10 @@ export class ChatMemoryCoordinator {
      */
     _extractEntities(userMessage, assistantResponse) {
         const entities = [];
-        
+
         // CRITICAL: Filter out prompts and system content
         const responseLower = assistantResponse.toLowerCase();
-        if (responseLower.includes('you are atlas') || 
+        if (responseLower.includes('you are atlas') ||
             responseLower.includes('system prompt') ||
             responseLower.includes('instructions:') ||
             responseLower.includes('critical rules') ||
@@ -430,10 +430,10 @@ export class ChatMemoryCoordinator {
             // NEVER extract entities from prompts
             return [];
         }
-        
+
         // Simple entity extraction (can be enhanced with NLP)
         const messageLower = userMessage.toLowerCase();
-        
+
         // Extract project mentions (but NOT from prompts)
         if (messageLower.includes('atlas') && !messageLower.includes('you are atlas')) {
             entities.push({
@@ -448,9 +448,9 @@ export class ChatMemoryCoordinator {
 
         // Extract preferences
         if (messageLower.includes('preferences') || messageLower.includes('налаштування')) {
-            const prefMatch = userMessage.match(/prefer[s]?\s+(\w+)/i) || 
-                            userMessage.match(/використовую\s+(\w+)/i);
-            
+            const prefMatch = userMessage.match(/prefer[s]?\s+(\w+)/i) ||
+                userMessage.match(/використовую\s+(\w+)/i);
+
             if (prefMatch) {
                 entities.push({
                     name: `User Preference: ${prefMatch[1]}`,
@@ -487,14 +487,14 @@ export class ChatMemoryCoordinator {
 
     _getCachedMemory(cacheKey) {
         const cached = this.memoryCache.get(cacheKey);
-        
+
         if (!cached) return null;
-        
+
         if (Date.now() - cached.timestamp > this.cacheTTL) {
             this.memoryCache.delete(cacheKey);
             return null;
         }
-        
+
         return cached.data;
     }
 
@@ -516,8 +516,8 @@ export class ChatMemoryCoordinator {
      * @private
      */
     _updateRetrievalTime(time) {
-        this.stats.averageRetrievalTime = 
-            (this.stats.averageRetrievalTime * (this.stats.memoryRetrievals - 1) + time) / 
+        this.stats.averageRetrievalTime =
+            (this.stats.averageRetrievalTime * (this.stats.memoryRetrievals - 1) + time) /
             this.stats.memoryRetrievals;
     }
 
@@ -528,7 +528,7 @@ export class ChatMemoryCoordinator {
         return {
             ...this.stats,
             cacheSize: this.memoryCache.size,
-            cacheHitRate: this.stats.totalRequests > 0 
+            cacheHitRate: this.stats.totalRequests > 0
                 ? (this.stats.cacheHits / this.stats.totalRequests * 100).toFixed(2) + '%'
                 : '0%',
             memoryUsageRate: this.stats.totalRequests > 0

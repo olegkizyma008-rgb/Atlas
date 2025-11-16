@@ -16,6 +16,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 
 const execAsync = promisify(exec);
 
@@ -128,6 +129,10 @@ const TOOLS = [
                 items: { type: "string" },
               },
               docstring: { type: "string" },
+              body: {
+                type: "string",
+                description: "Function body (statements without def line, one per line)",
+              },
             },
           },
           description: "Function definitions (optional)",
@@ -433,13 +438,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         // NEXUS: Added timeout and maxBuffer
-        const options = { 
+        const options = {
           ...(working_dir ? { cwd: working_dir } : {}),
           timeout: EXECUTION_TIMEOUT,
           maxBuffer: MAX_BUFFER
         };
         const { stdout, stderr } = await execAsync(cmd, options);
-        
+
         return {
           content: [
             {
@@ -456,14 +461,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "create_python_module": {
         const { module_path, imports = [], classes = [], functions = [] } = args;
-        
+
         // Create directory structure
         const dir = path.dirname(module_path);
         await fs.mkdir(dir, { recursive: true });
 
         // Generate module content
         let content = "";
-        
+
         // Add imports
         if (imports.length > 0) {
           content += imports.join("\n") + "\n\n";
@@ -473,7 +478,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         for (const cls of classes) {
           const baseClass = cls.base_class ? `(${cls.base_class})` : "";
           content += `class ${cls.name}${baseClass}:\n`;
-          
+
           if (cls.attributes && cls.attributes.length > 0) {
             for (const attr of cls.attributes) {
               const typeHint = attr.type ? `: ${attr.type}` : "";
@@ -488,12 +493,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Add functions
         for (const func of functions) {
-          const params = func.params ? func.params.join(", ") : "";
+          const params = Array.isArray(func.params) ? func.params.join(", ") : "";
           content += `def ${func.name}(${params}):\n`;
           if (func.docstring) {
             content += `    """${func.docstring}"""\n`;
           }
-          content += `    pass\n\n`;
+
+          if (func.body && typeof func.body === "string" && func.body.trim().length > 0) {
+            const bodyLines = func.body.split("\n");
+            for (const line of bodyLines) {
+              content += `    ${line}\n`;
+            }
+          } else {
+            content += `    pass\n`;
+          }
+
+          content += "\n";
         }
 
         await fs.writeFile(module_path, content);

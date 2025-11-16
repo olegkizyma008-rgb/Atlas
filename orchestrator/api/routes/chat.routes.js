@@ -72,20 +72,20 @@ export function setupChatRoutes(app, context) {
             session.lastInteraction = Date.now();
             session.originalMessage = message;
             session.container = container;  // ✅ NEW: Update container in existing session
-            
+
             // ✅ NEW: Check if awaiting DEV password
             if (session.awaitingDevPassword) {
                 const devProcessor = container.resolve('devSelfAnalysisProcessor');
                 const wsManager = container.resolve('wsManager');
                 const logger = container.resolve('logger');
-                
+
                 // Normalize password - remove quotes and trim
                 const normalizedPassword = message.trim().replace(/^["']|["']$/g, '').toLowerCase();
-                
+
                 logger.info(`[CHAT-ROUTES] DEV password received: "${normalizedPassword}" (original: "${message}")`);
                 logger.info(`[CHAT-ROUTES] Session awaiting password: ${session.awaitingDevPassword}`);
                 logger.info(`[CHAT-ROUTES] Original message: "${session.originalMessage}"`);
-                
+
                 // Execute intervention with provided password
                 const interventionResult = await devProcessor.execute({
                     userMessage: session.devOriginalMessage || session.originalMessage,
@@ -93,19 +93,19 @@ export function setupChatRoutes(app, context) {
                     requiresIntervention: true,
                     password: normalizedPassword
                 });
-                
+
                 logger.info(`[CHAT-ROUTES] Intervention result: success=${interventionResult.success}, requiresAuth=${interventionResult.requiresAuth}`);
-                
+
                 // Reset password state
                 session.awaitingDevPassword = false;
                 session.devAnalysisResult = null;
-                
+
                 if (interventionResult.success) {
                     // Send success message
                     if (wsManager) {
                         const findings = interventionResult.analysis?.findings || {};
                         let successMessage = '✅ **Втручання виконано успішно!**\n\n';
-                        
+
                         if (interventionResult.intervention) {
                             successMessage += `📝 **Файлів змінено:** ${interventionResult.intervention.files_modified.length}\n`;
                             successMessage += `🔄 **Зміни будуть застосовані при наступному перезапуску системи**\n\n`;
@@ -114,7 +114,7 @@ export function setupChatRoutes(app, context) {
                                 successMessage += `- ${file}\n`;
                             });
                         }
-                        
+
                         wsManager.broadcastToSubscribers('chat', 'agent_message', {
                             content: successMessage,
                             agent: 'atlas',
@@ -133,7 +133,7 @@ export function setupChatRoutes(app, context) {
                         });
                     }
                 }
-                
+
                 res.end();
                 return;
             }
@@ -150,29 +150,37 @@ export function setupChatRoutes(app, context) {
             }
         }, networkConfig.KEEPALIVE_INTERVAL);
 
-        // Запускаємо workflow
+        // Запускаємо workflow БЕЗ жорсткого таймауту (keepalive вже захищає від зависань)
         try {
             // Resolve dependencies from DI container
             const loggerInstance = container.resolve('logger');
             const wsManager = container.resolve('wsManager');
             const ttsSyncManager = container.resolve('ttsSyncManager');
             const localizationService = container.resolve('localizationService');
-            
-            await executeWorkflow(message, { 
-                logger: loggerInstance, 
-                wsManager, 
-                ttsSyncManager, 
-                diContainer: container, 
+
+            await executeWorkflow(message, {
+                logger: loggerInstance,
+                wsManager,
+                ttsSyncManager,
+                diContainer: container,
                 localizationService,
                 res
             });
+
+            // Після успішного завершення workflow явно сигналізуємо кінець
+            if (!res.writableEnded) {
+                res.write(`data: ${JSON.stringify({
+                    type: 'workflow_end',
+                    ts: Date.now()
+                })}\n\n`);
+            }
         } catch (error) {
             logger.error('Step-by-step workflow failed', {
                 error: error.message,
                 sessionId,
                 stack: error.stack
             });
-            if (!res.headersSent) {
+            if (!res.headersSent && res.writable && !res.writableEnded) {
                 res.write(`data: ${JSON.stringify({
                     type: 'workflow_error',
                     data: {

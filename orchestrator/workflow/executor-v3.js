@@ -1276,8 +1276,8 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
         logger.warn(`[STAGE-0.5-MCP] Context enrichment failed, using original message: ${enrichmentResult.error}`);
       }
     } catch (enrichmentError) {
-      logger.error(`[STAGE-0.5-MCP] Context enrichment error: ${enrichmentError.message}`);
-      logger.error(`[STAGE-0.5-MCP] Stack: ${enrichmentError.stack}`);
+      logger.warn(`[STAGE-0.5-MCP] ⚠️ Context enrichment error (continuing with original): ${enrichmentError.message}`);
+      // FIXED 2025-11-16: Don't log full stack for enrichment errors - they're not critical
       // Continue with original message on error
     }
 
@@ -1315,25 +1315,66 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       delete session.devTransitionContext;
     } else {
       // Normal TODO planning with enriched message
-      todoResult = await todoProcessor.execute({
-        userMessage: enrichedMessage,  // Use enriched message instead of original
-        session,
-        res,
-        enrichmentMetadata  // Pass enrichment metadata for context
-      });
+      try {
+        todoResult = await todoProcessor.execute({
+          userMessage: enrichedMessage,  // Use enriched message instead of original
+          session,
+          res,
+          enrichmentMetadata  // Pass enrichment metadata for context
+        });
+      } catch (todoError) {
+        logger.warn(`[STAGE-1-MCP] ⚠️ TODO planning error (using fallback): ${todoError.message}`);
+        // FIXED 2025-11-16: Use fallback TODO if planning fails
+        // This allows chat mode to work even if TODO planning fails
+        todoResult = {
+          success: true,
+          todo: {
+            mode: 'chat',
+            items: [],
+            user_message: userMessage,
+            metadata: {}
+          },
+          summary: 'Перейшов в режим чату через помилку планування'
+        };
+      }
     }
 
     // ✅ PHASE 4 TASK 3: Validate TODO result structure
     if (!todoResult.success) {
-      throw new Error(`TODO planning failed: ${todoResult.error || 'Unknown error'}`);
+      logger.warn(`[STAGE-1-MCP] ⚠️ TODO planning failed, using fallback chat mode`);
+      // Use fallback instead of throwing
+      todoResult = {
+        success: true,
+        todo: {
+          mode: 'chat',
+          items: [],
+          user_message: userMessage,
+          metadata: {}
+        },
+        summary: 'Режим чату (fallback)'
+      };
     }
 
     if (!todoResult.todo || !todoResult.todo.items || !Array.isArray(todoResult.todo.items)) {
-      throw new Error('Invalid TODO structure: missing items array');
+      logger.warn('[STAGE-1-MCP] ⚠️ Invalid TODO structure, using fallback chat mode');
+      todoResult = {
+        success: true,
+        todo: {
+          mode: 'chat',
+          items: [],
+          user_message: userMessage,
+          metadata: {}
+        },
+        summary: 'Режим чату (fallback - invalid structure)'
+      };
     }
 
     if (todoResult.todo.items.length === 0) {
-      throw new Error('TODO planning produced empty items list');
+      logger.info('[STAGE-1-MCP] ℹ️ Empty TODO items list - using chat mode');
+      // Empty items is OK - just means chat mode
+      if (todoResult.todo.mode !== 'chat') {
+        todoResult.todo.mode = 'chat';
+      }
     }
 
     const todo = todoResult.todo;

@@ -19,7 +19,7 @@ export class AutoCorrectionModule extends EventEmitter {
     this.lastCorrection = null;
     this.correctionHistory = [];
     this.mcpManager = null;
-    
+
     // Налаштування
     this.config = {
       enabled: this.isEnabled,
@@ -30,7 +30,7 @@ export class AutoCorrectionModule extends EventEmitter {
       pythonSdkEnabled: process.env.MCP_PYTHON_SDK_ENABLED === 'true',
       javaSdkEnabled: process.env.MCP_JAVA_SDK_ENABLED === 'true'
     };
-    
+
     // Категорії автовиправлень
     this.autoFixCategories = {
       syntax: { enabled: true, confidence: 0.9 },
@@ -42,47 +42,47 @@ export class AutoCorrectionModule extends EventEmitter {
       architecture: { enabled: false, confidence: 0.5 } // Потребує пароля
     };
   }
-  
+
   async initialize() {
     if (!this.config.enabled) {
       this.logger.info('[AUTO-CORRECTION] Module disabled via configuration');
       return;
     }
-    
+
     try {
       // Ініціалізація MCP Manager для доступу до SDK
       this.mcpManager = this.container.resolve('mcpManager');
-      
+
       // Перевірка доступності Python та Java SDK
       await this.checkSDKAvailability();
-      
+
       // Запуск періодичної перевірки
       this.startAutoCorrection();
-      
+
       this.logger.info('[AUTO-CORRECTION] ✅ Module initialized', {
         interval: this.config.checkInterval,
         pythonSdk: this.config.pythonSdkEnabled,
         javaSdk: this.config.javaSdkEnabled
       });
-      
+
     } catch (error) {
       this.logger.error('[AUTO-CORRECTION] Failed to initialize', error);
     }
   }
-  
+
   async checkSDKAvailability() {
     try {
       if (!this.mcpManager || !this.mcpManager.servers) {
         this.logger.warn('[AUTO-CORRECTION] MCP Manager not ready, SDKs unavailable');
         return;
       }
-      
+
       const availableServers = Array.from(this.mcpManager.servers.keys());
-      
+
       if (this.config.pythonSdkEnabled && availableServers.includes('python_sdk')) {
         this.logger.info('[AUTO-CORRECTION] ✅ Python SDK available for auto-fixes');
       }
-      
+
       if (this.config.javaSdkEnabled && availableServers.includes('java_sdk')) {
         this.logger.info('[AUTO-CORRECTION] ✅ Java SDK available for auto-fixes');
       }
@@ -90,71 +90,71 @@ export class AutoCorrectionModule extends EventEmitter {
       this.logger.warn('[AUTO-CORRECTION] Error checking SDK availability:', error);
     }
   }
-  
+
   startAutoCorrection() {
     if (this.correctionInterval) {
       clearInterval(this.correctionInterval);
     }
-    
+
     // Запускаємо перевірку кожні N хвилин
     this.correctionInterval = setInterval(async () => {
       await this.performAutoCorrection();
     }, this.config.checkInterval);
-    
+
     // Перша перевірка через 30 секунд після запуску
     setTimeout(() => this.performAutoCorrection(), 30000);
   }
-  
+
   async performAutoCorrection() {
     if (!this.config.enabled) return;
-    
+
     try {
       this.logger.info('[AUTO-CORRECTION] 🔍 Starting automatic check...');
-      
+
       // Аналіз логів на помилки
       const issues = await this.analyzeSystemIssues();
-      
+
       // Фільтруємо тільки некритичні
-      const autoFixableIssues = issues.filter(issue => 
+      const autoFixableIssues = issues.filter(issue =>
         this.autoFixCategories[issue.category]?.enabled &&
         this.allowedSeverity.includes(issue.severity)
       );
-      
+
       if (autoFixableIssues.length === 0) {
         this.logger.info('[AUTO-CORRECTION] No auto-fixable issues found');
         return;
       }
-      
+
       // Виправляємо до максимальної кількості
       const toFix = autoFixableIssues.slice(0, this.config.maxAutoFixes);
-      
+
       for (const issue of toFix) {
         await this.fixIssue(issue);
       }
-      
+
       // Емітуємо подію для сповіщення
       this.emit('corrections_applied', {
         count: toFix.length,
         issues: toFix,
         timestamp: new Date().toISOString()
       });
-      
+
       this.lastCorrection = new Date();
-      
+
     } catch (error) {
       this.logger.error('[AUTO-CORRECTION] Error during auto-correction', error);
     }
   }
-  
+
   async analyzeSystemIssues() {
     const issues = [];
-    
+
     try {
       // Читаємо останні логи
       const { execSync } = await import('child_process');
-      const logs = execSync('tail -n 100 /Users/dev/Documents/GitHub/atlas4/logs/orchestrator.log', 
+      const logs = execSync('tail -n 100 /Users/dev/Documents/GitHub/atlas4/logs/orchestrator.log',
         { encoding: 'utf8' });
-      
+
       // Шукаємо патерни помилок
       const patterns = [
         {
@@ -182,7 +182,7 @@ export class AutoCorrectionModule extends EventEmitter {
           fix: 'update_deprecated'
         }
       ];
-      
+
       for (const pattern of patterns) {
         const matches = logs.matchAll(pattern.regex);
         for (const match of matches) {
@@ -195,29 +195,29 @@ export class AutoCorrectionModule extends EventEmitter {
           });
         }
       }
-      
+
       // Аналіз Python коду якщо SDK доступний
       if (this.config.pythonSdkEnabled) {
         const pythonIssues = await this.analyzePythonCode();
         issues.push(...pythonIssues);
       }
-      
+
       // Аналіз Java коду якщо SDK доступний
       if (this.config.javaSdkEnabled) {
         const javaIssues = await this.analyzeJavaCode();
         issues.push(...javaIssues);
       }
-      
+
     } catch (error) {
       this.logger.error('[AUTO-CORRECTION] Error analyzing issues', error);
     }
-    
+
     return issues;
   }
-  
+
   async analyzePythonCode() {
     const issues = [];
-    
+
     try {
       // Використовуємо Python SDK для аналізу
       const pythonServer = this.mcpManager.servers.get('python_sdk');
@@ -225,23 +225,23 @@ export class AutoCorrectionModule extends EventEmitter {
         this.logger.debug('[AUTO-CORRECTION] Python SDK not available, skipping analysis');
         return issues;
       }
-      
+
       // FIXED 2025-11-03: Перевіряємо чи інструмент існує перед викликом
       const tools = pythonServer.tools || [];
       const hasAnalyzeTool = tools.some(t => t.name === 'analyze_code' || t.name === 'python_sdk__analyze_code');
-      
+
       if (!hasAnalyzeTool) {
         this.logger.debug('[AUTO-CORRECTION] Python SDK does not have analyze_code tool, skipping');
         return issues;
       }
-      
+
       // Виклик інструменту аналізу
-      const result = await pythonServer.callTool('analyze_code', {
+      const result = await pythonServer.call('analyze_code', {
         directory: '/Users/dev/Documents/GitHub/atlas4',
         patterns: ['*.py'],
         checks: ['syntax', 'imports', 'pep8']
       });
-      
+
       if (result.issues) {
         issues.push(...result.issues.map(issue => ({
           ...issue,
@@ -249,17 +249,17 @@ export class AutoCorrectionModule extends EventEmitter {
           severity: 'minor'
         })));
       }
-      
+
     } catch (error) {
       this.logger.debug('[AUTO-CORRECTION] Python analysis skipped: ' + error.message);
     }
-    
+
     return issues;
   }
-  
+
   async analyzeJavaCode() {
     const issues = [];
-    
+
     try {
       // Використовуємо Java SDK для аналізу
       const javaServer = this.mcpManager.servers.get('java_sdk');
@@ -267,23 +267,23 @@ export class AutoCorrectionModule extends EventEmitter {
         this.logger.debug('[AUTO-CORRECTION] Java SDK not available, skipping analysis');
         return issues;
       }
-      
+
       // FIXED 2025-11-03: Перевіряємо чи інструмент існує перед викликом
       const tools = javaServer.tools || [];
       const hasAnalyzeTool = tools.some(t => t.name === 'analyze_project' || t.name === 'java_sdk__analyze_project');
-      
+
       if (!hasAnalyzeTool) {
         this.logger.debug('[AUTO-CORRECTION] Java SDK does not have analyze_project tool, skipping');
         return issues;
       }
-      
+
       // Виклик інструменту аналізу
-      const result = await javaServer.callTool('analyze_project', {
+      const result = await javaServer.call('analyze_project', {
         directory: '/Users/dev/Documents/GitHub/atlas4',
         patterns: ['*.java'],
         checks: ['syntax', 'imports', 'checkstyle']
       });
-      
+
       if (result.issues) {
         issues.push(...result.issues.map(issue => ({
           ...issue,
@@ -291,20 +291,20 @@ export class AutoCorrectionModule extends EventEmitter {
           severity: 'minor'
         })));
       }
-      
+
     } catch (error) {
       this.logger.debug('[AUTO-CORRECTION] Java analysis skipped: ' + error.message);
     }
-    
+
     return issues;
   }
-  
+
   async fixIssue(issue) {
     try {
       this.logger.info(`[AUTO-CORRECTION] Fixing ${issue.category} issue: ${issue.message.substring(0, 50)}...`);
-      
+
       let fixed = false;
-      
+
       switch (issue.fix) {
         case 'update_import':
           fixed = await this.fixImport(issue);
@@ -321,20 +321,20 @@ export class AutoCorrectionModule extends EventEmitter {
         default:
           this.logger.warn(`[AUTO-CORRECTION] Unknown fix type: ${issue.fix}`);
       }
-      
+
       if (fixed) {
         this.correctionHistory.push({
           issue,
           fixedAt: new Date().toISOString(),
           success: true
         });
-        
+
         this.logger.info(`[AUTO-CORRECTION] ✅ Fixed: ${issue.category}`);
       }
-      
+
     } catch (error) {
       this.logger.error(`[AUTO-CORRECTION] Failed to fix issue`, error);
-      
+
       this.correctionHistory.push({
         issue,
         fixedAt: new Date().toISOString(),
@@ -343,42 +343,42 @@ export class AutoCorrectionModule extends EventEmitter {
       });
     }
   }
-  
+
   async fixImport(issue) {
     // Використовуємо filesystem MCP для виправлення імпортів
     const filesystemServer = this.mcpManager.servers.get('filesystem');
     if (!filesystemServer) return false;
-    
+
     // Простий приклад - замінюємо named import на default
     // В реальності потрібен більш складний аналіз
     return true;
   }
-  
+
   async fixSyntax(issue) {
     // Виправлення синтаксичних помилок
     return true;
   }
-  
+
   async addNullCheck(issue) {
     // Додавання перевірок на null/undefined
     return true;
   }
-  
+
   async updateDeprecated(issue) {
     // Оновлення застарілого коду
     return true;
   }
-  
+
   // Метод для спонтанних повідомлень в чат
   generateChatNotification() {
     if (this.config.notificationMode === 'silent') return null;
-    
-    const recentFixes = this.correctionHistory.filter(h => 
+
+    const recentFixes = this.correctionHistory.filter(h =>
       new Date() - new Date(h.fixedAt) < 60000 // Останні хвилина
     );
-    
+
     if (recentFixes.length === 0) return null;
-    
+
     const messages = [
       `Між іншим, я щойно виправив ${recentFixes.length} дрібних помилок у своєму коді.`,
       `До речі, я помітив і виправив кілька неточностей. Все працює краще!`,
@@ -386,22 +386,22 @@ export class AutoCorrectionModule extends EventEmitter {
       `Невеличке оновлення: автоматично виправив ${recentFixes.length} проблем.`,
       `Поки ми розмовляли, я оптимізував кілька речей у собі.`
     ];
-    
+
     if (this.config.notificationMode === 'verbose') {
       const details = recentFixes.map(f => f.issue.category).join(', ');
       return `${messages[Math.floor(Math.random() * messages.length)]} Виправлено: ${details}`;
     }
-    
+
     return messages[Math.floor(Math.random() * messages.length)];
   }
-  
+
   // Методи управління
   enable() {
     this.config.enabled = true;
     this.startAutoCorrection();
     this.logger.info('[AUTO-CORRECTION] Module enabled');
   }
-  
+
   disable() {
     this.config.enabled = false;
     if (this.correctionInterval) {
@@ -410,7 +410,7 @@ export class AutoCorrectionModule extends EventEmitter {
     }
     this.logger.info('[AUTO-CORRECTION] Module disabled');
   }
-  
+
   getStatus() {
     return {
       enabled: this.config.enabled,

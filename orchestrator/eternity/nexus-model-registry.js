@@ -16,48 +16,49 @@ export class NexusModelRegistry {
         this.modelCapabilities = new Map();
         this.lastUpdate = null;
         this.updateInterval = null;
-        
+
         // NEW 2025-11-05: Відстеження ТИМЧАСОВО недоступних моделей
         this.temporarilyUnavailableModels = new Map(); // { modelId: { since, attempts, lastError } }
         this.unavailabilityTimeout = 600000; // 10 хвилин - після цього спробуємо знову
-        
+
         // NEXUS 2025-11-05: Windsurf copilot моделі повертають 500 - блокуємо одразу
         this._blockWindsurfModels();
-        
+
         // NEXUS 2025-11-08: Виключення Ollama моделей з модуля самовдосконалення
         this.excludeOllamaModels = process.env.NEXUS_EXCLUDE_OLLAMA === 'true';
         if (this.excludeOllamaModels) {
             this.logger.info('🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT)');
         }
-        
+
         // Базові налаштування API
         this.apiEndpoint = process.env.CODESTRAL_API_ENDPOINT || 'http://localhost:4000/v1';
         this.updateFrequency = 300000; // 5 хвилин
-        
+
         this.logger.info('🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей');
     }
-    
+
     /**
      * NEXUS 2025-11-05: Блокування Windsurf моделей через 500 помилки
      */
     _blockWindsurfModels() {
-        // Блокуємо ВСІ copilot-* моделі через Windsurf API 500 помилки
-        this.blockAllCopilotModels = true;
-        this.logger.info(`🚫 [NEXUS-REGISTRY] Блокування ВСІХ copilot-* моделей (Windsurf API 500)`);
+        // НЕ блокуємо copilot-* моделі одразу - спробуємо використовувати
+        // Блокування буде активовано тільки якщо вони дійсно недоступні
+        this.blockAllCopilotModels = false;
+        this.logger.debug(`[NEXUS-REGISTRY] Copilot моделі готові до спроб використання`);
     }
 
     async initialize() {
         try {
             // Перше отримання моделей
             await this.fetchAvailableModels();
-            
+
             // Автоматичне оновлення кожні 5 хвилин
             this.updateInterval = setInterval(() => {
-                this.fetchAvailableModels().catch(err => 
+                this.fetchAvailableModels().catch(err =>
                     this.logger.warn('[NEXUS-REGISTRY] Автооновлення моделей не вдалось:', err.message)
                 );
             }, this.updateFrequency);
-            
+
             this.logger.info('✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано');
             return true;
         } catch (error) {
@@ -72,7 +73,7 @@ export class NexusModelRegistry {
     async fetchAvailableModels() {
         try {
             this.logger.info('[NEXUS-REGISTRY] Отримую список доступних моделей...');
-            
+
             const response = await axios.get(`${this.apiEndpoint}/models`, {
                 timeout: 5000,
                 headers: {
@@ -83,16 +84,16 @@ export class NexusModelRegistry {
             if (response.data && response.data.data) {
                 this.availableModels = response.data.data;
                 this.lastUpdate = Date.now();
-                
+
                 // Аналіз можливостей кожної моделі
                 this._analyzeModelCapabilities();
-                
-                this.logger.info(`✅ [NEXUS-REGISTRY] Отримано ${this.availableModels.length} моделей:`, 
+
+                this.logger.info(`✅ [NEXUS-REGISTRY] Отримано ${this.availableModels.length} моделей:`,
                     this.availableModels.map(m => m.id).join(', '));
-                
+
                 return this.availableModels;
             }
-            
+
             return [];
         } catch (error) {
             // FIXED 2025-11-04: Детальніше логування помилок
@@ -103,7 +104,7 @@ export class NexusModelRegistry {
             } else {
                 this.logger.warn('[NEXUS-REGISTRY] Помилка отримання моделей:', error.message);
             }
-            
+
             // Fallback на статичний список
             const fallbackModels = this._getFallbackModels();
             this.availableModels = fallbackModels;
@@ -172,19 +173,19 @@ export class NexusModelRegistry {
         for (const model of this.availableModels) {
             const capabilities = this.modelCapabilities.get(model.id);
             if (!capabilities) continue;
-            
+
             // NEXUS 2025-11-05: Блокуємо ВСІ copilot-* моделі (Windsurf API 500)
             if (this.blockAllCopilotModels && model.id.startsWith('copilot-')) {
                 continue;
             }
-            
+
             // NEXUS 2025-11-08: Блокуємо Ollama моделі для самовдосконалення
             const modelIdLower = model.id.toLowerCase();
             if (this.excludeOllamaModels && modelIdLower.includes('ollama')) {
                 this.logger.debug(`[NEXUS-REGISTRY] Пропускаю Ollama модель для самовдосконалення: ${model.id}`);
                 continue;
             }
-            
+
             // NEW 2025-11-05: Пропускаємо ТИМЧАСОВО недоступні моделі
             if (this.isModelTemporarilyUnavailable(model.id)) {
                 this.logger.debug(`[NEXUS-REGISTRY] Пропускаю тимчасово недоступну модель: ${model.id}`);
@@ -286,26 +287,26 @@ export class NexusModelRegistry {
     isModelTemporarilyUnavailable(modelId) {
         const unavailable = this.temporarilyUnavailableModels.get(modelId);
         if (!unavailable) return false;
-        
+
         const now = Date.now();
         const timeSince = now - unavailable.since;
-        
+
         // Після 10 хвилин спробуємо знову
         if (timeSince > this.unavailabilityTimeout) {
             this.logger.info(`[NEXUS-REGISTRY] ⏰ Час минув, спробую модель ${modelId} знову`);
             this.temporarilyUnavailableModels.delete(modelId);
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * NEW 2025-11-05: Позначити модель як тимчасово недоступну (500/503)
      */
     markModelUnavailable(modelId, error) {
         const existing = this.temporarilyUnavailableModels.get(modelId);
-        
+
         if (existing) {
             // Оновлюємо лічильник спроб
             existing.attempts++;
@@ -321,7 +322,7 @@ export class NexusModelRegistry {
             this.logger.warn(`[NEXUS-REGISTRY] 🚫 Модель ${modelId} тимчасово недоступна: ${error}`);
         }
     }
-    
+
     /**
      * NEW 2025-11-05: Позначити модель як доступну знову
      */
@@ -331,7 +332,7 @@ export class NexusModelRegistry {
             this.logger.info(`[NEXUS-REGISTRY] ✅ Модель ${modelId} знову доступна`);
         }
     }
-    
+
     /**
      * Fallback моделі якщо API недоступний
      */

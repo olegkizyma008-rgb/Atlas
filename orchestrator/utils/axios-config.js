@@ -81,14 +81,17 @@ export function configureAxios() {
     axios.defaults.httpAgent = httpAgent;
     axios.defaults.httpsAgent = httpsAgent;
 
-    // Response interceptor для обробки 429
+    // Response interceptor для обробки 429 та 500 помилок
     axios.interceptors.response.use(
         (response) => response, // Success - pass through
         async (error) => {
             const config = error.config;
+            const status = error.response?.status;
 
-            // Ігноруємо якщо НЕ 429 або вже retry
-            if (error.response?.status !== 429) {
+            // Обробляємо 429 (Rate Limit) та 500 (Server Error) з retry
+            const isRetryable = status === 429 || status === 500 || status === 503;
+
+            if (!isRetryable) {
                 return Promise.reject(error);
             }
 
@@ -98,9 +101,10 @@ export function configureAxios() {
 
             // Якщо досягли максимуму - fail
             if (config.__retryCount >= maxRetries) {
-                logger.error(`Rate limit retry failed after ${maxRetries} attempts`, {
+                logger.error(`Request failed after ${maxRetries} attempts (status: ${status})`, {
                     url: config.url,
                     method: config.method,
+                    status,
                     retries: config.__retryCount
                 });
                 return Promise.reject(error);
@@ -115,9 +119,11 @@ export function configureAxios() {
                 ? parseRetryAfter(retryAfter)
                 : getExponentialBackoff(config.__retryCount - 1);
 
-            logger.warn(`Rate limit hit (429), retrying after ${delay}ms (attempt ${config.__retryCount}/${maxRetries})`, {
+            const statusText = status === 429 ? 'Rate limit' : status === 500 ? 'Server error' : 'Service unavailable';
+            logger.warn(`${statusText} (${status}), retrying after ${delay}ms (attempt ${config.__retryCount}/${maxRetries})`, {
                 url: config.url,
                 method: config.method,
+                status,
                 retryAfter: retryAfter || 'none',
                 delay
             });
@@ -168,8 +174,12 @@ export function createAxiosInstance(options = {}) {
         (response) => response,
         async (error) => {
             const config = error.config;
+            const status = error.response?.status;
 
-            if (error.response?.status !== 429) {
+            // Обробляємо 429 (Rate Limit) та 500 (Server Error) з retry
+            const isRetryable = status === 429 || status === 500 || status === 503;
+
+            if (!isRetryable) {
                 return Promise.reject(error);
             }
 

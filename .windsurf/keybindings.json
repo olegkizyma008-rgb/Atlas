@@ -1,0 +1,19 @@
+[
+    {
+        "key": "cmd+shift+o",
+        "command": "outline.focus"
+    },
+    {
+        "key": "cmd+shift+b",
+        "command": "breadcrumbs.toggleBreadcrumbs"
+    },
+    {
+        "key": "cmd+k cmd+o",
+        "command": "workbench.view.explorer"
+    },
+    {
+        "key": "cmd+shift+e",
+        "command": "workbench.view.explorer",
+        "when": "viewContainer.workbench.view.explorer.enabled"
+    }
+]

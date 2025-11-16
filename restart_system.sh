@@ -518,9 +518,8 @@ cmd_start() {
     start_whisper_service
     start_orchestrator
     start_frontend
-    # TODO(MCP Session Persistence): Re-enable Recovery Bridge after `config/recovery_bridge.py`
-    # is rewritten to serve the new MCP-only web interface (e.g. via Redis-backed session store).
-    # start_recovery_bridge
+    # WebSocket Bridge is now integrated into Orchestrator (port 5102)
+    # Legacy Recovery Bridge replaced with native WebSocket support
     start_fallback_llm
     
     # Wait for services to initialize
@@ -672,7 +671,7 @@ cmd_status() {
     # Display services
     check_service "Frontend" "$LOGS_DIR/frontend.pid" "$FRONTEND_PORT" "http://localhost:$FRONTEND_PORT"
     check_service "Orchestrator" "$LOGS_DIR/orchestrator.pid" "$ORCHESTRATOR_PORT" "http://localhost:$ORCHESTRATOR_PORT"
-    check_service "Recovery Bridge" "$LOGS_DIR/recovery.pid" "$RECOVERY_PORT" "ws://localhost:$RECOVERY_PORT"
+    check_service "WebSocket" "$LOGS_DIR/orchestrator.pid" "$RECOVERY_PORT" "ws://localhost:$RECOVERY_PORT"
     check_service "TTS Service" "$LOGS_DIR/tts.pid" "$TTS_PORT" ""
     check_service "Whisper Service" "$LOGS_DIR/whisper.pid" "$WHISPER_SERVICE_PORT" ""
     
@@ -833,7 +832,7 @@ cmd_diagnose() {
     echo ""
     echo -e "${CYAN}Port Status:${NC}"
     echo "─────────────────────────────────────────"
-    for port_info in "Frontend:$FRONTEND_PORT" "Orchestrator:$ORCHESTRATOR_PORT" "Recovery:$RECOVERY_PORT" "TTS:$TTS_PORT" "Whisper:$WHISPER_SERVICE_PORT"; do
+    for port_info in "Frontend:$FRONTEND_PORT" "Orchestrator:$ORCHESTRATOR_PORT" "WebSocket:$RECOVERY_PORT" "TTS:$TTS_PORT" "Whisper:$WHISPER_SERVICE_PORT"; do
         local name=$(echo "$port_info" | cut -d: -f1)
         local port=$(echo "$port_info" | cut -d: -f2)
         

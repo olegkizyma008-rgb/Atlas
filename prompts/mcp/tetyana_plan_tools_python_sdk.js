@@ -177,4 +177,24 @@ IMPORTANT:
   maxTokens: 4000
 };
 
-export default TETYANA_PLAN_TOOLS_PYTHON_SDK;
+// STANDARDIZED EXPORTS FOR MCP TOOL PLANNING
+// Align with other specialized prompts (filesystem, java_sdk, etc.)
+export const SYSTEM_PROMPT = TETYANA_PLAN_TOOLS_PYTHON_SDK.system;
+export const USER_PROMPT = TETYANA_PLAN_TOOLS_PYTHON_SDK.user;
+
+const PYTHON_SDK_PROMPT_WRAPPED = {
+  name: 'tetyana_plan_tools_python_sdk',
+  mcp_server: 'python_sdk',
+  SYSTEM_PROMPT,
+  USER_PROMPT,
+  // Aliases used by MCP TODO manager when building system prompt
+  systemPrompt: SYSTEM_PROMPT,
+  userPrompt: USER_PROMPT,
+  temperature: TETYANA_PLAN_TOOLS_PYTHON_SDK.temperature,
+  maxTokens: TETYANA_PLAN_TOOLS_PYTHON_SDK.maxTokens,
+  response_format: 'json',
+  internal_use: true,
+  user_facing: false
+};
+
+export default PYTHON_SDK_PROMPT_WRAPPED;

@@ -265,7 +265,8 @@ class ModelAvailabilityChecker {
           },
           {
             headers: { 'Content-Type': 'application/json' },
-            timeout: this.checkTimeout
+            timeout: this.checkTimeout,
+            maxRetries: 1
           }
         ),
         { priority: 5, retryable: false, metadata: { type: 'model_check', model: modelName } }
@@ -346,7 +347,8 @@ class ModelAvailabilityChecker {
             },
             {
               headers: { 'Content-Type': 'application/json' },
-              timeout: 2000
+              timeout: 2000,
+              maxRetries: 1
             }
           ),
           { priority: 3, retryable: false, metadata: { type: 'fallback_check', model: model.id } }

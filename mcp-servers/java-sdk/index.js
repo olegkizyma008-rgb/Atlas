@@ -19,6 +19,8 @@ import os from "os";
 
 const execAsync = promisify(exec);
 const MAX_BUFFER = 1024 * 1024 * 20;
+const MAX_RETRIES = 3;
+const COMPILATION_TIMEOUT = 120000; // 2 minutes
 
 const server = new Server(
   {
@@ -610,12 +612,12 @@ const TOOL_HANDLERS = {
 
     // NEXUS: Retry logic with timeout
     const { stdout, stderr } = await executeWithRetry(async () => {
-      return await execAsync(cmd, { 
+      return await execAsync(cmd, {
         maxBuffer: MAX_BUFFER,
         timeout: COMPILATION_TIMEOUT  // NEXUS: Added timeout
       });
     });
-    
+
     return {
       success: true,
       message: "Compilation successful",
@@ -886,10 +888,10 @@ const TOOL_HANDLERS = {
   async format_code(args) {
     const { source_path, replace = true } = args;
     assertString(source_path, "source_path");
-    
+
     const replaceFlag = replace ? "--replace" : "";
     const cmd = `java -jar google-java-format.jar ${replaceFlag} "${quote(source_path)}"`;
-    
+
     const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
     return {
       success: true,
@@ -903,13 +905,13 @@ const TOOL_HANDLERS = {
     const { source_dir, output_dir, classpath } = args;
     assertString(source_dir, "source_dir");
     assertString(output_dir, "output_dir");
-    
+
     await ensureDirectory(output_dir);
     let cmd = `javadoc -d "${quote(output_dir)}" -sourcepath "${quote(source_dir)}" -subpackages .`;
     if (classpath) {
       cmd += ` -classpath "${quote(classpath)}"`;
     }
-    
+
     const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
     return {
       success: true,
@@ -922,7 +924,7 @@ const TOOL_HANDLERS = {
   async run_spring_boot(args) {
     const { project_dir, profile, port } = args;
     assertString(project_dir, "project_dir");
-    
+
     let cmd = "mvn spring-boot:run";
     if (profile) {
       cmd += ` -Dspring-boot.run.profiles=${profile}`;
@@ -930,12 +932,12 @@ const TOOL_HANDLERS = {
     if (port) {
       cmd += ` -Dspring-boot.run.arguments=--server.port=${port}`;
     }
-    
+
     const { stdout, stderr } = await execAsync(cmd, {
       cwd: project_dir,
       maxBuffer: MAX_BUFFER,
     });
-    
+
     return {
       success: true,
       output: stdout,
@@ -947,16 +949,16 @@ const TOOL_HANDLERS = {
     const { project_dir, base_image = "openjdk:17-slim", jar_name, port = 8080 } = args;
     assertString(project_dir, "project_dir");
     assertString(jar_name, "jar_name");
-    
+
     const dockerfileContent = `FROM ${base_image}
 WORKDIR /app
 COPY target/${jar_name} app.jar
 EXPOSE ${port}
 ENTRYPOINT ["java", "-jar", "app.jar"]`;
-    
+
     const dockerfilePath = path.join(project_dir, "Dockerfile");
     await fs.writeFile(dockerfilePath, dockerfileContent, "utf8");
-    
+
     return {
       success: true,
       file_path: dockerfilePath,
@@ -967,13 +969,13 @@ ENTRYPOINT ["java", "-jar", "app.jar"]`;
   async search_dependencies(args) {
     const { query, limit = 10 } = args;
     assertString(query, "query");
-    
+
     const searchUrl = `https://search.maven.org/solrsearch/select?q=${encodeURIComponent(query)}&rows=${limit}&wt=json`;
     const cmd = `curl -s "${searchUrl}"`;
-    
+
     const { stdout } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
     const results = JSON.parse(stdout);
-    
+
     return {
       success: true,
       results: results.response.docs.map(doc => ({
@@ -988,10 +990,10 @@ ENTRYPOINT ["java", "-jar", "app.jar"]`;
   async decompile_class(args) {
     const { class_file, verbose = false } = args;
     assertString(class_file, "class_file");
-    
+
     const verboseFlag = verbose ? "-v" : "-c";
     const cmd = `javap ${verboseFlag} "${quote(class_file)}"`;
-    
+
     const { stdout, stderr } = await execAsync(cmd, { maxBuffer: MAX_BUFFER });
     return {
       success: true,

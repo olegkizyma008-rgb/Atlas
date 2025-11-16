@@ -68,18 +68,32 @@ export class TetyanaExecuteToolsProcessor {
 
             // NEW 2025-10-29: Detect if tools can be executed in parallel
             const canExecuteParallel = this._canExecuteParallel(plan.tool_calls);
-            
+
+            // NEW 2025-11-16: Detect placeholder dependencies between tools
+            // e.g. filesystem__write_file.content = "{{java_sdk.search_dependencies.response}}"
+            const hasPlaceholderDependencies = this._hasWriteFilePlaceholderDependencies(plan);
+
             // NEW 2025-10-20: Use TetyanaToolSystem for execution with inspection
             let executionResult;
-            
+
             if (this.tetyanaToolSystem) {
                 this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🎯 Using TetyanaToolSystem for execution');
-                
-                if (canExecuteParallel) {
+
+                if (hasPlaceholderDependencies) {
+                    // Best practice: when later tools depend on outputs from earlier tools
+                    // via placeholders, force STEP-BY-STEP execution so we can resolve
+                    // placeholders between calls.
+                    this.logger.system(
+                        'tetyana-execute-tools',
+                        '[STAGE-2.2-MCP] 🔄 STEP-BY-STEP execution (placeholder dependencies detected)'
+                    );
+                    executionResult = await this._executeStepByStep(plan, currentItem);
+
+                } else if (canExecuteParallel) {
                     this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] ⚡ PARALLEL execution mode enabled');
                     executionResult = await this._executeParallel(plan.tool_calls, { currentItem, todo });
                 } else {
-                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 SEQUENTIAL execution mode (dependencies detected)');
+                    this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 SEQUENTIAL batch execution (dependencies detected)');
                     // Execute through new system (includes automatic inspection)
                     executionResult = await this.tetyanaToolSystem.executeToolCalls(
                         plan.tool_calls,
@@ -90,16 +104,16 @@ export class TetyanaExecuteToolsProcessor {
                         }
                     );
                 }
-                
-                this.logger.system('tetyana-execute-tools', 
+
+                this.logger.system('tetyana-execute-tools',
                     `[STAGE-2.2-MCP] ✅ TetyanaToolSystem execution: ${executionResult.successful_calls}/${plan.tool_calls.length} successful`);
-                
+
             } else {
                 // Fallback: Use legacy system
                 this.logger.warn('tetyana-execute-tools', '[STAGE-2.2-MCP] ⚠️ TetyanaToolSystem not available, using legacy execution');
-                
+
                 const needsStepByStep = this._shouldExecuteStepByStep(plan, currentItem);
-                
+
                 if (needsStepByStep) {
                     this.logger.system('tetyana-execute-tools', '[STAGE-2.2-MCP] 🔄 Using STEP-BY-STEP execution mode');
                     executionResult = await this._executeStepByStep(plan, currentItem);
@@ -118,14 +132,14 @@ export class TetyanaExecuteToolsProcessor {
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Success: ${executionResult.all_successful ? '✅' : '❌'}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Successful calls: ${executionResult.successful_calls || 0}`);
             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   Failed calls: ${executionResult.failed_calls || 0}`);
-            
+
             // Log inspection results if available (from TetyanaToolSystem)
             if (executionResult.inspection) {
                 const approved = executionResult.inspection.approved?.length || 0;
                 const needsApproval = executionResult.inspection.needsApproval?.length || 0;
                 const denied = executionResult.inspection.denied?.length || 0;
-                
-                this.logger.system('tetyana-execute-tools', 
+
+                this.logger.system('tetyana-execute-tools',
                     `[STAGE-2.2-MCP]   Inspection: ${approved} approved, ` +
                     `${needsApproval} need approval, ` +
                     `${denied} denied`);
@@ -136,13 +150,13 @@ export class TetyanaExecuteToolsProcessor {
                 for (let i = 0; i < executionResult.results.length; i++) {
                     const result = executionResult.results[i];
                     const call = plan.tool_calls[i];
-                    
+
                     if (call) {
                         const status = result.success ? '✅' : '❌';
                         // FIXED 2025-11-03: Don't add prefix if tool already has it
                         const toolName = call.tool.includes('__') ? call.tool : `${call.server}__${call.tool}`;
                         this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]   ${status} ${toolName}`);
-                        
+
                         if (!result.success && result.error) {
                             this.logger.system('tetyana-execute-tools', `[STAGE-2.2-MCP]      Error: ${result.error}`);
                         }
@@ -215,7 +229,7 @@ export class TetyanaExecuteToolsProcessor {
         if (keyResults.length > 0) {
             lines.push('');
             lines.push('📋 Результати:');
-            
+
             for (const result of keyResults) {
                 lines.push(`   ${result}`);
             }
@@ -249,32 +263,32 @@ export class TetyanaExecuteToolsProcessor {
                 if (result.data.path && result.data.bytes_written) {
                     keyResults.push(`Файл збережено: ${result.data.path} (${result.data.bytes_written} байт)`);
                 }
-                
+
                 // Directory created
                 else if (result.data.path && result.data.created) {
                     keyResults.push(`Теку створено: ${result.data.path}`);
                 }
-                
+
                 // File read
                 else if (result.data.content && result.data.size) {
                     keyResults.push(`Файл прочитано: ${result.data.size} байт`);
                 }
-                
+
                 // Browser opened
                 else if (result.data.url && result.data.page_title) {
                     keyResults.push(`Браузер: ${result.data.page_title}`);
                 }
-                
+
                 // Data scraped
                 else if (result.data.items_count !== undefined) {
                     keyResults.push(`Зібрано даних: ${result.data.items_count} елементів`);
                 }
-                
+
                 // Screenshot taken
                 else if (result.data.screenshot_path) {
                     keyResults.push(`Скріншот: ${result.data.screenshot_path}`);
                 }
-                
+
                 // Generic success message
                 else if (result.data.message) {
                     keyResults.push(result.data.message);
@@ -301,7 +315,7 @@ export class TetyanaExecuteToolsProcessor {
         // Check for dependencies between tool calls
         const hasFileDependencies = this._hasFileDependencies(toolCalls);
         const hasStateDependencies = this._hasStateDependencies(toolCalls);
-        
+
         // Can parallelize if no dependencies detected
         return !hasFileDependencies && !hasStateDependencies;
     }
@@ -315,11 +329,11 @@ export class TetyanaExecuteToolsProcessor {
      */
     _hasFileDependencies(toolCalls) {
         const writtenPaths = new Set();
-        
+
         for (const call of toolCalls) {
             const tool = call.tool || '';
             const params = call.parameters || {};
-            
+
             // Check if this call reads a file that was written earlier
             if (tool.includes('read') || tool.includes('list')) {
                 const readPath = params.path || params.directory;
@@ -327,7 +341,7 @@ export class TetyanaExecuteToolsProcessor {
                     return true; // Dependency detected
                 }
             }
-            
+
             // Track written paths
             if (tool.includes('create') || tool.includes('write') || tool.includes('update')) {
                 const writePath = params.path || params.directory;
@@ -336,7 +350,7 @@ export class TetyanaExecuteToolsProcessor {
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -349,25 +363,139 @@ export class TetyanaExecuteToolsProcessor {
      */
     _hasStateDependencies(toolCalls) {
         // Browser navigation must be sequential
-        const hasBrowserNavigation = toolCalls.some(call => 
+        const hasBrowserNavigation = toolCalls.some(call =>
             call.tool?.includes('navigate') || call.tool?.includes('goto')
         );
-        
+
         if (hasBrowserNavigation) {
             return true; // Browser actions must be sequential
         }
-        
+
         // Shell commands that change directory must be sequential
-        const hasDirectoryChange = toolCalls.some(call => 
+        const hasDirectoryChange = toolCalls.some(call =>
             call.parameters?.command?.includes('cd ') ||
             call.parameters?.workdir
         );
-        
+
         if (hasDirectoryChange) {
             return true; // Directory-dependent commands must be sequential
         }
-        
+
         return false;
+    }
+
+    _hasWriteFilePlaceholderDependencies(plan) {
+        if (!plan || !Array.isArray(plan.tool_calls)) {
+            return false;
+        }
+
+        // Detect any placeholder usage in write_file content, e.g.
+        // {{java_sdk.search_dependencies.response}} or {{search_dependencies_result}}
+        const placeholderRegex = /\{\{[^{}]+\}\}/;
+
+        return plan.tool_calls.some(call => {
+            if (!call || call.server !== 'filesystem') return false;
+            const toolName = call.tool || '';
+            if (!toolName.includes('write_file')) return false;
+            const params = call.parameters || {};
+            if (typeof params.content !== 'string') return false;
+            return placeholderRegex.test(params.content);
+        });
+    }
+
+    _resolvePlaceholdersInToolCall(toolCall, context) {
+        if (!toolCall || !toolCall.parameters || typeof toolCall.parameters !== 'object') {
+            return;
+        }
+
+        const params = toolCall.parameters;
+        if (typeof params.content !== 'string') {
+            return;
+        }
+
+        // Support both namespaced and alias placeholders, e.g.:
+        // {{java_sdk.search_dependencies.response}}
+        // {{search_dependencies.response}}
+        // {{search_dependencies_result}}
+        const placeholderRegex = /\{\{([^{}]+)\}\}/g;
+        let changed = false;
+        const newContent = params.content.replace(placeholderRegex, (match, token) => {
+            // Exact match in context
+            if (context && Object.prototype.hasOwnProperty.call(context, token)) {
+                changed = true;
+                return context[token];
+            }
+
+            // Backward compatibility: token in form server.tool.response
+            const parts = token.split('.');
+            if (parts.length === 3 && context) {
+                const key = token;
+                if (Object.prototype.hasOwnProperty.call(context, key)) {
+                    changed = true;
+                    return context[key];
+                }
+            }
+
+            return match;
+        });
+
+        if (changed) {
+            params.content = newContent;
+        }
+    }
+
+    _updatePlaceholderContextFromResult(toolCall, result, context) {
+        if (!toolCall || !result || !context) {
+            return;
+        }
+
+        const server = toolCall.server;
+        if (!server) return;
+
+        let toolName = toolCall.tool || '';
+        if (toolName.includes('__')) {
+            const parts = toolName.split('__');
+            toolName = parts[parts.length - 1];
+        }
+
+        const key = `${server}.${toolName}.response`;
+
+        if (!result.success) {
+            return;
+        }
+
+        const data = result.data;
+        if (data === undefined) {
+            return;
+        }
+
+        let value;
+        if (typeof data === 'string') {
+            value = data;
+        } else if (data && Array.isArray(data.content)) {
+            // Prefer textual payload from MCP result.content[].text
+            const textParts = data.content
+                .filter(c => c && c.type === 'text' && typeof c.text === 'string')
+                .map(c => c.text);
+            if (textParts.length > 0) {
+                value = textParts.join('\n');
+            }
+        }
+
+        if (value === undefined) {
+            try {
+                value = JSON.stringify(data, null, 2);
+            } catch {
+                value = String(data);
+            }
+        }
+
+        // Store multiple aliases for robust placeholder resolution
+        context[key] = value; // server.tool.response
+        context[`${toolName}.response`] = value;
+        context[`${toolName}_result`] = value;
+        context[`${server}.${toolName}_result`] = value;
+        context[`output_from_${server}_${toolName}`] = value;
     }
 
     /**
@@ -381,17 +509,17 @@ export class TetyanaExecuteToolsProcessor {
      */
     async _executeParallel(toolCalls, context) {
         const startTime = Date.now();
-        
-        this.logger.system('tetyana-execute-tools', 
+
+        this.logger.system('tetyana-execute-tools',
             `[PARALLEL] Executing ${toolCalls.length} tools in parallel...`);
-        
+
         // Execute all tools in parallel
-        const promises = toolCalls.map((call, index) => 
+        const promises = toolCalls.map((call, index) =>
             this._executeSingleTool(call, index, context)
         );
-        
+
         const results = await Promise.allSettled(promises);
-        
+
         // Process results
         const processedResults = results.map((result, index) => {
             if (result.status === 'fulfilled') {
@@ -405,14 +533,14 @@ export class TetyanaExecuteToolsProcessor {
                 };
             }
         });
-        
+
         const successfulCalls = processedResults.filter(r => r.success).length;
         const failedCalls = processedResults.filter(r => !r.success).length;
         const executionTime = Date.now() - startTime;
-        
-        this.logger.system('tetyana-execute-tools', 
+
+        this.logger.system('tetyana-execute-tools',
             `[PARALLEL] Completed in ${executionTime}ms: ${successfulCalls} success, ${failedCalls} failed`);
-        
+
         return {
             all_successful: failedCalls === 0,
             successful_calls: successfulCalls,
@@ -441,7 +569,7 @@ export class TetyanaExecuteToolsProcessor {
                     autoApprove: true
                 }
             );
-            
+
             return result.results?.[0] || {
                 success: false,
                 error: 'No result returned',
@@ -561,13 +689,15 @@ export class TetyanaExecuteToolsProcessor {
         let successfulCalls = 0;
         let failedCalls = 0;
         const startTime = Date.now();
+        const placeholderContext = {};
 
         for (let i = 0; i < plan.tool_calls.length; i++) {
             const toolCall = plan.tool_calls[i];
-            
+
             this.logger.system('tetyana-execute-tools', `[STEP-BY-STEP] [${i + 1}/${plan.tool_calls.length}] ${toolCall.server}__${toolCall.tool}`);
 
             try {
+                this._resolvePlaceholdersInToolCall(toolCall, placeholderContext);
                 // Execute ONE tool
                 const result = await this._executeOneTool(toolCall);
                 results.push(result);
@@ -575,16 +705,18 @@ export class TetyanaExecuteToolsProcessor {
                 if (result.success) {
                     successfulCalls++;
                     this.logger.system('tetyana-execute-tools', `[STEP-BY-STEP] ✅ Success`);
+
+                    this._updatePlaceholderContextFromResult(toolCall, result, placeholderContext);
                 } else {
                     failedCalls++;
                     this.logger.system('tetyana-execute-tools', `[STEP-BY-STEP] ❌ Failed: ${result.error}`);
-                    
+
                     // CRITICAL: Stop on first failure
                     this.logger.warn(`[STEP-BY-STEP] Stopping execution at tool ${i + 1} due to failure`, {
                         category: 'tetyana-execute-tools',
                         component: 'tetyana-execute-tools'
                     });
-                    
+
                     return {
                         all_successful: false,
                         successful_calls: successfulCalls,
@@ -609,7 +741,7 @@ export class TetyanaExecuteToolsProcessor {
                     category: 'tetyana-execute-tools',
                     component: 'tetyana-execute-tools'
                 });
-                
+
                 results.push({
                     success: false,
                     error: error.message,

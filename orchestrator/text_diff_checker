@@ -1,0 +1,8 @@
+difflib
+
+class TextComparator:
+    pass
+
+def describe_differences():
+    pass
+

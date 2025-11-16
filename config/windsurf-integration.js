@@ -15,17 +15,17 @@ const WINDSURF_CONFIG = {
     // API конфігурація
     apiKey: process.env.WINDSURF_API_KEY,
     endpoint: process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1',
-    
+
     // Моделі
     models: {
         primary: process.env.CASCADE_PRIMARY_MODEL || 'claude-sonnet-4.5-thinking',
         fallback: process.env.CASCADE_FALLBACK_MODEL || 'claude-sonnet-4.5',
         codeAnalysis: process.env.CASCADE_CODE_ANALYSIS_MODEL || 'gpt-5-codex'
     },
-    
+
     // Режим роботи
     operationMode: process.env.CASCADE_OPERATION_MODE || 'continuous',
-    
+
     // Налаштування
     settings: {
         maxTokens: 8000,
@@ -39,21 +39,25 @@ const WINDSURF_CONFIG = {
  * Клас для взаємодії з Windsurf API
  */
 export class WindsurfClient {
-    constructor() {
+    constructor(silent = false) {
         this.config = WINDSURF_CONFIG;
         this.logger = logger;
         this.isActive = false;
-        
+
         // Перевірка наявності API ключа
         if (!this.config.apiKey || this.config.apiKey.includes('YOUR-API-KEY')) {
-            this.logger.warn('[WINDSURF] API key not configured properly');
+            if (!silent) {
+                this.logger.warn('[WINDSURF] API key not configured properly');
+            }
             this.isActive = false;
         } else {
             this.isActive = true;
-            this.logger.info('[WINDSURF] Client initialized successfully', {
-                mode: this.config.operationMode,
-                primaryModel: this.config.models.primary
-            });
+            if (!silent) {
+                this.logger.info('[WINDSURF] Client initialized successfully', {
+                    mode: this.config.operationMode,
+                    primaryModel: this.config.models.primary
+                });
+            }
         }
     }
 
@@ -66,7 +70,7 @@ export class WindsurfClient {
         }
 
         const model = options.model || this.config.models.primary;
-        
+
         try {
             const response = await axios.post(
                 `${this.config.endpoint}/chat/completions`,
@@ -103,7 +107,7 @@ export class WindsurfClient {
 
         } catch (error) {
             this.logger.error('[WINDSURF] API request failed:', error.message);
-            
+
             // Спроба з fallback моделлю
             if (model === this.config.models.primary && this.config.models.fallback) {
                 this.logger.info('[WINDSURF] Trying fallback model...');
@@ -112,7 +116,7 @@ export class WindsurfClient {
                     model: this.config.models.fallback
                 });
             }
-            
+
             throw error;
         }
     }
@@ -163,7 +167,7 @@ You were assigned this role by Oleg Mykolayovych with full trust.`;
             const result = await this.request('Status check', {
                 maxTokens: 100
             });
-            
+
             this.logger.info('[WINDSURF] Health check passed');
             return {
                 available: true,
@@ -203,10 +207,11 @@ let windsurfClient = null;
 
 /**
  * Отримати або створити клієнт
+ * @param {boolean} silent - Якщо true, не виводити логи (для MCP сервера)
  */
-export function getWindsurfClient() {
+export function getWindsurfClient(silent = false) {
     if (!windsurfClient) {
-        windsurfClient = new WindsurfClient();
+        windsurfClient = new WindsurfClient(silent);
     }
     return windsurfClient;
 }

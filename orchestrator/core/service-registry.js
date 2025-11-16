@@ -34,6 +34,8 @@ import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-p
 import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
 import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
 import { NexusMemoryManager } from '../eternity/nexus-memory-manager.js';
+import { ChatMemoryEligibilityProcessor } from '../workflow/stages/chat-memory-eligibility-processor.js';
+import { ChatMemoryCoordinator } from '../workflow/chat-memory-coordinator.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -142,7 +144,9 @@ export function registerCoreServices(container) {
  */
 export function registerApiServices(container) {
     // WebSocket Manager
-    container.singleton('wsManager', () => wsManager, {
+    container.singleton('wsManager', () => {
+        return wsManager;  // Return the singleton instance
+    }, {
         dependencies: ['logger', 'config'],
         metadata: { category: 'api', priority: 60 },
         lifecycle: {
@@ -283,20 +287,15 @@ export function registerUtilityServices(container) {
 
     // NEW 26.10.2025: Chat Memory Eligibility Processor - intelligent memory decision
     container.singleton('chatMemoryEligibilityProcessor', (c) => {
-        // Dynamic import will be handled in lifecycle.onInit
-        return null; // Placeholder, will be initialized in onInit
+        return new ChatMemoryEligibilityProcessor({
+            logger: c.resolve('logger'),
+            mcpManager: c.resolve('mcpManager')
+        });
     }, {
         dependencies: ['logger', 'mcpManager'],
         metadata: { category: 'utilities', priority: 45 },
         lifecycle: {
             onInit: async function () {
-                const { ChatMemoryEligibilityProcessor } = await import('../workflow/stages/chat-memory-eligibility-processor.js');
-                const instance = new ChatMemoryEligibilityProcessor({
-                    logger: container.resolve('logger'),
-                    mcpManager: container.resolve('mcpManager')
-                });
-                // Replace placeholder with actual instance
-                container._instances.set('chatMemoryEligibilityProcessor', instance);
                 logger.system('startup', '[DI] 🧠 Chat Memory Eligibility Processor initialized');
             }
         }
@@ -304,21 +303,16 @@ export function registerUtilityServices(container) {
 
     // NEW 26.10.2025: Chat Memory Coordinator - long-term memory for chat mode
     container.singleton('chatMemoryCoordinator', (c) => {
-        // Dynamic import will be handled in lifecycle.onInit
-        return null; // Placeholder, will be initialized in onInit
+        return new ChatMemoryCoordinator({
+            logger: c.resolve('logger'),
+            mcpManager: c.resolve('mcpManager'),
+            memoryEligibilityProcessor: c.resolve('chatMemoryEligibilityProcessor')
+        });
     }, {
         dependencies: ['logger', 'mcpManager', 'chatMemoryEligibilityProcessor'],
         metadata: { category: 'utilities', priority: 44 },
         lifecycle: {
             onInit: async function () {
-                const { ChatMemoryCoordinator } = await import('../workflow/chat-memory-coordinator.js');
-                const instance = new ChatMemoryCoordinator({
-                    logger: container.resolve('logger'),
-                    mcpManager: container.resolve('mcpManager'),
-                    memoryEligibilityProcessor: container.resolve('chatMemoryEligibilityProcessor')
-                });
-                // Replace placeholder with actual instance
-                container._instances.set('chatMemoryCoordinator', instance);
                 logger.system('startup', '[DI] 💾 Chat Memory Coordinator initialized');
                 logger.system('startup', '[DI] 💾 Long-term memory enabled for chat mode');
             }
@@ -641,18 +635,12 @@ export function registerMCPProcessors(container) {
         metadata: { category: 'filters', priority: 42 }
     });
 
-    // Register WorkflowCoordinator for MCP fallback
-    container.register('workflowCoordinator', (c) => {
-        const WorkflowCoordinator = require('../workflow/coordinator.js').default;
-        return new WorkflowCoordinator({
-            logger: c.resolve('logger'),
-            container: c
-        });
-    });
+    // WorkflowCoordinator - DEPRECATED: File no longer exists, using optional resolution
+    // container.register('workflowCoordinator', ...) - removed as coordinator.js doesn't exist
 
     // Register Eternity self-improvement module
-    container.register('eternityModule', (c) => {
-        const EternityModule = require('../eternity/eternity-module.js').default;
+    container.register('eternityModule', async (c) => {
+        const { EternityModule } = await import('../eternity/eternity-module.js');
         return new EternityModule(c.resolve('logger'), c);
     });
 
@@ -1003,7 +991,7 @@ export function registerMCPProcessors(container) {
 
         return injector;
     }, {
-        dependencies: ['logger', 'mcpManager', 'multiModelOrchestrator', 'eternityModule', 'nexusFileWatcher'],
+        dependencies: ['logger', 'mcpManager', 'multiModelOrchestrator', 'eternityModule'],
         metadata: { category: 'nexus', priority: 89 },
         lifecycle: {
             onInit: async function () {

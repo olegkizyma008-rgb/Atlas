@@ -37,6 +37,129 @@ export class TetyanaPlanToolsProcessor {
         this.logger = loggerInstance || logger;
     }
 
+    _normalizeToolPlan(plan, currentItem) {
+        if (!plan?.tool_calls || plan.tool_calls.length === 0) {
+            return plan;
+        }
+
+        const normalizedCalls = plan.tool_calls.map((call, index) => this._normalizeToolCall(call, index, currentItem));
+
+        return {
+            ...plan,
+            tool_calls: normalizedCalls
+        };
+    }
+
+    _normalizeToolCall(call, index, currentItem) {
+        if (!call) {
+            return call;
+        }
+
+        const normalized = { ...call };
+        const serverName = normalized.server || this._extractServerFromTool(normalized.tool);
+
+        if (serverName === 'filesystem') {
+            const newToolName = this._mapLegacyFilesystemTool(normalized.tool);
+            if (newToolName && newToolName !== normalized.tool) {
+                this.logger.system('tetyana-plan-tools',
+                    `[STAGE-2.1-MCP] 🔄 Replacing legacy filesystem tool '${normalized.tool}' → '${newToolName}' (item ${currentItem?.id || 'unknown'}, call #${index + 1})`);
+
+                normalized.tool = newToolName;
+                normalized.server = 'filesystem';
+                normalized.reasoning = `${normalized.reasoning || 'Auto-adjustment'} (legacy filesystem tool replaced with supported equivalent)`;
+            }
+        } else if (serverName === 'shell') {
+            const newToolName = this._mapLegacyShellTool(normalized.tool);
+            if (newToolName && newToolName !== normalized.tool) {
+                this.logger.system('tetyana-plan-tools',
+                    `[STAGE-2.1-MCP] 🔄 Replacing legacy shell tool '${normalized.tool}' → '${newToolName}' (item ${currentItem?.id || 'unknown'}, call #${index + 1})`);
+
+                normalized.tool = newToolName;
+                normalized.server = 'shell';
+                normalized.reasoning = `${normalized.reasoning || 'Auto-adjustment'} (legacy shell tool replaced with supported equivalent)`;
+            }
+        }
+
+        return normalized;
+    }
+
+    _extractServerFromTool(toolName) {
+        if (!toolName || typeof toolName !== 'string') {
+            return null;
+        }
+        if (toolName.includes('__')) {
+            return toolName.split('__')[0];
+        }
+        if (toolName.includes('_')) {
+            return toolName.split('_')[0];
+        }
+        return null;
+    }
+
+    _mapLegacyFilesystemTool(toolName) {
+        if (!toolName || typeof toolName !== 'string') {
+            return toolName;
+        }
+
+        const mapping = {
+            'filesystem__check_file_exists': 'filesystem__get_file_info',
+            'filesystem__check_file_readable': 'filesystem__get_file_info',
+            'filesystem__check_file_access': 'filesystem__get_file_info',
+            'filesystem__exists': 'filesystem__get_file_info',
+            'check_file_exists': 'get_file_info',
+            'check_file_readable': 'get_file_info',
+            'check_file_access': 'get_file_info',
+            'exists': 'get_file_info'
+        };
+
+        const normalizedName = toolName.trim();
+        if (mapping[normalizedName]) {
+            return mapping[normalizedName];
+        }
+
+        // Handle names without prefix but with filesystem server
+        if (normalizedName.startsWith('filesystem__')) {
+            const bareName = normalizedName.replace('filesystem__', '');
+            if (mapping[bareName]) {
+                return `filesystem__${mapping[bareName]}`;
+            }
+        }
+
+        return toolName;
+    }
+
+    _mapLegacyShellTool(toolName) {
+        if (!toolName || typeof toolName !== 'string') {
+            return toolName;
+        }
+
+        // shell MCP server actually exposes shell__execute_command
+        // All run_shell_command-style aliases повинні зводитись до нього
+        const mapping = {
+            'shell__execute_command': 'shell__execute_command',
+            'shell__run_shell_command': 'shell__execute_command',
+            'shell__shell__execute_command': 'shell__execute_command',
+            'execute_command': 'shell__execute_command',
+            'run_shell_command': 'shell__execute_command',
+            'shell_execute_command': 'shell__execute_command',
+            'shell_run_shell_command': 'shell__execute_command'
+        };
+
+        const normalizedName = toolName.trim();
+        if (mapping[normalizedName]) {
+            return mapping[normalizedName];
+        }
+
+        if (normalizedName.startsWith('shell__')) {
+            const bare = normalizedName.replace('shell__', '');
+            if (mapping[bare]) {
+                return mapping[bare];
+            }
+        }
+
+        return toolName;
+    }
+
     /**
      * Execute tool planning for TODO item
      * 
@@ -75,11 +198,11 @@ export class TetyanaPlanToolsProcessor {
 
                 filteredServers = selected_servers;
 
-                this.logger.system('tetyana-plan-tools', 
+                this.logger.system('tetyana-plan-tools',
                     `[STAGE-2.1-MCP] ✅ Prepared ${toolsData.tools.length} tools from ${toolsData.metadata.servers.length} servers`);
-                
+
                 if (selected_servers && selected_servers.length > 0) {
-                    this.logger.system('tetyana-plan-tools', 
+                    this.logger.system('tetyana-plan-tools',
                         `[STAGE-2.1-MCP] 🎯 Filtered to: ${selected_servers.join(', ')}`);
                 }
             } else {
@@ -122,7 +245,7 @@ export class TetyanaPlanToolsProcessor {
                             userLevel: context.userLevel || 'intermediate'
                         };
                         filteredTools = contextFilter.filterTools(availableTools, filterContext);
-                        this.logger.system('tetyana-plan-tools', 
+                        this.logger.system('tetyana-plan-tools',
                             `[STAGE-2.1-MCP] 🎯 Context filter: ${availableTools.length} → ${filteredTools.length} tools`);
                     }
                 } catch (err) {
@@ -138,7 +261,7 @@ export class TetyanaPlanToolsProcessor {
                     const schemaBuilder = context.container.resolve('mcpSchemaBuilder');
                     if (schemaBuilder) {
                         toolSchemas = schemaBuilder.buildToolSchemas(filteredTools);
-                        this.logger.system('tetyana-plan-tools', 
+                        this.logger.system('tetyana-plan-tools',
                             `[STAGE-2.1-MCP] 📋 Generated JSON Schemas for ${toolSchemas.length} tools`);
                     }
                 } catch (err) {
@@ -149,7 +272,7 @@ export class TetyanaPlanToolsProcessor {
             // NEW 20.10.2025: Use auto-assigned prompts from server selection stage
             // Prompts are automatically mapped in Stage 2.0 based on selected servers
             let promptOverride = null;
-            
+
             if (selected_prompts) {
                 if (Array.isArray(selected_prompts)) {
                     if (selected_prompts.length === 1) {
@@ -171,7 +294,7 @@ export class TetyanaPlanToolsProcessor {
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] Calling mcpTodoManager.planTools()...`);
 
             // NEW: Include history context if available
-            const planOptions = { 
+            const planOptions = {
                 toolsSummary: toolsData.toolsSummary,
                 promptOverride,  // Pass specialized prompt name
                 selectedServers: selected_servers,  // FIXED 2025-10-23: Pass selected servers for tool filtering
@@ -179,7 +302,7 @@ export class TetyanaPlanToolsProcessor {
                 historyStats: toolsData.historyStats  // NEW: Statistics
             };
 
-            const plan = await this.mcpTodoManager.planTools(currentItem, todo, planOptions);
+            let plan = await this.mcpTodoManager.planTools(currentItem, todo, planOptions);
 
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] planTools() returned: ${JSON.stringify(plan).substring(0, 300)}`);
 
@@ -190,9 +313,12 @@ export class TetyanaPlanToolsProcessor {
                 throw new Error('MCPTodoManager.planTools() returned invalid plan');
             }
 
+            // FIXED 2025-11-16: Normalize legacy filesystem tools before validation
+            plan = this._normalizeToolPlan(plan, currentItem);
+
             // NEW 2025-10-20: Validate plan using TetyanaToolSystem (more precise)
             let validation;
-            
+
             if (this.tetyanaToolSystem) {
                 validation = await this.tetyanaToolSystem.validateToolCalls(plan.tool_calls);
                 this.logger.debug('tetyana-plan-tools', '[STAGE-2.1-MCP] Validation via TetyanaToolSystem');
@@ -204,7 +330,7 @@ export class TetyanaPlanToolsProcessor {
 
             if (!validation.valid) {
                 this.logger.warn(`[STAGE-2.1-MCP] ⚠️ Plan validation FAILED:`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
-                
+
                 // FIXED 2025-10-23: Properly format error objects for logging
                 const errors = Array.isArray(validation.errors) ? validation.errors : [validation.errors || 'Unknown error'];
                 const errorMessages = errors.map(e => {
@@ -214,7 +340,7 @@ export class TetyanaPlanToolsProcessor {
                     }
                     return String(e);
                 });
-                
+
                 // Log each error on separate line for clarity
                 this.logger.warn(`[STAGE-2.1-MCP]   Errors (${errorMessages.length}):`, { category: 'tetyana-plan-tools', component: 'tetyana-plan-tools' });
                 errorMessages.forEach((msg, idx) => {

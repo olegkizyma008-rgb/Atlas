@@ -22,32 +22,41 @@ class WebSocketManager {
      * Запуск WebSocket сервера
      */
   start(port = 5102) {
-    this.wss = new WebSocketServer({
-      port,
-      perMessageDeflate: false,
-      maxPayload: 1024 * 1024 // 1MB
-    });
+    try {
+      this.wss = new WebSocketServer({
+        port,
+        perMessageDeflate: false,
+        maxPayload: 1024 * 1024 // 1MB
+      });
 
-    this.wss.on('connection', (ws, req) => {
-      this.handleConnection(ws, req);
-    });
+      this.wss.on('connection', (ws, req) => {
+        this.handleConnection(ws, req);
+      });
 
-    this.wss.on('error', (error) => {
-      logger.error('WebSocket Server error', {
+      this.wss.on('error', (error) => {
+        logger.error('WebSocket Server error', {
+          error: error.message,
+          stack: error.stack
+        });
+      });
+
+      // Запуск heartbeat
+      this.startHeartbeat();
+
+      logger.info(`✅ WebSocket server started on port ${port}`, {
+        port,
+        heartbeatInterval: this.heartbeatInterval
+      });
+
+      return this.wss;
+    } catch (error) {
+      logger.error('Failed to start WebSocket server', {
+        port,
         error: error.message,
         stack: error.stack
       });
-    });
-
-    // Запуск heartbeat
-    this.startHeartbeat();
-
-    logger.info(`WebSocket server started on port ${port}`, {
-      port,
-      heartbeatInterval: this.heartbeatInterval
-    });
-
-    return this.wss;
+      throw error;
+    }
   }
 
   /**
@@ -138,36 +147,36 @@ class WebSocketManager {
       });
 
       switch (type) {
-      case 'subscribe':
-        this.handleSubscribe(clientId, data.channels);
-        break;
+        case 'subscribe':
+          this.handleSubscribe(clientId, data.channels);
+          break;
 
-      case 'unsubscribe':
-        this.handleUnsubscribe(clientId, data.channels);
-        break;
+        case 'unsubscribe':
+          this.handleUnsubscribe(clientId, data.channels);
+          break;
 
-      case 'model3d-command':
-        this.handle3DCommand(clientId, data);
-        break;
+        case 'model3d-command':
+          this.handle3DCommand(clientId, data);
+          break;
 
-      case 'tts-command':
-        this.handleTTSCommand(clientId, data);
-        break;
+        case 'tts-command':
+          this.handleTTSCommand(clientId, data);
+          break;
 
-      case 'ping':
-        this.sendToClient(clientId, 'pong', { timestamp: Date.now() });
-        break;
+        case 'ping':
+          this.sendToClient(clientId, 'pong', { timestamp: Date.now() });
+          break;
 
-      case 'get-state':
-        this.sendToClient(clientId, 'current-state', webIntegration.getWebState());
-        break;
+        case 'get-state':
+          this.sendToClient(clientId, 'current-state', webIntegration.getWebState());
+          break;
 
-      default:
-        logger.warn('Unknown WebSocket message type', {
-          clientId,
-          type,
-          availableTypes: ['subscribe', 'unsubscribe', 'model3d-command', 'tts-command', 'ping', 'get-state']
-        });
+        default:
+          logger.warn('Unknown WebSocket message type', {
+            clientId,
+            type,
+            availableTypes: ['subscribe', 'unsubscribe', 'model3d-command', 'tts-command', 'ping', 'get-state']
+          });
       }
 
     } catch (error) {
@@ -243,21 +252,21 @@ class WebSocketManager {
     const { action, params } = data;
 
     switch (action) {
-    case 'trigger-animation':
-      webIntegration.triggerAnimation(params.type, params.context);
-      break;
+      case 'trigger-animation':
+        webIntegration.triggerAnimation(params.type, params.context);
+        break;
 
-    case 'set-emotion':
-      webIntegration.setAgentEmotion(params.agent, params.emotion, params.intensity, params.duration);
-      break;
+      case 'set-emotion':
+        webIntegration.setAgentEmotion(params.agent, params.emotion, params.intensity, params.duration);
+        break;
 
-    case 'update-state':
-      webIntegration.update3DModel(params);
-      break;
+      case 'update-state':
+        webIntegration.update3DModel(params);
+        break;
 
-    default:
-      logger.warn('Unknown 3D command', { clientId, action, params });
-      this.sendToClient(clientId, 'error', { message: `Unknown 3D action: ${action}` });
+      default:
+        logger.warn('Unknown 3D command', { clientId, action, params });
+        this.sendToClient(clientId, 'error', { message: `Unknown 3D action: ${action}` });
     }
   }
 
@@ -268,21 +277,21 @@ class WebSocketManager {
     const { action, params } = data;
 
     switch (action) {
-    case 'start-visualization':
-      webIntegration.startTTSVisualization(params.text, params.options);
-      break;
+      case 'start-visualization':
+        webIntegration.startTTSVisualization(params.text, params.options);
+        break;
 
-    case 'stop-visualization':
-      webIntegration.stopTTSVisualization();
-      break;
+      case 'stop-visualization':
+        webIntegration.stopTTSVisualization();
+        break;
 
-    case 'update-analysis':
-      webIntegration.updateAudioAnalysis(params.analysisData);
-      break;
+      case 'update-analysis':
+        webIntegration.updateAudioAnalysis(params.analysisData);
+        break;
 
-    default:
-      logger.warn('Unknown TTS command', { clientId, action, params });
-      this.sendToClient(clientId, 'error', { message: `Unknown TTS action: ${action}` });
+      default:
+        logger.warn('Unknown TTS command', { clientId, action, params });
+        this.sendToClient(clientId, 'error', { message: `Unknown TTS action: ${action}` });
     }
   }
 
@@ -346,7 +355,7 @@ class WebSocketManager {
 
     // ADDED 21.10.2025 - Add global sequence ID
     const sequenceId = ++this.messageSequence;
-    
+
     // ADDED 21.10.2025 - Add session-specific sequence if sessionId present
     let sessionSequenceId = null;
     if (data && data.sessionId) {
@@ -394,10 +403,19 @@ class WebSocketManager {
       const now = Date.now();
       const timeout = this.heartbeatInterval * 2; // Подвійний timeout
 
+      // FIXED: Collect disconnections BEFORE modifying the Map
+      const disconnectionsToHandle = [];
+
       for (const [clientId, client] of this.clients) {
         if (client.ws.readyState === 1) {
           // Відправляємо ping
-          client.ws.ping();
+          try {
+            client.ws.ping();
+          } catch (error) {
+            logger.error('Failed to send ping', { clientId, error: error.message });
+            disconnectionsToHandle.push({ clientId, code: 1006, reason: 'Ping error' });
+            continue;
+          }
 
           // Перевіряємо timeout
           if (now - client.lastPong > timeout) {
@@ -406,12 +424,24 @@ class WebSocketManager {
               lastPong: new Date(client.lastPong),
               timeout: `${timeout / 1000}s`
             });
-            client.ws.terminate();
-            this.handleDisconnection(clientId, 1001, 'Heartbeat timeout');
+            disconnectionsToHandle.push({ clientId, code: 1001, reason: 'Heartbeat timeout' });
           }
         } else {
-          this.handleDisconnection(clientId, client.ws.readyState, 'Connection closed');
+          disconnectionsToHandle.push({ clientId, code: client.ws.readyState, reason: 'Connection closed' });
         }
+      }
+
+      // NOW handle disconnections after iteration is complete
+      for (const { clientId, code, reason } of disconnectionsToHandle) {
+        try {
+          const client = this.clients.get(clientId);
+          if (client && client.ws.readyState !== 1) {
+            client.ws.terminate();
+          }
+        } catch (error) {
+          logger.error('Failed to terminate connection', { clientId, error: error.message });
+        }
+        this.handleDisconnection(clientId, code, reason);
       }
     }, this.heartbeatInterval);
   }

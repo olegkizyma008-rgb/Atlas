@@ -22,22 +22,22 @@ import logger from '../../utils/logger.js';
 export class RepetitionInspector {
     /**
      * @param {Object} options - Configuration options
-     * @param {number} options.maxConsecutiveRepetitions - Max consecutive calls (default: 3)
-     * @param {number} options.maxTotalCalls - Max total calls per tool (default: 10)
+     * @param {number} options.maxConsecutiveRepetitions - Max consecutive calls (default: 20, increased from 3)
+     * @param {number} options.maxTotalCalls - Max total calls per tool (default: 50, increased from 10)
      */
     constructor(options = {}) {
         this.name = 'repetition';
-        this.maxConsecutiveRepetitions = options.maxConsecutiveRepetitions || 3;
-        this.maxTotalCalls = options.maxTotalCalls || 10;
-        
+        this.maxConsecutiveRepetitions = options.maxConsecutiveRepetitions || 20;  // Increased from 3 to allow complex workflows
+        this.maxTotalCalls = options.maxTotalCalls || 50;  // Increased from 10 to allow more iterations
+
         // State tracking
         this.lastCall = null;  // { tool, paramsKey }
         this.consecutiveCount = 0;
         this.callCounts = new Map();  // tool -> count
-        
+
         this.enabled = true;
-        
-        logger.system('repetition-inspector', 
+
+        logger.system('repetition-inspector',
             `Initialized (maxConsecutive: ${this.maxConsecutiveRepetitions}, maxTotal: ${this.maxTotalCalls})`);
     }
 
@@ -80,7 +80,7 @@ export class RepetitionInspector {
         }
 
         if (results.length > 0) {
-            logger.warn('repetition-inspector', 
+            logger.warn('repetition-inspector',
                 `Detected ${results.length} repetition issue(s)`);
         }
 
@@ -99,11 +99,11 @@ export class RepetitionInspector {
     _checkConsecutiveRepetition(fullKey, toolKey, toolCall) {
         if (this.lastCall === fullKey) {
             this.consecutiveCount++;
-            
+
             if (this.consecutiveCount > this.maxConsecutiveRepetitions) {
-                logger.error('repetition-inspector', 
+                logger.error('repetition-inspector',
                     `DENIED: ${toolKey} repeated ${this.consecutiveCount} times consecutively`);
-                
+
                 return {
                     toolCall,
                     action: 'DENY',
@@ -135,11 +135,11 @@ export class RepetitionInspector {
      */
     _checkTotalCallCount(toolKey, toolCall) {
         const currentCount = this.callCounts.get(toolKey) || 0;
-        
+
         if (currentCount >= this.maxTotalCalls) {
-            logger.warn('repetition-inspector', 
+            logger.warn('repetition-inspector',
                 `APPROVAL REQUIRED: ${toolKey} called ${currentCount} times total`);
-            
+
             return {
                 toolCall,
                 action: 'REQUIRE_APPROVAL',
@@ -166,7 +166,7 @@ export class RepetitionInspector {
      */
     _updateState(fullKey, toolKey) {
         this.lastCall = fullKey;
-        
+
         const count = this.callCounts.get(toolKey) || 0;
         this.callCounts.set(toolKey, count + 1);
     }
@@ -189,7 +189,7 @@ export class RepetitionInspector {
                 acc[key] = params[key];
                 return acc;
             }, {});
-            
+
             return JSON.stringify(sorted);
         } catch (error) {
             logger.warn('repetition-inspector', `Failed to generate params key: ${error.message}`);
@@ -214,7 +214,7 @@ export class RepetitionInspector {
         this.lastCall = null;
         this.consecutiveCount = 0;
         this.callCounts.clear();
-        
+
         logger.debug('repetition-inspector', 'State reset');
     }
 
@@ -257,20 +257,20 @@ export class RepetitionInspector {
         if (toolCall.server === 'applescript') {
             return true;
         }
-        
+
         // Playwright tools with GUI-related actions
         if (toolCall.server === 'playwright') {
             const guiActions = ['click', 'type', 'fill', 'press', 'hover', 'focus', 'navigate'];
             const toolName = toolCall.tool.toLowerCase();
             return guiActions.some(action => toolName.includes(action));
         }
-        
+
         // FIXED 2025-11-04: Allow filesystem verification tools (commonly repeated for checks)
-        if (toolCall.server === 'filesystem' && 
+        if (toolCall.server === 'filesystem' &&
             (toolCall.tool.includes('get_file_info') || toolCall.tool.includes('read_file'))) {
             return true; // Allow repetitive file checks for verification
         }
-        
+
         return false;
     }
 

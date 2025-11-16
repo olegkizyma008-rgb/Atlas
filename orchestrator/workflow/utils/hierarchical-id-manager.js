@@ -39,18 +39,18 @@ export class HierarchicalIdManager {
     static parseId(id) {
         const idStr = String(id);
         const parts = idStr.split('.').map(p => parseInt(p, 10));
-        
+
         if (parts.some(isNaN)) {
             throw new Error(`Invalid hierarchical ID: ${id}`);
         }
-        
+
         const depth = parts.length;
         const parent = depth > 1 ? parts.slice(0, -1).join('.') : null;
         const root = String(parts[0]);
         const isRoot = depth === 1;
         const isChild = depth > 1;
         const level = depth - 1; // 0 for root, 1 for first replan, etc.
-        
+
         return {
             full: idStr,
             parts,
@@ -62,7 +62,7 @@ export class HierarchicalIdManager {
             level
         };
     }
-    
+
     /**
      * Generate next child ID for a parent
      * 
@@ -77,15 +77,15 @@ export class HierarchicalIdManager {
      */
     static generateChildId(parentId, existingItems = []) {
         const parentIdStr = String(parentId);
-        
-        // FIXED 2025-11-07: Prevent infinite recursion - limit depth to 5 levels
+
+        // FIXED 2025-11-07: Prevent infinite recursion - limit depth to 10 levels (increased from 5)
         const parentDepth = parentIdStr.split('.').length;
-        const MAX_DEPTH = 5; // Maximum nesting levels
-        
+        const MAX_DEPTH = 10; // Maximum nesting levels (increased to allow complex workflows)
+
         if (parentDepth >= MAX_DEPTH) {
             throw new Error(`Maximum nesting depth (${MAX_DEPTH}) reached. Cannot create child for ${parentIdStr}`);
         }
-        
+
         // Find all existing children of this parent
         const childIds = existingItems
             .map(item => String(item.id))
@@ -93,7 +93,7 @@ export class HierarchicalIdManager {
                 // Check if this is a direct child (not grandchild)
                 const prefix = `${parentIdStr}.`;
                 if (!id.startsWith(prefix)) return false;
-                
+
                 // Ensure it's a direct child (no more dots after parent)
                 const suffix = id.substring(prefix.length);
                 return !suffix.includes('.');
@@ -103,13 +103,13 @@ export class HierarchicalIdManager {
                 return parseInt(lastPart, 10);
             })
             .filter(n => !isNaN(n));
-        
+
         // Find next available number
         const nextNum = childIds.length > 0 ? Math.max(...childIds) + 1 : 1;
-        
+
         return `${parentIdStr}.${nextNum}`;
     }
-    
+
     /**
      * Get all descendants of an item (children, grandchildren, etc.)
      * 
@@ -123,13 +123,13 @@ export class HierarchicalIdManager {
     static getDescendants(itemId, items) {
         const idStr = String(itemId);
         const prefix = `${idStr}.`;
-        
+
         return items.filter(item => {
             const itemIdStr = String(item.id);
             return itemIdStr.startsWith(prefix);
         });
     }
-    
+
     /**
      * Get direct children only (not grandchildren)
      * 
@@ -143,17 +143,17 @@ export class HierarchicalIdManager {
     static getChildren(itemId, items) {
         const idStr = String(itemId);
         const prefix = `${idStr}.`;
-        
+
         return items.filter(item => {
             const itemIdStr = String(item.id);
             if (!itemIdStr.startsWith(prefix)) return false;
-            
+
             // Ensure direct child (no more dots)
             const suffix = itemIdStr.substring(prefix.length);
             return !suffix.includes('.');
         });
     }
-    
+
     /**
      * Get parent item
      * 
@@ -167,10 +167,10 @@ export class HierarchicalIdManager {
     static getParent(itemId, items) {
         const parsed = this.parseId(itemId);
         if (parsed.isRoot) return null;
-        
+
         return items.find(item => String(item.id) === parsed.parent) || null;
     }
-    
+
     /**
      * Get root ancestor
      * 
@@ -185,7 +185,7 @@ export class HierarchicalIdManager {
         const parsed = this.parseId(itemId);
         return items.find(item => String(item.id) === parsed.root) || null;
     }
-    
+
     /**
      * Check if itemB depends on itemA (directly or through ancestry)
      * 
@@ -201,21 +201,21 @@ export class HierarchicalIdManager {
     static isDependency(itemAId, itemBId, items) {
         const aStr = String(itemAId);
         const bStr = String(itemBId);
-        
+
         // Check if B is descendant of A
         if (bStr.startsWith(`${aStr}.`)) {
             return true;
         }
-        
+
         // Check explicit dependencies
         const itemB = items.find(item => String(item.id) === bStr);
         if (itemB && itemB.dependencies) {
             return itemB.dependencies.some(dep => String(dep) === aStr);
         }
-        
+
         return false;
     }
-    
+
     /**
      * Compare two IDs for sorting (natural hierarchical order)
      * 
@@ -229,20 +229,20 @@ export class HierarchicalIdManager {
     static compareIds(idA, idB) {
         const partsA = String(idA).split('.').map(p => parseInt(p, 10));
         const partsB = String(idB).split('.').map(p => parseInt(p, 10));
-        
+
         const maxLen = Math.max(partsA.length, partsB.length);
-        
+
         for (let i = 0; i < maxLen; i++) {
             const a = partsA[i] || 0;
             const b = partsB[i] || 0;
-            
+
             if (a < b) return -1;
             if (a > b) return 1;
         }
-        
+
         return 0;
     }
-    
+
     /**
      * Generate next root-level ID
      * 
@@ -258,11 +258,11 @@ export class HierarchicalIdManager {
             .filter(id => !id.includes('.')) // Only root IDs
             .map(id => parseInt(id, 10))
             .filter(n => !isNaN(n));
-        
+
         const maxRoot = rootIds.length > 0 ? Math.max(...rootIds) : 0;
         return String(maxRoot + 1);
     }
-    
+
     /**
      * Format ID for display with visual hierarchy
      * 
@@ -276,11 +276,11 @@ export class HierarchicalIdManager {
      */
     static formatForDisplay(id, showIndent = false) {
         if (!showIndent) return String(id);
-        
+
         const parsed = this.parseId(id);
         const indent = '  '.repeat(parsed.level);
         const arrow = parsed.isRoot ? '' : '↳ ';
-        
+
         return `${indent}${arrow}${id}`;
     }
 }

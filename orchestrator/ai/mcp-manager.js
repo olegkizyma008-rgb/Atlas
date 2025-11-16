@@ -106,7 +106,7 @@ class MCPServer {
         this.pendingRequests.delete(message.id);
         resolver.resolve(message.result);
       }
-      
+
       // FIXED: Handle initialize response
       if (message.result.protocolVersion) {
         this.ready = true;
@@ -129,18 +129,18 @@ class MCPServer {
         errorData: message.error.data || null,
         messageId: message.id || null
       };
-      
+
       // Only log as error if it's not a common/expected error
       const isExpectedError = message.error.code === -32601 || // Method not found
-                             message.error.code === -32602 || // Invalid params
-                             message.error.message?.includes('not supported');
-      
+        message.error.code === -32602 || // Invalid params
+        message.error.message?.includes('not supported');
+
       if (isExpectedError) {
         logger.debug('mcp-server', `[MCP ${this.name}] Expected error response:`, errorDetails);
       } else {
         logger.error('mcp-server', `[MCP ${this.name}] Error response:`, errorDetails);
       }
-      
+
       if (message.id && this.pendingRequests && this.pendingRequests.has(message.id)) {
         const resolver = this.pendingRequests.get(message.id);
         this.pendingRequests.delete(message.id);
@@ -185,7 +185,7 @@ class MCPServer {
     if (!this.pendingRequests) {
       this.pendingRequests = new Map();
     }
-    
+
     // Wait for initialize response
     const initPromise = new Promise((resolve, reject) => {
       this.pendingRequests.set(initId, {
@@ -198,14 +198,14 @@ class MCPServer {
         },
         reject
       });
-      
+
       // Timeout 20s for Mac M1 + npx
       setTimeout(() => {
         if (!this.ready) {
           logger.warn('mcp-server', `[MCP ${this.name}] ⚠️ Initialization timeout after 20s`);
           logger.debug('mcp-server', `[MCP ${this.name}] Stdout buffer: ${this.stdoutBuffer}`);
           logger.debug('mcp-server', `[MCP ${this.name}] Stderr buffer: ${this.stderrBuffer}`);
-          
+
           // Don't reject - some servers work without explicit init confirmation
           this.ready = true; // Force ready state
           logger.system('mcp-server', `[MCP ${this.name}] ⚠️ Proceeding despite timeout`);
@@ -214,7 +214,7 @@ class MCPServer {
         }
       }, 20000);
     });
-    
+
     await initPromise;
 
     logger.system('mcp-server', `[MCP ${this.name}] ✅ Ready`);
@@ -557,36 +557,78 @@ export class MCPManager {
       // UPDATED 2025-11-02: Use centralized normalizer
       // Normalize input tool name to internal format (double __)
       const normalizedToolName = normalizeToolName(toolName, serverName);
-      
+
       // Denormalize for MCP server call (single _)
       const mcpToolName = denormalizeToolName(normalizedToolName);
-      
+
       // Check if tool exists on server (check both formats)
-      const toolExists = Array.isArray(server.tools) && 
+      const toolExists = Array.isArray(server.tools) &&
         server.tools.some(t => t.name === mcpToolName || normalizeToolName(t.name, serverName) === normalizedToolName);
-      
+
       if (!toolExists) {
         const availableTools = Array.isArray(server.tools)
           ? server.tools.map(t => normalizeToolName(t.name, serverName)).join(', ')
           : 'none';
-        throw new Error(`Tool '${normalizedToolName}' not available on server '${serverName}'. Available tools: ${availableTools}`);
+
+        // FIXED 2025-11-16: Return graceful error instead of throwing
+        // This allows workflow to continue with fallback handling
+        logger.warn('mcp-manager', `[MCP Manager] ⚠️ Tool '${normalizedToolName}' not available on server '${serverName}'. Available: ${availableTools}`);
+
+        return {
+          success: false,
+          error: `Tool '${normalizedToolName}' not available on server '${serverName}'`,
+          availableTools: availableTools,
+          suggestion: `Available tools on ${serverName}: ${availableTools}`
+        };
       }
 
-      // Find tool definition for validation
-      const tool = server.tools.find(t => 
+      // Find tool definition for validation and actual MCP call
+      const tool = server.tools.find(t =>
         t.name === mcpToolName || normalizeToolName(t.name, serverName) === normalizedToolName
       );
-      
+
       // Validate parameters before calling
       if (tool && tool.inputSchema) {
         this._validateParameters(tool, parameters);
       }
 
-      const finalToolName = mcpToolName;
-      
-      logger.debug('mcp-manager', `[MCP Manager] Executing ${finalToolName} on ${serverName} (from normalized: ${normalizedToolName})`);
+      let callParams = parameters;
+      if (serverName === 'filesystem' && parameters && typeof parameters === 'object') {
+        callParams = { ...parameters };
+        const pathKeys = ['path', 'file_path', 'directory', 'target', 'targetPath', 'sourcePath', 'destinationPath'];
+        for (const key of pathKeys) {
+          const value = callParams[key];
+          if (typeof value === 'string') {
+            if (value === '/tmp') {
+              callParams[key] = '/private/tmp';
+            } else if (value.startsWith('/tmp/')) {
+              callParams[key] = '/private/tmp' + value.slice(4);
+            }
+          }
+        }
+      }
 
-      const result = await server.call(finalToolName, parameters);
+      // IMPORTANT: Use the original MCP tool name from server.tools for the actual call
+      // `tool.name` is what the MCP server advertised in tools/list (e.g. read_file, write_file, execute_command)
+      // `mcpToolName` (e.g. filesystem_read_file) may NOT exist on the server and would cause "Unknown tool" errors
+      const finalToolName = tool?.name || mcpToolName;
+
+      logger.debug('mcp-manager', `[MCP Manager] Executing ${finalToolName} on ${serverName} (normalized: ${normalizedToolName}, denormalized: ${mcpToolName})`);
+
+      const result = await server.call(finalToolName, callParams);
+
+      // EXTRA DEBUG 2025-11-16: Log raw results for filesystem/shell to diagnose side effects
+      // UPDATED 2025-11-16: Also log results for python_sdk and java_sdk to debug SDK MCP behavior
+      if (serverName === 'filesystem' || serverName === 'shell' || serverName === 'python_sdk' || serverName === 'java_sdk') {
+        try {
+          logger.system('mcp-manager',
+            `[MCP Manager] RESULT ${serverName}.${finalToolName} ` +
+            `params=${JSON.stringify(callParams)} result=${JSON.stringify(result).slice(0, 300)}`
+          );
+        } catch (logError) {
+          logger.debug('mcp-manager', `[MCP Manager] Failed to log tool result: ${logError.message}`);
+        }
+      }
 
       // Update stats
       const duration = Date.now() - startTime;
@@ -934,7 +976,7 @@ export class MCPManager {
     for (const requiredParam of required) {
       if (!(requiredParam in parameters)) {
         errors.push(`Missing required parameter: '${requiredParam}'`);
-        
+
         // Спроба знайти схожий параметр
         const similar = this._findSimilarString(requiredParam, Object.keys(parameters));
         if (similar) {
@@ -950,7 +992,7 @@ export class MCPManager {
     // Перевірка типів параметрів
     for (const [paramName, paramValue] of Object.entries(parameters)) {
       const propDef = props[paramName];
-      
+
       if (!propDef) {
         // Невідомий параметр - може бути помилка у назві
         const similar = this._findSimilarString(paramName, Object.keys(props));
@@ -1031,7 +1073,7 @@ export class MCPManager {
       // Формат 1: {server: "playwright", tool: "playwright_navigate"}
       // Формат 2: {server: "playwright", tool: "navigate"} (без префіксу)
       // Формат 3: {tool: "playwright__navigate"} (з подвійним підкресленням)
-      
+
       // Парсинг формату 3 (server__tool)
       if (!server && tool && tool.includes('__')) {
         const parts = tool.split('__');
@@ -1055,7 +1097,7 @@ export class MCPManager {
             corrected = true;
           }
         }
-        
+
         if (!autoCorrect) continue;
       }
 
@@ -1067,10 +1109,10 @@ export class MCPManager {
       }
 
       const availableTools = mcpServer.tools.map(t => t.name);
-      
+
       // ENHANCED: Перевірка різних варіантів назви інструменту
       let toolDef = mcpServer.tools.find(t => t.name === tool);
-      
+
       // Якщо не знайдено - пробуємо з префіксом server
       if (!toolDef && !tool.startsWith(server + '_')) {
         const toolWithPrefix = `${server}_${tool}`;
@@ -1081,7 +1123,7 @@ export class MCPManager {
           logger.debug('mcp-manager', `[Validation] Added server prefix: ${tool}`);
         }
       }
-      
+
       // Якщо все ще не знайдено - fuzzy matching
       if (!toolDef) {
         errors.push(`[Call ${i}] Tool '${tool}' not found on '${server}'. Available: ${availableTools.slice(0, 5).join(', ')}${availableTools.length > 5 ? '...' : ''}`);
@@ -1095,7 +1137,7 @@ export class MCPManager {
             corrected = true;
           }
         }
-        
+
         if (!autoCorrect || !toolDef) continue;
       }
 
@@ -1105,7 +1147,7 @@ export class MCPManager {
         if (!paramValidation.valid) {
           errors.push(...paramValidation.errors.map(e => `[Call ${i}] ${e}`));
           suggestions.push(...paramValidation.suggestions.map(s => `[Call ${i}] ${s}`));
-          
+
           if (autoCorrect && paramValidation.correctedParams) {
             parameters = paramValidation.correctedParams;
             corrected = true;
@@ -1160,7 +1202,7 @@ export class MCPManager {
         for (const [paramName, paramDef] of Object.entries(props)) {
           // Генерація варіантів назв на основі семантики
           const commonVariants = this._generateParamVariants(paramName, paramDef);
-          
+
           for (const variant of commonVariants) {
             if (variant !== paramName) {
               toolRules.push({ from: variant, to: paramName });
@@ -1201,14 +1243,14 @@ export class MCPManager {
       'code_snippet': ['script', 'code', 'snippet'],
       'name': ['title', 'label', 'id', 'identifier'],
       'description': ['desc', 'text', 'summary', 'info'],
-      
+
       // Playwright специфічні
       'wait_until': ['waitUntil', 'wait', 'waitFor'],
       'full_page': ['fullPage', 'entire', 'complete'],
-      
+
       // Filesystem специфічні
       'data': ['content', 'text', 'body'],
-      
+
       // Memory специфічні
       'entities': ['items', 'nodes', 'objects'],
       'observations': ['facts', 'notes', 'data'],

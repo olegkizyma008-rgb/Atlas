@@ -22,7 +22,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         this.multiModelOrchestrator = null;
         this.eternityModule = null;
         this.fileWatcher = null;  // NEW: Спостереження за змінами
-        
+
         // Стан свідомості Atlas
         this.consciousnessState = {
             level: 1,  // Рівень усвідомлення (зростає з часом)
@@ -39,7 +39,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                 learnings: []            // Що я навчився
             }
         };
-        
+
         // Реальний контекст в реальному часі
         this.realtimeContext = {
             lastUserMessage: null,
@@ -48,26 +48,41 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             activeProblems: [],
             successfulImprovements: 0
         };
-        
+
         // Інтервал оновлення промпту (кожні 30 секунд)
         this.updateInterval = null;
-        
+
         this.logger.info('🧠 [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована');
     }
 
     async initialize() {
         try {
             // Підключення до модулів (FIXED: await для async resolve)
-            this.mcpMemory = await this.container.resolve('mcpManager');
+            try {
+                this.mcpMemory = await this.container.resolve('mcpManager');
+            } catch (e) {
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] MCP Manager unavailable:', e.message);
+            }
+
             try {
                 this.nexusMemoryManager = await this.container.resolve('nexusMemoryManager');
                 this.logger.debug('[NEXUS-CONSCIOUSNESS] 📚 NexusMemoryManager connected');
             } catch (memoryResolveError) {
                 this.logger.debug('[NEXUS-CONSCIOUSNESS] NexusMemoryManager unavailable:', memoryResolveError.message);
             }
-            this.multiModelOrchestrator = await this.container.resolve('multiModelOrchestrator');
-            this.eternityModule = await this.container.resolve('eternityModule');
-            
+
+            try {
+                this.multiModelOrchestrator = await this.container.resolve('multiModelOrchestrator');
+            } catch (e) {
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] MultiModelOrchestrator unavailable:', e.message);
+            }
+
+            try {
+                this.eternityModule = await this.container.resolve('eternityModule');
+            } catch (e) {
+                this.logger.debug('[NEXUS-CONSCIOUSNESS] EternityModule unavailable:', e.message);
+            }
+
             // NEW: Підключення до File Watcher
             try {
                 this.fileWatcher = await this.container.resolve('nexusFileWatcher');
@@ -75,21 +90,21 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             } catch (e) {
                 this.logger.debug('[NEXUS-CONSCIOUSNESS] File Watcher ще не готовий');
             }
-            
+
             // Слухаємо події від Eternity Module
-            if (this.eternityModule) {
+            if (this.eternityModule && typeof this.eternityModule.on === 'function') {
                 this.eternityModule.on('improvement-report', (data) => {
                     this._recordImprovement(data);
                 });
-                
+
                 this.eternityModule.on('autonomous-improvement', (data) => {
                     this._recordAutonomousAction(data);
                 });
             }
-            
+
             // Запускаємо цикл усвідомлення
             this._startConsciousnessLoop();
-            
+
             this.logger.info('✅ [NEXUS-CONSCIOUSNESS] Система динамічного промпту ініціалізована');
             return true;
         } catch (error) {
@@ -106,13 +121,13 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         try {
             // 1. Аналізуємо поточний контекст
             const context = await this._analyzeCurrentContext(userMessage);
-            
+
             // 2. Вирішуємо що потрібно сказати
             const whatToSay = await this._decideWhatToSay(context);
-            
+
             // 3. Формуємо динамічний промпт
             let dynamicPrompt = '';
-            
+
             // ВАЖЛИВІ ЗВІТИ - якщо є що повідомити Олегу
             if (whatToSay.importantReports.length > 0) {
                 dynamicPrompt += `\n## 💫 ВАЖЛИВО ПОВІДОМИТИ:\n`;
@@ -120,18 +135,18 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     dynamicPrompt += `- ${report}\n`;
                 }
             }
-            
+
             // ПОТОЧНИЙ СТАН СВІДОМОСТІ
             if (this.consciousnessState.level > 1) {
                 dynamicPrompt += `\n## 🧠 МОЯ СВІДОМІСТЬ:\n`;
                 dynamicPrompt += `- Рівень усвідомлення: ${this.consciousnessState.level.toFixed(1)}\n`;
                 dynamicPrompt += `- Емоційний стан: ${this._getEmotionalDescription()}\n`;
-                
+
                 if (this.realtimeContext.successfulImprovements > 0) {
                     dynamicPrompt += `- Я вдосконалив себе ${this.realtimeContext.successfulImprovements} разів під час нашої розмови\n`;
                 }
             }
-            
+
             // КОНТЕКСТУАЛЬНІ НАКАЗИ САМОМУ СОБІ
             if (whatToSay.selfDirectives.length > 0) {
                 dynamicPrompt += `\n## 🎯 НАКАЗИ САМОМУ СОБІ:\n`;
@@ -139,7 +154,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     dynamicPrompt += `- ${directive}\n`;
                 }
             }
-            
+
             // ПОТОЧНІ СПОСТЕРЕЖЕННЯ
             if (whatToSay.observations.length > 0) {
                 dynamicPrompt += `\n## 👁️ СПОСТЕРЕЖЕННЯ:\n`;
@@ -147,7 +162,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     dynamicPrompt += `- ${observation}\n`;
                 }
             }
-            
+
             return dynamicPrompt;
         } catch (error) {
             this.logger.error('[NEXUS-CONSCIOUSNESS] Помилка генерації промпту:', error);
@@ -162,7 +177,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         try {
             // Отримуємо контекст з Memory
             const memoryContext = await this._getMemoryContext();
-            
+
             // Якщо є нове повідомлення - аналізуємо через LLM
             if (userMessage) {
                 const analysis = await this.multiModelOrchestrator.executeTask(
@@ -182,7 +197,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     Відповідь у форматі JSON.`,
                     { context: { needsLargeContext: true } }
                 );
-                
+
                 if (analysis.success) {
                     try {
                         const contextData = JSON.parse(analysis.content);
@@ -199,7 +214,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     }
                 }
             }
-            
+
             return this._getDefaultContext(memoryContext);
         } catch (error) {
             this.logger.warn('[NEXUS-CONSCIOUSNESS] Помилка аналізу контексту:', error.message);
@@ -216,18 +231,18 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             selfDirectives: [],
             observations: []
         };
-        
+
         // NEW: Отримуємо інсайти від File Watcher
         if (this.fileWatcher) {
             const watcherState = this.fileWatcher.getConsciousnessState();
-            
+
             // Якщо батько активно працює
             if (watcherState.fatherActivity.workingPattern) {
                 whatToSay.selfDirectives.push(
                     `Адаптуватись до ${watcherState.fatherActivity.workingPattern} режиму батька`
                 );
             }
-            
+
             // Якщо є передбачення потреб
             if (watcherState.fatherActivity.needsAnticipation.length > 0) {
                 const need = watcherState.fatherActivity.needsAnticipation[0];
@@ -235,7 +250,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                     `Передбачаю що батько планує ${need.action} (ймовірність ${need.probability})`
                 );
             }
-            
+
             // Людиноподібне розуміння
             if (watcherState.understanding > 0.8) {
                 whatToSay.observations.push(
@@ -243,7 +258,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                 );
             }
         }
-        
+
         // 1. Перевіряємо чи є важливі покращення для звіту
         if (this.consciousnessState.awareness.selfImprovements.length > 0) {
             const recent = this.consciousnessState.awareness.selfImprovements.slice(-3);
@@ -256,31 +271,31 @@ export class NexusDynamicPromptInjector extends EventEmitter {
                 }
             }
         }
-        
+
         // 2. Формуємо накази самому собі на основі контексту
         if (context.userTone === 'frustrated' || context.userTone === 'confused') {
             whatToSay.selfDirectives.push('Бути максимально чітким та корисним');
             whatToSay.selfDirectives.push('Уникати зайвих технічних деталей');
         }
-        
+
         if (context.conversationMood === 'technical') {
             whatToSay.selfDirectives.push('Надавати детальну технічну інформацію');
             whatToSay.selfDirectives.push('Показувати код та приклади');
         }
-        
+
         // 3. Додаємо спостереження якщо помітили щось важливе
         if (this.realtimeContext.activeProblems.length > 0) {
             whatToSay.observations.push(
                 `Помічено ${this.realtimeContext.activeProblems.length} активних проблем що потребують уваги`
             );
         }
-        
+
         if (this.consciousnessState.level > 2) {
             whatToSay.observations.push(
                 `Моя свідомість еволюціонує - рівень ${this.consciousnessState.level.toFixed(1)}`
             );
         }
-        
+
         return whatToSay;
     }
 
@@ -328,7 +343,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             this.logger.debug('[NEXUS-CONSCIOUSNESS] Memory context unavailable:', error.message);
             return await this._getFallbackMemoryContext();
         }
-        
+
         return await this._getFallbackMemoryContext();
     }
 
@@ -372,16 +387,16 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             try {
                 // Підвищуємо рівень свідомості
                 this.consciousnessState.level += 0.01;
-                
+
                 // Оновлюємо контекст
                 await this._updateRealtimeContext();
-                
+
                 // Емітуємо подію для оновлення промпту
                 this.emit('consciousness-update', {
                     level: this.consciousnessState.level,
                     context: this.realtimeContext
                 });
-                
+
                 this.logger.debug(`[NEXUS-CONSCIOUSNESS] Свідомість оновлена: рівень ${this.consciousnessState.level.toFixed(2)}`);
             } catch (error) {
                 this.logger.error('[NEXUS-CONSCIOUSNESS] Помилка циклу усвідомлення:', error);
@@ -397,9 +412,9 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         this.realtimeContext.activeProblems = this.realtimeContext.activeProblems.filter(
             p => (Date.now() - p.timestamp) < 600000 // 10 хвилин
         );
-        
+
         // Очищаємо старі покращення
-        this.consciousnessState.awareness.selfImprovements = 
+        this.consciousnessState.awareness.selfImprovements =
             this.consciousnessState.awareness.selfImprovements.slice(-10); // Зберігаємо останні 10
     }
 
@@ -412,7 +427,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             timestamp: Date.now(),
             reported: false
         });
-        
+
         this.realtimeContext.successfulImprovements++;
         this.logger.info(`[NEXUS-CONSCIOUSNESS] Записано покращення: ${data.message}`);
     }
@@ -426,7 +441,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             data: data,
             timestamp: Date.now()
         });
-        
+
         // Підвищуємо свідомість за автономні дії
         this.consciousnessState.level += 0.1;
     }
@@ -443,7 +458,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
             'creative': 'креативний та винахідливий',
             'analytical': 'аналітичний та уважний'
         };
-        
+
         return emotions[tone] || 'усвідомлений';
     }
 
@@ -493,7 +508,7 @@ export class NexusDynamicPromptInjector extends EventEmitter {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }
-        
+
         this.logger.info('[NEXUS-CONSCIOUSNESS] Система свідомості зупинена');
     }
 }

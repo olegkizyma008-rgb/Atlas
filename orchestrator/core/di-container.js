@@ -46,7 +46,16 @@ export class DIContainer {
         }
 
         if (this.services.has(name)) {
-            console.warn(`[DI] Service "${name}" is already registered. Overwriting.`);
+            // Якщо це singleton, який вже був створений, не перереєструємо
+            const existing = this.services.get(name);
+            if (existing.singleton && this.singletons.has(name)) {
+                // Singleton вже існує, не перереєструємо
+                return this;
+            }
+            // Інакше виводимо попередження тільки для debug
+            if (process.env.DEBUG_DI === 'true') {
+                console.warn(`[DI] Service "${name}" is already registered. Overwriting.`);
+            }
         }
 
         this.services.set(name, {

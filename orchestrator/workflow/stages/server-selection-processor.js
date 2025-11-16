@@ -44,18 +44,18 @@ export class ServerSelectionProcessor {
 
             // Отримати список доступних MCP серверів
             const availableServers = this._getAvailableServers();
-            
+
             // NEW: Use Router Classifier for initial fast filtering if available
             let preFilteredServers = availableServers;
             if (context.suggestedServers && context.suggestedServers.length > 0) {
                 // Router already narrowed down the selection
-                preFilteredServers = availableServers.filter(s => 
+                preFilteredServers = availableServers.filter(s =>
                     context.suggestedServers.includes(s.name)
                 );
-                this.logger.system('server-selection', 
+                this.logger.system('server-selection',
                     `[STAGE-2.0-MCP] Using router suggestions: ${context.suggestedServers.join(', ')}`);
             }
-            
+
             const serversDescription = this._buildServersDescription(preFilteredServers);
 
             this.logger.system('server-selection', `[STAGE-2.0-MCP] Available servers: ${preFilteredServers.map(s => s.name).join(', ')}`);
@@ -189,14 +189,14 @@ export class ServerSelectionProcessor {
         // 🎯 CRITICAL: Якщо Atlas вже вказав сервери - використовуй їх!
         if (item.mcp_servers && Array.isArray(item.mcp_servers) && item.mcp_servers.length > 0) {
             this.logger.system('server-selection', `[STAGE-2.0-MCP] 🎯 Atlas pre-selected servers: ${item.mcp_servers.join(', ')}`);
-            
+
             // Валідуємо що сервери існують
             const availableServerNames = Array.from(this.mcpManager.servers.keys());
             const validServers = item.mcp_servers.filter(s => availableServerNames.includes(s));
-            
+
             if (validServers.length > 0) {
                 this.logger.system('server-selection', `[STAGE-2.0-MCP] ✅ Using Atlas recommendation: ${validServers.join(', ')}`);
-                
+
                 return {
                     selected_servers: validServers,
                     reasoning: `Atlas pre-selected these servers based on task analysis`,
@@ -226,17 +226,55 @@ export class ServerSelectionProcessor {
         this.logger.debug('server-selection', `[STAGE-2.0-MCP] Calling LLM API: ${modelConfig.model}`);
 
         const apiUrl = GlobalConfig.AI_MODEL_CONFIG.apiEndpoint.primary;
-        const apiResponse = await axios.post(apiUrl, {
-            model: modelConfig.model,
-            messages: [
-                { role: 'system', content: prompt.SYSTEM_PROMPT },
-                { role: 'user', content: userMessage }
-            ],
-            temperature: modelConfig.temperature,
-            max_tokens: modelConfig.max_tokens
-        }, {
-            timeout: 60000 // 60s timeout
-        });
+
+        // FIXED 2025-11-16: Add rate limit handling with exponential backoff
+        let apiResponse;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+            try {
+                apiResponse = await axios.post(apiUrl, {
+                    model: modelConfig.model,
+                    messages: [
+                        { role: 'system', content: prompt.SYSTEM_PROMPT },
+                        { role: 'user', content: userMessage }
+                    ],
+                    temperature: modelConfig.temperature,
+                    max_tokens: modelConfig.max_tokens
+                }, {
+                    timeout: 60000, // 60s timeout
+                    validateStatus: (status) => status < 600
+                });
+
+                // Check for rate limit
+                if (apiResponse.status === 429) {
+                    retryCount++;
+                    const retryAfter = apiResponse.data?.error?.retry_after_ms ||
+                        apiResponse.headers?.['retry-after'] * 1000 ||
+                        35000; // Default 35 seconds
+
+                    if (retryCount < maxRetries) {
+                        this.logger.warn(`[STAGE-2.0-MCP] ⚠️ Rate limit (429) - waiting ${retryAfter}ms before retry ${retryCount}/${maxRetries}`);
+                        await new Promise(resolve => setTimeout(resolve, retryAfter));
+                        continue;
+                    }
+                }
+
+                // Success or non-retryable error
+                break;
+
+            } catch (error) {
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    throw error;
+                }
+
+                const delay = Math.min(10000 * Math.pow(2, retryCount - 1), 60000);
+                this.logger.warn(`[STAGE-2.0-MCP] Retry ${retryCount}/${maxRetries} after ${delay}ms`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
 
         const rawResponse = apiResponse.data.choices[0].message.content;
 

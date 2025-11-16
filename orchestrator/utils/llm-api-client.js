@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getLocalLLMFallback } from '../ai/local-llm-fallback.js';
 
 /**
  * Build default headers for LLM HTTP requests.
@@ -50,6 +51,8 @@ export function buildLLMHeaders(extraHeaders = {}) {
  * from environment variables. Additional axios config (timeout, maxContentLength,
  * validateStatus, etc.) can be supplied via the options argument.
  *
+ * FIXED 2025-11-16: Added fallback to local LLM when API is unavailable
+ *
  * @param {string} apiUrl Target LLM endpoint URL
  * @param {Object} payload Request payload
  * @param {Object} [options] Optional request options
@@ -59,7 +62,7 @@ export function buildLLMHeaders(extraHeaders = {}) {
  * @param {function} [options.validateStatus] axios validateStatus callback
  * @returns {Promise<import('axios').AxiosResponse>} Axios response promise
  */
-export function postToLLM(apiUrl, payload, options = {}) {
+export async function postToLLM(apiUrl, payload, options = {}) {
   const {
     headers: extraHeaders,
     timeout,
@@ -72,5 +75,33 @@ export function postToLLM(apiUrl, payload, options = {}) {
     headers: buildLLMHeaders(extraHeaders)
   };
 
-  return axios.post(apiUrl, payload, axiosConfig);
+  try {
+    return await axios.post(apiUrl, payload, axiosConfig);
+  } catch (error) {
+    // FIXED 2025-11-16: Fallback to local LLM on connection errors
+    if (error.code === 'ECONNREFUSED' || error.message.includes('Connection refused')) {
+      console.warn(`[LLM-API-CLIENT] ⚠️ LLM API unavailable (${apiUrl}), using local fallback`);
+
+      const localLLM = getLocalLLMFallback();
+      const response = await localLLM.chatCompletion(
+        payload.messages,
+        {
+          model: payload.model,
+          max_tokens: payload.max_tokens,
+          temperature: payload.temperature
+        }
+      );
+
+      // Convert to axios response format
+      return {
+        status: 200,
+        data: response,
+        headers: {},
+        config: axiosConfig
+      };
+    }
+
+    // Re-throw other errors
+    throw error;
+  }
 }

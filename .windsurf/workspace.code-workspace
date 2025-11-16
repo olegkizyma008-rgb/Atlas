@@ -1,0 +1,51 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.outline.enabled": true,
+        "breadcrumbs.enabled": true,
+        "breadcrumbs.showFiles": true,
+        "breadcrumbs.showModules": true,
+        "breadcrumbs.showNamespaces": true,
+        "breadcrumbs.showTypeParameters": true,
+        "breadcrumbs.showConstants": true,
+        "breadcrumbs.showVariables": true,
+        "breadcrumbs.showFunctions": true,
+        "breadcrumbs.showStructs": true,
+        "breadcrumbs.showInterfaces": true,
+        "breadcrumbs.showEnums": true,
+        "breadcrumbs.showEnumMembers": true,
+        "breadcrumbs.showProperties": true,
+        "breadcrumbs.showMethods": true,
+        "breadcrumbs.showFields": true,
+        "outline.icons": true,
+        "outline.problems.enabled": true,
+        "outline.problems.badges": true,
+        "outline.problems.colors": true,
+        "explorer.sortOrder": "type",
+        "explorer.fileNesting.enabled": true,
+        "explorer.fileNesting.expand": false,
+        "[javascript]": {
+            "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+        },
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.python"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "dbaeumer.vscode-eslint",
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "eamodio.gitlens",
+            "redhat.vscode-yaml",
+            "yzhang.markdown-all-in-one",
+            "streetsidesoftware.code-spell-checker",
+            "streetsidesoftware.code-spell-checker-ukrainian",
+            "humao.rest-client"
+        ]
+    }
+}

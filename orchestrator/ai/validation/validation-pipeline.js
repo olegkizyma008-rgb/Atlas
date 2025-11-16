@@ -9,7 +9,7 @@
 import logger from '../../utils/logger.js';
 import { VALIDATION_CONFIG, getEnabledStages, isStageCritical } from '../../../config/validation-config.js';
 import SelfCorrectionValidator from './self-correction-validator.js';
-import { StructureValidator, HistoryValidator, MCPValidator } from './unified-validator-base.js';
+import { createValidator } from './validator-factory.js';
 
 /**
  * Validation Pipeline
@@ -47,17 +47,19 @@ export class ValidationPipeline {
     // Enable self-correction by default
     this.config.enableSelfCorrection = true;
 
-    // Initialize consolidated validators
-    this.registerValidator('structure', new StructureValidator({
+    // Initialize consolidated validators using factory
+    this.registerValidator('structure', createValidator('structure', {
       config: this.config.structure || {}
     }));
 
-    this.registerValidator('history', new HistoryValidator(this.historyManager, {
-      config: this.config.history || {}
+    this.registerValidator('history', createValidator('history', {
+      config: this.config.history || {},
+      manager: { historyManager: this.historyManager }
     }));
 
-    this.registerValidator('mcp', new MCPValidator(this.mcpManager, {
-      config: this.config.mcp || {}
+    this.registerValidator('mcp', createValidator('mcp', {
+      config: this.config.mcp || {},
+      manager: { mcpManager: this.mcpManager }
     }));
 
     // Metrics

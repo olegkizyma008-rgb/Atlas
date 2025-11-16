@@ -23,7 +23,7 @@ export class ToolDispatcher {
         this.mcpManager = mcpManager;
         this.inspectionManager = inspectionManager;
         this.logger = logger;
-        
+
         // NEXUS: Tool priority mapping
         this.toolPriority = {
             'windsurf': 100,           // HIGHEST - Windsurf AI
@@ -48,7 +48,7 @@ export class ToolDispatcher {
      * @returns {Promise<Object>} Execution result
      */
     async dispatchToolCall(toolCall, requestId, context = {}) {
-        logger.debug('tool-dispatcher', 
+        logger.debug('tool-dispatcher',
             `🔧 Dispatching tool: ${toolCall.server}__${toolCall.tool}`);
 
         const startTime = Date.now();
@@ -59,7 +59,7 @@ export class ToolDispatcher {
 
             // STEP 2: Extract clean tool name (remove server prefix if present)
             // toolCall.tool може бути "applescript__execute" або "execute"
-            const cleanToolName = toolCall.tool.includes('__') 
+            const cleanToolName = toolCall.tool.includes('__')
                 ? toolCall.tool.split('__').pop()  // applescript__execute → execute
                 : toolCall.tool;                    // execute → execute
 
@@ -68,7 +68,27 @@ export class ToolDispatcher {
 
             const executionTime = Date.now() - startTime;
 
-            logger.debug('tool-dispatcher', 
+            // FIXED 2025-11-16: Check if result indicates failure (graceful error from mcpManager)
+            if (result && result.success === false) {
+                logger.warn('tool-dispatcher',
+                    `⚠️ Tool execution failed (graceful): ${toolCall.server}__${toolCall.tool} - ${result.error}`);
+
+                return {
+                    requestId,
+                    success: false,
+                    result: null,
+                    error: result.error || 'Tool execution failed',
+                    metadata: {
+                        server: toolCall.server,
+                        tool: toolCall.tool,
+                        executionTime,
+                        timestamp: new Date().toISOString(),
+                        suggestion: result.suggestion
+                    }
+                };
+            }
+
+            logger.debug('tool-dispatcher',
                 `✅ Tool executed in ${executionTime}ms: ${toolCall.server}__${toolCall.tool}`);
 
             // STEP 4: Format result (FIXED 2025-11-03: adapt to mcpManager response format)
@@ -88,7 +108,7 @@ export class ToolDispatcher {
         } catch (error) {
             const executionTime = Date.now() - startTime;
 
-            logger.error('tool-dispatcher', 
+            logger.error('tool-dispatcher',
                 `❌ Tool execution failed: ${toolCall.server}__${toolCall.tool} - ${error.message}`);
 
             return {
@@ -116,14 +136,14 @@ export class ToolDispatcher {
      * @returns {Promise<Object>} Execution results
      */
     async dispatchToolCalls(toolCalls, context = {}) {
-        logger.system('tool-dispatcher', 
+        logger.system('tool-dispatcher',
             `🚀 Dispatching ${toolCalls.length} tool calls...`);
 
         const workflowStart = Date.now();
 
         // STEP 1: Inspect tool calls
         const inspectionResult = await this.inspectionManager.inspectTools(
-            toolCalls, 
+            toolCalls,
             context
         );
 
@@ -132,7 +152,7 @@ export class ToolDispatcher {
         const needsApproval = inspectionResult?.needsApproval?.length || 0;
         const denied = inspectionResult?.denied?.length || 0;
 
-        logger.system('tool-dispatcher', 
+        logger.system('tool-dispatcher',
             `📋 Inspection: ${approved} approved, ` +
             `${needsApproval} need approval, ` +
             `${denied} denied`);
@@ -163,7 +183,7 @@ export class ToolDispatcher {
         // In automated mode, we'll execute them anyway (can be changed)
         // In interactive mode, this would wait for user confirmation
         // FIXED 2025-11-02: Add safety check for undefined needsApproval array
-        const approvalResults = context.autoApprove 
+        const approvalResults = context.autoApprove
             ? await this._executeApprovedTools(inspectionResult.needsApproval || [], context)
             : (inspectionResult.needsApproval || []).map(call => ({
                 requestId: call.id || `${call.server}__${call.tool}`,
@@ -190,7 +210,7 @@ export class ToolDispatcher {
 
         const workflowTime = Date.now() - workflowStart;
 
-        logger.system('tool-dispatcher', 
+        logger.system('tool-dispatcher',
             `✅ Workflow completed in ${workflowTime}ms: ` +
             `${successfulCalls} successful, ${failedCalls} failed`);
 
@@ -274,7 +294,7 @@ export class ToolDispatcher {
 
         // Extract text content from MCP result
         let content = '';
-        
+
         if (result.result && result.result.content) {
             // MCP format: { content: [{ type: 'text', text: '...' }] }
             if (Array.isArray(result.result.content)) {
@@ -312,7 +332,7 @@ export class ToolDispatcher {
      */
     formatResultsForLLM(results) {
         const toolResults = results.map(r => this.formatResultForLLM(r));
-        
+
         // Combine all tool results into single user message
         const allContent = toolResults.flatMap(tr => tr.content);
 

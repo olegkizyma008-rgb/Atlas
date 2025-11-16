@@ -54,23 +54,31 @@ export class Application {
      * Ініціалізація DI Container та сервісів
      */
     async initializeServices() {
+        console.log('[SERVER] initializeServices() called');
         // Configure Axios з retry logic для 429 помилок
         configureAxios();
+        console.log('[SERVER] Axios configured');
         this.logger?.system?.('axios', 'Axios configured with 429 rate limit handling');
 
         // Реєструємо всі сервіси
+        console.log('[SERVER] Registering services...');
         registerAllServices(this.container);
+        console.log('[SERVER] Services registered');
 
         // Ініціалізуємо сервіси (викликає onInit hooks)
+        console.log('[SERVER] Initializing container...');
         await this.container.initialize();
+        console.log('[SERVER] Container initialized');
 
         // Резолвимо необхідні сервіси
+        console.log('[SERVER] Resolving services...');
         this.logger = this.container.resolve('logger');
         this.config = this.container.resolve('config');
         this.wsManager = this.container.resolve('wsManager');
         this.errorHandler = this.container.resolve('errorHandler');
         this.sessions = this.container.resolve('sessions');
         this.networkConfig = this.container.resolve('networkConfig');
+        console.log('[SERVER] Services resolved');
 
         this.logger.system('startup', '[DI] All services resolved successfully');
     }
@@ -80,8 +88,11 @@ export class Application {
      */
     async initializeConfig() {
         try {
+            console.log('[SERVER] initializeConfig() called');
             this.logger.system('startup', 'Validating configuration...');
+            console.log('[SERVER] About to call validateConfig()');
             this.config.validateConfig();
+            console.log('[SERVER] validateConfig() completed');
 
             this.configInitialized = true;
 
@@ -90,7 +101,9 @@ export class Application {
                 stages: this.config.WORKFLOW_STAGES.length,
                 services: Object.keys(this.networkConfig.services).length
             });
+            console.log('[SERVER] initializeConfig() completed successfully');
         } catch (error) {
+            console.error('[SERVER] initializeConfig() error:', error.message);
             this.logger.error('Failed to validate configuration', { error: error.message });
             throw error;
         }
@@ -100,26 +113,45 @@ export class Application {
      * Створення та налаштування Express app
      */
     async setupApplication() {
+        console.log('[SERVER] setupApplication() called');
         // Створюємо Express app
+        console.log('[SERVER] Creating Express app...');
         this.app = createApp();
+        console.log('[SERVER] Express app created');
 
         // Налаштовуємо routes (передаємо DI container для MCP workflow)
+        console.log('[SERVER] Setting up health routes...');
         setupHealthRoutes(this.app, { configInitialized: this.configInitialized, networkConfig: this.networkConfig });
+        console.log('[SERVER] Health routes set up');
+
+        console.log('[SERVER] Setting up chat routes...');
         setupChatRoutes(this.app, {
             sessions: this.sessions,
             networkConfig: this.networkConfig,
             container: this.container  // ✅ NEW: Pass DI container for MCP workflow
         });
+        console.log('[SERVER] Chat routes set up');
+
+        console.log('[SERVER] Setting up web routes...');
         setupWebRoutes(this.app);
+        console.log('[SERVER] Web routes set up');
 
         // Nexus Eternity and Cascade API routes
+        console.log('[SERVER] Setting up eternity routes...');
         setupEternityRoutes(this.app, { container: this.container });
+        console.log('[SERVER] Eternity routes set up');
+
+        console.log('[SERVER] Setting up cascade routes...');
         setupCascadeRoutes(this.app, { container: this.container });
+        console.log('[SERVER] Cascade routes set up');
 
         // Налаштовуємо обробку помилок
+        console.log('[SERVER] Setting up error handling...');
         setupErrorHandling(this.app, this.errorHandler);
+        console.log('[SERVER] Error handling set up');
 
         this.logger.system('startup', 'Application routes configured');
+        console.log('[SERVER] setupApplication() completed');
     }
 
     /**
@@ -146,9 +178,21 @@ export class Application {
      * Запуск WebSocket сервера
      */
     async startWebSocket() {
-        const wsPort = this.networkConfig.services.recovery.port;
-        this.wsManager.start(wsPort);
-        this.logger.system('websocket', `WebSocket server running on port ${wsPort}`);
+        try {
+            this.logger.system('websocket', 'Attempting to start WebSocket server...');
+            const wsPort = this.networkConfig.services.recovery.port;
+            this.logger.system('websocket', `WebSocket port configured: ${wsPort}`);
+            this.wsManager.start(wsPort);
+            this.logger.system('websocket', `✅ WebSocket server running on port ${wsPort}`);
+        } catch (error) {
+            this.logger.error('Failed to start WebSocket server', {
+                error: error.message,
+                stack: error.stack,
+                port: this.networkConfig.services.recovery.port
+            });
+            // Don't crash the entire app if WebSocket fails - it's optional
+            this.logger.warn('Continuing without WebSocket bridge');
+        }
     }
 
     /**
@@ -156,10 +200,15 @@ export class Application {
      */
     async startServer() {
         const PORT = this.networkConfig.services.orchestrator.port;
+        console.log(`[SERVER] startServer() called, PORT=${PORT}`);
+        this.logger.system('startup', `[DEBUG] startServer() called, PORT=${PORT}`);
 
         return new Promise((resolve, reject) => {
             try {
+                console.log(`[SERVER] Creating HTTP server on port ${PORT}`);
+                this.logger.system('startup', `[DEBUG] Creating HTTP server on port ${PORT}`);
                 this.server = this.app.listen(PORT, () => {
+                    console.log(`[SERVER] 🚀 ATLAS Orchestrator v4.0 running on port ${PORT}`);
                     this.logger.system('startup', `🚀 ATLAS Orchestrator v4.0 running on port ${PORT}`);
                     this.logger.system('features', 'DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring');
                     this.logger.system('config', `Configuration loaded: ${Object.keys(this.config.AGENTS).length} agents, ${this.config.WORKFLOW_STAGES.length} stages`);
@@ -167,10 +216,12 @@ export class Application {
                 });
 
                 this.server.on('error', (error) => {
+                    console.error(`[SERVER] Server error: ${error.message}`);
                     this.logger.error('Server failed to start', { error: error.message });
                     reject(error);
                 });
             } catch (error) {
+                console.error(`[SERVER] Server startup error: ${error.message}`);
                 this.logger.error('Server startup error', { error: error.message });
                 reject(error);
             }
@@ -202,24 +253,19 @@ export class Application {
     }
 
     /**
-     * Повний цикл запуску додатку
-     */
-    async start() {
-        try {
-            // Initialize services (rate limiter is now part of DI container)
-            await this.initializeServices();
-
-            // Setup Express and routes
-            await this.setupApplication();
-
-            // Start HTTP server
-            await this.startServer();
-
-            // Start session cleanup timer
-            this.startSessionCleanup();
-
-            // Start WebSocket server
-            await this.startWebSocket();
+                try {
+                    if (this.wsManager) {
+                        const wsPort = this.networkConfig.services.recovery.port;
+                        this.wsManager.start(wsPort);
+                        this.logger.system('websocket', `✅ WebSocket server running on port ${wsPort}`);
+                    }
+                } catch (error) {
+                    this.logger.error('WebSocket startup error', {
+                        error: error.message,
+                        stack: error.stack
+                    });
+                }
+            });
 
             // Configure graceful shutdown hooks
             this.setupShutdownHandlers();

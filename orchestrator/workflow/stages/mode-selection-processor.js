@@ -38,7 +38,7 @@ export class ModeSelectionProcessor {
         if (!this.modelConfig) {
             // Safe access to apiEndpoint config
             const apiConfig = GlobalConfig.MCP_MODEL_CONFIG?.apiEndpoint;
-            
+
             // Validate apiConfig structure and provide fallback
             if (!apiConfig || typeof apiConfig !== 'object') {
                 this.logger.warn('mode-selection', '[STAGE-0-MCP] ⚠️ apiEndpoint config not found, using fallback');
@@ -50,9 +50,9 @@ export class ModeSelectionProcessor {
                     : (apiConfig.primary || 'http://localhost:4000/v1/chat/completions');
                 this.apiTimeout = apiConfig.timeout || 60000;
             }
-            
+
             this.modelConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('mode_selection');
-            
+
             this.logger.system('mode-selection', `[STAGE-0-MCP] 🔧 Using API: ${this.apiEndpoint}, Model: ${this.modelConfig.model}`);
         }
     }
@@ -85,12 +85,12 @@ export class ModeSelectionProcessor {
             // FIXED 2025-11-06: Retry with fallback model on rate limit
             let response;
             let usedModel = this.modelConfig.model;
-            
+
             try {
                 // Try primary model first
                 this.logger.system('mode-selection', `[STAGE-0-MCP] Calling API: ${this.apiEndpoint}`);
                 this.logger.system('mode-selection', `[STAGE-0-MCP] Primary model: ${usedModel}`);
-                
+
                 response = await axios.post(this.apiEndpoint, {
                     model: usedModel,
                     messages,
@@ -99,28 +99,49 @@ export class ModeSelectionProcessor {
                 }, {
                     timeout: this.apiTimeout
                 });
-                
+
             } catch (primaryError) {
-                // Check if it's a rate limit error
-                const isRateLimit = primaryError.response?.status === 500 && 
-                                  primaryError.response?.data?.error?.code === 'RATE_LIMIT';
-                
-                if (isRateLimit && this.modelConfig.fallback) {
-                    this.logger.warn('[STAGE-0-MCP] ⚠️ Rate limit на primary model, пробую fallback');
-                    this.logger.warn(`[STAGE-0-MCP] Fallback model: ${this.modelConfig.fallback}`);
-                    
-                    // Retry with fallback model
-                    usedModel = this.modelConfig.fallback;
-                    response = await axios.post(this.apiEndpoint, {
-                        model: usedModel,
-                        messages,
-                        temperature: this.modelConfig.temperature,
-                        max_tokens: this.modelConfig.max_tokens
-                    }, {
-                        timeout: this.apiTimeout
-                    });
+                // Check if it's a rate limit error (429 or 500 with RATE_LIMIT code)
+                const isRateLimit = primaryError.response?.status === 429 ||
+                    (primaryError.response?.status === 500 &&
+                        primaryError.response?.data?.error?.code === 'RATE_LIMIT');
+
+                if (isRateLimit) {
+                    // FIXED 2025-11-16: Add exponential backoff for rate limit
+                    const retryAfter = primaryError.response?.data?.error?.retry_after_ms ||
+                        primaryError.response?.headers?.['retry-after'] * 1000 ||
+                        35000; // Default 35 seconds
+
+                    this.logger.warn(`[STAGE-0-MCP] ⚠️ Rate limit (429) - waiting ${retryAfter}ms before retry`);
+                    await new Promise(resolve => setTimeout(resolve, retryAfter));
+
+                    if (this.modelConfig.fallback) {
+                        this.logger.warn('[STAGE-0-MCP] ⚠️ Trying fallback model after rate limit');
+                        this.logger.warn(`[STAGE-0-MCP] Fallback model: ${this.modelConfig.fallback}`);
+
+                        // Retry with fallback model
+                        usedModel = this.modelConfig.fallback;
+                        response = await axios.post(this.apiEndpoint, {
+                            model: usedModel,
+                            messages,
+                            temperature: this.modelConfig.temperature,
+                            max_tokens: this.modelConfig.max_tokens
+                        }, {
+                            timeout: this.apiTimeout
+                        });
+                    } else {
+                        // No fallback - retry with primary model after wait
+                        response = await axios.post(this.apiEndpoint, {
+                            model: usedModel,
+                            messages,
+                            temperature: this.modelConfig.temperature,
+                            max_tokens: this.modelConfig.max_tokens
+                        }, {
+                            timeout: this.apiTimeout
+                        });
+                    }
                 } else {
-                    // Not a rate limit or no fallback - rethrow
+                    // Not a rate limit - rethrow
                     throw primaryError;
                 }
             }
@@ -199,13 +220,13 @@ export class ModeSelectionProcessor {
                 // Explicit task mode requests
                 'режим таск', 'task mode', 'через таск', 'в таск режимі',
                 'виконай через таск', 'зроби через таск',
-                
+
                 // Action verbs (imperative form)
                 'виконай', 'зроби', 'відкрий', 'запусти', 'знайди',
                 'створи', 'встанови', 'завантаж', 'збережи',
                 'перейди', 'натисни', 'введи', 'напиши',
                 'скачай', 'включи', 'виключи', 'закрий',
-                
+
                 // English action verbs
                 'execute', 'open', 'launch', 'run', 'find',
                 'create', 'install', 'download', 'save',
@@ -340,7 +361,7 @@ export class ModeSelectionProcessor {
 
                 const parsed = JSON.parse(fixedJson);
                 this.logger.system('mode-selection', '[STAGE-0-MCP] ✅ Successfully converted JavaScript object notation to JSON');
-                
+
                 // Validate structure
                 if (parsed.mode && ['chat', 'task'].includes(parsed.mode)) {
                     return {

@@ -121,7 +121,7 @@ const TOOLS = [
 const TOOL_HANDLERS = {
   async windsurf_analyze_code(args) {
     const { code, context, language } = args;
-    
+
     const prompt = `Analyze this ${language || ''} code and provide improvements:
 
 Context: ${context}
@@ -138,7 +138,7 @@ Provide:
 4. Refactored version if needed`;
 
     const result = await windsurfClient.analyzeCode(code, prompt);
-    
+
     return {
       success: true,
       analysis: result.content,
@@ -148,7 +148,7 @@ Provide:
 
   async windsurf_fix_error(args) {
     const { error_message, code, context } = args;
-    
+
     const prompt = `Fix this error:
 
 Error: ${error_message}
@@ -169,7 +169,7 @@ Provide:
       model: 'gpt-5-codex',  // Використовуємо Codex для fixing
       temperature: 0.1
     });
-    
+
     return {
       success: true,
       fix: result.content,
@@ -179,11 +179,11 @@ Provide:
 
   async windsurf_improve_code(args) {
     const { code, goals } = args;
-    
-    const goalsText = goals && goals.length > 0 
-      ? `Focus on: ${goals.join(', ')}` 
+
+    const goalsText = goals && goals.length > 0
+      ? `Focus on: ${goals.join(', ')}`
       : 'General improvements';
-    
+
     const prompt = `Improve this code. ${goalsText}
 
 Code:
@@ -199,7 +199,7 @@ Provide:
     const result = await windsurfClient.request(prompt, {
       model: 'claude-sonnet-4.5-thinking',  // Thinking model для deep improvements
     });
-    
+
     return {
       success: true,
       improvements: result.content,
@@ -209,13 +209,13 @@ Provide:
 
   async windsurf_explain_code(args) {
     const { code, detail_level = 'detailed' } = args;
-    
+
     const detailPrompts = {
       brief: 'Provide a brief summary of what this code does',
       detailed: 'Provide a detailed explanation of this code including logic flow',
       expert: 'Provide an expert-level analysis including design patterns, complexity, and best practices'
     };
-    
+
     const prompt = `${detailPrompts[detail_level]}:
 
 \`\`\`
@@ -223,7 +223,7 @@ ${code}
 \`\`\``;
 
     const result = await windsurfClient.request(prompt);
-    
+
     return {
       success: true,
       explanation: result.content,
@@ -242,14 +242,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     const { name, arguments: args = {} } = request.params;
-    
+
     const handler = TOOL_HANDLERS[name];
     if (!handler) {
       throw new Error(`Unknown tool: ${name}`);
     }
-    
+
     const result = await handler(args);
-    
+
     return {
       content: [
         {
@@ -275,19 +275,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function main() {
-  // Initialize Windsurf client
-  windsurfClient = getWindsurfClient();
-  
-  if (!windsurfClient.isActive) {
-    console.error("[WINDSURF MCP] ⚠️ Windsurf API not configured properly");
-    console.error("[WINDSURF MCP] Set WINDSURF_API_KEY in .env file");
+  // Initialize Windsurf client з silent=true щоб не писати логи до stdout
+  windsurfClient = getWindsurfClient(true);
+
+  // Перевірка конфіг
+  const apiKey = process.env.WINDSURF_API_KEY;
+  const endpoint = process.env.WINDSURF_API_ENDPOINT || 'https://api.windsurf.ai/v1';
+
+  // Логування ТІЛЬКИ в stderr ПЕРЕД підключенням до stdio
+  // Це запобігає змішуванню з JSON-RPC протоколом
+  const logMessages = [];
+  if (!apiKey || apiKey.includes('YOUR-API-KEY')) {
+    logMessages.push("[WINDSURF MCP] ⚠️ Windsurf API key not configured properly");
+    logMessages.push("[WINDSURF MCP] WINDSURF_API_KEY=" + (apiKey ? apiKey.substring(0, 20) + "..." : "NOT SET"));
+    logMessages.push("[WINDSURF MCP] Set WINDSURF_API_KEY in .env file");
   } else {
-    console.error("[WINDSURF MCP] ✅ Windsurf MCP Server initialized");
+    logMessages.push("[WINDSURF MCP] ✅ Windsurf MCP Server initialized");
+    logMessages.push("[WINDSURF MCP] Endpoint: " + endpoint);
   }
-  
+
+  // Вивести всі логи ПЕРЕД підключенням до stdio
+  for (const msg of logMessages) {
+    process.stderr.write(msg + "\n");
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[WINDSURF MCP] Running on stdio");
+  // ВАЖЛИВО: НЕ писати в stderr після підключення до stdio!
 }
 
 main().catch((error) => {

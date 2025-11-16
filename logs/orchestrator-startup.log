@@ -1,0 +1,5 @@
+npm error Missing script: "start:orchestrator"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /Users/dev/.npm/_logs/2025-11-14T14_32_23_832Z-debug-0.log

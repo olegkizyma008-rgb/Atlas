@@ -23,9 +23,9 @@ class AdaptiveRequestThrottler {
         // Configuration
         this.config = {
             // Base delays (in ms)
-            minDelay: options.minDelay || 500,        // Minimum 500ms between requests
-            maxDelay: options.maxDelay || 5000,       // Maximum 5 seconds
-            baseDelay: options.baseDelay || 1000,    // Base 1 second delay
+            minDelay: options.minDelay || 3000,        // Minimum 3 seconds between requests
+            maxDelay: options.maxDelay || 15000,       // Maximum 15 seconds
+            baseDelay: options.baseDelay || 5000,      // Base 5 second delay
 
             // Batching
             batchSize: options.batchSize || 3,        // Batch up to 3 similar requests

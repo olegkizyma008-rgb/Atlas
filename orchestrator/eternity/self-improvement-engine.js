@@ -19,15 +19,15 @@ export class SelfImprovementEngine {
     constructor(container) {
         this.container = container;
         this.logger = logger;
-        
+
         // NEW 2025-11-02: Nexus Multi-Model Orchestrator для РЕАЛЬНОГО виконання
         this.multiModelOrchestrator = null;
-        
+
         // Черга покращень
         this.improvementQueue = [];
         this.appliedImprovements = [];
         this.failedImprovements = [];
-        
+
         // Можливості що Atlas може додати собі
         this.availableCapabilities = [
             {
@@ -66,13 +66,13 @@ export class SelfImprovementEngine {
                 dependencies: ['pattern-recognition', 'user-modeling']
             }
         ];
-        
+
         // Активні можливості
         this.activeCapabilities = new Set();
-        
+
         // NEW 2025-11-02: Initialize Nexus for real code execution
         this._initializeNexus();
-        
+
         this.logger.info('🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції');
     }
 
@@ -95,7 +95,7 @@ export class SelfImprovementEngine {
      */
     async analyzeImprovementOpportunities(context) {
         const opportunities = [];
-        
+
         try {
             // 1. Аналіз поточних проблем
             if (context.activeProblems && context.activeProblems.length > 0) {
@@ -107,11 +107,11 @@ export class SelfImprovementEngine {
                     estimatedImpact: 'high'
                 });
             }
-            
+
             // 2. Аналіз метрик продуктивності
             if (context.systemMetrics) {
                 const { health, errors, warnings } = context.systemMetrics;
-                
+
                 if (health < 85) {
                     opportunities.push({
                         type: 'performance-optimization',
@@ -122,12 +122,12 @@ export class SelfImprovementEngine {
                     });
                 }
             }
-            
+
             // 3. Аналіз відсутніх можливостей
             const missingCapabilities = this.availableCapabilities.filter(
                 cap => !this.activeCapabilities.has(cap.id)
             );
-            
+
             if (missingCapabilities.length > 0) {
                 opportunities.push({
                     type: 'capability-addition',
@@ -137,7 +137,7 @@ export class SelfImprovementEngine {
                     estimatedImpact: 'medium'
                 });
             }
-            
+
             // 4. Аналіз коду на застарілі патерни
             opportunities.push({
                 type: 'code-modernization',
@@ -145,12 +145,12 @@ export class SelfImprovementEngine {
                 description: 'Оновити застарілі патерни коду',
                 estimatedImpact: 'low'
             });
-            
+
             return opportunities.sort((a, b) => {
                 const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
                 return priorityOrder[a.priority] - priorityOrder[b.priority];
             });
-            
+
         } catch (error) {
             this.logger.error('[SELF-IMPROVEMENT] Failed to analyze opportunities:', error);
             return [];
@@ -163,25 +163,25 @@ export class SelfImprovementEngine {
     async applyImprovement(improvement, reportCallback) {
         try {
             await reportCallback(`🔧 Починаю застосовувати: ${improvement.description}`);
-            
+
             switch (improvement.type) {
                 case 'bug-fix':
                     return await this._applyBugFix(improvement, reportCallback);
-                    
+
                 case 'performance-optimization':
                     return await this._applyOptimization(improvement, reportCallback);
-                    
+
                 case 'capability-addition':
                     return await this._addCapability(improvement, reportCallback);
-                    
+
                 case 'code-modernization':
                     return await this._modernizeCode(improvement, reportCallback);
-                    
+
                 default:
                     await reportCallback(`⚠️ Невідомий тип покращення: ${improvement.type}`);
                     return { success: false, reason: 'unknown-type' };
             }
-            
+
         } catch (error) {
             await reportCallback(`❌ Помилка при застосуванні: ${error.message}`);
             this.failedImprovements.push({
@@ -199,58 +199,58 @@ export class SelfImprovementEngine {
     async _applyBugFix(improvement, reportCallback) {
         this.logger.info('[NEXUS] 🐛 Starting _applyBugFix', { problems: improvement.problems?.length });
         await reportCallback('🐛 Аналізую баги для виправлення через Nexus...');
-        
+
         // FIXED 2025-11-03: lazy init якщо ще не готовий
-        if (!this.multiModelOrchestrator || 
+        if (!this.multiModelOrchestrator ||
             typeof this.multiModelOrchestrator.executeTask !== 'function') {
-            
+
             this.logger.info('[NEXUS] Attempting lazy initialization of multiModelOrchestrator...');
             await this._initializeNexus();
-            
+
             // Перевірка після ініціалізації
-            if (!this.multiModelOrchestrator || 
+            if (!this.multiModelOrchestrator ||
                 typeof this.multiModelOrchestrator.executeTask !== 'function') {
                 this.logger.warn('[NEXUS] multiModelOrchestrator not properly initialized', {
                     exists: !!this.multiModelOrchestrator,
                     hasExecuteTask: this.multiModelOrchestrator ? typeof this.multiModelOrchestrator.executeTask : 'N/A'
                 });
-            await reportCallback('⚠️ Nexus не активний - створюю план виправлень');
-            
-            // Fallback: створюємо план без Nexus
-            // CRITICAL: success=false тому що НІЧОГО НЕ ВИПРАВИЛИ
-            return {
-                success: false,
-                fixes: improvement.problems.map(p => ({
-                    file: p.file,
-                    problem: p.description,
-                    status: 'planned',
-                    suggestion: 'Рекомендується ручне виправлення'
-                })),
-                reason: 'nexus-not-available',
-                needsManualExecution: true
-            };
+                await reportCallback('⚠️ Nexus не активний - створюю план виправлень');
+
+                // Fallback: створюємо план без Nexus
+                // CRITICAL: success=false тому що НІЧОГО НЕ ВИПРАВИЛИ
+                return {
+                    success: false,
+                    fixes: improvement.problems.map(p => ({
+                        file: p.file,
+                        problem: p.description,
+                        status: 'planned',
+                        suggestion: 'Рекомендується ручне виправлення'
+                    })),
+                    reason: 'nexus-not-available',
+                    needsManualExecution: true
+                };
             }
         }
-        
+
         const fixes = [];
-        
+
         try {
             // Перевірка чи є проблеми
-            this.logger.info('[NEXUS] Checking problems', { 
+            this.logger.info('[NEXUS] Checking problems', {
                 hasProblems: !!improvement.problems,
                 problemsCount: improvement.problems?.length,
                 problems: improvement.problems
             });
-            
+
             if (!improvement.problems || improvement.problems.length === 0) {
                 this.logger.warn('[NEXUS] No problems to fix');
                 await reportCallback('⚠️ Немає проблем для виправлення');
                 return { success: false, reason: 'no-problems', fixes: [] };
             }
-            
+
             this.logger.info(`[NEXUS] Found ${improvement.problems.length} problems for analysis`);
             await reportCallback(`🔍 Знайдено ${improvement.problems.length} проблем для аналізу`);
-            
+
             // КРОК 1: Парсимо файли з problems (з file або location)
             // FIXED 03.11.2025: Підтримка обох форматів - "file://path:line" та "filename.js:line"
             // FIXED 03.11.2025: Ігноруємо .log файли - виправляємо тільки source code
@@ -265,14 +265,14 @@ export class SelfImprovementEngine {
                 })
                 .map(p => {
                     if (p.file) return p.file;
-                    
+
                     if (p.location) {
                         // Формат: file://path:line
                         if (p.location.startsWith('file://')) {
                             const match = p.location.match(/file:\/\/(.+?):(\d+)/);
                             return match ? match[1] : null;
                         }
-                        
+
                         // Формат: filename.js:line (з номером рядка)
                         if (p.location.includes(':')) {
                             const match = p.location.match(/^(.+?):(\d+)$/);
@@ -280,7 +280,7 @@ export class SelfImprovementEngine {
                                 return match[1];
                             }
                         }
-                        
+
                         // FIXED 2025-11-05: Формат БЕЗ номера рядка (просто шлях)
                         // Приклад: "orchestrator/eternity/eternity-self-analysis.js"
                         if (p.location.endsWith('.js') || p.location.endsWith('.ts')) {
@@ -290,7 +290,7 @@ export class SelfImprovementEngine {
                     return null;
                 })
                 .filter(Boolean);
-            
+
             // Оновлюємо problems щоб мали file (ігноруємо .log файли)
             improvement.problems = improvement.problems
                 .filter(p => {
@@ -326,12 +326,12 @@ export class SelfImprovementEngine {
                     }
                     return p;
                 });
-            
+
             this.logger.info('[NEXUS] Problem files:', { problemFiles, updatedProblems: improvement.problems });
-            
+
             // Зберігаємо контекст в Memory MCP
             try {
-                const mcpManager = this.container.get('mcpManager');
+                const mcpManager = this.container?.resolve?.('mcpManager');
                 if (mcpManager) {
                     await mcpManager.callTool('memory', 'memory__create_entities', {
                         entities: improvement.problems.map(p => ({
@@ -343,25 +343,25 @@ export class SelfImprovementEngine {
                     this.logger.info('[NEXUS] Saved problems context to Memory MCP');
                 }
             } catch (error) {
-                this.logger.warn('[NEXUS] Failed to save to Memory MCP:', error.message);
+                this.logger.debug('[NEXUS] Memory MCP save skipped (not critical):', error.message);
             }
-            
+
             let collectedData = { successful: [], failed: [] };
-            
+
             if (problemFiles.length > 0) {
                 this.logger.info(`[NEXUS] Collecting data for ${problemFiles.length} files`);
                 await reportCallback(`📂 Codestral збирає інформацію про ${problemFiles.length} файлів...`);
-                
+
                 const dataCollectionTasks = problemFiles.map(file => ({
                     type: 'data-collection',
                     prompt: `Analyze file ${file} for issues`,
                     options: { context: { file } }
                 }));
-                
+
                 // Перевірка чи доступний executeParallel
                 if (typeof this.multiModelOrchestrator.executeParallel === 'function') {
                     collectedData = await this.multiModelOrchestrator.executeParallel(dataCollectionTasks);
-                    this.logger.info('[NEXUS] Parallel data collection complete', { 
+                    this.logger.info('[NEXUS] Parallel data collection complete', {
                         successful: collectedData.successful?.length,
                         failed: collectedData.failed?.length
                     });
@@ -369,7 +369,7 @@ export class SelfImprovementEngine {
                     // Fallback: послідовне виконання
                     this.logger.warn('[NEXUS] executeParallel not available, using sequential execution');
                     await reportCallback('⚠️ Виконую послідовний збір даних...');
-                    
+
                     for (const task of dataCollectionTasks) {
                         try {
                             const result = await this.multiModelOrchestrator.executeTask(
@@ -385,8 +385,8 @@ export class SelfImprovementEngine {
                             collectedData.failed.push({ error: error.message, task });
                         }
                     }
-                    
-                    this.logger.info('[NEXUS] Sequential data collection complete', { 
+
+                    this.logger.info('[NEXUS] Sequential data collection complete', {
                         successful: collectedData.successful.length,
                         failed: collectedData.failed.length
                     });
@@ -395,14 +395,14 @@ export class SelfImprovementEngine {
                 this.logger.info('[NEXUS] No specific files, performing general analysis');
                 await reportCallback('ℹ️ Проблеми не мають конкретних файлів - виконую загальний аналіз');
             }
-            
+
             // КРОК 2: Codex аналізує код та створює патчі
             this.logger.info('[NEXUS] Starting code analysis with GPT-5 Codex');
             await reportCallback('🔍 GPT-5 Codex аналізує код та створює виправлення...');
-            
+
             for (const problem of improvement.problems) {
                 const fileData = collectedData.successful.find(d => d.taskType === 'data-collection');
-                
+
                 const fixResult = await this.multiModelOrchestrator.executeTask(
                     'code-analysis',
                     `Fix the following issue in code:
@@ -435,16 +435,16 @@ export class SelfImprovementEngine {
                     
                     DO NOT provide explanations or comments - ONLY REPLACE blocks!`
                 );
-                
+
                 // FIXED 2025-11-05: Логуємо LLM відповідь для діагностики
-                this.logger.info('[NEXUS] LLM fix response preview', { 
+                this.logger.info('[NEXUS] LLM fix response preview', {
                     preview: fixResult.content?.substring(0, 300),
                     hasREPLACE: fixResult.content?.includes('```REPLACE'),
                     hasSeparator: fixResult.content?.includes('---')
                 });
-                
+
                 await reportCallback(`  ✅ Виправлення створено для: ${problem.description}`);
-                
+
                 fixes.push({
                     problem: problem.description,
                     file: problem.file,
@@ -453,39 +453,39 @@ export class SelfImprovementEngine {
                     fixed: true
                 });
             }
-            
+
             // КРОК 3: РЕАЛЬНО застосувати зміни через Windsurf Code Editor API
             await reportCallback('💾 Застосовую зміни через Windsurf API...');
-            
+
             for (const fix of fixes) {
                 this.logger.info('[NEXUS] Processing fix', { hasFile: !!fix.file, hasFix: !!fix.fix, file: fix.file });
-                
+
                 if (!fix.file) {
                     this.logger.warn('[NEXUS] Fix has no file, skipping', { problem: fix.problem });
                     await reportCallback(`  ⚠️ Виправлення без файлу: ${fix.problem}`);
                     fix.applied = false;
                     continue;
                 }
-                
+
                 if (fix.file && fix.fix) {
                     try {
                         this.logger.info('[NEXUS] Applying fix to file', { file: fix.file });
                         // Парсимо зміни з LLM відповіді
                         const changes = this._parseCodeChanges(fix.fix);
-                        
+
                         if (changes.length === 0) {
                             await reportCallback(`  ⚠️ Не вдалося розпарсити зміни для ${fix.file}`);
                             fix.applied = false;
                             continue;
                         }
-                        
+
                         // Застосовуємо через Windsurf API
                         const result = await windsurfCodeEditor.replaceFileContent(
                             fix.file,
                             changes,
                             `Fix: ${fix.problem}`
                         );
-                        
+
                         if (result.success) {
                             await reportCallback(`  ✅ Файл ${fix.file} оновлено (${result.replacements} змін)`);
                             fix.applied = true;
@@ -502,10 +502,10 @@ export class SelfImprovementEngine {
                     }
                 }
             }
-            
+
             const appliedCount = fixes.filter(f => f.applied).length;
             await reportCallback(`✅ Реально виправлено ${appliedCount} багів через Nexus`);
-            
+
             this.appliedImprovements.push({
                 type: 'bug-fix',
                 fixes,
@@ -513,29 +513,29 @@ export class SelfImprovementEngine {
                 executedBy: 'nexus',
                 realExecution: true
             });
-            
+
             return { success: true, fixes, appliedCount };
-            
+
         } catch (error) {
             await reportCallback(`❌ Помилка виконання через Nexus: ${error.message}`);
             return { success: false, error: error.message, fixes };
         }
     }
-    
+
     /**
      * Парсинг змін коду з LLM відповіді
      * Витягує targetContent та replacementContent для Windsurf API
      */
     _parseCodeChanges(llmResponse) {
         const changes = [];
-        
+
         try {
             // Формат 1: ```REPLACE\n[target]\n---\n[replacement]\n```
             const replaceBlocks = llmResponse.match(/```REPLACE\n([\s\S]*?)\n---\n([\s\S]*?)\n```/g) || [];
-            
+
             for (const block of replaceBlocks) {
                 const parts = block.match(/```REPLACE\n([\s\S]*?)\n---\n([\s\S]*?)\n```/);
-                
+
                 if (parts && parts.length >= 3) {
                     changes.push({
                         targetContent: parts[1],
@@ -544,24 +544,24 @@ export class SelfImprovementEngine {
                     });
                 }
             }
-            
+
             if (changes.length > 0) {
                 this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} REPLACE blocks`);
                 return changes;
             }
-            
+
             // FIXED 2025-11-05: Fallback - шукаємо звичайні code blocks з коментарями
             // Формат 2: ```javascript\n// OLD:\n[old]\n// NEW:\n[new]\n```
             const codeBlocksWithComments = llmResponse.match(/```(?:javascript|js)?\n\/\/ OLD:[\s\S]*?\/\/ NEW:[\s\S]*?```/g) || [];
-            
+
             for (const block of codeBlocksWithComments) {
                 const oldMatch = block.match(/\/\/ OLD:[\s\S]*?(?=\/\/ NEW:)/);
                 const newMatch = block.match(/\/\/ NEW:([\s\S]*?)```/);
-                
+
                 if (oldMatch && newMatch) {
                     const oldCode = oldMatch[0].replace(/\/\/ OLD:\s*\n?/, '').trim();
                     const newCode = newMatch[1].trim();
-                    
+
                     if (oldCode && newCode) {
                         changes.push({
                             targetContent: oldCode,
@@ -571,21 +571,21 @@ export class SelfImprovementEngine {
                     }
                 }
             }
-            
+
             if (changes.length > 0) {
                 this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} code blocks with OLD/NEW comments`);
                 return changes;
             }
-            
+
             // FIXED 2025-11-05: Fallback 2 - diff-подібний формат
             // Формат 3: ```diff\n- [old line]\n+ [new line]\n```
             const diffBlocks = llmResponse.match(/```diff\n([\s\S]*?)\n```/g) || [];
-            
+
             for (const block of diffBlocks) {
                 const lines = block.split('\n');
                 let oldLines = [];
                 let newLines = [];
-                
+
                 for (const line of lines) {
                     if (line.startsWith('- ')) {
                         oldLines.push(line.substring(2));
@@ -593,7 +593,7 @@ export class SelfImprovementEngine {
                         newLines.push(line.substring(2));
                     }
                 }
-                
+
                 if (oldLines.length > 0 && newLines.length > 0) {
                     changes.push({
                         targetContent: oldLines.join('\n'),
@@ -602,21 +602,21 @@ export class SelfImprovementEngine {
                     });
                 }
             }
-            
+
             if (changes.length > 0) {
                 this.logger.info(`[SELF-IMPROVEMENT] Parsed ${changes.length} diff blocks`);
                 return changes;
             }
-            
+
             // Немає жодного розпізнаного формату
             if (llmResponse.length > 0) {
                 this.logger.warn('[SELF-IMPROVEMENT] LLM response not in any recognized format', {
                     responsePreview: llmResponse.substring(0, 200)
                 });
             }
-            
+
             return [];
-            
+
         } catch (error) {
             this.logger.error('[SELF-IMPROVEMENT] Failed to parse code changes:', error);
             return [];
@@ -628,45 +628,45 @@ export class SelfImprovementEngine {
      */
     async _applyOptimization(improvement, reportCallback) {
         await reportCallback('⚡ Оптимізую продуктивність системи через Windsurf...');
-        
+
         if (!this.multiModelOrchestrator) {
             await reportCallback('⚠️ Nexus не активний - пропускаю оптимізацію');
             return { success: false, reason: 'nexus-not-available' };
         }
-        
+
         const optimizations = [];
-        
+
         try {
             // 1. Знаходимо файли для оптимізації (JS файли > 500 рядків)
             await reportCallback('🔍 Шукаю файли для оптимізації...');
-            
+
             const targetFiles = await windsurfCodeEditor.findFiles(
                 this.config?.orchestratorPath || './orchestrator',
                 '*.js',
                 { extensions: ['js'], maxDepth: 5 }
             );
-            
+
             if (!targetFiles.success || targetFiles.files.length === 0) {
                 await reportCallback('⚠️ Файлів для оптимізації не знайдено');
                 return { success: false, optimizations: [] };
             }
-            
+
             await reportCallback(`📂 Знайдено ${targetFiles.files.length} файлів для аналізу`);
-            
+
             // 2. Аналізуємо перші 3 файли через GPT-5 Codex
             const filesToOptimize = targetFiles.files.slice(0, 3);
-            
+
             for (const file of filesToOptimize) {
                 await reportCallback(`  ⚡ Оптимізую: ${file}`);
-                
+
                 // Читаємо файл
                 const fileContent = await windsurfCodeEditor.readFile(file);
-                
+
                 if (!fileContent.success) {
                     await reportCallback(`    ⚠️ Не вдалося прочитати ${file}`);
                     continue;
                 }
-                
+
                 // GPT-5 Codex аналізує та пропонує оптимізації
                 const analysis = await this.multiModelOrchestrator.executeTask(
                     'code-analysis',
@@ -683,29 +683,29 @@ export class SelfImprovementEngine {
                     
                     Provide specific code changes in REPLACE format.`
                 );
-                
+
                 if (analysis.success && analysis.content) {
                     optimizations.push({
                         file,
                         analysis: analysis.content,
                         model: analysis.model
                     });
-                    
+
                     await reportCallback(`    ✅ Аналіз завершено: ${analysis.model}`);
                 }
             }
-            
+
             await reportCallback(`✅ Оптимізація завершена: ${optimizations.length} файлів проаналізовано`);
-            
+
             this.appliedImprovements.push({
                 type: 'optimization',
                 optimizations,
                 timestamp: new Date().toISOString(),
                 executedBy: 'nexus-windsurf'
             });
-            
+
             return { success: true, optimizations };
-            
+
         } catch (error) {
             await reportCallback(`❌ Помилка оптимізації: ${error.message}`);
             return { success: false, error: error.message, optimizations };
@@ -717,34 +717,34 @@ export class SelfImprovementEngine {
      */
     async _addCapability(improvement, reportCallback) {
         await reportCallback('🎯 Додаю нові можливості...');
-        
+
         const added = [];
         for (const capability of improvement.capabilities) {
             await reportCallback(`  • Додаю: ${capability.name}`);
-            
+
             const missingDeps = capability.dependencies.filter(
                 dep => !this.activeCapabilities.has(dep)
             );
-            
+
             if (missingDeps.length > 0) {
                 await reportCallback(`    ⚠️ Потрібні залежності: ${missingDeps.join(', ')}`);
                 continue;
             }
-            
+
             this.activeCapabilities.add(capability.id);
             added.push(capability.name);
-            
+
             await reportCallback(`    ✅ ${capability.name} активовано`);
         }
-        
+
         await reportCallback(`✅ Додано ${added.length} нових можливостей`);
-        
+
         this.appliedImprovements.push({
             type: 'capability-addition',
             capabilities: added,
             timestamp: new Date().toISOString()
         });
-        
+
         return { success: true, added };
     }
 
@@ -753,34 +753,34 @@ export class SelfImprovementEngine {
      */
     async _modernizeCode(improvement, reportCallback) {
         await reportCallback('🔄 Модернізую код через Windsurf...');
-        
+
         if (!this.multiModelOrchestrator) {
             await reportCallback('⚠️ Nexus не активний - пропускаю модернізацію');
             return { success: false, reason: 'nexus-not-available' };
         }
-        
+
         const modernizations = [];
-        
+
         try {
             // 1. Шукаємо файли з застарілим синтаксисом
             await reportCallback('🔍 Шукаю файли для модернізації...');
-            
+
             // Шукаємо callback patterns
             const callbackFiles = await windsurfCodeEditor.searchInCode(
                 this.config?.orchestratorPath || './orchestrator',
                 'function.*callback',
                 { isRegex: true }
             );
-            
+
             // Шукаємо var замість const/let
             const varUsage = await windsurfCodeEditor.searchInCode(
                 this.config?.orchestratorPath || './orchestrator',
                 'var ',
                 { isRegex: false }
             );
-            
+
             await reportCallback('📋 Знайдено патерни для модернізації');
-            
+
             // 2. Генеруємо план модернізації через Claude Thinking
             const modernizationPlan = await this.multiModelOrchestrator.executeTask(
                 'strategic-thinking',
@@ -794,20 +794,20 @@ export class SelfImprovementEngine {
                 
                 Provide prioritized list of changes with rationale.`
             );
-            
+
             if (modernizationPlan.success) {
                 await reportCallback(`✅ План модернізації створено через ${modernizationPlan.model}`);
-                
+
                 modernizations.push({
                     type: 'plan',
                     content: modernizationPlan.content,
                     model: modernizationPlan.model
                 });
             }
-            
+
             // 3. Застосовуємо прості модернізації (var → const/let)
             await reportCallback('🔧 Застосовую прості модернізації...');
-            
+
             modernizations.push({
                 type: 'syntax-modernization',
                 items: [
@@ -816,18 +816,18 @@ export class SelfImprovementEngine {
                     'ES5 → ES2024'
                 ]
             });
-            
+
             await reportCallback(`✅ Модернізація завершена: ${modernizations.length} кроків`);
-            
+
             this.appliedImprovements.push({
                 type: 'modernization',
                 changes: modernizations,
                 timestamp: new Date().toISOString(),
                 executedBy: 'nexus-windsurf'
             });
-            
+
             return { success: true, modernizations };
-            
+
         } catch (error) {
             await reportCallback(`❌ Помилка модернізації: ${error.message}`);
             return { success: false, error: error.message, modernizations };
@@ -839,32 +839,32 @@ export class SelfImprovementEngine {
      */
     async autonomousImprovementCycle(context, reportCallback) {
         await reportCallback('🔄 Запускаю автономний цикл само-покращення...');
-        
+
         // 1. Аналіз можливостей
         const opportunities = await this.analyzeImprovementOpportunities(context);
-        
+
         if (opportunities.length === 0) {
             await reportCallback('✅ Покращень не потрібно - система в оптимальному стані');
             return { success: true, improvements: 0 };
         }
-        
+
         await reportCallback(`📊 Знайдено ${opportunities.length} можливостей для покращення`);
-        
+
         // 2. Застосування покращень (тільки критичні та високі)
-        const toApply = opportunities.filter(o => 
+        const toApply = opportunities.filter(o =>
             o.priority === 'critical' || o.priority === 'high'
         );
-        
+
         const results = [];
         for (const improvement of toApply) {
             const result = await this.applyImprovement(improvement, reportCallback);
             results.push(result);
         }
-        
+
         const successful = results.filter(r => r.success).length;
-        
+
         await reportCallback(`✅ Автономний цикл завершено: ${successful}/${results.length} покращень застосовано`);
-        
+
         return {
             success: true,
             improvements: successful,
@@ -879,16 +879,16 @@ export class SelfImprovementEngine {
      */
     async improve(request) {
         const { problems, context } = request;
-        
+
         this.logger.info('[SELF-IMPROVEMENT-API] improve() called', {
             problemCount: problems?.length || 0,
             hasContext: !!context
         });
-        
+
         const reportCallback = async (message) => {
             this.logger.info(`[IMPROVEMENT] ${message}`);
         };
-        
+
         // If specific problems provided, apply bug fixes
         if (problems && problems.length > 0) {
             const improvement = {
@@ -898,26 +898,26 @@ export class SelfImprovementEngine {
                 problems: problems,
                 estimatedImpact: 'high'
             };
-            
+
             return await this.applyImprovement(improvement, reportCallback);
         }
-        
+
         // Otherwise run autonomous improvement cycle
         return await this.autonomousImprovementCycle(context || {}, reportCallback);
     }
-    
+
     /**
      * API METHOD: Analyze Atlas's own code
      * Called from /api/cascade/self-analysis endpoint
      */
     async analyzeSelf(request) {
         const { scope, depth, includeMetrics } = request;
-        
+
         this.logger.info('[SELF-ANALYSIS-API] analyzeSelf() called', {
             scope: scope || 'full',
             depth: depth || 'standard'
         });
-        
+
         const analysis = {
             scope: scope || 'full',
             depth: depth || 'standard',
@@ -926,7 +926,7 @@ export class SelfImprovementEngine {
             systemStatus: {},
             recommendations: []
         };
-        
+
         try {
             // Get system metrics if available
             if (includeMetrics) {
@@ -937,15 +937,15 @@ export class SelfImprovementEngine {
                     health: 95 // Placeholder
                 };
             }
-            
+
             // Analyze improvement opportunities
             const context = {
                 scope,
                 systemMetrics: analysis.systemStatus
             };
-            
+
             analysis.opportunities = await this.analyzeImprovementOpportunities(context);
-            
+
             // Generate recommendations
             analysis.recommendations = analysis.opportunities.slice(0, 5).map(opp => ({
                 priority: opp.priority,
@@ -953,14 +953,14 @@ export class SelfImprovementEngine {
                 type: opp.type,
                 impact: opp.estimatedImpact
             }));
-            
+
             this.logger.info('[SELF-ANALYSIS-API] Analysis complete', {
                 opportunitiesFound: analysis.opportunities.length,
                 recommendationsCount: analysis.recommendations.length
             });
-            
+
             return analysis;
-            
+
         } catch (error) {
             this.logger.error('[SELF-ANALYSIS-API] Error:', error);
             throw error;

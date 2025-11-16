@@ -175,7 +175,10 @@ export class ApiClient {
       }
 
       this.logger.error('Stream failed', error.message);
-      if (onError) onError(error);
+      if (onError) {
+        onError(error);
+        return;
+      }
       throw error;
     }
   }

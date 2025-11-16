@@ -205,20 +205,19 @@ export class ChatManager {
 
     // FIXED 2025-11-07: Hide system messages, show only agent messages
     // Agent messages should always be shown
-    const agentTypes = ['atlas', 'tetyana', 'grisha', 'user', 'assistant'];
+    const agentTypes = ['atlas', 'tetyana', 'grisha', 'user', 'assistant', 'error'];
     const isAgentMessage = agentTypes.includes(type);
 
     // System message detection - these should be hidden
     const isSystemMessage = type === 'system' ||
-                           type === 'error' ||
-                           content.includes('[SYSTEM]') ||
-                           content.includes('Mode:') ||
-                           content.includes('confidence:') ||
-                           content.includes('✅ Завдання виконано') ||
-                           content.includes('📋 TODO') ||
-                           content.includes('❌ MCP:') ||
-                           content.includes('✅ Item') ||
-                           content.includes('⚠️ Planning');
+      content.includes('[SYSTEM]') ||
+      content.includes('Mode:') ||
+      content.includes('confidence:') ||
+      content.includes('✅ Завдання виконано') ||
+      content.includes('📋 TODO') ||
+      content.includes('❌ MCP:') ||
+      content.includes('✅ Item') ||
+      content.includes('⚠️ Planning');
 
     // Hide system messages unless explicitly enabled
     const showSystemMessages = window.SHOW_SYSTEM_MESSAGES === true; // Default to false
@@ -242,7 +241,8 @@ export class ChatManager {
       'tetyana': '[TETYANA]',
       'grisha': '[GRISHA]',
       'system': '[SYSTEM]',
-      'assistant': '[ATLAS]'
+      'assistant': '[ATLAS]',
+      'error': '[ERROR]'
     };
 
     const agent = type;
@@ -454,62 +454,62 @@ export class ChatManager {
     }
 
     switch (data.type) {
-    case 'agent_message':
-      // ENHANCED 21.10.2025 - Queue messages with sequence tracking
-      this.enqueueMessage(data);
-      break;
-    case 'status_update':
-      this.handleStatusUpdate(data.data);
-      break;
-    case 'error':
-      this.handleError(data.data);
-      break;
-    case 'workflow_started':
-      this.handleWorkflowStarted(data.data);
-      break;
-    case 'workflow_complete':
-      this.handleWorkflowComplete(data.data);
-      break;
-    case 'tts_start':
-      this.emit('tts-start', data.data);
-      break;
-    case 'tts_stop':
-      this.emit('tts-stop', data.data);
-      break;
-    // FIXED 14.10.2025 - Handle new MCP workflow events
-    case 'mcp_todo_created':
-      this.handleMCPTodoCreated(data.data);
-      break;
-    case 'mcp_item_planning_failed':
-      this.handleMCPItemPlanningFailed(data.data);
-      break;
-    case 'mcp_item_executed':
-      this.handleMCPItemExecuted(data.data);
-      break;
-    case 'mcp_item_verified':
-      this.handleMCPItemVerified(data.data);
-      break;
-    case 'mcp_item_failed':
-      this.handleMCPItemFailed(data.data);
-      break;
-    case 'mcp_workflow_complete':
-      this.handleMCPWorkflowComplete(data.data);
-      break;
-    case 'workflow_error':
-      this.handleWorkflowError(data.data);
-      break;
-    // FIXED 16.10.2025 - Handle mode_selected event
-    case 'mode_selected':
-      this.handleModeSelected(data.data);
-      break;
-    // FIXED 16.10.2025 - Handle mcp_workflow_error event
-    case 'mcp_workflow_error':
-      this.handleMCPWorkflowError(data.data);
-      break;
-    // FIXED 16.10.2025 - Handle chat_response event for chat mode
-    case 'chat_response':
-      this.handleChatResponse(data.data);
-      break;
+      case 'agent_message':
+        // ENHANCED 21.10.2025 - Queue messages with sequence tracking
+        this.enqueueMessage(data);
+        break;
+      case 'status_update':
+        this.handleStatusUpdate(data.data);
+        break;
+      case 'error':
+        this.handleError(data.data);
+        break;
+      case 'workflow_started':
+        this.handleWorkflowStarted(data.data);
+        break;
+      case 'workflow_complete':
+        this.handleWorkflowComplete(data.data);
+        break;
+      case 'tts_start':
+        this.emit('tts-start', data.data);
+        break;
+      case 'tts_stop':
+        this.emit('tts-stop', data.data);
+        break;
+      // FIXED 14.10.2025 - Handle new MCP workflow events
+      case 'mcp_todo_created':
+        this.handleMCPTodoCreated(data.data);
+        break;
+      case 'mcp_item_planning_failed':
+        this.handleMCPItemPlanningFailed(data.data);
+        break;
+      case 'mcp_item_executed':
+        this.handleMCPItemExecuted(data.data);
+        break;
+      case 'mcp_item_verified':
+        this.handleMCPItemVerified(data.data);
+        break;
+      case 'mcp_item_failed':
+        this.handleMCPItemFailed(data.data);
+        break;
+      case 'mcp_workflow_complete':
+        this.handleMCPWorkflowComplete(data.data);
+        break;
+      case 'workflow_error':
+        this.handleWorkflowError(data.data);
+        break;
+      // FIXED 16.10.2025 - Handle mode_selected event
+      case 'mode_selected':
+        this.handleModeSelected(data.data);
+        break;
+      // FIXED 16.10.2025 - Handle mcp_workflow_error event
+      case 'mcp_workflow_error':
+        this.handleMCPWorkflowError(data.data);
+        break;
+      // FIXED 16.10.2025 - Handle chat_response event for chat mode
+      case 'chat_response':
+        this.handleChatResponse(data.data);
+        break;
       default:
         this.logger.debug('Unknown stream message type', data.type);
     }
@@ -523,7 +523,7 @@ export class ChatManager {
       ...data,
       queuedAt: Date.now()
     };
-    
+
     this.messageQueue.push(message);
     this.logger.debug('Message enqueued', {
       type: data.type,
@@ -531,7 +531,7 @@ export class ChatManager {
       sessionSequenceId: data.data?.sessionSequenceId,
       queueLength: this.messageQueue.length
     });
-    
+
     // Process queue if not already processing
     if (!this.processingQueue) {
       this.processMessageQueue();
@@ -649,7 +649,7 @@ export class ChatManager {
 
     // Додаємо повідомлення агента до історії
     const message = this.addMessage(content, agent);
-    
+
     // CRITICAL FIX (30.10.2025): Set isStreaming to false after agent message
     // This allows pending messages from queue to be sent
     this.logger.info('Setting isStreaming to false after agent message');
@@ -696,13 +696,13 @@ export class ChatManager {
     // Agent messages already contain the information, no need for system duplicates
     if (agent === 'system' || agent === 'grisha') {
       // Check if this is a verification summary (contains "Візуально підтверджено" or "Візуальні докази")
-      if (content.includes('✅ ✅ Візуально підтверджено') || 
-          content.includes('Візуальні докази:') ||
-          content.includes('Впевненість:')) {
+      if (content.includes('✅ ✅ Візуально підтверджено') ||
+        content.includes('Візуальні докази:') ||
+        content.includes('Впевненість:')) {
         this.logger.debug('Skipping system verification summary (duplicate of agent message)');
         return;
       }
-      
+
       // Check if this is an execution summary (contains "✅ ✅ Виконано")
       if (content.includes('✅ ✅ Виконано:')) {
         this.logger.debug('Skipping system execution summary (duplicate of agent message)');
@@ -742,16 +742,16 @@ export class ChatManager {
       mode: mode || 'undefined',
       ttsContent_preview: ttsContent?.substring(0, 50)
     });
-    
+
     this.logger.info(`[TTS-DIAG] handleAgentMessage: agent=${agent}, has_ttsContent=${!!ttsContent}, has_content=${!!content}, ttsContent_length=${ttsContent?.length || 0}, content_length=${content?.length || 0}, voice=${voice || 'undefined'}, mode=${mode || 'undefined'}`);
 
 
     // Захист від дублювання TTS за messageId
     const ttsKey = `tts_${messageId || Date.now()}_${agent}`; // Use timestamp if no messageId
-    
+
     // DEBUG: Log messageId для діагностики дублювання
     console.log('[CHAT] 🔑 TTS Key:', { messageId, agent, ttsKey, alreadyProcessed: this._processedTTS?.has(ttsKey) });
-    
+
     if (this._processedTTS?.has(ttsKey)) {
       console.warn('[CHAT] ⚠️ TTS already processed for message:', ttsKey);
       this.logger.debug(`TTS already processed for message: ${ttsKey}`);
@@ -794,7 +794,7 @@ export class ChatManager {
 
         if (ttsVoice) {
           console.log('[CHAT] ✅ TTS voice found, processing:', ttsVoice);
-          
+
           // Позначаємо як оброблене
           this._processedTTS.add(ttsKey);
 
@@ -823,7 +823,7 @@ export class ChatManager {
           // CRITICAL FIX: Використовуємо чергу TTS щоб поточне озвучення завершилось перед наступним
           // Це запобігає ситуації коли Атлас ще говорить завдання, а Тетяна вже виконує його
           const ttsOptions = { mode: actualMode };
-          
+
           // ВИПРАВЛЕНО 21.10.2025: Чекаємо на завершення TTS для послідовної черги
           // Це гарантує що всі TTS (Atlas, Tetyana, Grisha) озвучуються по черзі
           await this.ttsManager.addToQueue(textForTTS, agent, ttsOptions).catch(err => {
@@ -1025,7 +1025,7 @@ export class ChatManager {
     if (data.mood && window.app?.managers?.glbLivingSystem) {
       const mood = data.mood;
       this.logger.info(`🎨 Setting Atlas mood from LLM analysis: ${mood}`);
-      
+
       // Мапимо mood на emotion для AtlasEmotionalStateService
       const moodToEmotionMap = {
         'happy': 'happy',
@@ -1057,14 +1057,14 @@ export class ChatManager {
   // UPDATED 10.11.2025 - Better error handling with retry suggestion
   handleMCPWorkflowError(data) {
     const errorMsg = data.error || data.message || 'Невідома помилка MCP workflow';
-    
+
     // Don't log 500 errors to console as errors, they're expected during model unavailability
     if (errorMsg.includes('500') || errorMsg.includes('Request failed')) {
       this.logger.debug('MCP Workflow temporary failure:', errorMsg);
       // Don't show system messages for temporary failures
       return;
     }
-    
+
     this.logger.error('❌ MCP Workflow error', errorMsg);
     this.addMessage(`❌ MCP: ${errorMsg}`, 'system');
   }
@@ -1075,15 +1075,15 @@ export class ChatManager {
     this.logger.info('💬 Chat response received', data);
     const content = data.content || data.message || '';
     const agent = data.agent || 'atlas';
-    
+
     if (content) {
       this.addMessage(content, agent);
-      
+
       // CRITICAL FIX: Set isStreaming to false after agent response
       // This allows pending messages to be sent from queue
       this.logger.info('Setting isStreaming to false after chat response');
       this.setStreamingState(false);
-      
+
       // TTS if enabled
       if (this.ttsManager.isEnabled()) {
         const agentConfig = AGENTS[agent];

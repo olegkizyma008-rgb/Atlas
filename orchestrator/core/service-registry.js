@@ -36,6 +36,7 @@ import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
 import { NexusMemoryManager } from '../eternity/nexus-memory-manager.js';
 import { ChatMemoryEligibilityProcessor } from '../workflow/stages/chat-memory-eligibility-processor.js';
 import { ChatMemoryCoordinator } from '../workflow/chat-memory-coordinator.js';
+import registerWorkflowModules from './workflow-modules-registry.js';
 
 /**
  * Реєструє всі core сервіси в DI контейнері
@@ -1051,6 +1052,7 @@ export function registerAllServices(container) {
     registerOptimizationServices(container);  // ✅ NEW: API optimization services
     registerMCPWorkflowServices(container);
     registerMCPProcessors(container);
+    registerWorkflowModules(container);  // ✅ NEW: Phase 1-4 Workflow Modules (2025-11-19)
 
     logger.system('startup', `[DI] Registered ${container.getServices().length} services`, {
         services: container.getServices()

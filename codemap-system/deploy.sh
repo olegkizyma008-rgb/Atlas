@@ -225,6 +225,55 @@ setup_windsurf() {
         print_error "Windsurf налаштування не знайдені"
         exit 1
     fi
+    
+    # Create mcp_config.json for Windsurf
+    create_mcp_config
+}
+
+create_mcp_config() {
+    print_step "Створюю MCP конфігурацію для Windsurf..."
+    
+    local mcp_config_dir="${HOME}/.codeium/windsurf"
+    local mcp_config_file="${mcp_config_dir}/mcp_config.json"
+    
+    # Create directory if it doesn't exist
+    mkdir -p "$mcp_config_dir"
+    
+    # Get paths
+    local codemap_path=$(cd "$SCRIPT_DIR" && pwd)
+    local project_root=$(cd "$SCRIPT_DIR/.." && pwd)
+    
+    # Create mcp_config.json with proper paths using Python for reliable JSON generation
+    python3 << PYTHON_EOF
+import json
+from pathlib import Path
+
+mcp_config = {
+    "mcpServers": {
+        "codemap": {
+            "command": "python3",
+            "args": [
+                "$codemap_path/mcp_codemap_server.py",
+                "--project",
+                "$project_root",
+                "--mode",
+                "stdio"
+            ],
+            "env": {
+                "PYTHONPATH": "$codemap_path",
+                "PYTHONUNBUFFERED": "1"
+            }
+        }
+    }
+}
+
+with open("$mcp_config_file", 'w') as f:
+    json.dump(mcp_config, f, indent=2)
+
+print("✅ MCP конфігурація створена: $mcp_config_file")
+PYTHON_EOF
+    
+    print_success "MCP конфігурація готова"
 }
 
 update_workflows() {
@@ -297,6 +346,9 @@ backup_reports() {
 start_mcp_server() {
     print_step "Запускаю MCP сервер для Cascade..."
     
+    # Sync analysis to memory first
+    sync_analysis_to_memory
+    
     cd "$SCRIPT_DIR"
     python3 mcp_codemap_server.py --project "$SCRIPT_DIR" --mode stdio > /dev/null 2>&1 &
     MCP_PID=$!
@@ -305,6 +357,55 @@ start_mcp_server() {
     echo "$MCP_PID" > "${SCRIPT_DIR}/.mcp_server.pid"
     
     print_success "MCP сервер запущено (PID: $MCP_PID)"
+}
+
+sync_analysis_to_memory() {
+    print_step "Синхронізую аналіз з Windsurf memory..."
+    
+    local memory_dir="${HOME}/.codeium/windsurf/memories"
+    local reports_dir="${REPORTS_DIR}"
+    mkdir -p "$memory_dir"
+    
+    if [ -f "${reports_dir}/codemap_analysis.json" ]; then
+        # Copy analysis to memory with metadata
+        python3 << PYTHON_SYNC
+import json
+from pathlib import Path
+from datetime import datetime
+
+reports_dir = Path("$reports_dir")
+memory_dir = Path("$memory_dir")
+memory_dir.mkdir(parents=True, exist_ok=True)
+
+try:
+    with open(reports_dir / "codemap_analysis.json", 'r') as f:
+        data = json.load(f)
+    
+    memory_data = {
+        "timestamp": datetime.now().isoformat(),
+        "key": "codemap_analysis",
+        "data": {
+            "project": data.get("project"),
+            "files_analyzed": data.get("files_analyzed"),
+            "total_functions": data.get("total_functions"),
+            "dead_code_count": len(data.get("dead_code", {}).get("functions", [])),
+            "cycles_count": len(data.get("cycles", [])),
+            "complexity_metrics": data.get("complexity_metrics"),
+            "file_imports": data.get("file_imports", {}),
+            "function_definitions": data.get("function_definitions", {})
+        }
+    }
+    
+    with open(memory_dir / "codemap_analysis.json", 'w') as f:
+        json.dump(memory_data, f, indent=2, default=str)
+    
+    print("✅ Аналіз синхронізовано з memory")
+except Exception as e:
+    print(f"⚠️ Помилка синхронізації: {e}")
+PYTHON_SYNC
+    else
+        print_info "Аналіз ще не готовий для синхронізації"
+    fi
 }
 
 start_watch_mode() {

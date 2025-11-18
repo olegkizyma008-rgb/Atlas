@@ -8,14 +8,16 @@ import json
 import os
 import sys
 import asyncio
+import time
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 import logging
 
-# Setup logging
+# Setup logging with detailed format
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -27,9 +29,35 @@ class CodemapMCPServer:
     def __init__(self, project_root: str = "./"):
         self.project_root = Path(project_root)
         self.reports_dir = self.project_root / "reports"
+        
+        # Cache configuration (Recommendation #3)
         self.cache = {}
+        self.cache_time = {}
+        self.cache_ttl = 300  # 5 minutes
+        
         self.last_update = {}
+        self.memory_dir = Path.home() / ".codeium" / "windsurf" / "memories"
+        self._ensure_memory_dir()
+        
+        # Auto-commit configuration (NEW)
+        self.last_commit_hash = None
+        self.last_commit_time = 0
+        self.commit_threshold = 300  # 5 minutes between commits
+        self.min_changes_for_commit = 5  # Minimum changes to trigger commit
+        self.version_file = self.project_root / ".codemap_version"
+        self._load_version_info()
+        
         logger.info(f"Initialized CodemapMCPServer for {self.project_root}")
+        logger.info(f"Cache TTL: {self.cache_ttl}s, Memory dir: {self.memory_dir}")
+        logger.info(f"Auto-commit: threshold={self.commit_threshold}s, min_changes={self.min_changes_for_commit}")
+    
+    def _ensure_memory_dir(self):
+        """Ensure memory directory exists"""
+        try:
+            self.memory_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Memory directory ready: {self.memory_dir}")
+        except Exception as e:
+            logger.error(f"Error creating memory directory: {e}")
     
     # ========== RESOURCES ==========
     # Resources are static data that Cascade can access
@@ -91,6 +119,21 @@ class CodemapMCPServer:
                 "uri": "codemap://recommendations/performance",
                 "name": "Performance Analysis",
                 "description": "Performance bottlenecks and optimization opportunities"
+            },
+            {
+                "uri": "codemap://current/file-context",
+                "name": "Current File Context",
+                "description": "Context for the currently edited file"
+            },
+            {
+                "uri": "codemap://current/file-issues",
+                "name": "Current File Issues",
+                "description": "Issues and problems in the currently edited file"
+            },
+            {
+                "uri": "codemap://current/file-recommendations",
+                "name": "Current File Recommendations",
+                "description": "Recommendations specific to the currently edited file"
             }
         ]
         return resources
@@ -121,6 +164,12 @@ class CodemapMCPServer:
             return self._get_security_analysis()
         elif uri == "codemap://recommendations/performance":
             return self._get_performance_analysis()
+        elif uri == "codemap://current/file-context":
+            return json.dumps({"error": "file_path parameter required. Use get_current_file_context tool instead."})
+        elif uri == "codemap://current/file-issues":
+            return json.dumps({"error": "file_path parameter required. Use quick_show_issues tool instead."})
+        elif uri == "codemap://current/file-recommendations":
+            return json.dumps({"error": "file_path parameter required. Use get_current_file_context tool instead."})
         else:
             return json.dumps({"error": f"Unknown resource: {uri}"})
     
@@ -400,6 +449,155 @@ class CodemapMCPServer:
                     },
                     "required": ["file_path"]
                 }
+            },
+            {
+                "name": "get_current_file_context",
+                "description": "Get context for the currently edited file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the currently edited file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "get_related_files",
+                "description": "Get files related to a specific file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "get_file_impact",
+                "description": "Get impact of changes to a file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "get_dependency_chain",
+                "description": "Get full dependency chain for a file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "quick_show_dead_code",
+                "description": "Quickly show dead code in a file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "quick_show_dependencies",
+                "description": "Quickly show dependencies of a file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "quick_show_issues",
+                "description": "Quickly show all issues in a file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "health_check",
+                "description": "Check system health status (Recommendation #4)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "verify_memory_sync",
+                "description": "Verify memory integrity (Recommendation #2)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "get_git_history",
+                "description": "Get git history for a file (Recommendation #5)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file"
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "clear_cache",
+                "description": "Clear all cache (Recommendation #3)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "auto_commit",
+                "description": "Automatically commit changes with intelligent detection",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "Optional custom commit message"
+                        }
+                    }
+                }
             }
         ]
     
@@ -432,6 +630,31 @@ class CodemapMCPServer:
             return self._analyze_code_quality(arguments.get("file_path", ""))
         elif name == "get_module_health":
             return self._get_module_health(arguments.get("file_path", ""))
+        elif name == "get_current_file_context":
+            return self._get_current_file_context(arguments.get("file_path", ""))
+        elif name == "get_related_files":
+            return self._get_related_files(arguments.get("file_path", ""))
+        elif name == "get_file_impact":
+            return self._get_file_impact(arguments.get("file_path", ""))
+        elif name == "get_dependency_chain":
+            return self._get_dependency_chain(arguments.get("file_path", ""))
+        elif name == "quick_show_dead_code":
+            return self._quick_show_dead_code(arguments.get("file_path", ""))
+        elif name == "quick_show_dependencies":
+            return self._quick_show_dependencies(arguments.get("file_path", ""))
+        elif name == "quick_show_issues":
+            return self._quick_show_issues(arguments.get("file_path", ""))
+        elif name == "health_check":
+            return json.dumps(self.health_check(), indent=2, default=str)
+        elif name == "verify_memory_sync":
+            return json.dumps(self.verify_memory_sync(), indent=2, default=str)
+        elif name == "get_git_history":
+            return json.dumps(self.get_git_history(arguments.get("file_path", "")), indent=2, default=str)
+        elif name == "clear_cache":
+            self.clear_cache()
+            return json.dumps({"status": "success", "message": "Cache cleared"})
+        elif name == "auto_commit":
+            return json.dumps(self.auto_commit(arguments.get("message")), indent=2, default=str)
         else:
             return json.dumps({"error": f"Unknown tool: {name}"})
     
@@ -1057,6 +1280,548 @@ class CodemapMCPServer:
             health["status"] = "critical"
         
         return json.dumps(health, indent=2, default=str)
+    
+    # ========== MEMORY SYNCHRONIZATION ==========
+    
+    def sync_to_memory(self, memory_key: str, data: Dict[str, Any]) -> bool:
+        """Sync analysis data to Windsurf memory"""
+        try:
+            memory_file = self.memory_dir / f"{memory_key}.json"
+            
+            memory_data = {
+                "timestamp": datetime.now().isoformat(),
+                "key": memory_key,
+                "data": data
+            }
+            
+            with open(memory_file, 'w') as f:
+                json.dump(memory_data, f, indent=2, default=str)
+            
+            file_size = memory_file.stat().st_size
+            self._log_sync_details(memory_key, data, file_size)
+            logger.info(f"✅ Synced to memory: {memory_key} ({file_size} bytes)")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Error syncing to memory: {e}")
+            return False
+    
+    def load_from_memory(self, memory_key: str) -> Optional[Dict[str, Any]]:
+        """Load data from Windsurf memory"""
+        try:
+            memory_file = self.memory_dir / f"{memory_key}.json"
+            if memory_file.exists():
+                with open(memory_file, 'r') as f:
+                    content = json.load(f)
+                    logger.info(f"Loaded from memory: {memory_key}")
+                    return content.get("data")
+            return None
+        except Exception as e:
+            logger.error(f"Error loading from memory: {e}")
+            return None
+    
+    def sync_current_analysis(self) -> bool:
+        """Sync current analysis to memory for Cascade"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return False
+        
+        # Sync key metrics to memory
+        memory_data = {
+            "project": data.get("project"),
+            "timestamp": data.get("timestamp"),
+            "files_analyzed": data.get("files_analyzed"),
+            "total_functions": data.get("total_functions"),
+            "dead_code_count": len(data.get("dead_code", {}).get("functions", [])),
+            "cycles_count": len(data.get("cycles", [])),
+            "complexity_metrics": data.get("complexity_metrics"),
+            "file_imports": data.get("file_imports", {}),
+            "function_definitions": data.get("function_definitions", {})
+        }
+        
+        return self.sync_to_memory("codemap_analysis", memory_data)
+    
+    # ========== PHASE 1: CRITICAL FUNCTIONS ==========
+    
+    def _get_current_file_context(self, file_path: str) -> str:
+        """Get context for currently edited file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        file_imports = data.get("file_imports", {}).get(file_path, [])
+        func_defs = data.get("function_definitions", {}).get(file_path, {})
+        dead_code_list = data.get("dead_code", {})
+        
+        # Get dead code for this file
+        file_dead_code = []
+        for item in dead_code_list.get("functions", []):
+            if isinstance(item, dict) and item.get("file") == file_path:
+                file_dead_code.append(item.get("name", str(item)))
+            elif isinstance(item, str) and file_path in item:
+                file_dead_code.append(item)
+        
+        # Calculate complexity
+        complexity = "low" if len(file_imports) < 5 else "medium" if len(file_imports) < 10 else "high"
+        
+        context = {
+            "file": file_path,
+            "imports_count": len(file_imports),
+            "functions_count": len(func_defs),
+            "dead_code_count": len(file_dead_code),
+            "imports": file_imports[:5],
+            "functions": list(func_defs.keys())[:5] if isinstance(func_defs, dict) else [],
+            "dead_code": file_dead_code[:5],
+            "complexity": complexity
+        }
+        
+        return json.dumps(context, indent=2, default=str)
+    
+    def _get_related_files(self, file_path: str) -> str:
+        """Get files related to a specific file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        file_imports = data.get("file_imports", {})
+        
+        # Files this file imports from
+        imports_from = file_imports.get(file_path, [])
+        
+        # Files that import this file
+        imports_to = [f for f, imports in file_imports.items() if file_path in imports]
+        
+        result = {
+            "file": file_path,
+            "imports_from": imports_from,
+            "imported_by": imports_to,
+            "total_related": len(imports_from) + len(imports_to)
+        }
+        
+        return json.dumps(result, indent=2, default=str)
+    
+    def _get_file_impact(self, file_path: str) -> str:
+        """Get impact of changes to a file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        file_imports = data.get("file_imports", {})
+        
+        # How many files depend on this file
+        dependent_files = [f for f, imports in file_imports.items() if file_path in imports]
+        
+        impact_level = "high" if len(dependent_files) > 10 else "medium" if len(dependent_files) > 3 else "low"
+        
+        recommendations = {
+            "low": "This file has low impact. Safe to modify.",
+            "medium": "This file has medium impact. Test dependent files after changes.",
+            "high": "This file is critical. Many files depend on it. Refactor carefully."
+        }
+        
+        impact = {
+            "file": file_path,
+            "dependent_files_count": len(dependent_files),
+            "dependent_files": dependent_files,
+            "impact_level": impact_level,
+            "recommendation": recommendations.get(impact_level, "")
+        }
+        
+        return json.dumps(impact, indent=2, default=str)
+    
+    def _get_dependency_chain(self, file_path: str) -> str:
+        """Get full dependency chain for a file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        file_imports = data.get("file_imports", {})
+        
+        def build_chain(f, depth=0, visited=None):
+            if visited is None:
+                visited = set()
+            if f in visited or depth > 5:
+                return None
+            visited.add(f)
+            
+            imports = file_imports.get(f, [])
+            return {
+                "file": f,
+                "depth": depth,
+                "imports": [build_chain(imp, depth + 1, visited) for imp in imports[:3] if build_chain(imp, depth + 1, visited) is not None]
+            }
+        
+        chain = build_chain(file_path)
+        
+        return json.dumps(chain, indent=2, default=str)
+    
+    def _quick_show_dead_code(self, file_path: str) -> str:
+        """Quickly show dead code in a file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        dead_code_list = data.get("dead_code", {})
+        
+        # Get dead code for this file
+        file_dead_code = []
+        for item in dead_code_list.get("functions", []):
+            if isinstance(item, dict) and item.get("file") == file_path:
+                file_dead_code.append(item.get("name", str(item)))
+            elif isinstance(item, str) and file_path in item:
+                file_dead_code.append(item)
+        
+        result = {
+            "file": file_path,
+            "dead_code_count": len(file_dead_code),
+            "dead_code": file_dead_code,
+            "action": "Remove these unused functions/variables"
+        }
+        
+        return json.dumps(result, indent=2, default=str)
+    
+    def _quick_show_dependencies(self, file_path: str) -> str:
+        """Quickly show dependencies of a file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        file_imports = data.get("file_imports", {}).get(file_path, [])
+        
+        result = {
+            "file": file_path,
+            "dependencies_count": len(file_imports),
+            "dependencies": file_imports,
+            "action": "Review these dependencies"
+        }
+        
+        return json.dumps(result, indent=2, default=str)
+    
+    def _quick_show_issues(self, file_path: str) -> str:
+        """Quickly show all issues in a file"""
+        data = self._load_json_report("codemap_analysis.json")
+        if not data:
+            return json.dumps({"error": "No analysis data available"})
+        
+        dead_code_list = data.get("dead_code", {})
+        file_imports = data.get("file_imports", {}).get(file_path, [])
+        
+        # Get dead code for this file
+        file_dead_code = []
+        for item in dead_code_list.get("functions", []):
+            if isinstance(item, dict) and item.get("file") == file_path:
+                file_dead_code.append(item.get("name", str(item)))
+            elif isinstance(item, str) and file_path in item:
+                file_dead_code.append(item)
+        
+        issues = []
+        if len(file_dead_code) > 0:
+            issues.append(f"Dead code: {len(file_dead_code)} items")
+        if len(file_imports) > 10:
+            issues.append(f"High coupling: {len(file_imports)} dependencies")
+        if len(file_imports) > 5 and len(file_dead_code) > 0:
+            issues.append("Complex file with dead code - consider refactoring")
+        
+        result = {
+            "file": file_path,
+            "issues_count": len(issues),
+            "issues": issues,
+            "action": "Address these issues"
+        }
+        
+        return json.dumps(result, indent=2, default=str)
+    
+    # ========== RECOMMENDATION #1: DETAILED LOGGING ==========
+    
+    def _log_sync_details(self, memory_key: str, data: Dict[str, Any], file_size: int = 0):
+        """Log detailed sync information (Recommendation #1)"""
+        data_size = len(json.dumps(data))
+        logger.info(f"📊 SYNC DETAILS: key={memory_key}")
+        logger.info(f"   Data size: {data_size} bytes")
+        logger.info(f"   File size: {file_size} bytes")
+        logger.info(f"   Timestamp: {datetime.now().isoformat()}")
+        if isinstance(data, dict):
+            logger.info(f"   Keys: {', '.join(data.keys())}")
+    
+    # ========== RECOMMENDATION #2: MEMORY INTEGRITY CHECK ==========
+    
+    def verify_memory_sync(self) -> Dict[str, Any]:
+        """Verify that memory is in sync with analysis (Recommendation #2)"""
+        logger.info("🔍 Verifying memory sync integrity...")
+        try:
+            memory_data = self.load_from_memory("codemap_analysis")
+            analysis_data = self._load_json_report("codemap_analysis.json")
+            
+            if not memory_data or not analysis_data:
+                logger.warning("⚠️ Memory or analysis data not available")
+                return {"status": "unavailable", "verified": False}
+            
+            # Check key metrics
+            checks = {
+                "files_analyzed": memory_data.get("files_analyzed") == analysis_data.get("files_analyzed"),
+                "total_functions": memory_data.get("total_functions") == analysis_data.get("total_functions"),
+                "dead_code_count": memory_data.get("dead_code_count") == len(analysis_data.get("dead_code", {}).get("functions", [])),
+                "timestamp_exists": "timestamp" in memory_data
+            }
+            
+            all_ok = all(checks.values())
+            
+            if all_ok:
+                logger.info("✅ Memory sync verified - all checks passed")
+            else:
+                logger.warning(f"⚠️ Memory sync issues detected: {checks}")
+            
+            return {
+                "status": "verified" if all_ok else "degraded",
+                "verified": all_ok,
+                "checks": checks
+            }
+        except Exception as e:
+            logger.error(f"❌ Error verifying memory: {e}")
+            return {"status": "error", "verified": False, "error": str(e)}
+    
+    # ========== RECOMMENDATION #3: CACHING WITH TTL ==========
+    
+    def _get_cached(self, cache_key: str, fetch_func, *args, **kwargs) -> Any:
+        """Get data from cache or fetch if expired (Recommendation #3)"""
+        current_time = time.time()
+        
+        # Check cache
+        if cache_key in self.cache:
+            if current_time - self.cache_time[cache_key] < self.cache_ttl:
+                logger.debug(f"💾 Cache HIT: {cache_key} (age: {current_time - self.cache_time[cache_key]:.1f}s)")
+                return self.cache[cache_key]
+            else:
+                logger.debug(f"💾 Cache EXPIRED: {cache_key}")
+                del self.cache[cache_key]
+                del self.cache_time[cache_key]
+        
+        # Fetch data
+        logger.debug(f"💾 Cache MISS: {cache_key} - fetching...")
+        result = fetch_func(*args, **kwargs)
+        
+        # Store in cache
+        self.cache[cache_key] = result
+        self.cache_time[cache_key] = current_time
+        logger.debug(f"💾 Cached: {cache_key}")
+        
+        return result
+    
+    def clear_cache(self):
+        """Clear all cache (Recommendation #3)"""
+        cache_size = len(self.cache)
+        self.cache.clear()
+        self.cache_time.clear()
+        logger.info(f"🗑️ Cache cleared ({cache_size} items removed)")
+    
+    # ========== RECOMMENDATION #4: HEALTH CHECK ==========
+    
+    def health_check(self) -> Dict[str, Any]:
+        """Check system health status (Recommendation #4)"""
+        logger.info("🏥 Performing health check...")
+        try:
+            # Check files
+            analysis_file = self.reports_dir / "codemap_analysis.json"
+            memory_file = self.memory_dir / "codemap_analysis.json"
+            
+            # Check freshness
+            analysis_age = time.time() - analysis_file.stat().st_mtime if analysis_file.exists() else None
+            memory_age = time.time() - memory_file.stat().st_mtime if memory_file.exists() else None
+            
+            health = {
+                "status": "healthy",
+                "timestamp": datetime.now().isoformat(),
+                "components": {
+                    "analysis_available": analysis_file.exists(),
+                    "memory_available": memory_file.exists(),
+                    "memory_synced": self.verify_memory_sync()["verified"],
+                    "analysis_fresh": analysis_age is not None and analysis_age < 300,
+                    "memory_fresh": memory_age is not None and memory_age < 300
+                },
+                "metrics": {
+                    "analysis_age_seconds": round(analysis_age, 2) if analysis_age else None,
+                    "memory_age_seconds": round(memory_age, 2) if memory_age else None,
+                    "cache_size": len(self.cache),
+                    "cache_ttl": self.cache_ttl
+                }
+            }
+            
+            # Determine status
+            if not all(health["components"].values()):
+                health["status"] = "degraded"
+                logger.warning(f"⚠️ Health check degraded: {health['components']}")
+            else:
+                logger.info("✅ Health check passed - all systems operational")
+            
+            return health
+        except Exception as e:
+            logger.error(f"❌ Health check error: {e}")
+            return {
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+    
+    # ========== AUTO-COMMIT: INTELLIGENT VERSION CONTROL ==========
+    
+    def _load_version_info(self):
+        """Load version info from .codemap_version file"""
+        try:
+            if self.version_file.exists():
+                with open(self.version_file, 'r') as f:
+                    data = json.load(f)
+                    self.last_commit_hash = data.get("last_commit_hash")
+                    self.last_commit_time = data.get("last_commit_time", 0)
+                    logger.info(f"📋 Loaded version info: hash={self.last_commit_hash}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not load version info: {e}")
+    
+    def _save_version_info(self, commit_hash: str):
+        """Save version info to .codemap_version file"""
+        try:
+            version_data = {
+                "last_commit_hash": commit_hash,
+                "last_commit_time": time.time(),
+                "timestamp": datetime.now().isoformat(),
+                "system": "codemap-mcp"
+            }
+            with open(self.version_file, 'w') as f:
+                json.dump(version_data, f, indent=2)
+            self.last_commit_hash = commit_hash
+            self.last_commit_time = time.time()
+            logger.info(f"💾 Saved version info: hash={commit_hash}")
+        except Exception as e:
+            logger.error(f"❌ Error saving version info: {e}")
+    
+    def _get_changes_count(self) -> int:
+        """Get number of uncommitted changes"""
+        try:
+            cmd = "git status --porcelain | wc -l"
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(self.project_root))
+            count = int(result.stdout.strip())
+            logger.debug(f"📊 Uncommitted changes: {count}")
+            return count
+        except Exception as e:
+            logger.error(f"❌ Error getting changes count: {e}")
+            return 0
+    
+    def _should_commit(self) -> bool:
+        """Intelligently determine if commit should be made"""
+        current_time = time.time()
+        time_since_last = current_time - self.last_commit_time
+        changes_count = self._get_changes_count()
+        
+        # Check if enough time has passed
+        if time_since_last < self.commit_threshold:
+            logger.debug(f"⏱️ Not enough time since last commit: {time_since_last:.0f}s < {self.commit_threshold}s")
+            return False
+        
+        # Check if enough changes
+        if changes_count < self.min_changes_for_commit:
+            logger.debug(f"📝 Not enough changes: {changes_count} < {self.min_changes_for_commit}")
+            return False
+        
+        logger.info(f"✅ Should commit: {changes_count} changes, {time_since_last:.0f}s since last")
+        return True
+    
+    def auto_commit(self, message: Optional[str] = None) -> Dict[str, Any]:
+        """Automatically commit changes with intelligent detection"""
+        logger.info("🔄 Checking for auto-commit...")
+        
+        try:
+            if not self._should_commit():
+                return {
+                    "status": "skipped",
+                    "reason": "Not enough changes or time since last commit",
+                    "changes_count": self._get_changes_count(),
+                    "time_since_last": time.time() - self.last_commit_time
+                }
+            
+            # Generate commit message if not provided
+            if not message:
+                changes_count = self._get_changes_count()
+                analysis_data = self._load_json_report("codemap_analysis.json")
+                
+                if analysis_data:
+                    dead_code = len(analysis_data.get("dead_code", {}).get("functions", []))
+                    cycles = len(analysis_data.get("cycles", []))
+                    message = f"🔍 Codemap analysis: {changes_count} changes, {dead_code} dead code items, {cycles} cycles"
+                else:
+                    message = f"🔍 Codemap analysis update: {changes_count} changes"
+            
+            # Stage all changes
+            cmd = "git add -A"
+            subprocess.run(cmd, shell=True, cwd=str(self.project_root))
+            logger.info(f"📦 Staged all changes")
+            
+            # Create commit
+            cmd = f'git commit -m "{message}"'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(self.project_root))
+            
+            if result.returncode == 0:
+                # Get commit hash
+                cmd = "git rev-parse HEAD"
+                hash_result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(self.project_root))
+                commit_hash = hash_result.stdout.strip()[:7]
+                
+                # Save version info
+                self._save_version_info(commit_hash)
+                
+                logger.info(f"✅ Auto-commit successful: {commit_hash}")
+                return {
+                    "status": "committed",
+                    "hash": commit_hash,
+                    "message": message,
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                logger.warning(f"⚠️ Nothing to commit: {result.stderr}")
+                return {
+                    "status": "nothing_to_commit",
+                    "message": result.stderr
+                }
+        except Exception as e:
+            logger.error(f"❌ Auto-commit error: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    # ========== RECOMMENDATION #5: GIT INTEGRATION ==========
+    
+    def get_git_history(self, file_path: str, limit: int = 10) -> Dict[str, Any]:
+        """Get git history for a file (Recommendation #5)"""
+        logger.info(f"📜 Getting git history for {file_path}...")
+        try:
+            # Get recent commits
+            cmd = f"git log --oneline -n {limit} -- {file_path}"
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(self.project_root))
+            
+            commits = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    parts = line.split(' ', 1)
+                    if len(parts) == 2:
+                        commits.append({
+                            "hash": parts[0],
+                            "message": parts[1]
+                        })
+            
+            # Get last modified date
+            cmd = f"git log -1 --format=%ai -- {file_path}"
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(self.project_root))
+            last_modified = result.stdout.strip()
+            
+            logger.info(f"✅ Git history retrieved: {len(commits)} commits")
+            
+            return {
+                "file": file_path,
+                "commits": commits,
+                "last_modified": last_modified,
+                "total_commits": len(commits)
+            }
+        except Exception as e:
+            logger.error(f"❌ Error getting git history: {e}")
+            return {"error": str(e), "file": file_path}
     
     def _get_analysis_status(self) -> str:
         """Get analysis status"""

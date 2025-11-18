@@ -7,7 +7,7 @@
  * @class ToolPlanningHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ToolPlanningHandler extends StateHandler {
     /**
@@ -74,4 +74,4 @@ class ToolPlanningHandler extends StateHandler {
     }
 }
 
-module.exports = ToolPlanningHandler;
+export default ToolPlanningHandler;

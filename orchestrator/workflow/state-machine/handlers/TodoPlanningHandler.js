@@ -7,7 +7,7 @@
  * @class TodoPlanningHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class TodoPlanningHandler extends StateHandler {
     /**
@@ -89,4 +89,4 @@ class TodoPlanningHandler extends StateHandler {
     }
 }
 
-module.exports = TodoPlanningHandler;
+export default TodoPlanningHandler;

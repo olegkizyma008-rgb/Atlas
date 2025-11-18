@@ -7,7 +7,7 @@
  * @class ExecutionHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ExecutionHandler extends StateHandler {
     /**
@@ -69,4 +69,4 @@ class ExecutionHandler extends StateHandler {
     }
 }
 
-module.exports = ExecutionHandler;
+export default ExecutionHandler;

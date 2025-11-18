@@ -7,7 +7,7 @@
  * @class DevHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class DevHandler extends StateHandler {
     /**
@@ -86,4 +86,4 @@ class DevHandler extends StateHandler {
     }
 }
 
-module.exports = DevHandler;
+export default DevHandler;

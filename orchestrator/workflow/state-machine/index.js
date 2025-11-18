@@ -4,7 +4,5 @@
  * Exports WorkflowStateMachine and handlers
  */
 
-module.exports = {
-    WorkflowStateMachine: require('./WorkflowStateMachine'),
-    ...require('./handlers')
-};
+export { default as WorkflowStateMachine } from './WorkflowStateMachine.js';
+export * from './handlers/index.js';

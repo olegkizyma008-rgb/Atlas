@@ -147,13 +147,44 @@ class WorkflowStateMachine {
      * @param {string} nextState - Target state
      * @param {Object} data - Transition data
      * @returns {Promise<boolean>} True if transition successful
+     * @throws {Error} If transition is invalid or fails
      */
     async transition(nextState, data = {}) {
-        // Validate transition
+        // Validate state exists
+        if (!WorkflowStateMachine.States[nextState]) {
+            const error = new Error(`Invalid state: ${nextState} does not exist`);
+            error.code = 'INVALID_STATE';
+            error.currentState = this.currentState;
+            error.attemptedState = nextState;
+            error.validStates = Object.keys(WorkflowStateMachine.States);
+            this.logger.error(`[StateMachine] Invalid state attempted`, {
+                error: error.message,
+                code: error.code,
+                currentState: this.currentState,
+                attemptedState: nextState
+            });
+            throw error;
+        }
+
+        // Validate transition is allowed
         if (!this.canTransition(nextState)) {
-            const error = `Invalid transition: ${this.currentState} -> ${nextState}`;
-            this.logger.error(`[StateMachine] ${error}`);
-            throw new Error(error);
+            const allowedStates = WorkflowStateMachine.TransitionRules[this.currentState] || [];
+            const error = new Error(
+                `Invalid transition: ${this.currentState} -> ${nextState}. ` +
+                `Allowed transitions: ${allowedStates.join(', ') || 'none'}`
+            );
+            error.code = 'INVALID_TRANSITION';
+            error.currentState = this.currentState;
+            error.attemptedState = nextState;
+            error.allowedStates = allowedStates;
+            this.logger.error(`[StateMachine] Invalid transition attempted`, {
+                error: error.message,
+                code: error.code,
+                from: this.currentState,
+                to: nextState,
+                allowed: allowedStates
+            });
+            throw error;
         }
 
         // Call onExit handler for current state
@@ -203,19 +234,43 @@ class WorkflowStateMachine {
      * 
      * @param {Object} data - Handler data
      * @returns {Promise<Object>} Handler result
+     * @throws {Error} If handler execution fails
      */
     async executeHandler(data = {}) {
         const handler = this._getHandler(`${this.currentState}_execute`);
         if (!handler) {
-            throw new Error(`No handler for state ${this.currentState}`);
+            const error = new Error(`No handler found for state: ${this.currentState}`);
+            error.code = 'HANDLER_NOT_FOUND';
+            error.state = this.currentState;
+            this.logger.error(`[StateMachine] Handler not found`, {
+                error: error.message,
+                code: error.code,
+                state: this.currentState
+            });
+            throw error;
         }
 
         try {
+            this.logger.info(`[StateMachine] Executing handler for state: ${this.currentState}`);
             const result = await handler(this.context, data);
+
+            if (!result || !result.success) {
+                this.logger.warn(`[StateMachine] Handler returned failure for state: ${this.currentState}`, {
+                    result
+                });
+            } else {
+                this.logger.info(`[StateMachine] Handler succeeded for state: ${this.currentState}`);
+            }
+
             this._emit('handler_executed', { state: this.currentState, result });
             return result;
         } catch (error) {
-            this.logger.error(`[StateMachine] Handler error for ${this.currentState}:`, error);
+            this.logger.error(`[StateMachine] Handler execution failed for state: ${this.currentState}`, {
+                error: error.message,
+                code: error.code,
+                stack: error.stack,
+                state: this.currentState
+            });
             this._emit('handler_error', { state: this.currentState, error });
             throw error;
         }
@@ -272,6 +327,65 @@ class WorkflowStateMachine {
     off(event, callback) {
         if (!this.eventListeners[event]) return;
         this.eventListeners[event] = this.eventListeners[event].filter(cb => cb !== callback);
+    }
+
+    /**
+     * Transition with timeout protection
+     * 
+     * @param {string} nextState - Target state
+     * @param {Object} data - Transition data
+     * @param {number} timeoutMs - Timeout in milliseconds (default: 30000)
+     * @returns {Promise<boolean>} True if transition successful
+     * @throws {Error} If transition fails or times out
+     */
+    async transitionWithTimeout(nextState, data = {}, timeoutMs = 30000) {
+        return Promise.race([
+            this.transition(nextState, data),
+            new Promise((_, reject) =>
+                setTimeout(() => {
+                    const error = new Error(`Transition timeout: ${this.currentState} -> ${nextState} exceeded ${timeoutMs}ms`);
+                    error.code = 'TRANSITION_TIMEOUT';
+                    error.from = this.currentState;
+                    error.to = nextState;
+                    error.timeoutMs = timeoutMs;
+                    this.logger.error(`[StateMachine] Transition timeout`, {
+                        error: error.message,
+                        from: this.currentState,
+                        to: nextState,
+                        timeoutMs
+                    });
+                    reject(error);
+                }, timeoutMs)
+            )
+        ]);
+    }
+
+    /**
+     * Execute handler with timeout protection
+     * 
+     * @param {Object} data - Handler data
+     * @param {number} timeoutMs - Timeout in milliseconds (default: 30000)
+     * @returns {Promise<Object>} Handler result
+     * @throws {Error} If handler fails or times out
+     */
+    async executeHandlerWithTimeout(data = {}, timeoutMs = 30000) {
+        return Promise.race([
+            this.executeHandler(data),
+            new Promise((_, reject) =>
+                setTimeout(() => {
+                    const error = new Error(`Handler timeout: ${this.currentState} handler exceeded ${timeoutMs}ms`);
+                    error.code = 'HANDLER_TIMEOUT';
+                    error.state = this.currentState;
+                    error.timeoutMs = timeoutMs;
+                    this.logger.error(`[StateMachine] Handler timeout`, {
+                        error: error.message,
+                        state: this.currentState,
+                        timeoutMs
+                    });
+                    reject(error);
+                }, timeoutMs)
+            )
+        ]);
     }
 
     /**
@@ -353,4 +467,4 @@ class WorkflowStateMachine {
     }
 }
 
-module.exports = WorkflowStateMachine;
+export default WorkflowStateMachine;

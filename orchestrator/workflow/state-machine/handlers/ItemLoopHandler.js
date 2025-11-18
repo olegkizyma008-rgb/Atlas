@@ -8,7 +8,7 @@
  * @class ItemLoopHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ItemLoopHandler extends StateHandler {
     /**
@@ -250,4 +250,4 @@ class ItemLoopHandler extends StateHandler {
     }
 }
 
-module.exports = ItemLoopHandler;
+export default ItemLoopHandler;

@@ -7,7 +7,7 @@
  * @class ModeSelectionHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ModeSelectionHandler extends StateHandler {
     /**
@@ -69,4 +69,4 @@ class ModeSelectionHandler extends StateHandler {
     }
 }
 
-module.exports = ModeSelectionHandler;
+export default ModeSelectionHandler;

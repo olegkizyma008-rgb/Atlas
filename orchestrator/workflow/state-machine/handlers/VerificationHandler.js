@@ -7,7 +7,7 @@
  * @class VerificationHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class VerificationHandler extends StateHandler {
     /**
@@ -70,4 +70,4 @@ class VerificationHandler extends StateHandler {
     }
 }
 
-module.exports = VerificationHandler;
+export default VerificationHandler;

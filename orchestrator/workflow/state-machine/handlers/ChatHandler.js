@@ -7,7 +7,7 @@
  * @class ChatHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ChatHandler extends StateHandler {
     /**
@@ -60,4 +60,4 @@ class ChatHandler extends StateHandler {
     }
 }
 
-module.exports = ChatHandler;
+export default ChatHandler;

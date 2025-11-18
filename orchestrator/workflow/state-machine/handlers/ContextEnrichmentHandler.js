@@ -7,7 +7,7 @@
  * @class ContextEnrichmentHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ContextEnrichmentHandler extends StateHandler {
     /**
@@ -87,4 +87,4 @@ class ContextEnrichmentHandler extends StateHandler {
     }
 }
 
-module.exports = ContextEnrichmentHandler;
+export default ContextEnrichmentHandler;

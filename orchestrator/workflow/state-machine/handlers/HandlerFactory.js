@@ -6,20 +6,20 @@
  * 
  * @class HandlerFactory
  */
-const StateHandler = require('./StateHandler');
-const ModeSelectionHandler = require('./ModeSelectionHandler');
-const ChatHandler = require('./ChatHandler');
-const DevHandler = require('./DevHandler');
-const TaskHandler = require('./TaskHandler');
-const ContextEnrichmentHandler = require('./ContextEnrichmentHandler');
-const TodoPlanningHandler = require('./TodoPlanningHandler');
-const ItemLoopHandler = require('./ItemLoopHandler');
-const ServerSelectionHandler = require('./ServerSelectionHandler');
-const ToolPlanningHandler = require('./ToolPlanningHandler');
-const ExecutionHandler = require('./ExecutionHandler');
-const VerificationHandler = require('./VerificationHandler');
-const ReplanHandler = require('./ReplanHandler');
-const FinalSummaryHandler = require('./FinalSummaryHandler');
+import StateHandler from './StateHandler.js';
+import ModeSelectionHandler from './ModeSelectionHandler.js';
+import ChatHandler from './ChatHandler.js';
+import DevHandler from './DevHandler.js';
+import TaskHandler from './TaskHandler.js';
+import ContextEnrichmentHandler from './ContextEnrichmentHandler.js';
+import TodoPlanningHandler from './TodoPlanningHandler.js';
+import ItemLoopHandler from './ItemLoopHandler.js';
+import ServerSelectionHandler from './ServerSelectionHandler.js';
+import ToolPlanningHandler from './ToolPlanningHandler.js';
+import ExecutionHandler from './ExecutionHandler.js';
+import VerificationHandler from './VerificationHandler.js';
+import ReplanHandler from './ReplanHandler.js';
+import FinalSummaryHandler from './FinalSummaryHandler.js';
 
 class HandlerFactory {
     /**
@@ -128,4 +128,4 @@ class HandlerFactory {
     }
 }
 
-module.exports = HandlerFactory;
+export default HandlerFactory;

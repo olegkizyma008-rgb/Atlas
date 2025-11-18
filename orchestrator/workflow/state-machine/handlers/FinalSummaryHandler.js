@@ -8,7 +8,7 @@
  * @class FinalSummaryHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class FinalSummaryHandler extends StateHandler {
     /**
@@ -120,4 +120,4 @@ class FinalSummaryHandler extends StateHandler {
     }
 }
 
-module.exports = FinalSummaryHandler;
+export default FinalSummaryHandler;

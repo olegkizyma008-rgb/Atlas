@@ -8,7 +8,7 @@
  * @class TaskHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class TaskHandler extends StateHandler {
     /**
@@ -99,4 +99,4 @@ class TaskHandler extends StateHandler {
     }
 }
 
-module.exports = TaskHandler;
+export default TaskHandler;

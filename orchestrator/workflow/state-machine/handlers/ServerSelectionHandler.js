@@ -7,7 +7,7 @@
  * @class ServerSelectionHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ServerSelectionHandler extends StateHandler {
     /**
@@ -76,4 +76,4 @@ class ServerSelectionHandler extends StateHandler {
     }
 }
 
-module.exports = ServerSelectionHandler;
+export default ServerSelectionHandler;

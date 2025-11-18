@@ -7,7 +7,7 @@
  * @class ReplanHandler
  * @extends StateHandler
  */
-const StateHandler = require('./StateHandler');
+import StateHandler from './StateHandler.js';
 
 class ReplanHandler extends StateHandler {
     /**
@@ -90,4 +90,4 @@ class ReplanHandler extends StateHandler {
     }
 }
 
-module.exports = ReplanHandler;
+export default ReplanHandler;

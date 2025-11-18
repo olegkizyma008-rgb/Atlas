@@ -11,7 +11,6 @@
 import { apiOptimizer } from '../ai/api-request-optimizer.js';
 import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from '../ai/optimized-workflow-manager.js';
-import OptimizedExecutor from '../ai/optimized-executor.js';
 import logger from '../utils/logger.js';
 
 export class OptimizationIntegration {
@@ -30,9 +29,8 @@ export class OptimizationIntegration {
             const apiOptimizer = container.resolve('apiOptimizer');
             const rateLimiter = container.resolve('rateLimiter');
             const optimizedWorkflowManager = container.resolve('optimizedWorkflowManager');
-            const optimizedExecutor = container.resolve('optimizedExecutor');
 
-            if (!apiOptimizer || !rateLimiter || !optimizedWorkflowManager || !optimizedExecutor) {
+            if (!apiOptimizer || !rateLimiter || !optimizedWorkflowManager) {
                 throw new Error('One or more optimization services failed to resolve');
             }
 
@@ -45,37 +43,6 @@ export class OptimizationIntegration {
         }
     }
 
-
-    /**
-     * Replace traditional executor with optimized version
-     * 
-     * FIXED 2025-11-18: This method is now called explicitly when optimization is needed.
-     * By default, the traditional executor-v3.js is used. To enable optimized execution:
-     * 1. Call optimizationIntegration.enableOptimizedExecution(container) after initialization
-     * 2. Or set an environment variable/config flag to auto-enable on startup
-     */
-    enableOptimizedExecution(container) {
-        if (!this.initialized) {
-            throw new Error('Optimization services not initialized');
-        }
-
-        try {
-            // Get optimized executor
-            const optimizedExecutor = container.resolve('optimizedExecutor');
-
-            // Replace traditional executor registration
-            container.register('executor', () => optimizedExecutor, {
-                singleton: true,
-                override: true
-            });
-
-            this.logger.info('[OPTIMIZATION-INTEGRATION] 🔄 Executor replaced with optimized version');
-
-        } catch (error) {
-            this.logger.error('[OPTIMIZATION-INTEGRATION] ❌ Failed to enable optimized execution:', error.message);
-            throw error;
-        }
-    }
 
     /**
      * Setup optimization monitoring
@@ -126,12 +93,8 @@ export class OptimizationIntegration {
         try {
             const apiOptimizer = container.resolve('apiOptimizer');
             const rateLimiter = container.resolve('rateLimiter');
-            const optimizedExecutor = container.resolve('optimizedExecutor');
 
-            const [apiHealth, executorHealth] = await Promise.all([
-                apiOptimizer.healthCheck(),
-                optimizedExecutor.getHealthStatus()
-            ]);
+            const apiHealth = await apiOptimizer.healthCheck();
 
             return {
                 enabled: this.initialized,
@@ -143,10 +106,6 @@ export class OptimizationIntegration {
                     rateLimiter: {
                         status: rateLimiter.getHealthStatus().status,
                         metrics: rateLimiter.getMetrics()
-                    },
-                    executor: {
-                        status: executorHealth.status,
-                        stats: optimizedExecutor.getExecutorStats()
                     }
                 },
                 overallEfficiency: this._calculateOverallEfficiency(container)
@@ -167,11 +126,9 @@ export class OptimizationIntegration {
         try {
             const apiOptimizer = container.resolve('apiOptimizer');
             const rateLimiter = container.resolve('rateLimiter');
-            const optimizedExecutor = container.resolve('optimizedExecutor');
 
             const apiStats = apiOptimizer.getStats();
             const rateLimiterMetrics = rateLimiter.getMetrics();
-            const executorStats = optimizedExecutor.getExecutorStats();
 
             // Calculate efficiency metrics
             const cacheEfficiency = apiStats.totalRequests > 0
@@ -182,22 +139,18 @@ export class OptimizationIntegration {
                 ? apiStats.requestsSaved / apiStats.totalRequests
                 : 0;
 
-            const executionOptimizationRatio = executorStats.optimizationRatio || 0;
-
             const overallEfficiency = (
-                cacheEfficiency * 0.3 +
-                requestSavingsRatio * 0.4 +
-                executionOptimizationRatio * 0.3
+                cacheEfficiency * 0.5 +
+                requestSavingsRatio * 0.5
             );
 
             return {
                 overall: overallEfficiency,
                 breakdown: {
                     cacheEfficiency: cacheEfficiency,
-                    requestSavings: requestSavingsRatio,
-                    executionOptimization: executionOptimizationRatio
+                    requestSavings: requestSavingsRatio
                 },
-                totalRequestsSaved: apiStats.requestsSaved + executorStats.apiCallsSaved,
+                totalRequestsSaved: apiStats.requestsSaved,
                 performanceImprovement: overallEfficiency > 0.5 ? 'significant' :
                     overallEfficiency > 0.2 ? 'moderate' : 'minimal'
             };

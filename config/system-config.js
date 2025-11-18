@@ -99,6 +99,17 @@ export function buildEnvConfig(environment = env) {
       logging: environment.ENABLE_LOGGING !== 'false',
       monitoring: environment.ENABLE_MONITORING !== 'false'
     },
+    workflow: {
+      // Workflow engine mode: 'classic' | 'state_machine' | 'optimized' | 'hybrid'
+      // classic: Original executor-v3 with minimal changes
+      // state_machine: Uses WorkflowStateMachine without optimization
+      // optimized: Adds OptimizedWorkflowManager for batch processing
+      // hybrid: Includes HybridWorkflowExecutor for parallel execution
+      engineMode: environment.WORKFLOW_ENGINE_MODE || 'state_machine',
+      enableOptimization: environment.ENABLE_WORKFLOW_OPTIMIZATION !== 'false',
+      enableHybridExecution: environment.ENABLE_HYBRID_EXECUTION === 'true',
+      enableTimeoutProtection: environment.ENABLE_TIMEOUT_PROTECTION !== 'false'
+    },
     external: {
       openaiApiKey: environment.OPENAI_API_KEY,
       githubToken: environment.GITHUB_TOKEN

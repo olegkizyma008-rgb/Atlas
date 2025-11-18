@@ -902,6 +902,14 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
   const workflowStart = Date.now();
 
+  // PHASE 5.3: Initialize metrics collection
+  let modeManager = null;
+  try {
+    modeManager = container.resolve('workflowModeManager');
+  } catch (e) {
+    logger.debug('[METRICS] WorkflowModeManager not available, skipping metrics collection');
+  }
+
   try {
     // ===============================================
     // NEXUS CONTEXT-AWARE ACTIVATION (DISABLED 02.11.2025)
@@ -1000,14 +1008,136 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     });
 
     // ===============================================
-    // Stage 0-MCP: Mode Selection (REFACTORED 2025-11-18)
+    // PHASE 3: Check workflow engine mode and apply optimization
     // ===============================================
-    // PHASE 2.4: Transition to MODE_SELECTION state
-    logger.system('executor', '[STATE-MACHINE] Transitioning to MODE_SELECTION state');
-    await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
+    const workflowConfig = container.resolve('config').ENV_CONFIG?.workflow || {};
+    const engineMode = workflowConfig.engineMode || 'state_machine';
 
-    // Execute mode selection handler
-    const modeResult = await stateMachine.executeHandler({ userMessage });
+    logger.system('executor', `[WORKFLOW-ENGINE] Using mode: ${engineMode}`, {
+      sessionId: session.id,
+      enableOptimization: workflowConfig.enableOptimization,
+      enableHybridExecution: workflowConfig.enableHybridExecution
+    });
+
+    // ===============================================
+    // PHASE 3: Apply optimization based on engine mode
+    // PHASE 4: Add hybrid execution support
+    // ===============================================
+    let modeResult;
+
+    if (engineMode === 'hybrid' && workflowConfig.enableHybridExecution) {
+      // Use HybridWorkflowExecutor for parallel execution
+      logger.system('executor', '[HYBRID] Using HybridWorkflowExecutor for parallel mode selection');
+      try {
+        const hybridExecutor = container.resolve('hybridWorkflowExecutor');
+
+        // Convert user message to hybrid tasks
+        const hybridTasks = [{
+          type: 'atomic',
+          name: 'mode_selection',
+          handler: async () => {
+            const sm = new WorkflowStateMachine({
+              logger,
+              handlers: new HandlerFactory({ logger, processors: {} }).getAllHandlers()
+            });
+            await sm.transition(WorkflowStateMachine.States.MODE_SELECTION);
+            return await sm.executeHandler({ userMessage });
+          }
+        }];
+
+        const hybridResult = await hybridExecutor.execute(hybridTasks, {
+          streaming: true,
+          cancellable: true,
+          verification: true,
+          session
+        });
+
+        // Extract mode from hybrid result
+        const taskResult = hybridResult.results?.[0];
+        modeResult = {
+          mode: taskResult?.mode || 'task',
+          confidence: taskResult?.confidence || 0.8,
+          reasoning: taskResult?.reasoning || 'Hybrid workflow',
+          mood: taskResult?.mood || 'neutral',
+          hybrid: true
+        };
+
+        logger.system('executor', '[HYBRID] ✅ Hybrid mode selection completed', {
+          mode: modeResult.mode,
+          confidence: modeResult.confidence
+        });
+      } catch (error) {
+        logger.warn('[HYBRID] HybridWorkflowExecutor failed, falling back to optimized/standard mode', {
+          error: error.message
+        });
+
+        // Fall back to optimized or standard mode
+        if (workflowConfig.enableOptimization) {
+          logger.system('executor', '[OPTIMIZATION] Falling back to OptimizedWorkflowManager');
+          try {
+            const optimizedManager = container.resolve('optimizedWorkflowManager');
+            const optimizedResult = await optimizedManager.processOptimizedWorkflow(userMessage, {
+              session, container, logger
+            });
+            modeResult = {
+              mode: optimizedResult.mode || 'task',
+              confidence: optimizedResult.confidence || 0.8,
+              reasoning: optimizedResult.reasoning || 'Optimized workflow',
+              mood: optimizedResult.mood || 'neutral',
+              optimized: true
+            };
+          } catch (optError) {
+            logger.warn('[OPTIMIZATION] OptimizedWorkflowManager also failed, using standard mode', {
+              error: optError.message
+            });
+            await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
+            modeResult = await stateMachine.executeHandler({ userMessage });
+          }
+        } else {
+          await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
+          modeResult = await stateMachine.executeHandler({ userMessage });
+        }
+      }
+    } else if (engineMode === 'optimized' && workflowConfig.enableOptimization) {
+      // Use OptimizedWorkflowManager for batch processing
+      logger.system('executor', '[OPTIMIZATION] Using OptimizedWorkflowManager for mode selection');
+      try {
+        const optimizedManager = container.resolve('optimizedWorkflowManager');
+        const optimizedResult = await optimizedManager.processOptimizedWorkflow(userMessage, {
+          session,
+          container,
+          logger
+        });
+
+        // Extract mode from optimized result
+        modeResult = {
+          mode: optimizedResult.mode || 'task',
+          confidence: optimizedResult.confidence || 0.8,
+          reasoning: optimizedResult.reasoning || 'Optimized workflow',
+          mood: optimizedResult.mood || 'neutral',
+          optimized: true
+        };
+
+        logger.system('executor', '[OPTIMIZATION] ✅ Optimized mode selection completed', {
+          mode: modeResult.mode,
+          confidence: modeResult.confidence
+        });
+      } catch (error) {
+        logger.warn('[OPTIMIZATION] OptimizedWorkflowManager failed, falling back to standard mode', {
+          error: error.message
+        });
+
+        // Fall back to standard mode selection
+        logger.system('executor', '[STATE-MACHINE] Transitioning to MODE_SELECTION state (fallback)');
+        await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
+        modeResult = await stateMachine.executeHandler({ userMessage });
+      }
+    } else {
+      // Use standard state machine mode selection
+      logger.system('executor', '[STATE-MACHINE] Transitioning to MODE_SELECTION state');
+      await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
+      modeResult = await stateMachine.executeHandler({ userMessage });
+    }
 
     // Handle early returns (DEV mode intervention, password required, etc.)
     if (modeResult.requiresAuth || modeResult.isDevIntervention) {
@@ -1170,6 +1300,17 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
       logger.workflow('complete', 'system', 'TASK mode completed via state machine', {
         sessionId: session.id
       });
+
+      // PHASE 5.3: Record execution metrics
+      if (modeManager) {
+        const executionTime = Date.now() - workflowStart;
+        modeManager.recordExecution(executionTime);
+        logger.system('executor', '[METRICS] Execution recorded', {
+          mode: modeManager.getCurrentMode(),
+          executionTime,
+          metrics: modeManager.getMetrics()
+        });
+      }
 
       return taskResult;
     } catch (taskError) {

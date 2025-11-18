@@ -6,7 +6,6 @@
 import { APIRequestOptimizer } from './orchestrator/ai/api-request-optimizer.js';
 import adaptiveThrottler from './orchestrator/utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from './orchestrator/ai/optimized-workflow-manager.js';
-import OptimizedExecutor from './orchestrator/ai/optimized-executor.js';
 import { DIContainer } from './orchestrator/core/di-container.js';
 import logger from './orchestrator/utils/logger.js';
 
@@ -47,7 +46,6 @@ async function runOptimizationTests() {
     const apiOptimizer = new APIRequestOptimizer('http://localhost:4001/v1');
     const rateLimiter = new IntelligentRateLimiter();
     const workflowManager = new OptimizedWorkflowManager(mockContainer);
-    const optimizedExecutor = new OptimizedExecutor(mockContainer);
 
     let testsPassed = 0;
     let totalTests = 4;

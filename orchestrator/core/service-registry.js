@@ -371,16 +371,28 @@ export function registerOptimizationServices(container) {
         }
     });
 
-    // Optimized Executor
-    container.singleton('optimizedExecutor', async (c) => {
-        const OptimizedExecutor = (await import('../ai/optimized-executor.js')).default;
-        return new OptimizedExecutor(c);
+    // Hybrid Workflow Executor - parallel execution (Phase 4)
+    container.singleton('hybridWorkflowExecutor', async (c) => {
+        const { HybridWorkflowExecutor } = await import('../workflow/hybrid/hybrid-executor.js');
+        const wsManager = c.resolve('wsManager');
+        const ttsSyncManager = c.resolve('ttsSyncManager');
+        const localizationService = c.resolve('localizationService');
+
+        return new HybridWorkflowExecutor({
+            maxWorkers: 10,
+            executionMode: 'adaptive',
+            verificationStrategy: 'composite',
+            container: c,
+            wsManager,
+            ttsSyncManager,
+            localizationService
+        });
     }, {
-        dependencies: ['apiOptimizer', 'rateLimiter', 'optimizedWorkflowManager'],
+        dependencies: ['wsManager', 'ttsSyncManager', 'localizationService'],
         metadata: { category: 'optimization', priority: 62 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] 🚀 Optimized Executor initialized - replacing traditional executor');
+                logger.system('startup', '[DI] 🚀 Hybrid Workflow Executor initialized - parallel execution enabled');
             }
         }
     });
@@ -397,11 +409,25 @@ export function registerOptimizationServices(container) {
 
         return optimizationIntegration;
     }, {
-        dependencies: ['apiOptimizer', 'rateLimiter', 'optimizedWorkflowManager', 'optimizedExecutor'],
+        dependencies: ['apiOptimizer', 'rateLimiter', 'optimizedWorkflowManager', 'hybridWorkflowExecutor'],
         metadata: { category: 'optimization', priority: 61 },
         lifecycle: {
             onInit: async function () {
                 logger.system('startup', '[DI] 📊 Optimization Integration initialized - monitoring enabled');
+            }
+        }
+    });
+
+    // Workflow Mode Manager - runtime mode switching (Phase 5)
+    container.singleton('workflowModeManager', async (c) => {
+        const { WorkflowModeManager } = await import('../workflow/workflow-mode-manager.js');
+        return new WorkflowModeManager(c);
+    }, {
+        dependencies: ['config'],
+        metadata: { category: 'optimization', priority: 60 },
+        lifecycle: {
+            onInit: async function () {
+                logger.system('startup', '[DI] 🎛️ Workflow Mode Manager initialized - runtime mode switching enabled');
             }
         }
     });

@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: update-codemap
+        name: Update Code Analysis Maps
+        entry: bash -c "python3 codemap_analyzer.py --once 2>/dev/null || true"
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

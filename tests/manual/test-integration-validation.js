@@ -14,7 +14,6 @@ import { DIContainer } from './orchestrator/core/di-container.js';
 import { apiOptimizer } from './orchestrator/ai/api-request-optimizer.js';
 import adaptiveThrottler from './orchestrator/utils/adaptive-request-throttler.js';
 import OptimizedWorkflowManager from './orchestrator/ai/optimized-workflow-manager.js';
-import OptimizedExecutor from './orchestrator/ai/optimized-executor.js';
 import { setupOptimizationIntegration } from './orchestrator/core/optimization-integration.js';
 import GlobalConfig from './config/global-config.js';
 

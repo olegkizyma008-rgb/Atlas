@@ -1,5 +1,5 @@
 # 📊 Code Analysis Report
-Generated: 2025-11-19T00:43:29.646803
+Generated: 2025-11-19T00:43:41.948771
 
 ## Project Overview
 - **Project**: My Project
@@ -19,7 +19,7 @@ Generated: 2025-11-19T00:43:29.646803
 
 ## 🔴 Dead Code Detected
 
-### Unused Functions (20667)
+### Unused Functions (20916)
 - `serve_config` in `web/atlas_server.py` (line 43)
 - `health` in `web/atlas_server.py` (line 58)
 - `get_tts_config` in `web/atlas_server.py` (line 68)
@@ -40,9 +40,9 @@ Generated: 2025-11-19T00:43:29.646803
 - `checkLook` in `web/static/js/components/model3d/atlas-living-behavior-enhanced.js` (line 60)
 - `checkIdle` in `web/static/js/components/model3d/atlas-living-behavior-enhanced.js` (line 204)
 - `centerX` in `web/static/js/components/model3d/atlas-glb-living-system.js` (line 297)
-- ... and 20647 more
+- ... and 20896 more
 
-### Unused Private Methods (3486)
+### Unused Private Methods (3528)
 - `_shift_plus_markers` in `ukrainian_accentor/__init__.py` (line 28)
 - `__init__` in `ukrainian-tts/tts_server.py` (line 41)
 - `_repl` in `ukrainian-tts/vocoder/synthesize_with_intonation.py` (line 51)
@@ -63,7 +63,7 @@ Generated: 2025-11-19T00:43:29.646803
 - `__embind_register_std_wstring` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
 - `__embind_register_void` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
 - `__emscripten_get_now_is_monotonic` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
-- ... and 3466 more
+- ... and 3508 more
 
 ## 🔄 Circular Dependencies (0)
 

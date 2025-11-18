@@ -59,7 +59,7 @@ export class VisionAnalysisService {
     this.initialized = false;
     this.port4000Available = false;
     this.ollamaAvailable = false;
-    
+
     // UPDATED 2025-11-10: Accept modelChecker through DI instead of global import
     this.modelChecker = checker || modelChecker; // Fallback to global import for backward compatibility
 
@@ -166,9 +166,15 @@ export class VisionAnalysisService {
     if (this.port4000Available) {
       this.logger.system('vision-analysis', '[VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec)');
       this.visionProvider = 'port4000';
-      // Use actual vision model from config instead of placeholder
-      const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_analysis');
-      this.visionModel = visionConfig.model;
+      // FIXED 2025-11-17: Use copilot-gpt-4o as default vision model for port 4000
+      // Fallback to config if available, otherwise use hardcoded default
+      try {
+        const visionConfig = GlobalConfig.MCP_MODEL_CONFIG?.getStageConfig?.('vision_analysis');
+        this.visionModel = visionConfig?.model || 'copilot-gpt-4o';
+      } catch (e) {
+        this.logger.warn('[VISION] Failed to get vision model from config, using default: copilot-gpt-4o');
+        this.visionModel = 'copilot-gpt-4o';
+      }
     } else {
       // Check Ollama as fallback (slow but free)
       this.ollamaAvailable = await this._checkOllamaAvailability();
@@ -395,8 +401,8 @@ export class VisionAnalysisService {
           const optimized = await fs.readFile(tempOutput);
 
           // Cleanup
-          await fs.unlink(tempInput).catch(() => {});
-          await fs.unlink(tempOutput).catch(() => {});
+          await fs.unlink(tempInput).catch(() => { });
+          await fs.unlink(tempOutput).catch(() => { });
 
           const newSize = optimized.length;
           const reduction = Math.round((1 - newSize / originalSize) * 100);
@@ -409,8 +415,8 @@ export class VisionAnalysisService {
 
         } catch (sysError) {
           // Cleanup on error
-          await fs.unlink(tempInput).catch(() => {});
-          await fs.unlink(tempOutput).catch(() => {});
+          await fs.unlink(tempInput).catch(() => { });
+          await fs.unlink(tempOutput).catch(() => { });
           throw sysError;
         }
       }
@@ -479,12 +485,23 @@ export class VisionAnalysisService {
     for (let i = 0; i < retries; i++) {
       try {
         // ENHANCED 2025-10-22: Pass context for model selection
+        // FIXED 2025-11-18: Reduce retries - _callVisionAPI already has 3 internal attempts
         const result = await this._callVisionAPI(base64Image, prompt, context);
         return result;
       } catch (error) {
         lastError = error;
+        // FIXED 2025-11-18: Check if error is server error (500/503) - skip retries and go to fallback
+        const isServerError = error.response?.status === 500 || error.response?.status === 503;
+        if (isServerError) {
+          this.logger.warn(`[VISION] Server error (${error.response.status}) detected - skipping retries, using emergency fallback`, {
+            category: 'vision-analysis',
+            error: error.message
+          });
+          throw error; // Let emergency fallback handle it
+        }
+
         if (i < retries - 1) {
-          const delay = Math.pow(2, i) * 1000; // Exponential backoff
+          const delay = Math.pow(2, i) * 500; // Reduced from 1000ms to 500ms (FIXED 2025-11-18)
           this.logger.warn(`[VISION] Retry ${i + 1}/${retries} after ${delay}ms`, {
             category: 'vision-analysis',
             error: error.message
@@ -596,24 +613,24 @@ export class VisionAnalysisService {
       .replace('{{SUCCESS_CRITERIA}}', successCriteria)
       .replace('{{TASK_ACTION}}', context.action || '')
       .replace('{{EXECUTION_SUMMARY}}', executionSummary || '');
-      
+
     // ENHANCED 2025-10-24: Add execution history for multi-step operations
     if (context.execution_history) {
       userPrompt += `\n\n**Execution History (Previous Steps):**\n${context.execution_history}`;
     }
-    
+
     // ENHANCED 2025-10-24: Add previous actions context for sequential workflows
     if (context.previous_actions) {
       userPrompt += `\n\n**Previous Actions Context:**\n${context.previous_actions}\n\nIMPORTANT: Verify the result of the CURRENT operation in the context of these previous steps. Consider how previous actions affect what you should see now.`;
     }
-      
+
     // Clean up empty template sections
     if (!context.action) {
       userPrompt = userPrompt.replace(/{{#if TASK_ACTION}}[\s\S]*?{{\/if}}/g, '');
     } else {
       userPrompt = userPrompt.replace('{{#if TASK_ACTION}}', '').replace('{{/if}}', '');
     }
-    
+
     if (!executionSummary) {
       userPrompt = userPrompt.replace(/{{#if EXECUTION_SUMMARY}}[\s\S]*?{{\/if}}/g, '');
     } else {
@@ -635,7 +652,7 @@ export class VisionAnalysisService {
     let userPrompt = visionAnalysisPrompts.comparisonPrompt
       .replace('{{EXPECTED_CHANGE}}', expectedChange)
       .replace('{{CONTEXT}}', context.description || '');
-      
+
     // Clean up empty template sections
     if (!context.description) {
       userPrompt = userPrompt.replace(/{{#if CONTEXT}}[\s\S]*?{{\/if}}/g, '');
@@ -659,30 +676,30 @@ export class VisionAnalysisService {
       .replace('{{EXPECTED_ACTIVITY}}', expectedActivity)
       .replace('{{TASK_CONTEXT}}', context.taskContext || '')
       .replace('{{TIME_ELAPSED}}', context.timeElapsed || '');
-      
+
     // Clean up empty template sections
     if (!context.taskContext) {
       userPrompt = userPrompt.replace(/{{#if TASK_CONTEXT}}[\s\S]*?{{\/if}}/g, '');
     } else {
       userPrompt = userPrompt.replace('{{#if TASK_CONTEXT}}', '').replace('{{/if}}', '');
     }
-    
+
     if (!context.timeElapsed) {
       userPrompt = userPrompt.replace(/{{#if TIME_ELAPSED}}[\s\S]*?{{\/if}}/g, '');
     } else {
       userPrompt = userPrompt.replace('{{#if TIME_ELAPSED}}', '').replace('{{/if}}', '');
     }
-    
+
     // UNIVERSAL: Add context from previous items
     if (context.previous_actions) {
       userPrompt += `\n\n**Previous Actions:**\n${context.previous_actions}`;
       userPrompt += `\n\nIMPORTANT: Verify the CURRENT operation considering these previous steps.`;
     }
-    
+
     if (context.execution_history) {
       userPrompt += `\n\n**Execution History:**\n${context.execution_history}`;
     }
-    
+
     if (context.workflow_context) {
       userPrompt += `\n\n**Workflow Context:**\n${context.workflow_context}`;
     }
@@ -692,7 +709,8 @@ export class VisionAnalysisService {
 
   /**
      * Call vision API with single image
-     * Automatically routes to fastest available: Port 4000 → Ollama → OpenRouter
+     * Automatically routes to fastest available: Port 4000 → Fallback Models → Emergency
+     * UPDATED 2025-11-18: Removed Ollama, using Port 4000 models for all fallbacks
      *
      * @param {string} base64Image - Base64 encoded image
      * @param {string} prompt - Analysis prompt
@@ -703,20 +721,17 @@ export class VisionAnalysisService {
     try {
       // Get system prompt from external prompts
       const systemPrompt = visionAnalysisPrompts.SYSTEM_PROMPT;
-      
-      // PRIMARY: Try port 4000 first (FAST ~2-5 sec)
-      if (this.port4000Available && this.visionProvider === 'port4000') {
-        // ENHANCED 2025-10-22: Pass context for model selection
-        return await this._callPort4000VisionAPI(base64Image, prompt, context, systemPrompt);
-      }
 
-      // FALLBACK: Try Ollama (SLOW ~120+ sec but FREE)
-      if (this.visionProvider === 'ollama' && this.ollamaAvailable) {
-        return await this._callOllamaVisionAPI(base64Image, prompt, systemPrompt);
+      // SIMPLIFIED 2025-11-18: Single primary attempt (copilot-gpt-4o is most reliable)
+      // If this fails with 500/503, emergency fallback will handle it
+      try {
+        this.logger.system('vision-analysis', '[VISION-PRIMARY] Trying copilot-gpt-4o (надійний)...');
+        return await this._callPort4000VisionAPI(base64Image, prompt, { ...context, stageName: 'vision_verification_primary' }, systemPrompt);
+      } catch (error1) {
+        // FIXED 2025-11-18: Don't retry same model, go directly to emergency fallback
+        this.logger.warn('[VISION-PRIMARY] Failed, activating emergency fallback...', { error: error1.message });
+        return await this._callEmergencyVisionFallback(base64Image, prompt, systemPrompt);
       }
-
-      // EMERGENCY FALLBACK: Try alternative vision models via ModelAvailabilityChecker
-      return await this._callEmergencyVisionFallback(base64Image, prompt, systemPrompt);
 
     } catch (error) {
       this.logger.error(`[VISION] API call failed: ${error.message}`, {
@@ -738,9 +753,10 @@ export class VisionAnalysisService {
   async _callPort4000VisionAPI(base64Image, prompt, context = {}, systemPrompt = null) {
     try {
       // ENHANCED 2025-10-22: Select model based on modelType from context
+      // FIXED 2025-11-18: Support stageName from context for fallback models
       const modelType = context.modelType || 'fast';  // 'fast' or 'primary'
-      const stageName = modelType === 'fast' ? 'vision_verification_fast' : 'vision_verification_strong';
-      
+      const stageName = context.stageName || (modelType === 'fast' ? 'vision_verification_fast' : 'vision_verification_strong');
+
       this.logger.system('vision-analysis', `[PORT-4000] 🚀 Calling Port 4000 LLM API (model: ${modelType})...`);
 
       // OPTIMIZATION 2025-10-17: Check and optimize image to prevent 413 errors
@@ -750,14 +766,14 @@ export class VisionAnalysisService {
       const visionConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig(stageName);
       const endpoint = GlobalConfig.MCP_MODEL_CONFIG.apiEndpoint.primary;
       const apiEndpoint = visionConfig.endpoint || 'http://localhost:4000/v1/chat/completions';
-      
+
       this.logger.system('vision-analysis', `[PORT-4000] 🎯 Model: ${visionConfig.model}`);
       this.logger.system('vision-analysis', `[PORT-4000] 🌡️ Temperature: ${visionConfig.temperature}`);
       this.logger.system('vision-analysis', `[PORT-4000] 📊 Max tokens: ${visionConfig.max_tokens}`);
 
       // Prepare headers - add Copilot-Vision-Request for GitHub Copilot models
       const headers = { 'Content-Type': 'application/json' };
-      
+
       // FIXED 18.10.2025: GitHub Copilot requires special header for vision requests
       if (visionConfig.model && visionConfig.model.includes('copilot')) {
         headers['Copilot-Vision-Request'] = 'true';
@@ -773,6 +789,7 @@ export class VisionAnalysisService {
 
         // Build request with multimodal format
         // FIXED 2025-11-07: Use apiEndpoint variable, not visionConfig.apiEndpoint
+        // FIXED 2025-11-18: Use visionConfig.temperature instead of hardcoded 0.2
         const response = await axios.post(apiEndpoint, {
           model: visionConfig.model,
           messages: [
@@ -784,13 +801,15 @@ export class VisionAnalysisService {
               role: 'user',
               content: [
                 { type: 'text', text: prompt },
-                { type: 'image_url', image_url: {
-                  url: `data:image/jpeg;base64,${optimizedImage}`
-                }}
+                {
+                  type: 'image_url', image_url: {
+                    url: `data:image/jpeg;base64,${optimizedImage}`
+                  }
+                }
               ]
             }
           ],
-          temperature: 0.2,
+          temperature: visionConfig.temperature || 0.2,
           max_tokens: visionConfig.max_tokens || 500
         }, {
           timeout: 60000,  // FIXED 2025-10-29: 60s timeout for vision models (llama-90b needs more time)
@@ -841,59 +860,41 @@ export class VisionAnalysisService {
   }
 
   /**
-     * Call Ollama vision API (local, SLOW, FREE)
-     * Only used as FALLBACK if port 4000 unavailable
-     *
-     * @param {string} base64Image - Base64 encoded image
-     * @param {string} prompt - Analysis prompt
-     * @returns {Promise<Object>} Parsed analysis result
-     * @private
+     * COMMENTED 2025-11-18: Ollama vision API disabled
+     * Using Port 4000 models for all fallbacks instead
+     * 
+     * async _callOllamaVisionAPI(base64Image, prompt, systemPrompt = null) {
+     *   try {
+     *     this.logger.system('vision-analysis', '[OLLAMA] ⚠️  Calling Ollama (slow 120+ sec, FREE fallback)...');
+     *     const ollamaConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback');
+     *     const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
+     *     const response = await axios.post('http://localhost:11434/api/generate', {
+     *       model: 'llama3.2-vision',
+     *       prompt: fullPrompt,
+     *       images: [base64Image],
+     *       stream: false
+     *     }, {
+     *       timeout: 600000,
+     *       headers: { 'Content-Type': 'application/json' }
+     *     });
+     *     const content = response.data.response;
+     *     this.logger.system('vision-analysis', '[OLLAMA] ✅ Slow response received');
+     *     return this._parseVisionResponse(content);
+     *   } catch (error) {
+     *     if (error.code === 'ECONNREFUSED') {
+     *       this.logger.error('[OLLAMA] Ollama not available', { category: 'vision-analysis' });
+     *       this.ollamaAvailable = false;
+     *       throw new Error('Ollama unavailable.');
+     *     }
+     *     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+     *       this.logger.error('[OLLAMA] Ollama timeout 600s (10 min)', { category: 'vision-analysis' });
+     *       this.ollamaAvailable = false;
+     *       throw new Error('Ollama timeout after 10 minutes.');
+     *     }
+     *     throw error;
+     *   }
+     * }
      */
-  async _callOllamaVisionAPI(base64Image, prompt, systemPrompt = null) {
-    try {
-      this.logger.system('vision-analysis', '[OLLAMA] ⚠️  Calling Ollama (slow 120+ sec, FREE fallback)...');
-
-      const ollamaConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback');
-      // Combine system prompt with user prompt for Ollama
-      const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
-      
-      const response = await axios.post('http://localhost:11434/api/generate', {
-        model: 'llama3.2-vision',
-        prompt: fullPrompt,
-        images: [base64Image],
-        stream: false
-      }, {
-        timeout: 600000,  // FIXED 2025-11-08: 10min timeout (was 5min) - Ollama can be VERY slow
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const content = response.data.response;
-      this.logger.system('vision-analysis', '[OLLAMA] ✅ Slow response received');
-
-      return this._parseVisionResponse(content);
-
-    } catch (error) {
-      if (error.code === 'ECONNREFUSED') {
-        this.logger.error('[OLLAMA] Ollama not available', {
-          category: 'vision-analysis',
-          note: 'OpenRouter fallback disabled'
-        });
-        this.ollamaAvailable = false;
-        throw new Error('Ollama unavailable. OpenRouter fallback disabled.');
-      }
-
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        this.logger.error('[OLLAMA] Ollama timeout 600s (10 min)', {
-          category: 'vision-analysis',
-          note: 'OpenRouter fallback disabled'
-        });
-        this.ollamaAvailable = false;
-        throw new Error('Ollama timeout after 10 minutes. OpenRouter fallback disabled.');
-      }
-
-      throw error;
-    }
-  }
 
   /**
      * ADDED 2025-11-08: Emergency fallback using ModelAvailabilityChecker
@@ -907,25 +908,25 @@ export class VisionAnalysisService {
   async _callEmergencyVisionFallback(base64Image, prompt, systemPrompt = null) {
     try {
       this.logger.warn('[VISION] 🆘 Emergency fallback activated - searching for available vision models');
-      
+
       // STEP 1: Get available models from ModelAvailabilityChecker (CACHED)
       // FIXED 2025-11-10: Use cached fetchAvailableModels instead of direct GET /v1/models
       let availableVisionModels = [];
       try {
         const apiModels = await this.modelChecker.fetchAvailableModels();
-        
+
         if (apiModels && apiModels.length > 0) {
           // Filter vision models (contain 'vision' in name or known vision models)
           availableVisionModels = apiModels
             .map(m => m.id)
-            .filter(modelId => 
-              modelId.includes('vision') || 
+            .filter(modelId =>
+              modelId.includes('vision') ||
               modelId.includes('gpt-4o') ||
               modelId.includes('llama-3.2') ||
               modelId.includes('phi-4-multimodal')
             )
             .slice(0, 3); // CRITICAL 2025-11-10: Limit to 3 vision models to prevent burst
-          
+
           this.logger.info(`[VISION-EMERGENCY] 📋 Found ${availableVisionModels.length} vision models (limited)`);
         }
       } catch (error) {
@@ -937,49 +938,49 @@ export class VisionAnalysisService {
           'atlas-phi-4-multimodal-instruct'
         ];
       }
-      
+
       if (availableVisionModels.length === 0) {
         throw new Error('No vision models available in API');
       }
-      
-      // STEP 2: UPDATED 2025-11-10 - Use findWorkingModelOnError for direct testing
+
+      // STEP 2: UPDATED 2025-11-18 - Use fallback chain: copilot-gpt-4o → atlas-gpt-4o → others
       const emergencyConfig = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_emergency');
-      const preferredModel = emergencyConfig.model; // atlas-gpt-4o-mini
-      
-      // First try to find working model directly
-      let selectedModel = await this.modelChecker.findWorkingModelOnError(
-        preferredModel, 
-        '500-vision', 
-        'vision'
-      );
-      
-      if (!selectedModel) {
-        this.logger.warn('[VISION-EMERGENCY] findWorkingModelOnError returned null, trying manual selection...');
-        
-        // Fallback: Prioritize preferred model if it's in the list
-        const modelsToTry = availableVisionModels.includes(preferredModel)
-          ? [preferredModel, ...availableVisionModels.filter(m => m !== preferredModel)]
-          : availableVisionModels;
-        
-        // Try each model until one works
-        for (const model of modelsToTry) {
-          const modelResult = await this.modelChecker.getAvailableModel(model, null, 'vision');
-          if (modelResult.available) {
-            selectedModel = modelResult.model;
-            break;
-          }
+      const fallbackConfig1 = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback_1');
+      const fallbackConfig2 = GlobalConfig.MCP_MODEL_CONFIG.getStageConfig('vision_fallback_2');
+
+      // Preferred order: copilot-gpt-4o (powerful) → atlas-gpt-4o (powerful) → others
+      const preferredModels = [
+        fallbackConfig1.model,  // copilot-gpt-4o
+        fallbackConfig2.model,  // atlas-gpt-4o (UPDATED 2025-11-18)
+        emergencyConfig.model   // atlas-gpt-4o
+      ];
+
+      let selectedModel = null;
+
+      // Try preferred models first
+      for (const model of preferredModels) {
+        if (availableVisionModels.includes(model)) {
+          selectedModel = model;
+          this.logger.info(`[VISION-EMERGENCY] 🎯 Using preferred model: ${selectedModel}`);
+          break;
         }
       }
-      
+
+      // If no preferred model available, try any from the list
+      if (!selectedModel && availableVisionModels.length > 0) {
+        selectedModel = availableVisionModels[0];
+        this.logger.warn(`[VISION-EMERGENCY] ⚠️  No preferred model available, using: ${selectedModel}`);
+      }
+
       if (!selectedModel) {
         throw new Error('All vision models unavailable - failed availability checks');
       }
-      
-      this.logger.info(`[VISION-EMERGENCY] 🎯 Using ${selectedModel}`);
-      
+
+      this.logger.info(`[VISION-EMERGENCY] 🎯 Selected model: ${selectedModel}`);
+
       // Optimize image for API
       const optimizedImage = this._optimizeImageForAPI(base64Image);
-      
+
       // Build messages with vision format
       const messages = [
         ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
@@ -994,7 +995,7 @@ export class VisionAnalysisService {
           ]
         }
       ];
-      
+
       // Call API with selected model
       const response = await axios.post(
         'http://localhost:4000/v1/chat/completions',
@@ -1009,18 +1010,18 @@ export class VisionAnalysisService {
           headers: { 'Content-Type': 'application/json' }
         }
       );
-      
+
       const content = response.data.choices[0]?.message?.content;
       this.logger.system('vision-analysis', `[VISION-EMERGENCY] ✅ Response received from ${selectedModel}`);
-      
+
       return this._parseVisionResponse(content);
-      
+
     } catch (error) {
       this.logger.error('[VISION-EMERGENCY] ❌ All vision fallbacks failed', {
         category: 'vision-analysis',
         error: error.message
       });
-      
+
       // Return safe fallback response
       return {
         verified: false,
@@ -1045,7 +1046,7 @@ export class VisionAnalysisService {
 
       const apiEndpoint = 'http://localhost:4000/v1/chat/completions';
       const messages = [];
-      
+
       // Add system prompt if provided
       if (systemPrompt) {
         messages.push({
@@ -1053,7 +1054,7 @@ export class VisionAnalysisService {
           content: systemPrompt
         });
       }
-      
+
       // Add user message with image
       messages.push({
         role: 'user',
@@ -1067,10 +1068,10 @@ export class VisionAnalysisService {
           }
         ]
       });
-      
+
       const response = await axios.post(apiEndpoint, {
         model: 'openai/gpt-4-vision-preview',
-        messages,  
+        messages,
         max_tokens: 1000,
         temperature: 0.2  // OpenRouter fallback - hardcoded for now
       }, {
@@ -1199,7 +1200,7 @@ export class VisionAnalysisService {
               .replace(/:\s*false\s*([,}])/g, ': false$1') // Keep boolean false
               .replace(/:\s*null\s*([,}])/g, ': null$1') // Keep null
               .replace(/:\s*(\d+(?:\.\d+)?)\s*([,}])/g, ': $1$2'); // Keep numbers
-            
+
             const parsed = JSON.parse(fixedJson);
             this.logger.system('vision-analysis', '[VISION] ✅ Successfully converted JavaScript object notation to JSON');
             return this._normalizeVisionPayload(parsed);
@@ -1208,14 +1209,14 @@ export class VisionAnalysisService {
           }
         }
       }
-      
+
       // FIXED 2025-10-30: Improved markdown parsing with detailed logging
       this.logger.system('vision-analysis', '[VISION] 🔍 Attempting markdown parsing...');
       const markdownParsed = this._parseMarkdownResponse(content);
-      
+
       if (markdownParsed) {
         this.logger.system('vision-analysis', `[VISION] ✅ Markdown parser returned: verified=${markdownParsed.verified}, confidence=${markdownParsed.confidence}%`);
-        
+
         if (markdownParsed.verified !== undefined) {
           return this._normalizeVisionPayload(markdownParsed);
         } else {
@@ -1242,7 +1243,7 @@ export class VisionAnalysisService {
       // CRITICAL SECURITY: Text fallback ALWAYS returns verified=false
       // Positive keywords are NOT reliable evidence without structured JSON proof
       // This prevents hallucinations from passing verification automatically
-      
+
       // Create fallback JSON structure with SECURE defaults
       const fallbackResponse = {
         verified: false, // SECURITY: Always false for text fallback
@@ -1286,7 +1287,7 @@ export class VisionAnalysisService {
       // FIXED 2025-10-30: More aggressive pattern matching for various text formats
       // Try multiple verification patterns
       let verifiedMatch = content.match(/\*\*\s*Verified\s*[:\*]*\s*(true|false|Yes|No)/i);
-      
+
       // Try alternative markdown patterns
       if (!verifiedMatch) {
         verifiedMatch = content.match(/\*\s*Answer\s*\*\s*:\s*(verified|not verified|true|false|yes|no)/i);
@@ -1297,12 +1298,12 @@ export class VisionAnalysisService {
       if (!verifiedMatch) {
         verifiedMatch = content.match(/Result\s*:\s*(verified|not verified|true|false|yes|no)/i);
       }
-      
+
       // Try plain text patterns (no markdown)
       if (!verifiedMatch) {
         verifiedMatch = content.match(/(?:is\s+|are\s+)?(verified|not verified|true|false|yes|no)(?:[\s.,;]|$)/i);
       }
-      
+
       // Try detecting verification in natural language
       if (!verifiedMatch) {
         if (/calculator\s+is\s+open|application\s+is\s+(?:open|visible|running)/i.test(content)) {
@@ -1311,29 +1312,30 @@ export class VisionAnalysisService {
           verifiedMatch = ['', 'No'];
         }
       }
-      
+
       if (!verifiedMatch) return null;
-      
+
       const verifiedValue = verifiedMatch[1].toLowerCase();
       const verified = verifiedValue === 'true' || verifiedValue === 'yes' || verifiedValue === 'verified';
-      
+
       // Extract confidence
       const confidenceMatch = content.match(/\*\*\s*Confidence\s*[:\*]*\s*(\d+)%?/i);
-      // UPDATED 2025-11-08: Lower optimistic default for markdown responses to avoid false positives
-      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : (verified ? 55 : 25);
-      
+      // FIXED 2025-11-18: If markdown response explicitly says "verified: true", set high confidence
+      // Don't penalize markdown responses - they're from vision model
+      const confidence = confidenceMatch ? parseInt(confidenceMatch[1], 10) : (verified ? 85 : 25);
+
       // Extract reason
       const reasonMatch = content.match(/\*\*\s*Reason\s*[:\*]*\s*([^\n*]+)/i);
       const reason = reasonMatch ? reasonMatch[1].trim() : 'No reason provided';
-      
+
       // Extract observed value
       const observedMatch = content.match(/\*\*\s*(?:Observed|Visual Evidence)\s*[:\*]*\s*([^\n*]+)/i);
       const observed = observedMatch ? observedMatch[1].trim() : 'No visual details provided';
-      
+
       // Extract details
       const detailsMatch = content.match(/\*\*\s*Details\s*[:\*]*\s*([^\n*]+)/i);
       const details = detailsMatch ? detailsMatch[1].trim() : 'No additional details';
-      
+
       return {
         verified,
         confidence,
@@ -1414,9 +1416,9 @@ export class VisionAnalysisService {
 
     const guardNotes = [];
     const normalizedCriteria = (successCriteria || '').toLowerCase();
+    const evidenceText = this._collectEvidenceText(result, context);
 
     if (this._requiresVideoGuard(normalizedCriteria, context)) {
-      const evidenceText = this._collectEvidenceText(result, context);
       const playbackIndicators = [
         'playing',
         'playback',
@@ -1431,7 +1433,7 @@ export class VisionAnalysisService {
         'video player',
         'контрол',
         'прогрес',
-        'вiдтвор',
+        'відтвор',
         'пауза'
       ];
 
@@ -1446,27 +1448,27 @@ export class VisionAnalysisService {
           result.reason = 'Відсутні ознаки відтворення відео або програвача на скріншоті.';
         }
       }
+    }
 
-      if (this._requiresFullscreenGuard(normalizedCriteria, context)) {
-        const fullscreenIndicators = [
-          'full screen',
-          'fullscreen',
-          'повноекран',
-          'maximize',
-          'full-screen icon',
-          'full screen button'
-        ];
+    if (this._requiresFullscreenGuard(normalizedCriteria, context)) {
+      const fullscreenIndicators = [
+        'full screen',
+        'fullscreen',
+        'повноекран',
+        'maximize',
+        'full-screen icon',
+        'full screen button'
+      ];
 
-        if (!this._textContainsAny(evidenceText, fullscreenIndicators)) {
-          guardNotes.push('fullscreen-indicator-missing');
-          result.verified = false;
-          if (result.visual_evidence) {
-            result.visual_evidence.matches_criteria = false;
-          }
-          result.confidence = Number.isFinite(result.confidence) ? Math.min(result.confidence, 30) : 30;
-          if (!result.reason || result.reason === 'No reason provided') {
-            result.reason = 'Не бачу підтвердження повноекранного режиму на скріншоті.';
-          }
+      if (!this._textContainsAny(evidenceText, fullscreenIndicators)) {
+        guardNotes.push('fullscreen-indicator-missing');
+        result.verified = false;
+        if (result.visual_evidence) {
+          result.visual_evidence.matches_criteria = false;
+        }
+        result.confidence = Number.isFinite(result.confidence) ? Math.min(result.confidence, 30) : 30;
+        if (!result.reason || result.reason === 'No reason provided') {
+          result.reason = 'Не бачу підтвердження повноекранного режиму на скріншоті.';
         }
       }
     }
@@ -1485,7 +1487,7 @@ export class VisionAnalysisService {
       return false;
     }
 
-    const videoKeywords = ['відео', 'video', 'play', 'youtube', 'відтвор'];
+    const videoKeywords = ['відео', 'video', 'youtube', 'відтвор'];
     const previousActions = (context.previous_actions || '').toLowerCase();
     const action = (context.action || '').toLowerCase();
 
@@ -1535,10 +1537,10 @@ export class VisionAnalysisService {
   }
 
   /**
-     * Get service status
-     *
-     * @returns {Object} Status info
-     */
+   * Get service status
+   *
+   * @returns {Object} Status info
+   */
   getStatus() {
     return {
       initialized: this.initialized,
@@ -1549,8 +1551,8 @@ export class VisionAnalysisService {
   }
 
   /**
-     * Cleanup and shutdown
-     */
+   * Cleanup and shutdown
+   */
   async destroy() {
     this.initialized = false;
     this.logger.system('vision-analysis', '[VISION] Vision Analysis Service destroyed');

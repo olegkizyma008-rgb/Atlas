@@ -23,6 +23,23 @@ body {
     overflow: hidden;
 }
 
+/* === MODEL VIEWER STYLES === */
+model-viewer {
+    touch-action: none;
+    pointer-events: none;
+    cursor: default;
+}
+
+.model-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
 /* === КНОПКИ И ЭЛЕМЕНТЫ УПРАВЛЕНИЯ === */
 .btn {
     flex: 1;
@@ -215,10 +232,13 @@ body {
 }
 
 @keyframes mode-quick-send-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
         transform: scale(1);
     }
+
     50% {
         box-shadow: 0 0 30px rgba(0, 212, 255, 1.0);
         transform: scale(1.03);
@@ -233,10 +253,13 @@ body {
 }
 
 @keyframes mode-conversation-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 20px rgba(0, 255, 127, 0.7);
         transform: scale(1);
     }
+
     50% {
         box-shadow: 0 0 40px rgba(0, 255, 127, 1.0);
         transform: scale(1.05);
@@ -251,10 +274,13 @@ body {
 }
 
 @keyframes keyword-waiting-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 15px rgba(255, 170, 0, 0.6);
         transform: scale(1);
     }
+
     50% {
         box-shadow: 0 0 35px rgba(255, 170, 0, 1.0);
         transform: scale(1.05);
@@ -263,17 +289,20 @@ body {
 
 /* Breathing animation для keyword-waiting */
 .btn.keyword-waiting.breathing {
-    animation: 
+    animation:
         keyword-waiting-pulse 1.2s ease-in-out infinite,
         breathing-animation 3s ease-in-out infinite;
 }
 
 @keyframes breathing-animation {
-    0%, 100% { 
-        opacity: 0.9; 
+
+    0%,
+    100% {
+        opacity: 0.9;
     }
-    50% { 
-        opacity: 1.0; 
+
+    50% {
+        opacity: 1.0;
     }
 }
 
@@ -482,7 +511,7 @@ model-viewer {
 }
 
 /* Приховуємо AR та інші кнопки */
-model-viewer > button,
+model-viewer>button,
 model-viewer button {
     display: none !important;
     opacity: 0 !important;

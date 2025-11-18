@@ -10,6 +10,9 @@
 import { EventEmitter } from 'events';
 import logger from '../../utils/logger.js';
 
+// ADDED 2025-11-19: Get user language from environment
+const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
+
 /**
  * Notification types
  */
@@ -32,13 +35,13 @@ export const NotificationType = {
 export class StreamNotifier extends EventEmitter {
   constructor(wsManager = null) {
     super();
-    
+
     this.wsManager = wsManager;
     this.subscribers = new Set();
     this.notificationBuffer = [];
     this.bufferSize = 100;
     this.streamActive = false;
-    
+
     logger.debug('stream-notifier', 'Stream notifier initialized');
   }
 
@@ -48,7 +51,7 @@ export class StreamNotifier extends EventEmitter {
   startStream() {
     this.streamActive = true;
     this.emit('stream-started');
-    
+
     if (this.wsManager) {
       this.wsManager.broadcastToSubscribers('workflow', 'stream-started', {
         timestamp: Date.now()
@@ -62,7 +65,7 @@ export class StreamNotifier extends EventEmitter {
   stopStream() {
     this.streamActive = false;
     this.emit('stream-stopped');
-    
+
     if (this.wsManager) {
       this.wsManager.broadcastToSubscribers('workflow', 'stream-stopped', {
         timestamp: Date.now()
@@ -80,22 +83,22 @@ export class StreamNotifier extends EventEmitter {
       data,
       timestamp: Date.now()
     };
-    
+
     // Add to buffer
     this._addToBuffer(notification);
-    
+
     // Emit local event
     this.emit('notification', notification);
     this.emit(type, data);
-    
+
     // Send via WebSocket if available and streaming
     if (this.streamActive && this.wsManager) {
       await this._sendViaWebSocket(notification);
     }
-    
+
     // Log notification
     this._logNotification(notification);
-    
+
     return notification.id;
   }
 
@@ -113,15 +116,15 @@ export class StreamNotifier extends EventEmitter {
       })),
       timestamp: Date.now()
     };
-    
+
     // Emit local event
     this.emit('batch-notification', batch);
-    
+
     // Send via WebSocket if available
     if (this.streamActive && this.wsManager) {
       await this._sendViaWebSocket(batch);
     }
-    
+
     return batch.id;
   }
 
@@ -130,12 +133,12 @@ export class StreamNotifier extends EventEmitter {
    */
   subscribe(callback) {
     this.subscribers.add(callback);
-    
+
     // Send buffered notifications to new subscriber
     for (const notification of this.notificationBuffer) {
       callback(notification);
     }
-    
+
     return () => this.unsubscribe(callback);
   }
 
@@ -166,38 +169,44 @@ export class StreamNotifier extends EventEmitter {
   async _sendViaWebSocket(notification) {
     try {
       const channel = this._getChannelForType(notification.type);
-      
+
       this.wsManager.broadcastToSubscribers(channel, 'workflow-notification', {
         ...notification,
         channel
       });
-      
+
+      // ADDED 2025-11-19: Get user language for agent messages
+      const userLanguage = USER_LANGUAGE;
+
       // Special handling for certain types
       switch (notification.type) {
         case NotificationType.TASK_START:
           this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: `🔄 Starting: ${notification.data.action}`,
             agent: 'system',
-            type: 'status'
+            type: 'status',
+            language: userLanguage  // ADDED 2025-11-19: User language for TTS
           });
           break;
-          
+
         case NotificationType.TASK_COMPLETE:
           this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: `✅ Completed: ${notification.data.action}`,
             agent: 'system',
-            type: 'status'
+            type: 'status',
+            language: userLanguage  // ADDED 2025-11-19: User language for TTS
           });
           break;
-          
+
         case NotificationType.TASK_FAILED:
           this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
             content: `❌ Failed: ${notification.data.action} - ${notification.data.error}`,
             agent: 'system',
-            type: 'error'
+            type: 'error',
+            language: userLanguage  // ADDED 2025-11-19: User language for TTS
           });
           break;
-          
+
         case NotificationType.PROGRESS_UPDATE:
           this.wsManager.broadcastToSubscribers('workflow', 'progress-update', {
             percentage: notification.data.percentage,
@@ -207,7 +216,7 @@ export class StreamNotifier extends EventEmitter {
           });
           break;
       }
-      
+
     } catch (error) {
       logger.error('stream-notifier', 'Failed to send WebSocket notification', {
         error: error.message,
@@ -232,7 +241,7 @@ export class StreamNotifier extends EventEmitter {
       [NotificationType.WARNING]: 'alerts',
       [NotificationType.ERROR]: 'alerts'
     };
-    
+
     return channelMap[type] || 'workflow';
   }
 
@@ -241,12 +250,12 @@ export class StreamNotifier extends EventEmitter {
    */
   _addToBuffer(notification) {
     this.notificationBuffer.push(notification);
-    
+
     // Trim buffer if too large
     if (this.notificationBuffer.length > this.bufferSize) {
       this.notificationBuffer.shift();
     }
-    
+
     // Notify subscribers
     for (const callback of this.subscribers) {
       try {
@@ -265,7 +274,7 @@ export class StreamNotifier extends EventEmitter {
   _logNotification(notification) {
     const logLevel = this._getLogLevel(notification.type);
     const message = this._formatLogMessage(notification);
-    
+
     logger[logLevel]('stream-notifier', message, {
       type: notification.type,
       data: notification.data
@@ -330,7 +339,7 @@ export class StreamNotifier extends EventEmitter {
   async *stream() {
     const queue = [];
     let resolver = null;
-    
+
     const listener = (notification) => {
       if (resolver) {
         resolver(notification);
@@ -339,9 +348,9 @@ export class StreamNotifier extends EventEmitter {
         queue.push(notification);
       }
     };
-    
+
     this.on('notification', listener);
-    
+
     try {
       while (this.streamActive) {
         if (queue.length > 0) {

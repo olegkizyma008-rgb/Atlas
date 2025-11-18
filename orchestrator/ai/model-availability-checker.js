@@ -19,9 +19,10 @@ class ModelAvailabilityChecker {
     this.apiEndpoint = 'http://localhost:4000';
 
     // ADDED 2025-11-10: Global cache for GET /v1/models to prevent burst requests
+    // FIXED 2025-11-18: Increased TTL from 30s to 5 minutes to prevent burst requests
     this.modelsListCache = null;
     this.modelsListCacheTimestamp = 0;
-    this.modelsListCacheTTL = 30000; // 30 seconds TTL for models list
+    this.modelsListCacheTTL = 300000; // 5 minutes TTL for models list (was 30 seconds)
 
     // ADDED 2025-11-10: Concurrency control
     this.activeChecks = 0;

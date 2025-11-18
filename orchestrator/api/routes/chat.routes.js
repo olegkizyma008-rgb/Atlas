@@ -10,6 +10,9 @@ import pauseState from '../../state/pause-state.js';
 import { executeWorkflow } from '../../workflow/executor-v3.js';
 import { chatCompletion, getAvailableModelsList } from '../../ai/fallback-llm.js';
 
+// ADDED 2025-11-19: Get user language from environment
+const USER_LANGUAGE = process.env.USER_LANGUAGE || 'uk';
+
 /**
  * Налаштовує chat та session management routes
  * @param {express.Application} app Express додаток
@@ -119,7 +122,8 @@ export function setupChatRoutes(app, context) {
                             content: successMessage,
                             agent: 'atlas',
                             sessionId: session.id,
-                            timestamp: new Date().toISOString()
+                            timestamp: new Date().toISOString(),
+                            language: USER_LANGUAGE  // ADDED 2025-11-19: User language for TTS
                         });
                     }
                 } else {
@@ -129,7 +133,8 @@ export function setupChatRoutes(app, context) {
                             content: '❌ **Помилка авторизації:** Невірний пароль або помилка виконання',
                             agent: 'atlas',
                             sessionId: session.id,
-                            timestamp: new Date().toISOString()
+                            timestamp: new Date().toISOString(),
+                            language: USER_LANGUAGE  // ADDED 2025-11-19: User language for TTS
                         });
                     }
                 }

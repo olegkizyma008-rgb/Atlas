@@ -136,7 +136,7 @@ export default {
     name: 'verification_eligibility',
     version: '2.0.0',
     date: '2025-10-23',
-    model_hint: 'atlas-ministral-3b',
+    model_hint: 'copilot-grok-code-fast-1',  // UPDATED 2025-11-18
     language: 'english_only',
     response_format: 'json',
     internal_use: true,

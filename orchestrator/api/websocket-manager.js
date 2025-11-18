@@ -22,46 +22,62 @@ class WebSocketManager {
      * Запуск WebSocket сервера
      */
   start(port = 5102) {
-    try {
-      console.error('[WS-MANAGER] start() called with port:', port);
-      this.wss = new WebSocketServer({
-        port,
-        perMessageDeflate: false,
-        maxPayload: 1024 * 1024 // 1MB
-      });
-      console.error('[WS-MANAGER] WebSocketServer created');
+    return new Promise((resolve, reject) => {
+      try {
+        console.error('[WS-MANAGER] start() called with port:', port);
+        this.wss = new WebSocketServer({
+          port,
+          perMessageDeflate: false,
+          maxPayload: 1024 * 1024 // 1MB
+        });
+        console.error('[WS-MANAGER] WebSocketServer created');
 
-      this.wss.on('connection', (ws, req) => {
-        this.handleConnection(ws, req);
-      });
+        this.wss.on('connection', (ws, req) => {
+          this.handleConnection(ws, req);
+        });
 
-      this.wss.on('error', (error) => {
-        console.error('[WS-MANAGER] Server error:', error);
-        logger.error('WebSocket Server error', {
+        this.wss.on('error', (error) => {
+          console.error('[WS-MANAGER] Server error:', error);
+          logger.error('WebSocket Server error', {
+            error: error.message,
+            stack: error.stack
+          });
+          reject(error);
+        });
+
+        // Timeout after 5 seconds if listening event doesn't fire
+        const timeout = setTimeout(() => {
+          console.error('[WS-MANAGER] ⚠️ Listening event timeout - resolving anyway');
+          this.startHeartbeat();
+          logger.warn(`WebSocket server may not be listening on port ${port} (timeout)`, { port });
+          resolve(this.wss);
+        }, 5000);
+
+        // Чекаємо на listening event щоб переконатися що сервер дійсно слухає
+        this.wss.on('listening', () => {
+          clearTimeout(timeout);
+          console.error('[WS-MANAGER] ✅ WebSocket server is now listening on port', port);
+
+          // Запуск heartbeat
+          this.startHeartbeat();
+
+          logger.info(`✅ WebSocket server started on port ${port}`, {
+            port,
+            heartbeatInterval: this.heartbeatInterval
+          });
+
+          resolve(this.wss);
+        });
+      } catch (error) {
+        console.error('[WS-MANAGER] Failed to start WebSocket server:', error);
+        logger.error('Failed to start WebSocket server', {
+          port,
           error: error.message,
           stack: error.stack
         });
-      });
-
-      // Запуск heartbeat
-      this.startHeartbeat();
-
-      console.error('[WS-MANAGER] ✅ WebSocket server started on port', port);
-      logger.info(`✅ WebSocket server started on port ${port}`, {
-        port,
-        heartbeatInterval: this.heartbeatInterval
-      });
-
-      return this.wss;
-    } catch (error) {
-      console.error('[WS-MANAGER] Failed to start WebSocket server:', error);
-      logger.error('Failed to start WebSocket server', {
-        port,
-        error: error.message,
-        stack: error.stack
-      });
-      throw error;
-    }
+        reject(error);
+      }
+    });
   }
 
   /**

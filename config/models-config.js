@@ -10,47 +10,47 @@
  */
 const env = typeof process !== 'undefined' ? process.env : {};
 
-// === VISION MODELS CONFIGURATION (UPDATED 2025-11-10) ===
-// FIXED: Ollama не запущений - використовуємо Atlas GPT-4o-mini з порту 4000
+// === VISION MODELS CONFIGURATION (UPDATED 2025-11-17) ===
+// FIXED: Замінено на Copilot GPT-4o для кращої верифікації
 export const VISION_CONFIG = {
   primary: {
-    model: 'atlas-gpt-4o',
-    provider: 'atlas',
+    model: 'copilot-gpt-4o',
+    provider: 'copilot',
     cost: 0.005,
     speed: '1-2s',
     quality: 'excellent',
     maxTokens: 4096,
-    description: 'Primary vision model - Atlas GPT-4o',
+    description: 'Primary vision model - Copilot GPT-4o',
     isLocal: false
   },
   fast: {
-    model: 'atlas-gpt-4o-mini',
-    provider: 'atlas',
+    model: 'copilot-gpt-4o-mini',
+    provider: 'copilot',
     cost: 0.001,
     speed: '1-2s',
     quality: 'good',
     maxTokens: 2048,
-    description: 'Fast vision model - Atlas GPT-4o-mini',
+    description: 'Fast vision model - Copilot GPT-4o-mini',
     isLocal: false
   },
   standard: {
-    model: 'atlas-gpt-4o-mini',
-    provider: 'atlas',
+    model: 'copilot-gpt-4o-mini',
+    provider: 'copilot',
     cost: 0.001,
     speed: '1-2s',
     quality: 'excellent',
     maxTokens: 2048,
-    description: 'Standard vision - Atlas GPT-4o-mini',
+    description: 'Standard vision - Copilot GPT-4o-mini',
     isLocal: false
   },
   cheapest: {
-    model: 'atlas-gpt-4o-mini',
-    provider: 'atlas',
+    model: 'copilot-gpt-4o-mini',
+    provider: 'copilot',
     cost: 0.001,
     speed: '1-2s',
     quality: 'acceptable',
     maxTokens: 1024,
-    description: 'Cheapest vision - Atlas GPT-4o-mini',
+    description: 'Cheapest vision - Copilot GPT-4o-mini',
     isLocal: false
   },
   get default() {
@@ -93,7 +93,7 @@ export const AI_MODEL_CONFIG = {
   models: {
     classification: {
       get model() {
-        return env.AI_MODEL_CLASSIFICATION || 'atlas-ministral-3b';
+        return env.AI_MODEL_CLASSIFICATION || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.AI_TEMP_CLASSIFICATION || '0.05');
@@ -123,7 +123,7 @@ export const AI_MODEL_CONFIG = {
     },
     tts_optimization: {
       get model() {
-        return env.AI_MODEL_TTS_OPT || 'atlas-ministral-3b';
+        return env.AI_MODEL_TTS_OPT || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.AI_TEMP_TTS_OPT || '0.15');
@@ -172,7 +172,7 @@ export const MCP_MODEL_CONFIG = {
     },
     backend_selection: {
       get model() {
-        return env.MCP_MODEL_BACKEND_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_BACKEND_SELECTION || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get fallback() {
         return env.MCP_MODEL_BACKEND_SELECTION_FALLBACK || 'atlas-jamba-1.5-mini';
@@ -221,7 +221,7 @@ export const MCP_MODEL_CONFIG = {
     },
     verification_eligibility: {
       get model() {
-        return env.MCP_MODEL_VERIFICATION_ELIGIBILITY || 'atlas-ministral-3b';
+        return env.MCP_MODEL_VERIFICATION_ELIGIBILITY || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get fallback() {
         return env.MCP_MODEL_VERIFICATION_ELIGIBILITY_FALLBACK || 'atlas-jamba-1.5-mini';
@@ -267,7 +267,7 @@ export const MCP_MODEL_CONFIG = {
     },
     final_summary: {
       get model() {
-        return env.MCP_MODEL_FINAL_SUMMARY || 'atlas-ministral-3b';
+        return env.MCP_MODEL_FINAL_SUMMARY || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_FINAL_SUMMARY || '0.5');
@@ -297,45 +297,92 @@ export const MCP_MODEL_CONFIG = {
     },
     vision_verification_fast: {
       get model() {
-        return env.MCP_MODEL_VISION_FAST || 'atlas-gpt-4o-mini';
+        return env.MCP_MODEL_VISION_FAST || 'atlas-llama-3.2-11b-vision-instruct';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_FAST || '0.2');
       },
       max_tokens: 800,
-      description: 'Grisha Visual Verification Attempt 1 - Ollama Llama 3.2 Vision'
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Grisha Visual Verification Attempt 1 - Llama 3.2 11B (швидкий)'
     },
     vision_verification_strong: {
       get model() {
-        return env.MCP_MODEL_VISION_STRONG || 'atlas-gpt-4o';
+        return env.MCP_MODEL_VISION_STRONG || 'atlas-llama-3.2-90b-vision-instruct';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_STRONG || '0.2');
       },
       max_tokens: 1000,
-      description: 'Grisha Visual Verification Attempt 2 - Ollama Llama 3.2 Vision'
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Grisha Visual Verification Attempt 2 - Llama 3.2 90B (потужніший)'
     },
-    vision_fallback: {
+    vision_verification_primary: {
       get model() {
-        return env.MCP_MODEL_VISION_FALLBACK || 'llama3.2-vision';
+        return env.MCP_MODEL_VISION_PRIMARY || 'copilot-gpt-4o';
       },
-      endpoint: 'http://localhost:11434/api/generate',
-      description: 'Ollama local vision - безкоштовний fallback (повільний)'
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_PRIMARY || '0.2');
+      },
+      max_tokens: 1000,
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Grisha Visual Verification Attempt 3 - copilot-gpt-4o (надійний)'
     },
+    vision_fallback_1: {
+      get model() {
+        return env.MCP_MODEL_VISION_FALLBACK_1 || 'copilot-gpt-4o';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_FALLBACK_1 || '0.2');
+      },
+      max_tokens: 1000,
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Emergency fallback 1 - copilot-gpt-4o (найпотужніший)'
+    },
+    vision_fallback_2: {
+      get model() {
+        return env.MCP_MODEL_VISION_FALLBACK_2 || 'atlas-gpt-4o';
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_VISION_FALLBACK_2 || '0.2');
+      },
+      max_tokens: 1000,
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Emergency fallback 2 - GPT-4o (потужний резерв)'
+    },
+    mistral_3b: {
+      get model() {
+        return env.MCP_MODEL_MISTRAL_3B || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
+      },
+      get temperature() {
+        return parseFloat(env.MCP_TEMP_MISTRAL_3B || '0.2');
+      },
+      max_tokens: 800,
+      endpoint: 'http://localhost:4000/v1/chat/completions',
+      description: 'Mistral 3B - легкий, швидкий (часто використовується)'
+    },
+    // COMMENTED 2025-11-18: Ollama local vision disabled - using Port 4000 models instead
+    // vision_fallback_ollama: {
+    //   get model() {
+    //     return env.MCP_MODEL_VISION_FALLBACK_OLLAMA || 'llama3.2-vision';
+    //   },
+    //   endpoint: 'http://localhost:11434/api/generate',
+    //   description: 'Ollama local vision - безкоштовний fallback (повільний ~120+ сек)'
+    // },
     vision_emergency: {
       get model() {
-        return env.MCP_MODEL_VISION_EMERGENCY || 'copilot-gpt-4o';
+        return env.MCP_MODEL_VISION_EMERGENCY || 'atlas-gpt-4o';
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISION_EMERGENCY || '0.2');
       },
       max_tokens: 800,
       endpoint: 'http://localhost:4000/v1/chat/completions',
-      description: 'GPT-4o-mini - emergency fallback для vision (швидкий і надійний)'
+      description: 'GPT-4o - emergency fallback для vision (найпотужніший)'
     },
     server_selection: {
       get model() {
-        return env.MCP_MODEL_SERVER_SELECTION || 'atlas-ministral-3b';
+        return env.MCP_MODEL_SERVER_SELECTION || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_SERVER_SELECTION || '0.05');
@@ -345,7 +392,7 @@ export const MCP_MODEL_CONFIG = {
     },
     state_analysis: {
       get model() {
-        return env.MCP_MODEL_STATE_ANALYSIS || 'atlas-ministral-3b';
+        return env.MCP_MODEL_STATE_ANALYSIS || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_STATE_ANALYSIS || '0.1');
@@ -365,7 +412,7 @@ export const MCP_MODEL_CONFIG = {
     },
     visual_capture_mode_selector: {
       get model() {
-        return env.MCP_MODEL_VISUAL_CAPTURE_MODE || 'atlas-ministral-3b';
+        return env.MCP_MODEL_VISUAL_CAPTURE_MODE || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_VISUAL_CAPTURE_MODE || '0.1');
@@ -375,7 +422,7 @@ export const MCP_MODEL_CONFIG = {
     },
     tts_optimization: {
       get model() {
-        return env.MCP_MODEL_TTS_OPT || 'atlas-ministral-3b';
+        return env.MCP_MODEL_TTS_OPT || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.MCP_TEMP_TTS_OPT || '0.3');
@@ -395,7 +442,7 @@ export const MCP_MODEL_CONFIG = {
     },
     intent_detection: {
       get model() {
-        return env.INTENT_DETECTION_MODEL || 'atlas-ministral-3b';
+        return env.INTENT_DETECTION_MODEL || 'copilot-grok-code-fast-1';  // UPDATED 2025-11-18
       },
       get temperature() {
         return parseFloat(env.INTENT_DETECTION_TEMPERATURE || '0.1');

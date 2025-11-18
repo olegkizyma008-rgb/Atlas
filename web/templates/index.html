@@ -99,6 +99,19 @@
         </div>
     </div>
 
+    <!-- Fix for non-passive wheel event listeners (model-viewer compatibility) -->
+    <script>
+        // Suppress passive event listener warnings from model-viewer
+        // This patches addEventListener to make wheel events passive by default
+        const originalAddEventListener = EventTarget.prototype.addEventListener;
+        EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if (type === 'wheel' && typeof options === 'object' && options.passive === undefined) {
+                options.passive = true;
+            }
+            return originalAddEventListener.call(this, type, listener, options);
+        };
+    </script>
+
     <!-- Scripts - Refactored Modular Architecture -->
     <!-- Voice Control Components -->
     <script type="module" src="/static/js/voice-control/voice-control-manager.js"></script>

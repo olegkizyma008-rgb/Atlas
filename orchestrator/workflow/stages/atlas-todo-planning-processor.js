@@ -66,7 +66,7 @@ export class AtlasTodoPlanningProcessor {
             // Log each item
             for (const item of todo.items) {
                 this.logger.system('atlas-todo-planning', `[STAGE-1-MCP]      ${item.id}. ${item.action}`);
-                
+
                 if (item.dependencies && item.dependencies.length > 0) {
                     this.logger.system('atlas-todo-planning', `[STAGE-1-MCP]         Dependencies: ${item.dependencies.join(', ')}`);
                 }
@@ -125,14 +125,21 @@ export class AtlasTodoPlanningProcessor {
         // FIXED 2025-11-03: Store original user request for context preservation
         // This ensures all stages (planning, execution, verification) have access to user's explicit requirements
         context.originalRequest = request;
-        
+
         // Extract key context from user request (browser, app, tool preferences)
         context.userPreferences = this._extractUserPreferences(request);
+
+        // UPDATED 2025-11-19: Add working directory context for file operations
+        // LLM should primarily use paths from user request, but these are available as fallback
+        // Default is Documents folder in user's home directory (~), works for any user
+        context.defaultWorkingDirectory = '~/Documents';
+        context.defaultDataDirectory = '~/Documents';
+        context.note = 'Use paths from user request if specified. If user mentions folder name (e.g., "HackLab", "data"), infer full path. Only use defaults if no path specified. ~ expands to user home directory.';
 
         // Add session context if available
         if (session) {
             context.sessionId = session.id;
-            
+
             // Add relevant conversation history (last 3 messages)
             if (session.chatThread && session.chatThread.messages) {
                 const recentMessages = session.chatThread.messages.slice(-3);
@@ -204,13 +211,19 @@ export class AtlasTodoPlanningProcessor {
         lines.push('');
 
         // List items
+        // FIXED 2025-11-17: Translate actions to user language for display
         for (const item of todo.items) {
-            let line = `  ${item.id}. ${item.action}`;
-            
+            // Translate action to user language (Ukrainian) for display
+            const translatedAction = this.localizationService ?
+                this.localizationService.translateToUser(item.action) :
+                item.action;
+
+            let line = `  ${item.id}. ${translatedAction}`;
+
             if (item.dependencies && item.dependencies.length > 0) {
                 line += ` (залежить від: ${item.dependencies.join(', ')})`;
             }
-            
+
             lines.push(line);
         }
 

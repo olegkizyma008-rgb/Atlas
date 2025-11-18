@@ -217,18 +217,18 @@ export class TetyanaExecuteToolsProcessor {
         const lines = [];
 
         if (execution.all_successful) {
-            lines.push(`✅ Виконано: "${item.action}"`);
+            lines.push(`✅ Executed: "${item.action}"`);
         } else {
-            lines.push(`⚠️ Часткове виконання: "${item.action}"`);
-            lines.push(`   Успішно: ${execution.successful_calls || 0}`);
-            lines.push(`   Помилки: ${execution.failed_calls || 0}`);
+            lines.push(`⚠️ Partial execution: "${item.action}"`);
+            lines.push(`   Success: ${execution.successful_calls || 0}`);
+            lines.push(`   Errors: ${execution.failed_calls || 0}`);
         }
 
         // Add key results if available
         const keyResults = this._extractKeyResults(execution.results);
         if (keyResults.length > 0) {
             lines.push('');
-            lines.push('📋 Результати:');
+            lines.push('📋 Results:');
 
             for (const result of keyResults) {
                 lines.push(`   ${result}`);
@@ -261,32 +261,32 @@ export class TetyanaExecuteToolsProcessor {
             if (result.data) {
                 // File written
                 if (result.data.path && result.data.bytes_written) {
-                    keyResults.push(`Файл збережено: ${result.data.path} (${result.data.bytes_written} байт)`);
+                    keyResults.push(`File saved: ${result.data.path} (${result.data.bytes_written} bytes)`);
                 }
 
                 // Directory created
                 else if (result.data.path && result.data.created) {
-                    keyResults.push(`Теку створено: ${result.data.path}`);
+                    keyResults.push(`Directory created: ${result.data.path}`);
                 }
 
                 // File read
                 else if (result.data.content && result.data.size) {
-                    keyResults.push(`Файл прочитано: ${result.data.size} байт`);
+                    keyResults.push(`File read: ${result.data.size} bytes`);
                 }
 
                 // Browser opened
                 else if (result.data.url && result.data.page_title) {
-                    keyResults.push(`Браузер: ${result.data.page_title}`);
+                    keyResults.push(`Browser: ${result.data.page_title}`);
                 }
 
                 // Data scraped
                 else if (result.data.items_count !== undefined) {
-                    keyResults.push(`Зібрано даних: ${result.data.items_count} елементів`);
+                    keyResults.push(`Data collected: ${result.data.items_count} items`);
                 }
 
                 // Screenshot taken
                 else if (result.data.screenshot_path) {
-                    keyResults.push(`Скріншот: ${result.data.screenshot_path}`);
+                    keyResults.push(`Screenshot: ${result.data.screenshot_path}`);
                 }
 
                 // Generic success message

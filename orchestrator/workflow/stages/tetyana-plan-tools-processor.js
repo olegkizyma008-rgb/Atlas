@@ -302,7 +302,37 @@ export class TetyanaPlanToolsProcessor {
                 historyStats: toolsData.historyStats  // NEW: Statistics
             };
 
-            let plan = await this.mcpTodoManager.planTools(currentItem, todo, planOptions);
+            // ADDED 2025-11-19: Add timeout protection for LLM requests
+            // Playwright prompts can be complex, set reasonable timeout
+            let plan;
+            try {
+                const planPromise = this.mcpTodoManager.planTools(currentItem, todo, planOptions);
+
+                // Create timeout promise (30 seconds for tool planning)
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Tool planning timeout after 30 seconds')), 30000)
+                );
+
+                // Race: whichever completes first
+                plan = await Promise.race([planPromise, timeoutPromise]);
+            } catch (timeoutError) {
+                this.logger.error(`[STAGE-2.1-MCP] ❌ Tool planning failed: ${timeoutError.message}`, {
+                    category: 'tetyana-plan-tools',
+                    item: currentItem.id,
+                    action: currentItem.action
+                });
+
+                // Return error result instead of throwing - allows executor to handle gracefully
+                return {
+                    success: false,
+                    error: timeoutError.message,
+                    stage: 'tetyana-plan-tools',
+                    item: currentItem.id,
+                    action: currentItem.action,
+                    shouldRetry: true,
+                    retryReason: 'Tool planning timeout or error'
+                };
+            }
 
             this.logger.system('tetyana-plan-tools', `[STAGE-2.1-MCP] planTools() returned: ${JSON.stringify(plan).substring(0, 300)}`);
 

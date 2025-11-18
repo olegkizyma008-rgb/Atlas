@@ -9,7 +9,7 @@
  */
 
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
-import { MCP_PROMPTS, universalMcpPrompt } from '../../prompts/mcp/index.js';
+import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
 import { MCP_MODEL_CONFIG } from '../../config/models-config.js';
 import LocalizationService from '../services/localization-service.js';
@@ -340,9 +340,12 @@ Analyze feasibility and propose strategy.`
 
       const modelConfig = this._getModelForStage('reasoning');
 
-      // FIXED 2025-11-04: Use centralized LLM client helper for authorization handling
+      // FIXED 2025-11-18: Use correct API endpoint URL (not the config object)
+      const apiEndpointConfig = this.mcpModelConfig.apiEndpoint;
+      const apiUrl = apiEndpointConfig.primary || 'http://localhost:4000/v1/chat/completions';
+
       const apiResponse = await postToLLM(
-        this.mcpModelConfig.apiEndpoint,
+        apiUrl,
         {
           model: modelConfig.model,
           messages: [
@@ -446,12 +449,19 @@ Analyze feasibility and propose strategy.`
 
     try {
       // FIXED 16.10.2025 - Determine if this is an agent message or system message
-      const agentNames = ['tetyana', 'grisha', 'atlas', 'agent'];
-      const isAgentMessage = agentNames.includes(type.toLowerCase());
+      const agentNames = ['tetyana', 'grisha', 'atlas', 'atlas_raw', 'agent'];
+      const normalizedType = type.toLowerCase();
+      const isAgentMessage = agentNames.includes(normalizedType);
 
       if (isAgentMessage) {
         // Send as agent_message (will show as [TETYANA], [GRISHA], etc in chat)
-        let agentName = type.toLowerCase();
+        let agentName = normalizedType;
+
+        // Special case: atlas_raw -> use atlas agent but skip localization
+        const skipLocalization = agentName === 'atlas_raw';
+        if (agentName === 'atlas_raw') {
+          agentName = 'atlas';
+        }
 
         // Extract agent name from message if type is 'agent'
         if (agentName === 'agent') {
@@ -466,8 +476,12 @@ Analyze feasibility and propose strategy.`
         this.logger.system('mcp-todo', `[TODO] Broadcasting agent message: chat/agent_message (agent: ${agentName})`);
 
         // Translate message for user display
-        const translatedMessage = this.localizationService.translateToUser(message);
-        const translatedTts = ttsContent ? this.localizationService.translateToUser(ttsContent) : null;
+        const translatedMessage = skipLocalization
+          ? message
+          : this.localizationService.translateToUser(message);
+        const translatedTts = ttsContent
+          ? this.localizationService.translateToUser(ttsContent)
+          : null;
 
         // FIXED 2025-10-21: Add ttsContent for short TTS phrases
         const messageData = {
@@ -561,6 +575,14 @@ Analyze feasibility and propose strategy.`
         .replace('{{request}}', request)
         .replace('{{context}}', JSON.stringify(context, null, 2));
 
+      // ADDED 2025-11-19: Get user language for prompt substitution
+      const promptUserLanguage = this.localizationService ?
+        this.localizationService.config.getUserLanguage() : 'uk';
+
+      // ADDED 2025-11-19: Substitute {{USER_LANGUAGE}} in system prompt
+      const systemPromptWithLanguage = todoPrompt.systemPrompt
+        .replace(/{{USER_LANGUAGE}}/g, promptUserLanguage);
+
       // Wait for rate limit (ADDED 14.10.2025)
       await this._waitForRateLimit();
 
@@ -569,6 +591,7 @@ Analyze feasibility and propose strategy.`
 
       // LOG MODEL SELECTION (ADDED 14.10.2025 - Debugging)
       this.logger.system('mcp-todo', `[TODO] Using model: ${modelConfig.model} (temp: ${modelConfig.temperature}, max_tokens: ${modelConfig.max_tokens})`);
+      this.logger.system('mcp-todo', `[TODO] User language: ${promptUserLanguage}`);
 
       // FIXED 16.10.2025 - Extract primary URL from apiEndpoint object
       // IMPROVED 16.10.2025 - Support fallback API endpoint with automatic retry
@@ -582,7 +605,7 @@ Analyze feasibility and propose strategy.`
       const requestPayload = {
         model: modelConfig.model,
         messages: [
-          { role: 'system', content: todoPrompt.systemPrompt },
+          { role: 'system', content: systemPromptWithLanguage },
           { role: 'user', content: userMessage }
         ],
         temperature: modelConfig.temperature,
@@ -733,10 +756,16 @@ Analyze feasibility and propose strategy.`
       }
 
       // Send full message with short TTS content
-      const itemsList = todo.items.map((item, idx) => `  ${idx + 1}. ${item.action}`).join('\n');
-      const todoMessage = `📋 ${todo.mode === 'extended' ? 'Розширений' : 'Стандартний'} план виконання (${todo.items.length} ${this._getPluralForm(todo.items.length, 'пункт', 'пункти', 'пунктів')}):\n\n${itemsList}\n\n⏱️ Орієнтовний час виконання: ${Math.ceil(todo.items.length * 8)} секунд`;
+      // ADDED 2025-11-19: Use action_uk (user language) if available, fallback to action (English)
+      const userLanguage = this.localizationService ? this.localizationService.config.getUserLanguage() : 'en';
+      const actionFieldName = `action_${userLanguage}`;
+      const itemsList = todo.items.map((item, idx) => {
+        const actionText = item[actionFieldName] || item.action || `Action ${idx + 1}`;
+        return `  ${idx + 1}. ${actionText}`;
+      }).join('\n');
+      const todoMessage = `📋 Execution plan (${todo.items.length} items):\n\n${itemsList}\n\n⏱️ Estimated execution time: ${Math.ceil(todo.items.length * 8)} seconds`;
 
-      this._sendChatMessage(todoMessage, 'atlas', ttsPhrase);
+      this._sendChatMessage(todoMessage, 'atlas_raw', ttsPhrase);
 
       return todo;
 
@@ -865,7 +894,13 @@ Analyze feasibility and propose strategy.`
               this.logger.system('mcp-todo', `[TODO] 🔄 TODO list updated: ${todo.items.length} items (was ${todo.items.length - replanResult.new_items.length})`);
 
               // Send updated plan to chat
-              const newItemsList = replanResult.new_items.map((it, idx) => `  ${it.id}. ${it.action}`).join('\n');
+              // ADDED 2025-11-19: Use action_uk (user language) if available
+              const userLang = this.localizationService ? this.localizationService.config.getUserLanguage() : 'en';
+              const actionField = `action_${userLang}`;
+              const newItemsList = replanResult.new_items.map((it, idx) => {
+                const actionText = it[actionField] || it.action || `Action ${idx + 1}`;
+                return `  ${it.id}. ${actionText}`;
+              }).join('\n');
               this._sendChatMessage(
                 `📋 Оновлений план (додано ${replanResult.new_items.length} пунктів):\n${newItemsList}`,
                 'atlas'
@@ -1416,35 +1451,33 @@ Analyze feasibility and propose strategy.`
 
           this.logger.system('mcp-todo', `[TODO] 🎯🎯 Using 2 combined specialized prompts: ${options.promptOverride.join(' + ')}`);
         } else {
-          // Fallback to universal prompt with available tools
-          this.logger.warn(`[MCP-TODO] ⚠️ Specialized prompts not found, using universal prompt with ${options.selectedServers.join(', ')} tools`, {
-            category: 'mcp-todo',
-            component: 'mcp-todo'
-          });
-          planPrompt = this._createUniversalPrompt(options.selectedServers);
+          // FIXED 2025-11-18: No fallback to universal prompt - require specialized prompts
+          throw new Error(`Specialized prompts not found for servers: ${options.promptOverride.join(', ')}. Please ensure all required specialized prompts are registered in MCP_PROMPTS.`);
         }
       } else if (options.promptOverride && typeof options.promptOverride === 'string' && MCP_PROMPTS[options.promptOverride]) {
-        // Single specialized prompt exists
+        // Single specialized prompt exists (explicitly provided)
         planPrompt = MCP_PROMPTS[options.promptOverride];
         this.logger.system('mcp-todo', `[TODO] 🎯 Using specialized prompt: ${options.promptOverride}`);
-      } else {
-        // Fallback to universal prompt
-        const servers = options.selectedServers || ['all'];
+      } else if (options.selectedServers && Array.isArray(options.selectedServers) && options.selectedServers.length > 0) {
+        // FIXED 2025-11-18: Auto-generate prompt name from server name
+        // This handles both cases: when promptOverride is not provided OR when it's invalid
+        const server = options.selectedServers[0];
+        const autoPromptName = `TETYANA_PLAN_TOOLS_${server.toUpperCase()}`;
 
-        // FIXED 2025-10-29: Handle undefined promptOverride gracefully
-        if (options.promptOverride && !MCP_PROMPTS[options.promptOverride]) {
-          this.logger.warn(`[MCP-TODO] ⚠️ Prompt ${options.promptOverride} not found in MCP_PROMPTS`, {
-            category: 'mcp-todo',
-            component: 'mcp-todo',
-            availablePrompts: Object.keys(MCP_PROMPTS).join(', ')
-          });
+        if (MCP_PROMPTS[autoPromptName]) {
+          planPrompt = MCP_PROMPTS[autoPromptName];
+          this.logger.system('mcp-todo', `[TODO] 🎯 Using auto-generated prompt: ${autoPromptName}`);
+        } else {
+          // Prompt not found even with auto-generation
+          const availablePrompts = Object.keys(MCP_PROMPTS).join(', ');
+          throw new Error(`No specialized prompt found for servers: ${options.selectedServers.join(', ')}. Available prompts: ${availablePrompts}. Please ensure all required specialized prompts are registered in MCP_PROMPTS.`);
         }
+      } else {
+        // FIXED 2025-11-18: No fallback to universal prompt - require specialized prompts
+        const servers = options.selectedServers || ['all'];
+        const availablePrompts = Object.keys(MCP_PROMPTS).join(', ');
 
-        this.logger.warn(`[MCP-TODO] ⚠️ Using universal prompt for ${servers.join(', ')}`, {
-          category: 'mcp-todo',
-          component: 'mcp-todo'
-        });
-        planPrompt = this._createUniversalPrompt(servers);
+        throw new Error(`No specialized prompt found for servers: ${servers.join(', ')}. Available prompts: ${availablePrompts}. Please ensure all required specialized prompts are registered in MCP_PROMPTS.`);
       }
 
       // FIXED 15.10.2025 - Truncate execution_results to prevent 413 errors
@@ -1820,44 +1853,37 @@ Create precise MCP tool execution plan.
 
   _parseToolPlan(response, allowedServers = null, allowedTools = null) {
     try {
-      // FIXED 13.10.2025 - Clean markdown wrappers before parsing
-      // FIXED 14.10.2025 - Extract JSON from text if LLM added explanation
-      // FIXED 14.10.2025 - Handle <think> tags from reasoning models (phi-4-reasoning)
-      // FIXED 14.10.2025 - Aggressive extraction: handle unclosed tags and extract JSON
-      // FIXED 14.10.2025 NIGHT - Ultra-aggressive: cut at <think>, then extract JSON
+      // FIXED 18.11.2025 - ULTRA-AGGRESSIVE JSON extraction from Markdown
+      // LLM often wraps JSON in markdown code blocks with explanations
       let cleanResponse = response;
       if (typeof response === 'string') {
-        // Step 1: ULTRA-AGGRESSIVE - cut everything from <think> onwards
-        const thinkIndex = response.indexOf('<think>');
-        if (thinkIndex !== -1) {
-          cleanResponse = response.substring(0, thinkIndex).trim();
-        } else {
-          cleanResponse = response;
+        // Step 1: Remove everything before first { (cut all markdown headers/explanations)
+        const firstBrace = response.indexOf('{');
+        if (firstBrace !== -1) {
+          cleanResponse = response.substring(firstBrace);
         }
 
-        // Step 2: Clean markdown wrappers
+        // Step 2: Remove everything after last } (cut trailing markdown/explanations)
+        const lastBrace = cleanResponse.lastIndexOf('}');
+        if (lastBrace !== -1) {
+          cleanResponse = cleanResponse.substring(0, lastBrace + 1);
+        }
+
+        // Step 3: Remove markdown code block wrappers
         cleanResponse = cleanResponse
-          .replace(/^```json\s*/i, '')  // Remove opening ```json
-          .replace(/^```\s*/i, '')       // Remove opening ```
-          .replace(/\s*```$/i, '')       // Remove closing ```
+          .replace(/^```(?:json)?\s*/i, '')  // Remove opening ```json or ```
+          .replace(/\s*```$/i, '')           // Remove closing ```
           .trim();
 
-        // Step 3: Aggressive JSON extraction - find first { to last }
-        const firstBrace = cleanResponse.indexOf('{');
-        const lastBrace = cleanResponse.lastIndexOf('}');
+        // Step 4: Handle <think> tags from reasoning models
+        const thinkIndex = cleanResponse.indexOf('<think>');
+        if (thinkIndex !== -1) {
+          cleanResponse = cleanResponse.substring(0, thinkIndex).trim();
+        }
 
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          cleanResponse = cleanResponse.substring(firstBrace, lastBrace + 1);
-        } else {
-          // Try original response
-          const origFirstBrace = response.indexOf('{');
-          const origLastBrace = response.lastIndexOf('}');
-
-          if (origFirstBrace !== -1 && origLastBrace !== -1 && origLastBrace > origFirstBrace) {
-            cleanResponse = response.substring(origFirstBrace, origLastBrace + 1);
-          } else {
-            throw new Error('No JSON object found in response (no curly braces)');
-          }
+        // Step 5: Final validation - ensure we have valid JSON structure
+        if (!cleanResponse.startsWith('{') && !cleanResponse.startsWith('[')) {
+          throw new Error('Response does not start with JSON structure');
         }
       }
 
@@ -1894,7 +1920,7 @@ Create precise MCP tool execution plan.
       }
       // FIXED 2025-10-29 - Handle JSON Schema wrapper format
       // FIXED 2025-11-04 - Handle direct array responses
-      let actualData = parsed;
+      let actualData = parsed || {};
 
       // Check if response is a direct array of tool calls
       if (Array.isArray(parsed)) {
@@ -1945,8 +1971,13 @@ Create precise MCP tool execution plan.
         });
       }
 
-      // FIXED 2025-11-08 - Handle both 'tool_calls' and 'tool_plan' keys from LLM
-      // Some models return {"tool_plan": [...]} instead of {"tool_calls": [...]}\n      const rawToolCalls = actualData.tool_calls || actualData.tool_plan || [];
+      // FIXED 2025-11-18 - Handle multiple key formats from LLM
+      // Some models return {"tool_plan": [...]}, {"plan": [...]}, {"tool_sequence": [...]}, or {"tool_calls": [...]}
+      if (!actualData || typeof actualData !== 'object') {
+        throw new Error('actualData is not a valid object');
+      }
+      // FIXED 2025-11-18: Normalize tool_sequence to tool_calls for consistency
+      const rawToolCalls = actualData.tool_calls || actualData.tool_plan || actualData.tool_sequence || actualData.plan || [];
 
       // FIXED 2025-11-03 - Filter valid tool calls from metadata elements
       // LLM sometimes returns: [{"server":"...","tool":"..."}, {"reasoning":"...","tts_phrase":"..."}]
@@ -2037,6 +2068,38 @@ Create precise MCP tool execution plan.
 
             if (server && rawTool) {
               let params = call.parameters || call.params || {};
+
+              // FIXED 2025-11-18: Normalize code_snippet if it's a JS-concatenated string
+              // LLM sometimes returns: "code_snippet": "tell application \"Calculator\" to activate\n" + "delay 0.5\n" + ...
+              // We need to convert it to a proper string by removing the concatenation operators
+              if (params.code_snippet && typeof params.code_snippet === 'string') {
+                // Check if it looks like JS concatenation (contains + signs and quotes)
+                if (params.code_snippet.includes('" +') || params.code_snippet.includes("' +")) {
+                  try {
+                    // Remove concatenation operators and join the strings
+                    // Pattern: "string1" + "string2" -> "string1string2"
+                    const normalized = params.code_snippet
+                      .replace(/"\s*\+\s*"/g, '')  // Remove " + "
+                      .replace(/'\s*\+\s*'/g, '')  // Remove ' + '
+                      .replace(/"\s*\+\s*'/g, '')  // Remove " + '
+                      .replace(/'\s*\+\s*"/g, ''); // Remove ' + "
+
+                    if (normalized && normalized !== params.code_snippet) {
+                      params.code_snippet = normalized;
+                      this.logger.warn('[MCP-TODO] ✅ Normalized JS-concatenated code_snippet', {
+                        category: 'mcp-todo',
+                        component: 'mcp-todo'
+                      });
+                    }
+                  } catch (e) {
+                    // If normalization fails, keep original
+                    this.logger.warn(`[MCP-TODO] ⚠️ Failed to normalize code_snippet: ${e.message}`, {
+                      category: 'mcp-todo',
+                      component: 'mcp-todo'
+                    });
+                  }
+                }
+              }
 
               // FIXED 2025-11-16: Auto-correct shell commands for macOS
               if (server === 'shell' && params.command) {
@@ -2655,6 +2718,180 @@ Create precise MCP tool execution plan.
     // Fallback: take first 3-4 words
     const words = request.split(' ').slice(0, 4).join(' ');
     return words.length > 30 ? words.substring(0, 30) + '...' : words;
+  }
+
+  /**
+   * Parse TODO response from LLM API
+   * @param {string} response - Raw response from LLM API
+   * @param {string} originalRequest - Original user request
+   * @returns {TodoList} Parsed TODO list
+   * @private
+   */
+  _parseTodoResponse(response, originalRequest) {
+    try {
+      // Clean and parse the response
+      let cleaned = response.trim();
+
+      // Remove markdown code blocks if present
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+
+      // ADDED 2025-11-19: Try to fix truncated JSON
+      let parsed;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch (parseError) {
+        if (parseError.message.includes('Unterminated')) {
+          // JSON is truncated, try to complete it
+          this.logger.debug(`[TODO] JSON truncated, attempting to fix...`);
+
+          // Count braces to determine what's missing
+          const openBraces = (cleaned.match(/{/g) || []).length;
+          const closeBraces = (cleaned.match(/}/g) || []).length;
+          const openBrackets = (cleaned.match(/\[/g) || []).length;
+          const closeBrackets = (cleaned.match(/\]/g) || []).length;
+
+          // Add missing closing braces and brackets
+          let fixed = cleaned;
+          for (let i = 0; i < openBraces - closeBraces; i++) {
+            fixed += '}';
+          }
+          for (let i = 0; i < openBrackets - closeBrackets; i++) {
+            fixed += ']';
+          }
+
+          try {
+            parsed = JSON.parse(fixed);
+            this.logger.system('mcp-todo', `[TODO] ✅ Fixed truncated JSON`);
+          } catch (fixError) {
+            // If still fails, use fallback
+            this.logger.warn(`[TODO] Could not fix JSON: ${fixError.message}`);
+            throw parseError;
+          }
+        } else {
+          throw parseError;
+        }
+      }
+
+      // Generate a unique ID for this TODO list
+      const todoId = `todo_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+      // Map the parsed response to the TodoList structure
+      const todoList = {
+        id: todoId,
+        request: originalRequest,
+        mode: parsed.mode || 'standard',
+        complexity: typeof parsed.complexity === 'number' ? Math.min(10, Math.max(1, parsed.complexity)) : 5,
+        items: [],
+        execution: {
+          current_item_index: 0,
+          completed_items: 0,
+          failed_items: 0,
+          total_attempts: 0
+        }
+      };
+
+      // Process items if they exist
+      if (Array.isArray(parsed.items)) {
+        todoList.items = parsed.items.map((item, index) => {
+          const itemId = `${todoId}_item_${index + 1}`;
+          return {
+            id: itemId,
+            action: item.action || `Unnamed action ${index + 1}`,
+            action_uk: item.action_uk || item.action || `Завдання ${index + 1}`,  // ADDED 2025-11-19: Ukrainian action for TTS
+            tools_needed: Array.isArray(item.tools_needed) ? item.tools_needed : [],
+            mcp_servers: Array.isArray(item.mcp_servers) ? item.mcp_servers : [],
+            parameters: typeof item.parameters === 'object' ? item.parameters : {},
+            success_criteria: item.success_criteria || 'Task completed without errors',
+            fallback_options: Array.isArray(item.fallback_options) ? item.fallback_options : [],
+            dependencies: Array.isArray(item.dependencies) ? item.dependencies : [],
+            attempt: 0,
+            max_attempts: typeof item.max_attempts === 'number' ? item.max_attempts : 3,
+            status: 'pending',
+            tts: {
+              start: item.tts?.start || `Виконую завдання ${index + 1}`,
+              success: item.tts?.success || `Завдання ${index + 1} виконано успішно`,
+              failure: item.tts?.failure || `Не вдалося виконати завдання ${index + 1}`,
+              verify: item.tts?.verify || `Перевіряю результат завдання ${index + 1}`
+            }
+          };
+        });
+      }
+
+      this.logger.system('mcp-todo', `[TODO] Successfully parsed TODO list with ${todoList.items.length} items`);
+      return todoList;
+
+    } catch (error) {
+      this.logger.error('mcp-todo', `Failed to parse TODO response: ${error.message}`, {
+        category: 'mcp-todo',
+        component: 'mcp-todo',
+        error: error.stack,
+        response: response.substring(0, 500) + '...' // Log first 500 chars of response
+      });
+
+      // Create a minimal TODO with the original request as a single item
+      return {
+        id: `todo_${Date.now()}_fallback`,
+        request: originalRequest,
+        mode: 'standard',
+        complexity: 5,
+        items: [{
+          id: `todo_${Date.now()}_item_1`,
+          action: originalRequest,
+          tools_needed: [],
+          mcp_servers: [],
+          parameters: {},
+          success_criteria: 'Task completed',
+          fallback_options: [],
+          dependencies: [],
+          attempt: 0,
+          max_attempts: 3,
+          status: 'pending',
+          tts: {
+            start: 'Виконую завдання',
+            success: 'Завдання виконано успішно',
+            failure: 'Не вдалося виконати завдання',
+            verify: 'Перевіряю результат'
+          }
+        }],
+        execution: {
+          current_item_index: 0,
+          completed_items: 0,
+          failed_items: 0,
+          total_attempts: 0
+        }
+      };
+    }
+  }
+
+  /**
+   * Validate TODO structure
+   * 
+   * @param {Object} todo - TODO to validate
+   * @returns {boolean} Valid or not
+   * @private
+   */
+  _validateTodo(todo) {
+    if (!todo || typeof todo !== 'object') {
+      this.logger.error('mcp-todo', '[TODO] Invalid TODO: not an object');
+      return false;
+    }
+
+    if (!Array.isArray(todo.items) || todo.items.length === 0) {
+      this.logger.error('mcp-todo', '[TODO] Invalid TODO: items must be non-empty array');
+      return false;
+    }
+
+    if (!todo.mode || !['standard', 'extended'].includes(todo.mode)) {
+      this.logger.error('mcp-todo', `[TODO] Invalid TODO: mode must be 'standard' or 'extended', got '${todo.mode}'`);
+      return false;
+    }
+
+    // All checks passed
+    return true;
   }
 
   _getPluralForm(count, one, few, many) {
@@ -3290,23 +3527,6 @@ Select 1-2 most relevant servers.
       });
       throw error;
     }
-  }
-
-  /**
-   * Create universal prompt for any MCP server combination
-   * Dynamically generates prompt based on available tools
-   * @private
-   * @param {Array<string>} servers - Server names
-   * @returns {Object} Prompt object with SYSTEM_PROMPT and USER_PROMPT
-   */
-  _createUniversalPrompt(servers) {
-    const serverList = servers.join(', ');
-
-    // Use imported universal prompt and replace placeholders
-    return {
-      SYSTEM_PROMPT: universalMcpPrompt.SYSTEM_PROMPT.replace('{{SERVER_LIST}}', serverList),
-      USER_PROMPT: universalMcpPrompt.USER_PROMPT.replace(/{{SERVER_LIST}}/g, serverList)
-    };
   }
 
   /**

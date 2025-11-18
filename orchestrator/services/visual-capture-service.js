@@ -51,7 +51,7 @@ export class VisualCaptureService {
         this.screenshotQueue = [];
         this.lastScreenshotHash = null;
         this.changeDetected = false;
-        
+
         // Display information (populated during initialization)
         this.displayCount = 0;
         this.displayInfo = null;
@@ -123,7 +123,7 @@ export class VisualCaptureService {
         }
 
         this.isMonitoring = false;
-        
+
         if (this.monitoringInterval) {
             clearInterval(this.monitoringInterval);
             this.monitoringInterval = null;
@@ -158,13 +158,14 @@ export class VisualCaptureService {
 
             switch (mode) {
                 case 'active_window':
-                    captureSuccess = await this._captureActiveWindow(filepath, options.targetApp);
+                    // FIXED 2025-11-18: Pass shouldActivate flag (default true for backward compatibility)
+                    captureSuccess = await this._captureActiveWindow(filepath, options.targetApp, options.shouldActivate !== false);
                     break;
-                    
+
                 case 'desktop_only':
                     captureSuccess = await this._captureDesktopOnly(filepath, options.displayNumber);
                     break;
-                    
+
                 case 'full_screen':
                 default:
                     captureSuccess = await this._captureFullScreen(filepath);
@@ -210,7 +211,7 @@ export class VisualCaptureService {
             // Cleanup old screenshots
             await this._cleanupOldScreenshots();
 
-            this.logger.system('visual-capture', 
+            this.logger.system('visual-capture',
                 `[VISUAL] 📸 Screenshot captured [${mode}]: ${(stats.size / 1024).toFixed(1)}KB`);
 
             return screenshotInfo;
@@ -284,7 +285,7 @@ export class VisualCaptureService {
             const hash2 = crypto.createHash('md5').update(file2).digest('hex');
 
             const identical = hash1 === hash2;
-            
+
             // Simple byte-level difference calculation
             let diffBytes = 0;
             const minLength = Math.min(file1.length, file2.length);
@@ -368,9 +369,9 @@ export class VisualCaptureService {
         try {
             const { stdout } = await execAsync('system_profiler SPDisplaysDataType | grep -c "Resolution:"');
             this.displayCount = parseInt(stdout.trim()) || 1;
-            
+
             this.logger.system('visual-capture', `[VISUAL] 🖥️  Detected ${this.displayCount} display(s)`);
-            
+
             return this.displayCount;
         } catch (error) {
             this.logger.warn(`[VISUAL] Display detection failed: ${error.message}`, {
@@ -384,34 +385,43 @@ export class VisualCaptureService {
     /**
      * Capture active window (frontmost application)
      * OPTIMIZED 2025-10-22: Non-interactive method using window bounds
+     * FIXED 2025-11-18: Added shouldActivate flag to prevent side-effects during verification
      * 
      * @param {string} filepath - Output file path
-     * @param {string} targetApp - Optional: specific app to activate first
+     * @param {string} targetApp - Optional: specific app to capture (without activating)
+     * @param {boolean} shouldActivate - Whether to activate the app (default: true for backward compatibility)
      * @returns {Promise<boolean>} Success status
      * @private
      */
-    async _captureActiveWindow(filepath, targetApp = null) {
+    async _captureActiveWindow(filepath, targetApp = null, shouldActivate = true) {
         try {
             let processName = targetApp;
-            
+
             // INTELLIGENT APP DETECTION: Try multiple approaches
             if (targetApp) {
                 // Normalize app name for cross-language compatibility
                 const normalizedApp = this._normalizeAppName(targetApp);
-                
-                // Try to find and activate the app
-                const activated = await this._intelligentAppActivation(normalizedApp);
-                
-                if (activated) {
-                    processName = activated;
-                    this.logger.system('visual-capture', `[VISUAL] 🎯 Activated: ${processName}`);
+
+                // FIXED 2025-11-18: Only activate if shouldActivate is true (for verification, we just observe)
+                if (shouldActivate) {
+                    // Try to find and activate the app
+                    const activated = await this._intelligentAppActivation(normalizedApp);
+
+                    if (activated) {
+                        processName = activated;
+                        this.logger.system('visual-capture', `[VISUAL] 🎯 Activated: ${processName}`);
+                    } else {
+                        // Fallback to frontmost app
+                        const { stdout } = await execAsync(`osascript -e 'tell application "System Events" to get name of first process whose frontmost is true'`);
+                        processName = stdout.trim();
+                        this.logger.warn(`[VISUAL] Could not activate ${targetApp}, using frontmost: ${processName}`, {
+                            category: 'visual-capture'
+                        });
+                    }
                 } else {
-                    // Fallback to frontmost app
-                    const { stdout } = await execAsync(`osascript -e 'tell application "System Events" to get name of first process whose frontmost is true'`);
-                    processName = stdout.trim();
-                    this.logger.warn(`[VISUAL] Could not activate ${targetApp}, using frontmost: ${processName}`, {
-                        category: 'visual-capture'
-                    });
+                    // FIXED 2025-11-18: Just use the target app name without activating (for verification)
+                    processName = normalizedApp;
+                    this.logger.system('visual-capture', `[VISUAL] 🔍 Observing (no activation): ${processName}`);
                 }
             } else {
                 // Get frontmost process name
@@ -419,7 +429,7 @@ export class VisualCaptureService {
                 processName = stdout.trim();
                 this.logger.system('visual-capture', `[VISUAL] 🎯 Frontmost app: ${processName}`);
             }
-            
+
             // Get window bounds using AppleScript
             const boundsScript = `
                 tell application "System Events"
@@ -430,20 +440,20 @@ export class VisualCaptureService {
                     end tell
                 end tell
             `;
-            
+
             const { stdout: boundsOutput } = await execAsync(`osascript -e '${boundsScript}'`);
             // Remove all spaces and fix double commas
             const bounds = boundsOutput.trim().replace(/\s/g, '').replace(/,+/g, ',');
-            
+
             this.logger.system('visual-capture', `[VISUAL] Window bounds: ${bounds}`);
-            
+
             // Capture window region (non-interactive)
             const command = `screencapture -x -R ${bounds} "${filepath}"`;
             await execAsync(command);
-            
+
             this.logger.system('visual-capture', '[VISUAL] ✅ Active window captured');
             return true;
-            
+
         } catch (error) {
             this.logger.error(`[VISUAL] Active window capture failed: ${error.message}`, {
                 category: 'visual-capture',
@@ -464,26 +474,26 @@ export class VisualCaptureService {
      */
     async _captureDesktopOnly(filepath, displayNumber = null) {
         try {
-            const displayMsg = displayNumber 
-                ? `display ${displayNumber}` 
+            const displayMsg = displayNumber
+                ? `display ${displayNumber}`
                 : 'all displays';
-            
+
             this.logger.system('visual-capture', `[VISUAL] 🖼️  Hiding windows for desktop capture (${displayMsg})`);
-            
+
             // Hide all application windows (show desktop) - universal approach
             await execAsync('osascript -e \'tell application "System Events" to set visible of every process whose visible is true and background only is false to false\'');
-            
+
             // Wait for windows to hide
             await new Promise(resolve => setTimeout(resolve, 500));
-            
+
             // Capture screen (specific display or all)
             const displayFlag = displayNumber ? `-D ${displayNumber}` : '';
             const command = `screencapture -x ${displayFlag} "${filepath}"`;
             await execAsync(command);
-            
+
             this.logger.system('visual-capture', `[VISUAL] ✅ Desktop captured (${displayMsg})`);
             return true;
-            
+
         } catch (error) {
             this.logger.error(`[VISUAL] Desktop capture failed: ${error.message}`, {
                 category: 'visual-capture',
@@ -503,19 +513,19 @@ export class VisualCaptureService {
      */
     async _captureFullScreen(filepath) {
         try {
-            const displayMsg = this.displayCount > 1 
-                ? `all ${this.displayCount} displays` 
+            const displayMsg = this.displayCount > 1
+                ? `all ${this.displayCount} displays`
                 : 'display';
-            
+
             this.logger.system('visual-capture', `[VISUAL] 📷 Capturing full screen (${displayMsg})`);
-            
+
             // Capture all screens
             const command = `screencapture -x "${filepath}"`;
             await execAsync(command);
-            
+
             this.logger.system('visual-capture', '[VISUAL] ✅ Full screen captured');
             return true;
-            
+
         } catch (error) {
             this.logger.error(`[VISUAL] Full screen capture failed: ${error.message}`, {
                 category: 'visual-capture'
@@ -530,11 +540,11 @@ export class VisualCaptureService {
      */
     _normalizeAppName(appName) {
         // Capitalize first letter of each word
-        return appName.split(/\s+/).map(word => 
+        return appName.split(/\s+/).map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     }
-    
+
     /**
      * Intelligent app activation - tries multiple approaches
      * @private
@@ -543,14 +553,14 @@ export class VisualCaptureService {
         // Fix Ukrainian to English app names
         const appNameMap = {
             'Калькулятор': 'Calculator',
-            'Нотатки': 'Notes', 
+            'Нотатки': 'Notes',
             'Сафарі': 'Safari',
             'Файндер': 'Finder'
         };
-        
+
         // Use English name if Ukrainian detected
         const actualAppName = appNameMap[appName] || appName;
-        
+
         try {
             // Try to activate the app
             await execAsync(`osascript -e 'tell application "${actualAppName}" to activate'`);
@@ -569,7 +579,7 @@ export class VisualCaptureService {
      */
     async destroy() {
         await this.stopMonitoring();
-        
+
         // Cleanup all screenshots
         for (const screenshot of this.screenshotQueue) {
             try {

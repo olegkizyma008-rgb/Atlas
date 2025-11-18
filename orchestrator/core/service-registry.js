@@ -489,17 +489,19 @@ export function registerMCPWorkflowServices(container) {
 
     // TTSSyncManager - TTS synchronization для MCP workflow
     // FIXED 14.10.2025 NIGHT - Pass wsManager as ttsService for WebSocket TTS delivery
+    // ADDED 2025-11-19 - Pass localizationService for user language support
     container.singleton('ttsSyncManager', (c) => {
         return new TTSSyncManager({
             ttsService: c.resolve('wsManager'),  // FIXED: Use wsManager for WebSocket TTS
+            localizationService: c.resolve('localizationService'),  // ADDED 2025-11-19: For user language
             logger: c.resolve('logger')
         });
     }, {
-        dependencies: ['wsManager', 'logger'],  // FIXED: Added wsManager dependency
+        dependencies: ['wsManager', 'localizationService', 'logger'],
         metadata: { category: 'workflow', priority: 60 },
         lifecycle: {
             onInit: async function () {
-                logger.system('startup', '[DI] TTSSyncManager initialized with WebSocket TTS');
+                logger.system('startup', '[DI] TTSSyncManager initialized with WebSocket TTS and language support');
             }
         }
     });
@@ -682,10 +684,11 @@ export function registerMCPProcessors(container) {
     // Optional fast pre-filter before server selection
     container.singleton('routerClassifier', async (c) => {
         const { default: RouterClassifierProcessor } = await import('../workflow/stages/router-classifier-processor.js');
-        // LLMClient will be resolved from tetyanaToolSystem if needed
+        // FIXED 2025-11-18: Pass llmClient if available for LLM-based classification
+        const llmClient = container.has('llmClient') ? await c.resolve('llmClient') : null;
         return new RouterClassifierProcessor(
             c.resolve('logger'),
-            null // LLM client not needed for basic routing
+            llmClient
         );
     }, {
         dependencies: ['logger'],

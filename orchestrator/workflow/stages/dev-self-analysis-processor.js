@@ -1730,6 +1730,19 @@ export class DevSelfAnalysisProcessor {
             const timestamp = new Date().toISOString();
             const fullMessage = metadata.showTimestamp ? `[${timestamp}] ${message}` : message;
             
+            // ADDED 2025-11-19: Get user language from localization service or use default
+            let userLanguage = USER_LANGUAGE;
+            try {
+                if (this.container) {
+                    const localizationService = this.container.resolve('localizationService');
+                    if (localizationService) {
+                        userLanguage = localizationService.config.getUserLanguage();
+                    }
+                }
+            } catch (error) {
+                this.logger.debug('[DEV-ANALYSIS] Could not resolve localizationService, using default language');
+            }
+            
             await session.websocketManager.broadcast('agent_message', {
                 content: fullMessage,
                 agent: agent,
@@ -1737,6 +1750,7 @@ export class DevSelfAnalysisProcessor {
                 timestamp: timestamp,
                 ttsContent: message,
                 mode: 'dev-background',
+                language: userLanguage,  // ADDED 2025-11-19: User language for TTS
                 metadata: {
                     ...metadata,
                     truthful: true, // Mark as truthful reporting

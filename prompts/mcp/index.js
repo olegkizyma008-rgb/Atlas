@@ -46,7 +46,6 @@ import grishaVerificationEligibility from './grisha_verification_eligibility.js'
 import atlasReplanTodo from './atlas_replan_todo.js';  // NEW 18.10.2025 - Deep replan with Tetyana + Grisha data
 import mcpFinalSummary from './mcp_final_summary.js';
 import llmToolValidator from './llm_tool_validator.js';  // NEW 21.10.2025 - LLM tool validation
-import universalMcpPrompt from './universal_mcp_prompt.js';  // NEW 29.10.2025 - Universal fallback prompt
 
 export const MCP_PROMPTS = {
     // Stage 0-MCP: Mode Selection (NEW 16.10.2025)
@@ -54,10 +53,10 @@ export const MCP_PROMPTS = {
 
     // Stage 0-MCP: Chat Mode (NEW 16.10.2025) - Atlas responds directly
     ATLAS_CHAT: atlasChat,
-    
+
     // Stage 0.5-MCP: Context Enrichment (NEW 30.10.2025) - Rephrase and expand user request
     ATLAS_CONTEXT_ENRICHMENT: atlasContextEnrichment,
-    
+
     // Stage 0-DEV: DEV Mode (NEW 28.10.2025) - Self-analysis and code intervention
     DEV_SELF_ANALYSIS: devSelfAnalysis,
 
@@ -69,7 +68,7 @@ export const MCP_PROMPTS = {
 
     // Stage 2.1-MCP: Tetyana plans tools - REMOVED GENERAL fallback 20.10.2025
     // Use only specialized prompts below:
-    
+
     // Stage 2.1-MCP: MCP-specific prompts (NEW 18.10.2025)
     TETYANA_PLAN_TOOLS_APPLESCRIPT: tetyanaPlanToolsApplescript,
     TETYANA_PLAN_TOOLS_FILESYSTEM: tetyanaPlanToolsFilesystem,
@@ -86,7 +85,7 @@ export const MCP_PROMPTS = {
 
     // Stage 2.3-MCP: Grisha verifies item (VISUAL VERIFICATION - NEW 17.10.2025)
     GRISHA_VERIFY_ITEM: grishaVisualVerifyItem,  // Visual AI verification
-    
+
     // Stage 2.3-routing: Grisha verification eligibility (NEW 22.10.2025)
     GRISHA_VERIFICATION_ELIGIBILITY: grishaVerificationEligibility,
 
@@ -97,10 +96,7 @@ export const MCP_PROMPTS = {
     MCP_FINAL_SUMMARY: mcpFinalSummary,
 
     // Tool Validation: LLM-based tool validation (NEW 21.10.2025)
-    LLM_TOOL_VALIDATOR: llmToolValidator,
-
-    // Universal fallback prompt (NEW 29.10.2025)
-    UNIVERSAL_MCP_PROMPT: universalMcpPrompt
+    LLM_TOOL_VALIDATOR: llmToolValidator
 };
 
 export default MCP_PROMPTS;
@@ -128,6 +124,5 @@ export {
     // atlasAdjustTodo - ARCHIVED 2025-10-22
     atlasReplanTodo,  // NEW 18.10.2025
     mcpFinalSummary,
-    llmToolValidator,  // NEW 21.10.2025
-    universalMcpPrompt  // NEW 29.10.2025
+    llmToolValidator  // NEW 21.10.2025
 };

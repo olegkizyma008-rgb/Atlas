@@ -189,9 +189,9 @@ export class Application {
             console.log(`[SERVER] WebSocket port configured: ${wsPort}`);
             this.logger.system('websocket', `WebSocket port configured: ${wsPort}`);
 
-            // Start the WebSocket server
+            // Start the WebSocket server and wait for it to be ready
             console.error('[SERVER] DEBUG: About to call wsManager.start()');
-            const wss = this.wsManager.start(wsPort);
+            const wss = await this.wsManager.start(wsPort);
             console.error('[SERVER] DEBUG: wsManager.start() returned:', !!wss);
             console.log(`[SERVER] ✅ WebSocket server started on port ${wsPort}`);
             this.logger.system('websocket', `✅ WebSocket server running on port ${wsPort}`);
@@ -227,10 +227,8 @@ export class Application {
 
                     // Start WebSocket server immediately after HTTP server is ready
                     console.log('[SERVER] Starting WebSocket server...');
-                    setImmediate(() => {
-                        this.startWebSocket().catch(err => {
-                            console.error('[SERVER] WebSocket startup error:', err);
-                        });
+                    this.startWebSocket().catch(err => {
+                        console.error('[SERVER] WebSocket startup error:', err);
                     });
 
                     resolve();

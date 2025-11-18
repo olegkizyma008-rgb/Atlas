@@ -14,12 +14,853 @@ import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 import { EternityIntegration } from '../eternity/eternity-integration.js';
 import { NexusContextActivator } from '../eternity/nexus-context-activator.js';
 import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
+import { WorkflowStateMachine, HandlerFactory } from './state-machine/index.js';
 
 // FIXED 21.10.2025 - Phrase rotation indices (module-level for persistence)
 const phraseRotation = {
   tetyanaStart: 0,
   tetyanaSuccess: 0
 };
+
+// ============================================================================
+// PHASE 1 REFACTORING - STAGE FUNCTIONS (2025-11-18)
+// ============================================================================
+// NOTE: These functions are being extracted from executeWorkflow for modularization.
+// This is a gradual refactoring process - functions are created but not yet called.
+// They will be integrated into executeWorkflow in subsequent phases.
+
+/**
+ * Stage 0-MCP: Mode Selection
+ * Determines the workflow mode (chat, task, or dev) based on user input
+ * 
+ * @param {Object} workflowContext - Workflow context (userMessage, session, container, logger, wsManager, res, localizationService)
+ * @param {Object} processors - Stage processors (modeProcessor, devProcessor)
+ * @returns {Promise<{mode: string, confidence: number, mood: string}>} Mode selection result
+ * 
+ * REFACTORING STATUS: Function skeleton created. Will be populated in Phase 1.2.
+ */
+async function runModeSelection(workflowContext, processors) {
+  const { userMessage, session, container, logger, wsManager, res, localizationService } = workflowContext;
+  const { modeProcessor, devProcessor } = processors;
+
+  logger.workflow('stage', 'system', 'Stage 0-MCP: Mode Selection [REFACTORED]', { sessionId: session.id });
+
+  // Check if session is awaiting password for DEV mode OR if user requests intervention after analysis
+  const normalizedMessage = userMessage.trim().toLowerCase();
+  const isPasswordProvided = session.awaitingDevPassword && normalizedMessage === 'mykola';
+
+  // Also check if password is provided in the message (e.g., "виправ з паролем mykola")
+  const passwordInMessage = normalizedMessage.includes('mykola') || normalizedMessage.includes('з паролем') || normalizedMessage.includes('with password');
+  const isInterventionRequest = session.lastDevAnalysis && (
+    userMessage.toLowerCase().includes('внеси зміни') ||
+    userMessage.toLowerCase().includes('виправ') ||
+    userMessage.toLowerCase().includes('fix') ||
+    userMessage.toLowerCase().includes('застосуй') ||
+    userMessage.toLowerCase().includes('apply')
+  );
+
+  // CRITICAL DEBUG: Log session state for DEV mode detection
+  logger.system('executor', `[DEV-CHECK] Session state check:`, {
+    sessionId: session.id,
+    hasLastDevAnalysis: !!session.lastDevAnalysis,
+    hasLastDevAnalysisMessage: !!session.lastDevAnalysisMessage,
+    awaitingDevPassword: session.awaitingDevPassword,
+    userMessage: userMessage.substring(0, 50),
+    isPasswordProvided,
+    isInterventionRequest,
+    lastDevAnalysisTimestamp: session.lastDevAnalysis?.timestamp
+  });
+
+  if (isPasswordProvided || (isInterventionRequest && passwordInMessage)) {
+    logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention with password requested'}, continuing DEV mode`, {
+      sessionId: session.id,
+      passwordProvided: isPasswordProvided,
+      passwordInMessage: passwordInMessage
+    });
+
+    // If intervention requested but no password yet, show dialog and wait
+    if (isInterventionRequest && !isPasswordProvided && !passwordInMessage) {
+      session.awaitingDevPassword = true;
+      session.devOriginalMessage = session.lastDevAnalysisMessage || 'Проаналізуй себе';
+
+      // Re-send analysis with password request
+      const analysisData = session.lastDevAnalysis;
+      const findings = analysisData?.findings || {};
+
+      const passwordMessage = `🔐 **Потрібна авторизація для втручання**\n\nЯ готовий внести виправлення в свій код. Для безпеки мені потрібен пароль "mykola".\n\n**Що буде виправлено:**\n${findings.critical_issues?.length || 0} критичних проблем\n${findings.performance_bottlenecks?.length || 0} проблем продуктивності\n\nВведи пароль щоб продовжити.`;
+      const localizedMessage = localizationService.translateToUser(passwordMessage);
+
+      if (wsManager) {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: localizedMessage,
+          agent: 'atlas',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+          ttsContent: 'Мені потрібен пароль mykola щоб внести зміни',
+          mode: 'dev',
+          requiresAuth: true
+        });
+
+        // Trigger password dialog
+        wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
+          sessionId: session.id,
+          analysisData: {
+            criticalIssues: findings.critical_issues?.length || 0,
+            performanceIssues: findings.performance_bottlenecks?.length || 0,
+            improvements: findings.improvement_suggestions?.length || 0
+          }
+        });
+      }
+
+      return { success: false, requiresAuth: true };
+    }
+
+    // Password provided - execute intervention
+    // Extract actual password from message if it's a password submission
+    const actualPassword = isPasswordProvided ? userMessage.trim() : 'mykola';
+
+    const analysisResult = await devProcessor.execute({
+      userMessage: session.devOriginalMessage || session.lastDevAnalysisMessage || 'Виправ себе',
+      session,
+      requiresIntervention: true,
+      password: actualPassword,
+      container
+    });
+
+    // Clear password state only after successful intervention
+    if (analysisResult.success || analysisResult.transitionToTask) {
+      session.awaitingDevPassword = false;
+      session.devAnalysisResult = null;
+      session.devOriginalMessage = null;
+      // Keep lastDevAnalysis for context
+    }
+
+    // Check if transitioning to TASK mode
+    if (analysisResult.transitionToTask && analysisResult.taskContext) {
+      logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode after password', {
+        sessionId: session.id,
+        tasksCount: analysisResult.taskContext.tasks?.length || 0
+      });
+
+      // Store transition context
+      session.devTransitionContext = analysisResult.taskContext;
+
+      // Send transition message
+      const transitionMessage = analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...';
+      if (wsManager) {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: transitionMessage,
+          agent: 'atlas',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+          ttsContent: 'Переходжу в режим виконання завдань',
+          mode: 'task',
+          transitionFromDev: true
+        });
+      }
+
+      // Continue to TASK mode execution below
+      return { mode: 'task', confidence: 1.0, mood: 'neutral', transitionFromDev: true };
+    } else {
+      // Send intervention result
+      const interventionMessage = analysisResult.intervention?.message || analysisResult.message || 'Аналіз завершено!';
+      const localizedMessage = localizationService.translateToUser(interventionMessage);
+
+      if (wsManager) {
+        wsManager.broadcastToSubscribers('chat', 'agent_message', {
+          content: localizedMessage,
+          agent: 'atlas',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+          ttsContent: interventionMessage,
+          mode: 'dev',
+          interventionComplete: true
+        });
+      }
+
+      return { ...analysisResult, isDevIntervention: true };
+    }
+  }
+
+  // Standard mode selection via LLM
+  const modeResult = await modeProcessor.execute({
+    userMessage,
+    session
+  });
+
+  const mode = modeResult.mode;
+  const confidence = modeResult.confidence;
+  const mood = modeResult.mood || 'neutral';
+
+  logger.workflow('stage', 'system', `Mode selected: ${mode} (confidence: ${confidence}, mood: ${mood})`, {
+    sessionId: session.id,
+    reasoning: modeResult.reasoning,
+    mood: mood
+  });
+
+  // Send mode selection to frontend via SSE
+  if (res.writable && !res.writableEnded) {
+    res.write(`data: ${JSON.stringify({
+      type: 'mode_selected',
+      data: {
+        mode,
+        confidence,
+        reasoning: modeResult.reasoning,
+        mood: mood
+      }
+    })}\n\n`);
+  }
+
+  return { mode, confidence, mood, reasoning: modeResult.reasoning };
+}
+
+/**
+ * Stage 0.5-MCP: Context Enrichment
+ * Enriches the user message with additional context and metadata
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (contextEnrichmentProcessor)
+ * @returns {Promise<{enrichedMessage: string, metadata: Object}>} Enriched message and metadata
+ * 
+ * REFACTORING STATUS: Function skeleton created. Will be populated in Phase 1.2.
+ */
+async function runContextEnrichment(workflowContext, processors) {
+  const { userMessage, session, logger } = workflowContext;
+  const { contextEnrichmentProcessor } = processors;
+
+  logger.workflow('stage', 'atlas', 'Stage 0.5-MCP: Context Enrichment [REFACTORED]', { sessionId: session.id });
+
+  let enrichedMessage = userMessage;
+  let enrichmentMetadata = null;
+
+  try {
+    const enrichmentResult = await contextEnrichmentProcessor.execute({
+      userMessage,
+      session
+    });
+
+    if (enrichmentResult.success && enrichmentResult.enriched_message) {
+      enrichedMessage = enrichmentResult.enriched_message;
+      enrichmentMetadata = enrichmentResult.metadata;
+
+      logger.system('executor', `[STAGE-0.5-MCP] Context enriched`);
+      logger.system('executor', `[STAGE-0.5-MCP]    Original: "${userMessage}"`);
+      logger.system('executor', `[STAGE-0.5-MCP]    Enriched: "${enrichedMessage}"`);
+      logger.system('executor', `[STAGE-0.5-MCP]    Complexity: ${enrichmentMetadata.complexity}/10`);
+    } else {
+      logger.warn(`[STAGE-0.5-MCP] Context enrichment failed, using original message: ${enrichmentResult.error}`);
+    }
+  } catch (enrichmentError) {
+    logger.warn(`[STAGE-0.5-MCP] Context enrichment error (continuing with original): ${enrichmentError.message}`);
+    // Continue with original message on error
+  }
+
+  return {
+    enrichedMessage,
+    metadata: enrichmentMetadata,
+    success: true
+  };
+}
+
+/**
+ * Stage 1-MCP: TODO Planning
+ * Plans the TODO list based on user request and context
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (todoProcessor)
+ * @param {string} enrichedMessage - Enriched user message from Stage 0.5
+ * @param {Object} enrichmentMetadata - Metadata from context enrichment
+ * @returns {Promise<{todo: Object, plan: Array}>} TODO plan
+ * 
+ * REFACTORING STATUS: Function skeleton created. Will be populated in Phase 1.2.
+ */
+async function runTodoPlanning(workflowContext, processors, enrichedMessage, enrichmentMetadata) {
+  const { userMessage, session, res, logger } = workflowContext;
+  const { todoProcessor } = processors;
+
+  logger.workflow('stage', 'system', 'Stage 1-MCP: Atlas TODO Planning [REFACTORED]', { sessionId: session.id });
+
+  // Check if we have DEV transition context
+  let todoResult;
+  if (session.devTransitionContext) {
+    logger.system('executor', '[TASK-FROM-DEV] Using DEV transition context', {
+      sessionId: session.id,
+      tasksCount: session.devTransitionContext.tasks?.length || 0
+    });
+
+    // Create TODO from DEV context
+    todoResult = {
+      success: true,
+      todo: {
+        mode: 'task',
+        items: session.devTransitionContext.tasks.map(task => ({
+          ...task,
+          status: 'pending',
+          max_attempts: 3,
+          attempt: 0
+        })),
+        user_message: userMessage,
+        metadata: session.devTransitionContext.metadata
+      },
+      summary: `Виконую ${session.devTransitionContext.tasks?.length || 0} завдань з DEV аналізу`
+    };
+
+    // Clear transition context after use
+    delete session.devTransitionContext;
+  } else {
+    // Normal TODO planning with enriched message
+    try {
+      todoResult = await todoProcessor.execute({
+        userMessage: enrichedMessage,  // Use enriched message instead of original
+        session,
+        res,
+        enrichmentMetadata  // Pass enrichment metadata for context
+      });
+    } catch (todoError) {
+      logger.warn(`[STAGE-1-MCP] ⚠️ TODO planning error (using fallback): ${todoError.message}`);
+      // Use fallback TODO if planning fails
+      // This allows chat mode to work even if TODO planning fails
+      todoResult = {
+        success: true,
+        todo: {
+          mode: 'chat',
+          items: [],
+          user_message: userMessage,
+          metadata: {}
+        },
+        summary: 'Перейшов в режим чату через помилку планування'
+      };
+    }
+  }
+
+  return {
+    todo: todoResult.todo,
+    plan: todoResult.plan || [],
+    success: todoResult.success,
+    summary: todoResult.summary
+  };
+}
+
+/**
+ * Stage 2.0-MCP: Server Selection
+ * Selects appropriate MCP servers for the TODO items
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (serverSelectionProcessor)
+ * @param {Object} item - Current TODO item
+ * @param {Array} suggestedServers - Pre-filtered servers from router classifier
+ * @returns {Promise<{servers: Array, prompts: Array, success: boolean}>} Selected servers and prompts
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 2.0
+ */
+async function runServerSelection(workflowContext, processors, item, suggestedServers) {
+  const { session, logger, res } = workflowContext;
+  const { serverSelectionProcessor } = processors;
+
+  logger.workflow('stage', 'system', `Stage 2.0-MCP: Selecting MCP servers for item ${item.id}`, {
+    sessionId: session.id
+  });
+
+  let selectedServers = null;
+  let selectedPrompts = null;
+
+  try {
+    const selectionResult = await serverSelectionProcessor.execute({
+      currentItem: item,
+      todo: workflowContext.todo,
+      session,
+      res,
+      suggestedServers // Pass router suggestions
+    });
+
+    if (selectionResult.success && selectionResult.selected_servers) {
+      selectedServers = selectionResult.selected_servers;
+      selectedPrompts = selectionResult.selected_prompts;
+
+      logger.system('executor', `[STAGE-2.0-MCP] Selected servers: ${selectedServers.join(', ')}`);
+      if (selectedPrompts) {
+        logger.system('executor', `[STAGE-2.0-MCP] Auto-assigned prompts: ${Array.isArray(selectedPrompts) ? selectedPrompts.join(', ') : selectedPrompts}`);
+      }
+
+      // Persist Stage 2.0 selection on item for downstream stages
+      item._mcp_selected_servers = Array.isArray(selectedServers) ? [...selectedServers] : [];
+      item._mcp_selected_prompts = selectedPrompts;
+    }
+  } catch (selectionError) {
+    logger.warn(`Server selection failed for item ${item.id}: ${selectionError.message}. Using fallback prompts.`, {
+      sessionId: session.id
+    });
+
+    // Assign fallback prompts when server selection fails
+    if (!selectedPrompts) {
+      const taskAction = item.action.toLowerCase();
+      let fallbackPrompt = 'TETYANA_PLAN_TOOLS_PLAYWRIGHT'; // Default for web tasks
+
+      if (taskAction.includes('файл') || taskAction.includes('зберегти') || taskAction.includes('створити') || taskAction.includes('file')) {
+        fallbackPrompt = 'TETYANA_PLAN_TOOLS_FILESYSTEM';
+      } else if (taskAction.includes('команд') || taskAction.includes('запустити') || taskAction.includes('command') || taskAction.includes('shell')) {
+        fallbackPrompt = 'TETYANA_PLAN_TOOLS_SHELL';
+      } else if (taskAction.includes('пам\'ять') || taskAction.includes('зберегти') || taskAction.includes('memory')) {
+        fallbackPrompt = 'TETYANA_PLAN_TOOLS_MEMORY';
+      }
+
+      selectedPrompts = [fallbackPrompt];
+      logger.system('executor', `[FALLBACK] Auto-assigned intelligent fallback prompt: ${selectedPrompts.join(', ')} (based on task: "${item.action}")`);
+    }
+  }
+
+  return {
+    servers: selectedServers || [],
+    prompts: selectedPrompts || [],
+    success: true
+  };
+}
+
+/**
+ * Stage 2.1-MCP: Tool Planning
+ * Plans which tools to use for each TODO item
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (planProcessor)
+ * @param {Object} item - Current TODO item
+ * @param {Object} serverSelection - Server selection result from Stage 2.0
+ * @returns {Promise<{plan: Object, success: boolean, error?: string}>} Tool plan
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 2.1
+ */
+async function runToolPlanning(workflowContext, processors, item, serverSelection) {
+  const { session, logger, res } = workflowContext;
+  const { planProcessor } = processors;
+
+  logger.workflow('stage', 'tetyana', `Stage 2.1-MCP: Planning tools for item ${item.id}`, {
+    sessionId: session.id
+  });
+
+  const planResult = await planProcessor.execute({
+    currentItem: item,
+    todo: workflowContext.todo,
+    session,
+    res,
+    selected_servers: serverSelection.servers,
+    selected_prompts: serverSelection.prompts
+  });
+
+  if (!planResult.success) {
+    logger.warn(`Tool planning failed for item ${item.id}: ${planResult.error}`, {
+      sessionId: session.id
+    });
+
+    // Send error message to user when tool planning fails
+    if (res.writable && !res.writableEnded) {
+      res.write(`data: ${JSON.stringify({
+        type: 'mcp_item_planning_failed',
+        data: {
+          itemId: item.id,
+          action: item.action,
+          error: planResult.error,
+          summary: planResult.summary || `⚠️ Помилка планування інструментів: ${planResult.error}`
+        }
+      })}\n\n`);
+    }
+  }
+
+  return {
+    plan: planResult.plan || null,
+    success: planResult.success,
+    error: planResult.error,
+    summary: planResult.summary
+  };
+}
+
+/**
+ * Stage 2.2-MCP: Execution
+ * Executes the planned tools for a TODO item
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (executeProcessor, ttsSyncManager)
+ * @param {Object} item - Current TODO item
+ * @param {Object} plan - Tool plan from Stage 2.1
+ * @returns {Promise<{execution: Object, success: boolean, summary: string}>} Execution result
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 2.2
+ */
+async function runExecution(workflowContext, processors, item, plan) {
+  const { session, logger, res, ttsSyncManager } = workflowContext;
+  const { executeProcessor } = processors;
+
+  logger.workflow('stage', 'tetyana', `Stage 2.2-MCP: Executing tools for item ${item.id}`, {
+    sessionId: session.id
+  });
+
+  // Tetyana speaks full action from TODO
+  if (ttsSyncManager && item.action) {
+    try {
+      const fullAction = item.action.toLowerCase();
+      logger.system('executor', `[TTS] 🔊 Tetyana START: "${fullAction}"`);
+      await ttsSyncManager.speak(fullAction, {
+        mode: 'normal',
+        agent: 'tetyana',
+        sessionId: session.id
+      });
+      logger.system('executor', `[TTS] ✅ Tetyana start TTS sent`);
+    } catch (error) {
+      logger.error(`[TTS] ❌ Failed to send TTS: ${error.message}`, {
+        category: 'executor',
+        component: 'executor',
+        stack: error.stack
+      });
+    }
+  }
+
+  const execResult = await executeProcessor.execute({
+    currentItem: item,
+    plan: plan,
+    todo: workflowContext.todo,
+    session,
+    res
+  });
+
+  // Send execution update to frontend
+  if (res.writable && !res.writableEnded) {
+    res.write(`data: ${JSON.stringify({
+      type: 'mcp_item_executed',
+      data: {
+        itemId: item.id,
+        action: item.action,
+        success: execResult.success,
+        summary: execResult.summary
+      }
+    })}\n\n`);
+  }
+
+  return {
+    execution: execResult.execution || null,
+    success: execResult.success,
+    summary: execResult.summary
+  };
+}
+
+/**
+ * Stage 2.3-MCP: Verification
+ * Verifies that the execution was successful
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (verifyProcessor, ttsSyncManager)
+ * @param {Object} item - Current TODO item
+ * @param {Object} execResult - Execution result from Stage 2.2
+ * @returns {Promise<{verified: boolean, verification: Object, summary: string}>} Verification result
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 2.3
+ */
+async function runVerification(workflowContext, processors, item, execResult) {
+  const { session, logger, res, ttsSyncManager } = workflowContext;
+  const { verifyProcessor } = processors;
+
+  logger.workflow('stage', 'grisha', `Stage 2.3-MCP: Verifying item ${item.id}`, {
+    sessionId: session.id
+  });
+
+  // Adaptive delay before screenshot verification
+  const delayMs = _getVerificationDelay(execResult.execution, item);
+  if (delayMs > 0) {
+    const delaySec = (delayMs / 1000).toFixed(1);
+    logger.system('executor', `[VERIFICATION-DELAY] Waiting ${delaySec}s before verification...`);
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+
+  const verifyResult = await verifyProcessor.execute({
+    currentItem: item,
+    execution: execResult.execution,
+    todo: workflowContext.todo,
+    session,
+    res
+  });
+
+  // Send verification update to frontend
+  if (res.writable && !res.writableEnded) {
+    res.write(`data: ${JSON.stringify({
+      type: 'mcp_item_verified',
+      data: {
+        itemId: item.id,
+        verified: verifyResult.verified,
+        confidence: verifyResult.metadata?.confidence || 0,
+        summary: verifyResult.summary
+      }
+    })}\n\n`);
+  }
+
+  // Send TTS messages on success
+  if (verifyResult.verified && ttsSyncManager) {
+    try {
+      const successPhrases = [
+        'Виконано',
+        'Готово',
+        'Зроблено',
+        'Завершено'
+      ];
+      const selectedPhrase = successPhrases[Math.floor(Math.random() * successPhrases.length)];
+
+      logger.system('executor', `[TTS] 🔊 Tetyana SUCCESS: "${selectedPhrase}"`);
+      await ttsSyncManager.speak(selectedPhrase, {
+        mode: 'normal',
+        agent: 'tetyana',
+        sessionId: session.id
+      });
+      logger.system('executor', `[TTS] ✅ Tetyana success sent`);
+
+      // Grisha gives short verdict
+      if (verifyResult.verification?.tts_phrase) {
+        logger.system('executor', `[TTS] 🔊 Grisha VERIFY: "${verifyResult.verification.tts_phrase}"`);
+        await ttsSyncManager.speak(verifyResult.verification.tts_phrase, {
+          mode: 'normal',
+          agent: 'grisha',
+          sessionId: session.id
+        });
+        logger.system('executor', `[TTS] ✅ Grisha verify sent`);
+      }
+    } catch (error) {
+      logger.warn(`Failed to send verification TTS: ${error.message}`);
+    }
+  }
+
+  return {
+    verified: verifyResult.verified,
+    verification: verifyResult.verification || null,
+    summary: verifyResult.summary,
+    metadata: verifyResult.metadata
+  };
+}
+
+/**
+ * Stage 3-MCP: Replan (if needed)
+ * Re-plans the TODO item if verification fails
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (replanProcessor, verifyProcessor)
+ * @param {Object} item - Current TODO item
+ * @param {Object} execResult - Execution result from Stage 2.2
+ * @param {Object} verifyResult - Verification result from Stage 2.3
+ * @param {Object} planResult - Plan result from Stage 2.1
+ * @returns {Promise<{replanned: boolean, strategy: string, newItems: Array, reasoning: string}>} Replan result
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 3
+ */
+async function runReplan(workflowContext, processors, item, execResult, verifyResult, planResult) {
+  const { session, logger, res } = workflowContext;
+  const { replanProcessor, verifyProcessor } = processors;
+
+  logger.workflow('stage', 'grisha', `Stage 3.5-MCP: Deep analysis for item ${item.id}`, {
+    sessionId: session.id
+  });
+
+  try {
+    // Get detailed analysis from Grisha
+    const grishaAnalysis = await verifyProcessor.getDetailedAnalysisForAtlas(
+      item,
+      execResult?.execution || { all_successful: false }
+    );
+
+    logger.info(`Grisha analysis: ${grishaAnalysis.failure_analysis.likely_cause}`, {
+      sessionId: session.id,
+      itemId: item.id,
+      rootCause: grishaAnalysis.failure_analysis.likely_cause,
+      recommendedStrategy: grishaAnalysis.failure_analysis.recommended_strategy
+    });
+
+    // Prepare data for Atlas replan
+    const tetyanaData = {
+      plan: planResult?.plan || { tool_calls: [] },
+      execution: execResult?.execution || { all_successful: false },
+      tools_used: execResult?.execution?.results?.map(r => r.tool) || []
+    };
+
+    const grishaData = {
+      verified: false,
+      reason: grishaAnalysis.reason,
+      visual_evidence: grishaAnalysis.visual_evidence,
+      screenshot_path: grishaAnalysis.screenshot_path,
+      confidence: grishaAnalysis.confidence,
+      suggestions: grishaAnalysis.suggestions,
+      failure_analysis: grishaAnalysis.failure_analysis
+    };
+
+    // Call Atlas replan processor
+    logger.workflow('stage', 'atlas', `Stage 3.6-MCP: Atlas replanning item ${item.id}`, {
+      sessionId: session.id
+    });
+
+    const replanResult = await replanProcessor.execute({
+      failedItem: item,
+      todo: workflowContext.todo,
+      tetyanaData,
+      grishaData,
+      session,
+      res
+    });
+
+    logger.system('executor', `[REPLAN-DEBUG] Strategy: ${replanResult.strategy}`);
+    logger.system('executor', `[REPLAN-DEBUG] Replanned: ${replanResult.replanned}`);
+    logger.system('executor', `[REPLAN-DEBUG] New items count: ${replanResult.new_items?.length || 0}`);
+
+    logger.info(`Atlas replan decision: ${replanResult.strategy || 'unknown'}`, {
+      sessionId: session.id,
+      replanned: replanResult.replanned || false
+    });
+
+    return {
+      replanned: replanResult.replanned || false,
+      strategy: replanResult.strategy,
+      newItems: replanResult.new_items || [],
+      reasoning: replanResult.reasoning,
+      success: true
+    };
+
+  } catch (replanError) {
+    logger.error(`Failed to analyze/replan: ${replanError.message}`, {
+      sessionId: session.id,
+      itemId: item.id,
+      error: replanError.message,
+      stack: replanError.stack
+    });
+
+    return {
+      replanned: false,
+      strategy: 'error',
+      newItems: [],
+      reasoning: `Помилка перепланування: ${replanError.message}`,
+      success: false,
+      error: replanError.message
+    };
+  }
+}
+
+/**
+ * Stage 8-MCP: Final Summary
+ * Generates a final summary of the workflow execution
+ * 
+ * @param {Object} workflowContext - Workflow context
+ * @param {Object} processors - Stage processors (summaryProcessor, wsManager)
+ * @param {Object} todo - Original TODO object
+ * @returns {Promise<{summary: string, metrics: Object, success: boolean}>} Final summary
+ * 
+ * REFACTORING STATUS: Populated with real logic from executeWorkflow Stage 8
+ */
+async function runFinalSummary(workflowContext, processors, todo) {
+  const { session, logger, res, wsManager, workflowStart } = workflowContext;
+  const { summaryProcessor } = processors;
+
+  logger.workflow('stage', 'system', 'Stage 8-MCP: Generating final summary', {
+    sessionId: session.id
+  });
+
+  const summaryResult = await summaryProcessor.execute({
+    todo,
+    session,
+    res
+  });
+
+  // Calculate completion metrics
+  const completedCount = todo.items.filter(item => item.status === 'completed').length;
+  const totalCount = todo.items.length;
+  const successRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  // Generate Atlas final message
+  let atlasFinalMessage;
+  let atlasTTS;
+  if (summaryResult.success && successRate === 100) {
+    atlasFinalMessage = `✅ Завдання виконано повністю! Всі ${totalCount} пунктів успішно завершені.`;
+    atlasTTS = `Завдання виконано повністю`;
+  } else if (successRate >= 50) {
+    atlasFinalMessage = `⚠️ Завдання виконано частково: ${completedCount} з ${totalCount} пунктів (${successRate}% успіху)`;
+    atlasTTS = `Виконано ${completedCount} з ${totalCount} пунктів`;
+  } else {
+    atlasFinalMessage = `❌ Завдання не вдалося виконати: лише ${completedCount} з ${totalCount} пунктів завершені`;
+    atlasTTS = `Завдання не виконано`;
+  }
+
+  // Send final message via WebSocket
+  if (wsManager) {
+    try {
+      wsManager.broadcastToSubscribers('chat', 'agent_message', {
+        content: atlasFinalMessage,
+        agent: 'atlas',
+        ttsContent: atlasTTS,
+        mode: 'task',
+        sessionId: session.id,
+        timestamp: new Date().toISOString()
+      });
+      logger.system('executor', '[ATLAS-FINAL] ✅ Final completion message sent');
+    } catch (wsError) {
+      logger.warn(`[ATLAS-FINAL] Failed to send final message: ${wsError.message}`);
+    }
+  }
+
+  // Send final summary to frontend via SSE
+  if (res.writable && !res.writableEnded) {
+    res.write(`data: ${JSON.stringify({
+      type: 'mcp_workflow_complete',
+      data: {
+        success: summaryResult.success,
+        summary: summaryResult.summary,
+        metrics: summaryResult.metadata?.metrics || {},
+        duration: workflowStart ? Date.now() - workflowStart : 0,
+        completedCount,
+        totalCount,
+        successRate
+      }
+    })}\n\n`);
+  }
+
+  // Add summary to session history
+  if (!session.history) {
+    session.history = [];
+  }
+
+  session.history.push({
+    role: 'assistant',
+    content: summaryResult.summary,
+    agent: 'system',
+    timestamp: Date.now(),
+    metadata: {
+      workflow: 'mcp',
+      metrics: summaryResult.metadata?.metrics
+    }
+  });
+
+  // Clean up session history to prevent memory leaks (keep only last 20 messages)
+  if (session.history && session.history.length > 20) {
+    const removed = session.history.length - 20;
+    session.history = session.history.slice(-20);
+    logger.system('executor', `[CLEANUP] Trimmed session.history: ${removed} old messages removed, ${session.history.length} kept`);
+  }
+
+  // Clean up chatThread messages
+  if (session.chatThread && session.chatThread.messages && session.chatThread.messages.length > 20) {
+    const removed = session.chatThread.messages.length - 20;
+    session.chatThread.messages = session.chatThread.messages.slice(-20);
+    logger.system('executor', `[CLEANUP] Trimmed chatThread: ${removed} old messages removed, ${session.chatThread.messages.length} kept`);
+  }
+
+  logger.workflow('complete', 'mcp', 'MCP workflow completed', {
+    sessionId: session.id,
+    duration: workflowStart ? Date.now() - workflowStart : 0,
+    metrics: summaryResult.metadata?.metrics,
+    completedCount,
+    totalCount,
+    successRate
+  });
+
+  return {
+    summary: summaryResult.summary,
+    metrics: {
+      ...summaryResult.metadata?.metrics,
+      completedCount,
+      totalCount,
+      successRate
+    },
+    success: summaryResult.success
+  };
+}
 
 // ============================================================================
 // MAIN WORKFLOW FUNCTIONS
@@ -87,8 +928,10 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // Якщо Nexus не потрібен - продовжуємо стандартний workflow
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
+    const devProcessor = container.resolve('devSelfAnalysisProcessor');
     const contextEnrichmentProcessor = container.resolve('atlasContextEnrichmentProcessor');
     const todoProcessor = container.resolve('atlasTodoPlanningProcessor');
+    const serverSelectionProcessor = container.resolve('serverSelectionProcessor');
     const planProcessor = container.resolve('tetyanaPlanToolsProcessor');
     const executeProcessor = container.resolve('tetyanaExecuteToolsProcessor');
     const verifyProcessor = container.resolve('grishaVerifyItemProcessor');
@@ -96,154 +939,82 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     const summaryProcessor = container.resolve('mcpFinalSummaryProcessor');
 
     // ===============================================
-    // Stage 0-MCP: Mode Selection (NEW 16.10.2025)
+    // PHASE 1.3: Create unified context & processors objects
     // ===============================================
-    logger.workflow('stage', 'system', 'Stage 0-MCP: Mode Selection', { sessionId: session.id });
+    const workflowContext = {
+      userMessage,
+      session,
+      res,
+      container,
+      logger,
+      wsManager,
+      ttsSyncManager,
+      localizationService,
+      todo: null,  // Will be populated after Stage 1
+      workflowStart
+    };
 
-    // Check if session is awaiting password for DEV mode OR if user requests intervention after analysis
-    const normalizedMessage = userMessage.trim().toLowerCase();
-    const isPasswordProvided = session.awaitingDevPassword && normalizedMessage === 'mykola';
+    const processors = {
+      modeProcessor,
+      devProcessor,
+      contextEnrichmentProcessor,
+      todoProcessor,
+      serverSelectionProcessor,
+      planProcessor,
+      executeProcessor,
+      verifyProcessor,
+      replanProcessor,
+      summaryProcessor
+    };
 
-    // Also check if password is provided in the message (e.g., "виправ з паролем mykola")
-    const passwordInMessage = normalizedMessage.includes('mykola') || normalizedMessage.includes('з паролем') || normalizedMessage.includes('with password');
-    const isInterventionRequest = session.lastDevAnalysis && (
-      userMessage.toLowerCase().includes('внеси зміни') ||
-      userMessage.toLowerCase().includes('виправ') ||
-      userMessage.toLowerCase().includes('fix') ||
-      userMessage.toLowerCase().includes('застосуй') ||
-      userMessage.toLowerCase().includes('apply')
-    );
+    // ===============================================
+    // PHASE 2.4: Create WorkflowStateMachine instance
+    // ===============================================
+    logger.system('executor', '[STATE-MACHINE] Initializing WorkflowStateMachine');
 
-    // CRITICAL DEBUG: Log session state for DEV mode detection
-    logger.system('executor', `[DEV-CHECK] Session state check:`, {
-      sessionId: session.id,
-      hasLastDevAnalysis: !!session.lastDevAnalysis,
-      hasLastDevAnalysisMessage: !!session.lastDevAnalysisMessage,
-      awaitingDevPassword: session.awaitingDevPassword,
-      userMessage: userMessage.substring(0, 50),
-      isPasswordProvided,
-      isInterventionRequest,
-      lastDevAnalysisTimestamp: session.lastDevAnalysis?.timestamp
+    // Create handler factory
+    const handlerFactory = new HandlerFactory({
+      logger,
+      processors
     });
 
-    if (isPasswordProvided || (isInterventionRequest && passwordInMessage)) {
-      logger.system('executor', `[DEV-MODE] ${isPasswordProvided ? 'Password received' : 'Intervention with password requested'}, continuing DEV mode`, {
-        sessionId: session.id,
-        passwordProvided: isPasswordProvided,
-        passwordInMessage: passwordInMessage
-      });
+    // Create state machine instance
+    const stateMachine = new WorkflowStateMachine({
+      logger,
+      handlers: handlerFactory.getAllHandlers()
+    });
 
-      // If intervention requested but no password yet, show dialog and wait
-      if (isInterventionRequest && !isPasswordProvided && !passwordInMessage) {
-        session.awaitingDevPassword = true;
-        session.devOriginalMessage = session.lastDevAnalysisMessage || 'Проаналізуй себе';
+    // Initialize state machine context with workflow data
+    stateMachine.setContext('userMessage', userMessage);
+    stateMachine.setContext('session', session);
+    stateMachine.setContext('container', container);
+    stateMachine.setContext('res', res);
+    stateMachine.setContext('wsManager', wsManager);
+    stateMachine.setContext('ttsSyncManager', ttsSyncManager);
+    stateMachine.setContext('localizationService', localizationService);
+    stateMachine.setContext('workflowStart', workflowStart);
 
-        // Re-send analysis with password request
-        const analysisData = session.lastDevAnalysis;
-        const findings = analysisData?.findings || {};
+    logger.system('executor', '[STATE-MACHINE] ✅ WorkflowStateMachine initialized', {
+      sessionId: session.id,
+      initialState: stateMachine.getCurrentState()
+    });
 
-        const passwordMessage = `🔐 **Потрібна авторизація для втручання**\n\nЯ готовий внести виправлення в свій код. Для безпеки мені потрібен пароль "mykola".\n\n**Що буде виправлено:**\n${findings.critical_issues?.length || 0} критичних проблем\n${findings.performance_bottlenecks?.length || 0} проблем продуктивності\n\nВведи пароль щоб продовжити.`;
-        const localizedMessage = localizationService.translateToUser(passwordMessage);
+    // ===============================================
+    // Stage 0-MCP: Mode Selection (REFACTORED 2025-11-18)
+    // ===============================================
+    // PHASE 2.4: Transition to MODE_SELECTION state
+    logger.system('executor', '[STATE-MACHINE] Transitioning to MODE_SELECTION state');
+    await stateMachine.transition(WorkflowStateMachine.States.MODE_SELECTION);
 
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: localizedMessage,
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString(),
-            ttsContent: 'Мені потрібен пароль mykola щоб внести зміни',
-            mode: 'dev',
-            requiresAuth: true
-          });
+    // Execute mode selection handler
+    const modeResult = await stateMachine.executeHandler({ userMessage });
 
-          // Trigger password dialog
-          wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
-            sessionId: session.id,
-            analysisData: {
-              criticalIssues: findings.critical_issues?.length || 0,
-              performanceIssues: findings.performance_bottlenecks?.length || 0,
-              improvements: findings.improvement_suggestions?.length || 0
-            }
-          });
-        }
-
-        return { success: false, requiresAuth: true };
-      }
-
-      // Password provided - execute intervention
-      const devProcessor = container.resolve('devSelfAnalysisProcessor');
-
-      // Extract actual password from message if it's a password submission
-      const actualPassword = isPasswordProvided ? userMessage.trim() : 'mykola';
-
-      const analysisResult = await devProcessor.execute({
-        userMessage: session.devOriginalMessage || session.lastDevAnalysisMessage || 'Виправ себе',
-        session,
-        requiresIntervention: true,
-        password: actualPassword,
-        container
-      });
-
-      // Clear password state only after successful intervention
-      if (analysisResult.success || analysisResult.transitionToTask) {
-        session.awaitingDevPassword = false;
-        session.devAnalysisResult = null;
-        session.devOriginalMessage = null;
-        // Keep lastDevAnalysis for context
-      }
-
-      // Check if transitioning to TASK mode
-      if (analysisResult.transitionToTask && analysisResult.taskContext) {
-        logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode after password', {
-          sessionId: session.id,
-          tasksCount: analysisResult.taskContext.tasks?.length || 0
-        });
-
-        // Store transition context
-        session.devTransitionContext = analysisResult.taskContext;
-
-        // Send transition message
-        const transitionMessage = analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...';
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: transitionMessage,
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString(),
-            ttsContent: 'Переходжу в режим виконання завдань',
-            mode: 'task',
-            transitionFromDev: true
-          });
-        }
-
-        // Continue to TASK mode execution below
-        mode = 'task';
-      } else {
-        // Send intervention result
-        const interventionMessage = analysisResult.intervention?.message || analysisResult.message || 'Аналіз завершено!';
-        const localizedMessage = localizationService.translateToUser(interventionMessage);
-
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: localizedMessage,
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString(),
-            ttsContent: interventionMessage,
-            mode: 'dev',
-            interventionComplete: true
-          });
-        }
-
-        return analysisResult;
-      }
+    // Handle early returns (DEV mode intervention, password required, etc.)
+    if (modeResult.requiresAuth || modeResult.isDevIntervention) {
+      return modeResult;
     }
 
-    const modeResult = await modeProcessor.execute({
-      userMessage,
-      session
-    });
-
+    // Extract mode from result
     const mode = modeResult.mode;
     const confidence = modeResult.confidence;
     const mood = modeResult.mood || 'neutral'; // НОВИНКА (29.10.2025): Mood з LLM аналізу
@@ -297,474 +1068,36 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     // User requests about self-analysis go to CHAT mode
     // ===============================================
     if (mode === 'dev') {
-      // DEV mode should NEVER be activated by user requests after 2025-11-05 changes
-      // This block is kept for NEXUS internal operations only
-      logger.workflow('stage', 'system', '⚠️ DEV mode activated - INTERNAL NEXUS operation (not user-initiated)', {
+      logger.workflow('stage', 'system', 'DEV mode detected - transitioning to DEV state', {
         sessionId: session.id
       });
 
       try {
-        // Resolve DEV self-analysis processor
-        const devProcessor = container.resolve('devSelfAnalysisProcessor');
+        // PHASE 2.4.2: Transition to DEV state
+        await stateMachine.transition(WorkflowStateMachine.States.DEV);
 
-        // Check if user is providing password for pending DEV intervention
-        const isPasswordProvided = session.awaitingDevPassword &&
-          (userMessage.toLowerCase() === 'mykola' ||
-            userMessage.toLowerCase() === 'микола' ||
-            userMessage.toLowerCase().trim() === 'mykola' ||
-            userMessage.toLowerCase().trim() === 'микола');
+        // Execute DEV handler
+        const devResult = await stateMachine.executeHandler({});
 
-        // Check if user is requesting intervention after analysis
-        const isInterventionRequest = session.lastDevAnalysis &&
-          (userMessage.toLowerCase().includes('виправ') ||
-            userMessage.toLowerCase().includes('внеси зміни') ||
-            userMessage.toLowerCase().includes('fix') ||
-            userMessage.toLowerCase().includes('make changes'));
-
-        // Check if password is included in intervention request
-        const passwordInMessage = userMessage.toLowerCase().includes('mykola') ||
-          userMessage.toLowerCase().includes('микола');
-
-        // Execute self-analysis with container for MCP access
-        const analysisResult = await devProcessor.execute({
-          userMessage,
-          session,
-          requiresIntervention: isInterventionRequest,
-          password: isPasswordProvided ? userMessage.trim() : null, // Will prompt for password if needed
-          container // Pass container for MCP filesystem access
-        });
-
-        logger.system('executor', `[DEV-MODE] Analysis complete, requiresAuth: ${analysisResult.requiresAuth}`, {
+        logger.workflow('complete', 'system', 'DEV mode completed via state machine', {
           sessionId: session.id
         });
 
-        // Build comprehensive message from analysis results (available for all branches)
-        const findings = analysisResult.analysis?.findings || {};
-        const detailedAnalysis = analysisResult.analysis?.detailed_analysis || {};
-        const deepTargetedAnalysis = analysisResult.analysis?.deep_targeted_analysis || null;
-        const summary = analysisResult.analysis?.summary || '';
-        const { ttsSettings = {}, interactiveMode = false } = analysisResult;
-
-        // Build detailed message with metrics table
-        const metrics = analysisResult.analysis?.metrics || {};
-
-        let message = '🔬 **Аналіз системи**\n\n';
-
-        // Add metrics table - оптимізовано для TTS
-        if (metrics.error_count !== undefined || metrics.warning_count !== undefined) {
-          message += '**📊 Стан системи:**\n';
-          message += '```\n';
-          message += `Помилок:        ${metrics.error_count || 0}\n`;
-          message += `Попереджень:    ${metrics.warning_count || 0}\n`;
-          message += `Здоров'я:       ${metrics.system_health || 'невідомо'}%\n`;
-          // Безпечне форматування uptime
-          const uptimeMinutes = (typeof metrics.uptime === 'number' && !isNaN(metrics.uptime))
-            ? Math.floor(metrics.uptime / 60)
-            : 0;
-          message += `Працює:         ${uptimeMinutes} хвилин\n`;
-          message += '```\n\n';
-        }
-
-        // Add summary
-        if (summary) {
-          message += summary + '\n\n';
-        }
-
-        // Add critical issues with evidence
-        if (findings.critical_issues?.length > 0) {
-          message += `🔴 **Критичні проблеми (${findings.critical_issues.length}):**\n`;
-          findings.critical_issues.forEach((issue, idx) => {
-            if (idx < 5) { // Show top 5
-              message += `\n${idx + 1}. **${issue.type || 'Проблема'}**\n`;
-              message += `   • ${issue.description}\n`;
-              if (issue.location) message += `   • Місце: ${issue.location}\n`;
-              if (issue.frequency) message += `   • Частота: ${issue.frequency}\n`;
-              if (issue.evidence) message += `   • Доказ: ${issue.evidence.substring(0, 100)}...\n`;
-            }
-          });
-          message += '\n';
-        }
-
-        // Add performance bottlenecks
-        if (findings.performance_bottlenecks?.length > 0) {
-          message += `\n⚡ **Проблеми продуктивності (${findings.performance_bottlenecks.length}):**\n`;
-          findings.performance_bottlenecks.forEach((issue, idx) => {
-            if (idx < 3) {
-              message += `  ${idx + 1}. ${issue.description || issue.area}`;
-              if (issue.metrics) message += ` (${issue.metrics})`;
-              message += '\n';
-            }
-          });
-        }
-
-        // Add improvement suggestions
-        if (findings.improvement_suggestions?.length > 0) {
-          message += `\n💡 **Рекомендації (${findings.improvement_suggestions.length}):**\n`;
-          findings.improvement_suggestions.forEach((suggestion, idx) => {
-            if (idx < 3) {
-              const priority = suggestion.priority === 'high' ? '🔴' : suggestion.priority === 'medium' ? '🟡' : '🟢';
-              message += `  ${priority} ${suggestion.suggestion || suggestion.area}\n`;
-              if (suggestion.implementation) message += `     → ${suggestion.implementation}\n`;
-            }
-          });
-        }
-
-        // Add TODO list - українською для TTS
-        const todoList = analysisResult.analysis?.todo_list || [];
-        if (todoList.length > 0) {
-          message += `\n\n📋 **План дій:**\n`;
-          todoList.forEach((item, idx) => {
-            const priority = item.priority === 'critical' ? '🔴' :
-              item.priority === 'high' ? '🟠' :
-                item.priority === 'medium' ? '🟡' : '🟢';
-            message += `${idx + 1}. ${priority} ${item.action}\n`;
-            if (item.details) message += `   → ${item.details}\n`;
-          });
-        }
-
-        // Intervention results - пряма мова для TTS
-        if (analysisResult.intervention) {
-          const filesModified = analysisResult.intervention.files_modified || [];
-          if (filesModified.length > 0) {
-            message += `\n✅ **Я виконав виправлення:**\n`;
-            message += `  • Змінив ${filesModified.length} ${filesModified.length === 1 ? 'файл' : filesModified.length < 5 ? 'файли' : 'файлів'}\n`;
-            filesModified.forEach(file => {
-              message += `    → ${file}\n`;
-            });
-            message += `  • Зміни вже активні\n`;
-          } else {
-            message += `\n📝 **Готовий до виправлень:**\n`;
-            message += `  • План створено, чекаю команди\n`;
-          }
-        }
-
-        // Add deep targeted analysis if available
-        if (deepTargetedAnalysis) {
-          message += `\n🎯 **Глибокий цільовий аналіз:**\n`;
-
-          if (deepTargetedAnalysis.rootCauses?.length > 0) {
-            message += `\n**Корінні причини:**\n`;
-            deepTargetedAnalysis.rootCauses.forEach(rc => {
-              const cause = rc.cause?.primaryCause || rc.cause || 'Невідома причина';
-              const confidence = rc.confidence || 0.85;
-              message += `  • ${rc.issue}: ${cause} (впевненість: ${(confidence * 100).toFixed(0)}%)\n`;
-            });
-          }
-
-          if (deepTargetedAnalysis.impactAnalysis?.length > 0) {
-            message += `\n**Аналіз впливу:**\n`;
-            deepTargetedAnalysis.impactAnalysis.forEach(impact => {
-              message += `  • ${impact.issue}: впливає на ${impact.affectedComponents.join(', ')}\n`;
-            });
-          }
-
-          if (deepTargetedAnalysis.recommendations?.length > 0) {
-            message += `\n**Цільові рекомендації:**\n`;
-            deepTargetedAnalysis.recommendations.forEach(rec => {
-              message += `  • ${rec.action} (пріоритет: ${rec.priority})\n`;
-            });
-          }
-        }
-
-        // Add focused area analysis if available
-        if (detailedAnalysis.focusAreaAnalysis) {
-          const focus = detailedAnalysis.focusAreaAnalysis;
-          message += `\n🔍 **Фокусний аналіз (${focus.area}):**\n`;
-          if (focus.findings?.length > 0) {
-            focus.findings.forEach(f => {
-              message += `  • ${f.description}\n`;
-            });
-          }
-          if (focus.metrics && Object.keys(focus.metrics).length > 0) {
-            message += `\n**Метрики:**\n`;
-            Object.entries(focus.metrics).forEach(([key, value]) => {
-              message += `  • ${key}: ${value}\n`;
-            });
-          }
-        }
-
-        // Deep understanding - пряма мова, природно для TTS
-        message += `\n🧠 **Мій висновок:**\n`;
-
-        const criticalCount = findings.critical_issues?.length || 0;
-        const perfCount = findings.performance_bottlenecks?.length || 0;
-
-        if (criticalCount === 0 && perfCount === 0) {
-          message += `Я ретельно перевірив усі системи. Все працює стабільно, критичних проблем не виявлено. `;
-          message += `Завжди є простір для вдосконалення, але зараз можна сказати що система в доброму стані.`;
-        } else {
-          message += `Я знайшов ${criticalCount > 0 ? `${criticalCount} критичн${criticalCount === 1 ? 'у проблему' : criticalCount < 5 ? 'і проблеми' : 'их проблем'}` : ''}`;
-          if (criticalCount > 0 && perfCount > 0) message += ` та `;
-          message += `${perfCount > 0 ? `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності` : ''}. `;
-
-          // FIXED 03.11.2025: Перевіряємо чи Nexus СПРАВДІ виконав зміни
-          // Перевіряємо не тільки success, а й чи є реально застосовані fixes
-          const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
-          const reallyExecuted = analysisResult.metadata?.realExecution &&
-            analysisResult.intervention?.success &&
-            hasAppliedFixes;
-
-          if (reallyExecuted) {
-            const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
-            message += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус.`;
-          } else if (analysisResult.intervention?.success === false) {
-            message += `Спробував виправити через Нексус, але виникли проблеми. Готовий до ручного виправлення.`;
-          } else if (analysisResult.intervention) {
-            message += `Створив план виправлень. Готовий виконати за твоєю командою.`;
-          } else {
-            message += `Готовий приступити до виправлення.`;
-          }
-        }
-
-        // Add interactive mode prompt if enabled
-        if (interactiveMode) {
-          message += `\n\n💬 **Інтерактивний режим активний**\n`;
-          message += `Ви можете задавати уточнюючі питання або просити глибший аналіз конкретних областей.\n`;
-          message += `Доступні напрямки: Тетяна, Гріша, MCP, продуктивність, помилки, пам'ять, архітектура.`;
-        }
-
-        // TTS message - природна українська, пряма мова (використовуємо вже оголошені змінні)
-        const warningCount = metrics.warning_count || 0;
-        const uptime = Math.floor((metrics.uptime || 0) / 60);
-        let ttsContent = '';
-
-        // Початок - привітання та контекст
-        ttsContent += `Олег Миколайович, я завершив аналіз системи. `;
-
-        // Стан системи
-        if (metrics.system_health) {
-          const health = metrics.system_health;
-          const healthWord = health >= 90 ? 'відмінному' : health >= 70 ? 'доброму' : health >= 50 ? 'задовільному' : 'поганому';
-          ttsContent += `Здоров'я системи ${health} відсотків, це ${healthWord} стан. `;
-        }
-
-        // Безпечне форматування uptime
-        const safeUptime = (typeof uptime === 'number' && !isNaN(uptime)) ? uptime : 0;
-        if (safeUptime > 0) {
-          ttsContent += `Працюю вже ${safeUptime} ${safeUptime === 1 ? 'хвилину' : safeUptime < 5 ? 'хвилини' : 'хвилин'}. `;
-        }
-
-        // Результати аналізу
-        if (criticalCount === 0 && perfCount === 0) {
-          ttsContent += `Все працює стабільно. Критичних проблем не виявив. `;
-          if (warningCount > 0) {
-            ttsContent += `Є ${warningCount} ${warningCount === 1 ? 'попередження' : 'попередження'}, але вони не критичні. `;
-          }
-        } else {
-          ttsContent += `Виявив `;
-
-          if (criticalCount > 0) {
-            ttsContent += `${criticalCount} ${criticalCount === 1 ? 'критичну проблему' : criticalCount < 5 ? 'критичні проблеми' : 'критичних проблем'}`;
-
-            // Перша критична проблема
-            if (findings.critical_issues && findings.critical_issues[0]) {
-              const issue = findings.critical_issues[0];
-              ttsContent += `. Найважливіша: ${issue.description}`;
-            }
-          }
-
-          if (perfCount > 0) {
-            if (criticalCount > 0) ttsContent += ` та `;
-            ttsContent += `${perfCount} ${perfCount === 1 ? 'вузьке місце' : 'вузьких місця'} продуктивності`;
-          }
-
-          ttsContent += `. `;
-        }
-
-        // FIXED 03.11.2025: Дії що виконані або плануються - використовуємо ту саму логіку що й у текстовому повідомленні
-        const hasAppliedFixes = analysisResult.intervention?.fixes?.some(f => f.applied === true);
-        const reallyExecutedTts = analysisResult.metadata?.realExecution &&
-          analysisResult.intervention?.success &&
-          hasAppliedFixes;
-
-        if (reallyExecutedTts) {
-          const fixCount = analysisResult.intervention.fixes.filter(f => f.applied).length;
-          ttsContent += `Я вже виконав ${fixCount} ${fixCount === 1 ? 'виправлення' : 'виправлення'} через систему Нексус. Зміни вже застосовані. `;
-        } else if (analysisResult.intervention?.success === false) {
-          ttsContent += `Спробував виправити через Нексус, але виникли проблеми. Треба ручне втручання. `;
-        } else if (analysisResult.intervention) {
-          ttsContent += `Створив детальний план виправлень. Готовий виконати за твоєю командою. `;
-        } else if (criticalCount > 0 || perfCount > 0) {
-          ttsContent += `Можу приступити до виправлення, якщо ти даси команду. `;
-        }
-
-        const baseTtsMessage = ttsContent;
-
-        if (!analysisResult.success && analysisResult.requiresAuth) {
-          const passwordAppendix = `\n\n🔐 **Потрібна авторізація для втручання**\nМені потрібен пароль "mykola", щоб завершити лікування своїх систем. Як тільки ти його підтвердиш, я одразу застосую виправлення.`;
-          const authMessage = message + passwordAppendix;
-          const localizedAuthMessage = localizationService.translateToUser(authMessage);
-          const authTtsMessage = `${baseTtsMessage} Мені потрібен пароль "mykola", щоб завершити втручання.`;
-
-          if (wsManager) {
-            // Send agent message
-            wsManager.broadcastToSubscribers('chat', 'agent_message', {
-              content: localizedAuthMessage,
-              agent: 'atlas',
-              sessionId: session.id,
-              timestamp: new Date().toISOString(),
-              ttsContent: authTtsMessage,
-              mode: 'dev',
-              analysisData: {
-                findings,
-                detailedAnalysis,
-                deepTargetedAnalysis,
-                summary
-              },
-              ttsSettings,
-              interactiveMode,
-              requiresAuth: true
-            });
-
-            // Trigger password dialog with analysis data
-            wsManager.broadcastToSubscribers('chat', 'dev_password_request', {
-              sessionId: session.id,
-              analysisData: {
-                criticalIssues: findings.critical_issues?.length || 0,
-                performanceIssues: findings.performance_bottlenecks?.length || 0,
-                improvements: findings.improvement_suggestions?.length || 0
-              }
-            });
-          }
-
-          if (res?.writable && !res.writableEnded) {
-            res.write(`data: ${JSON.stringify({
-              type: 'agent_message',
-              data: {
-                content: localizedAuthMessage,
-                agent: 'atlas',
-                ttsContent: authTtsMessage,
-                mode: 'dev',
-                findings,
-                detailedAnalysis,
-                deepTargetedAnalysis,
-                intervention: analysisResult.intervention || null,
-                ttsSettings,
-                interactiveMode,
-                requiresAuth: true
-              }
-            })}\n\n`);
-          }
-
-          // Видалено дублюючу відправку - вже відправлено вище на рядку 297
-
-          session.awaitingDevPassword = true;
-          session.devAnalysisResult = analysisResult;
-          session.devOriginalMessage = userMessage; // Зберігаємо оригінальне повідомлення
-          session.lastDevAnalysis = {
-            findings,
-            detailedAnalysis,
-            deepTargetedAnalysis,
-            summary
-          };
-          session.lastDevAnalysisMessage = userMessage;
-
-          logger.system('executor', `[DEV-MODE] ✅ Password state set: awaitingDevPassword=true, sessionId=${session.id}`);
-
-          return {
-            success: false,
-            requiresAuth: true,
-            message: 'Password required for code intervention',
-            analysis: analysisResult.analysis,
-            metadata: analysisResult.metadata,
-            ttsSettings: {
-              ...ttsSettings,
-              fullNarration: true
-            },
-            interactiveMode
-          };
-        }
-
-        const localizedMessage = localizationService.translateToUser(message);
-
-        const ttsMessage = baseTtsMessage;
-
-        // Remove TTS control info - Atlas always speaks fully
-
-        // Send ONLY to WebSocket OR SSE, not both
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: localizedMessage,
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString(),
-            ttsContent: ttsMessage, // Include TTS content for frontend to handle
-            mode: 'dev',
-            analysisData: {
-              findings,
-              detailedAnalysis,
-              deepTargetedAnalysis,
-              summary
-            },
-            ttsSettings,
-            interactiveMode
-          });
-        }
-        // Only send via SSE if WebSocket not available
-        else if (res?.writable && !res.writableEnded) {
-          res.write(`data: ${JSON.stringify({
-            type: 'agent_message',
-            data: {
-              content: localizedMessage,
-              agent: 'atlas',
-              ttsContent: ttsMessage,
-              mode: 'dev',
-              findings,
-              detailedAnalysis,
-              deepTargetedAnalysis,
-              intervention: analysisResult.intervention || null,
-              ttsSettings,
-              interactiveMode
-            }
-          })}\n\n`);
-        }
-
-        // Store analysis in session for context
-        session.lastDevAnalysis = {
-          timestamp: new Date().toISOString(),
-          findings,
-          detailedAnalysis,
-          deepTargetedAnalysis,
-          summary: analysisResult.analysis?.summary || message,
-          interactiveMode,
-          focusArea: analysisResult.metadata?.focusArea,
-          analysisDepth: analysisResult.metadata?.analysisDepth
-        };
-        session.lastDevAnalysisMessage = userMessage; // CRITICAL: Save original message for intervention context
-
-        logger.system('executor', `[DEV-MODE] ✅ Analysis context saved: lastDevAnalysis + lastDevAnalysisMessage`, {
-          sessionId: session.id,
-          hasFindings: !!findings,
-          criticalIssues: findings?.critical_issues?.length || 0
-        });
-
         // Check if DEV mode wants to transition to TASK mode
-        if (analysisResult.transitionToTask && analysisResult.taskContext) {
+        if (devResult.transitionToTask && devResult.taskContext) {
           logger.system('executor', '[DEV→TASK] Transitioning from DEV to TASK mode', {
             sessionId: session.id,
-            tasksCount: analysisResult.taskContext.tasks?.length || 0
+            tasksCount: devResult.taskContext.tasks?.length || 0
           });
-
-          // Send transition message
-          if (wsManager) {
-            wsManager.broadcastToSubscribers('chat', 'agent_message', {
-              content: analysisResult.message || '🚀 Переходжу в TASK режим для виконання змін...',
-              agent: 'atlas',
-              sessionId: session.id,
-              timestamp: new Date().toISOString(),
-              ttsContent: 'Переходжу в режим виконання завдань',
-              mode: 'task_transition'
-            });
-          }
 
           // Update session for TASK mode
           session.mode = 'task';
-          session.devTransitionContext = analysisResult.taskContext;
+          session.devTransitionContext = devResult.taskContext;
           session.autoExecuteTasks = true;
 
           // Continue to TASK mode processing
           mode = 'task';
-          userMessage = analysisResult.taskContext.tasks
+          userMessage = devResult.taskContext.tasks
             .map(t => t.action)
             .join('; ');
 
@@ -776,25 +1109,16 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
 
           // Don't return here - continue to TASK mode processing below
         } else {
-          return analysisResult;
+          // Return DEV result
+          return devResult;
         }
+      } catch (devError) {
+        logger.error('executor', `DEV mode failed: ${devError.message}`, {
+          sessionId: session.id,
+          stack: devError.stack
+        });
 
-      } catch (error) {
-        logger.error(`[DEV-MODE] Self-analysis failed: ${error.message}`);
-
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: `❌ Помилка самоаналізу: ${error.message}`,
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString()
-          });
-        }
-
-        return {
-          success: false,
-          error: error.message
-        };
+        throw devError;
       }
     }
 
@@ -804,1506 +1128,58 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
     logger.system('executor', `[CHAT-MODE-CHECK] mode=${mode}, typeof=${typeof mode}, mode===chat: ${mode === 'chat'}`);
 
     if (mode === 'chat') {
-      logger.workflow('stage', 'atlas', 'Chat mode detected - Atlas will respond directly', {
+      logger.workflow('stage', 'atlas', 'Chat mode detected - transitioning to CHAT state', {
         sessionId: session.id
       });
 
-      // DIAGNOSTIC - Add detailed logging to find where code execution stops
-      logger.system('executor', '[CHAT-DEBUG] About to enter chat try block');
-
-      // FIXED 16.10.2025 - Load chat prompt from prompts directory (not hardcoded)
       try {
-        logger.system('executor', '[CHAT-DEBUG] Step 1: Loading chat prompt from prompts/mcp/atlas_chat.js');
-        const { MCP_PROMPTS } = await import('../../prompts/mcp/index.js');
-        const chatPrompt = MCP_PROMPTS.ATLAS_CHAT;
+        // PHASE 2.4.2: Transition to CHAT state
+        await stateMachine.transition(WorkflowStateMachine.States.CHAT);
 
-        if (!chatPrompt || !chatPrompt.SYSTEM_PROMPT) {
-          throw new Error('Chat prompt not loaded correctly from prompts directory');
-        }
+        // Execute CHAT handler
+        const chatResult = await stateMachine.executeHandler({});
 
-        logger.system('executor', `[CHAT-DEBUG] Step 2: Chat prompt loaded successfully`);
-
-        logger.system('executor', `[CHAT-DEBUG] Step 3: Importing axios`);
-        const axios = (await import('axios')).default;
-        logger.system('executor', `[CHAT-DEBUG] Step 4: Getting model config`);
-        const modelConfig = GlobalConfig.AI_MODEL_CONFIG.models.chat;
-        logger.system('executor', `[CHAT-DEBUG] Step 5: Model config retrieved: ${JSON.stringify(modelConfig)}`);
-
-        // FIXED 16.10.2025 - Initialize chatThread if not exists
-        if (!session.chatThread) {
-          logger.system('executor', `[CHAT-DEBUG] Step 6: Initializing new chatThread`);
-          session.chatThread = { messages: [], lastTopic: undefined };
-        } else {
-          logger.system('executor', `[CHAT-DEBUG] Step 6: ChatThread exists with ${session.chatThread.messages.length} messages`);
-        }
-
-        // FIXED 16.10.2025 - Add current user message to session history BEFORE building context
-        logger.system('executor', `[CHAT-DEBUG] Step 7: Adding user message to history`);
-
-        // CRITICAL FIX: Check if chatThread.messages exists
-        if (!session.chatThread.messages) {
-          session.chatThread.messages = [];
-        }
-
-        session.chatThread.messages.push({
-          role: 'user',
-          content: userMessage,
-          timestamp: new Date().toISOString()
+        logger.workflow('complete', 'atlas', 'Chat mode completed via state machine', {
+          sessionId: session.id
         });
-        logger.system('executor', `[CHAT-DEBUG] Step 8: User message added, total messages: ${session.chatThread.messages.length}`);
 
-        // DIAGNOSTIC 16.10.2025 - Log session state
-        logger.system('executor', `[CHAT-CONTEXT] SessionId: ${session.id}`);
-        logger.system('executor', `[CHAT-CONTEXT] Total messages in history: ${session.chatThread.messages.length}`);
-        logger.system('executor', `[CHAT-CONTEXT] History: ${JSON.stringify(session.chatThread.messages.map(m => ({ role: m.role, content: m.content.substring(0, 50) })), null, 2)}`);
-
-        // NEXUS: Generate dynamic consciousness prompt
-        let dynamicPrompt = '';
-        try {
-          const dynamicPromptInjector = container.resolve('nexusDynamicPromptInjector');
-          if (dynamicPromptInjector) {
-            dynamicPrompt = await dynamicPromptInjector.generateDynamicPrompt(userMessage);
-            if (dynamicPrompt) {
-              logger.system('executor', `[NEXUS-CONSCIOUSNESS] Dynamic prompt generated: ${dynamicPrompt.substring(0, 200)}...`);
-            }
-          }
-        } catch (err) {
-          logger.debug('[NEXUS-CONSCIOUSNESS] Dynamic prompt injector not available:', err.message);
-        }
-
-        // NEW 2025-11-05: Detect self-analysis requests in CHAT mode and trigger NEXUS in background
-        const isSelfAnalysisRequest =
-          userMessage.toLowerCase().includes('проаналізуй себе') ||
-          userMessage.toLowerCase().includes('виправ себе') ||
-          userMessage.toLowerCase().includes('твій код') ||
-          userMessage.toLowerCase().includes('твої логи') ||
-          userMessage.toLowerCase().includes('твоя продуктивність') ||
-          userMessage.toLowerCase().includes('як твоє здоров\'я') ||
-          userMessage.toLowerCase().includes('перевір себе') ||
-          userMessage.toLowerCase().includes('analyze yourself') ||
-          userMessage.toLowerCase().includes('fix yourself') ||
-          userMessage.toLowerCase().includes('your code') ||
-          userMessage.toLowerCase().includes('your logs');
-
-        if (isSelfAnalysisRequest) {
-          logger.system('executor', '[NEXUS-CHAT] 🔍 Self-analysis request detected in CHAT mode - triggering NEXUS in background');
-
-          // Trigger NEXUS in background (non-blocking)
-          setImmediate(async () => {
-            try {
-              const multiModelOrchestrator = container.resolve('multiModelOrchestrator');
-              if (multiModelOrchestrator) {
-                logger.system('executor', '[NEXUS-CHAT] 🚀 Starting background NEXUS analysis...');
-
-                // Collect system context
-                const systemContext = {
-                  userRequest: userMessage,
-                  timestamp: new Date().toISOString(),
-                  sessionId: session.id
-                };
-
-                // Execute NEXUS analysis in background
-                const nexusResult = await multiModelOrchestrator.executeTask(
-                  'system-health-check',
-                  `Analyze Atlas system health based on user request: ${userMessage}`,
-                  { context: systemContext }
-                );
-
-                logger.system('executor', '[NEXUS-CHAT] ✅ Background NEXUS analysis complete');
-
-                // Store results for next user query
-                session.lastNexusAnalysis = {
-                  timestamp: new Date().toISOString(),
-                  result: nexusResult,
-                  userRequest: userMessage
-                };
-              }
-            } catch (nexusError) {
-              logger.warn('executor', `[NEXUS-CHAT] ⚠️ Background NEXUS failed: ${nexusError.message}`);
-            }
-          });
-        }
-
-        // Build chat context from recent messages (last 5 exchanges = 10 messages)
-        // CRITICAL: Filter out system messages and prompts from context
-        const recentMessages = session.chatThread.messages
-          .filter(msg => {
-            // Skip system messages
-            if (msg.role === 'system') return false;
-            // Skip messages that look like prompts
-            if (msg.content && (
-              msg.content.includes('You are Atlas') ||
-              msg.content.includes('SYSTEM PROMPT') ||
-              msg.content.includes('INSTRUCTIONS:') ||
-              msg.content.includes('CRITICAL RULES')
-            )) return false;
-            return true;
-          })
-          .slice(-10)
-          .map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          }));
-
-        logger.system('executor', `[CHAT-CONTEXT] Sending ${recentMessages.length} messages to LLM`);
-        logger.system('executor', `[CHAT-CONTEXT] Context for LLM: ${JSON.stringify(recentMessages.map(m => ({ role: m.role, preview: m.content.substring(0, 40) })), null, 2)}`);
-
-        // NEW 26.10.2025: INTELLIGENT MEMORY INTEGRATION
-        logger.system('executor', '[CHAT-MEMORY] 🧠 Checking if long-term memory is needed...');
-
-        let memoryContext = null;
-        try {
-          // Resolve Chat Memory Coordinator from DI Container
-          const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
-
-          // Process message with memory integration
-          const memoryResult = await chatMemoryCoordinator.processMessage({
-            userMessage,
-            session,
-            recentMessages
-          });
-
-          if (memoryResult.memoryUsed && memoryResult.memoryContext) {
-            memoryContext = memoryResult.memoryContext;
-            logger.system('executor', `[CHAT-MEMORY] ✅ Memory retrieved: ${memoryContext.count} entities (${memoryResult.processingTime}ms)`);
-          } else {
-            logger.system('executor', `[CHAT-MEMORY] ⏭️ Memory skipped: ${memoryResult.reasoning}`);
-          }
-        } catch (memoryError) {
-          logger.warn('executor', `[CHAT-MEMORY] ⚠️ Memory integration failed: ${memoryError.message}`);
-          // Continue without memory
-        }
-
-        // DIAGNOSTIC: Check GlobalConfig structure
-        logger.system('executor', `[DIAGNOSTIC] GlobalConfig exists: ${!!GlobalConfig}`);
-        logger.system('executor', `[DIAGNOSTIC] AI_MODEL_CONFIG exists: ${!!GlobalConfig.AI_MODEL_CONFIG}`);
-        logger.system('executor', `[DIAGNOSTIC] AI_MODEL_CONFIG type: ${typeof GlobalConfig.AI_MODEL_CONFIG}`);
-
-        // Get API endpoint (with safe access and comprehensive fallback)
-        const apiEndpointConfig = GlobalConfig.AI_MODEL_CONFIG?.apiEndpoint;
-        logger.system('executor', `[DIAGNOSTIC] apiEndpointConfig: ${JSON.stringify(apiEndpointConfig)}`);
-
-        let apiUrl;
-        if (!apiEndpointConfig) {
-          logger.warn('executor', '[CHAT] apiEndpoint config is undefined, using fallback URL');
-          apiUrl = 'http://localhost:4000/v1/chat/completions';
-        } else if (typeof apiEndpointConfig === 'string') {
-          apiUrl = apiEndpointConfig;
-        } else if (typeof apiEndpointConfig === 'object') {
-          apiUrl = apiEndpointConfig.primary || 'http://localhost:4000/v1/chat/completions';
-        } else {
-          logger.warn('executor', `[CHAT] Unexpected apiEndpointConfig type: ${typeof apiEndpointConfig}`);
-          apiUrl = 'http://localhost:4000/v1/chat/completions';
-        }
-
-        logger.system('executor', `Calling chat API at ${apiUrl} with model ${modelConfig.model}`);
-
-        // FIXED 16.10.2025 - Use system prompt from prompts directory (not hardcoded)
-        let systemPrompt = chatPrompt.SYSTEM_PROMPT;
-
-        // NEW 26.10.2025: Inject memory context if available
-        if (memoryContext && memoryContext.hasMemory) {
-          systemPrompt = systemPrompt + '\n\n' + memoryContext.contextText;
-          logger.system('executor', '[CHAT-MEMORY] 📝 Memory context injected into system prompt');
-        }
-
-        logger.system('executor', `[SYSTEM-PROMPT] Using prompt from prompts/mcp/atlas_chat.js`);
-
-        // Call LLM for chat response with fallback support
-        let chatResponse;
-        let usedFallback = false;
-
-        try {
-          // Build messages for LLM
-          // NEXUS: Inject dynamic consciousness prompt into system prompt
-          const enhancedSystemPrompt = chatPrompt.SYSTEM_PROMPT
-            .replace('{{USER_LANGUAGE}}', GlobalConfig.USER_LANGUAGE || 'uk')
-            .replace('{{DYNAMIC_CONSCIOUSNESS_PROMPT}}', dynamicPrompt || '');
-
-          const messages = [
-            {
-              role: 'system',
-              content: enhancedSystemPrompt
-            },
-            ...recentMessages
-          ];
-
-          // Log what we're sending to LLM
-          logger.system('executor', `[API-REQUEST] Messages to send: ${JSON.stringify(messages, null, 2)}`);
-          logger.system('executor', `[API-REQUEST] Model: ${modelConfig.model}, Temp: ${modelConfig.temperature}, Tokens: ${modelConfig.max_tokens}`);
-
-          const response = await adaptiveThrottler.throttledRequest(
-            async () => axios.post(apiUrl, {
-              model: modelConfig.model,
-              messages,
-              temperature: modelConfig.temperature,
-              max_tokens: modelConfig.max_tokens
-            }, {
-              headers: { 'Content-Type': 'application/json' },
-              timeout: 60000
-            }),
-            { priority: 10, metadata: { type: 'chat', model: modelConfig.model } }
-          );
-          chatResponse = response;
-
-          // Log API response
-          const llmAnswer = response.data?.choices?.[0]?.message?.content;
-          logger.system('executor', `[API-RESPONSE] LLM returned: ${llmAnswer ? llmAnswer.substring(0, 100) : 'EMPTY'}`);
-
-        } catch (primaryError) {
-          const errorStatus = primaryError.response?.status || 'unknown';
-          logger.warn('executor', `[CHAT-FALLBACK] Primary request failed with ${errorStatus}: ${primaryError.message}`);
-
-          // UPDATED 2025-11-10: Try automatic model fallback - find alternative models from API
-          try {
-            logger.info('executor', '[CHAT-FALLBACK] 🔍 Searching for alternative models...');
-
-            // Get list of available models from API
-            let workingModel = null;
-            try {
-              const modelsResponse = await adaptiveThrottler.throttledRequest(
-                async () => axios.get('http://localhost:4000/v1/models', { timeout: 5000 }),
-                { priority: 5, metadata: { type: 'models_list' } }
-              );
-              const availableModels = modelsResponse.data?.data || [];
-
-              if (availableModels.length > 0) {
-                logger.info('executor', `[CHAT-FALLBACK] Found ${availableModels.length} models, testing alternatives...`);
-
-                // Try up to 5 alternative models
-                const modelsToTry = availableModels
-                  .map(m => m.id)
-                  .filter(id => id !== modelConfig.model)
-                  .slice(0, 5);
-
-                for (const alternativeModel of modelsToTry) {
-                  try {
-                    logger.debug('executor', `[CHAT-FALLBACK] Testing model: ${alternativeModel}`);
-
-                    const testResponse = await adaptiveThrottler.throttledRequest(
-                      async () => axios.post(apiUrl, {
-                        model: alternativeModel,
-                        messages,
-                        temperature: modelConfig.temperature,
-                        max_tokens: modelConfig.max_tokens
-                      }, {
-                        headers: { 'Content-Type': 'application/json' },
-                        timeout: 15000
-                      }),
-                      { priority: 8, retryable: false, metadata: { type: 'fallback_test', model: alternativeModel } }
-                    );
-
-                    if (testResponse.status === 200) {
-                      workingModel = alternativeModel;
-                      chatResponse = testResponse;
-                      logger.info('executor', `[CHAT-FALLBACK] ✅ Success with alternative model: ${workingModel}`);
-                      break;
-                    }
-                  } catch (testError) {
-                    logger.debug('executor', `[CHAT-FALLBACK] Model ${alternativeModel} failed: ${testError.message}`);
-                    continue;
-                  }
-                }
-              }
-            } catch (modelsError) {
-              logger.warn('executor', `[CHAT-FALLBACK] Could not fetch models list: ${modelsError.message}`);
-            }
-
-            if (!workingModel) {
-              // Try endpoint fallback if model fallback failed
-              if (apiEndpointConfig?.fallback && !usedFallback) {
-                logger.warn('executor', `[CHAT-FALLBACK] No working model found, trying fallback endpoint...`);
-                apiUrl = apiEndpointConfig.fallback;
-                usedFallback = true;
-
-                const response = await adaptiveThrottler.throttledRequest(
-                  async () => axios.post(apiUrl, {
-                    model: modelConfig.model,
-                    messages,
-                    temperature: modelConfig.temperature,
-                    max_tokens: modelConfig.max_tokens
-                  }, {
-                    headers: { 'Content-Type': 'application/json' },
-                    timeout: 60000
-                  }),
-                  { priority: 9, metadata: { type: 'fallback', model: modelConfig.model } }
-                );
-                chatResponse = response;
-              } else {
-                throw primaryError;
-              }
-            }
-          } catch (fallbackError) {
-            logger.error('executor', `[CHAT-FALLBACK] ❌ All fallback attempts failed: ${fallbackError.message}`);
-            // Return a graceful fallback response instead of throwing
-            chatResponse = {
-              data: {
-                choices: [{
-                  message: {
-                    content: "Вибачте, зараз всі моделі тимчасово недоступні. Спробуйте ще раз за кілька секунд."
-                  }
-                }]
-              }
-            };
-          }
-        }
-
-        // Handle both OpenAI format (message.content) and Ollama format (text)
-        const atlasResponse = chatResponse.data?.choices?.[0]?.message?.content
-          || chatResponse.data?.choices?.[0]?.text;
-
-        if (!atlasResponse) {
-          throw new Error('Empty response from chat API');
-        }
-
-        logger.system('executor', `Atlas chat response: ${atlasResponse.substring(0, 100)}...`);
-
-        // Send response via WebSocket (primary channel)
-        if (wsManager) {
-          wsManager.broadcastToSubscribers('chat', 'agent_message', {
-            content: atlasResponse,
-            ttsContent: atlasResponse, // CRITICAL: Add ttsContent for TTS playback
-            agent: 'atlas',
-            sessionId: session.id,
-            timestamp: new Date().toISOString()
-          });
-        }
-
-        // REMOVED 2025-11-05: SSE відправка створювала подвоєння повідомлень
-        // WebSocket вже відправляє agent_message, SSE не потрібен
-        // SSE залишається тільки для технічних повідомлень (mode_selected, status)
-        // if (res?.writable && !res.writableEnded) {
-        //   res.write(`data: ${JSON.stringify({
-        //     type: 'agent_message',
-        //     data: {
-        //       content: atlasResponse,
-        //       agent: 'atlas',
-        //       sessionId: session.id,
-        //       timestamp: new Date().toISOString()
-        //     }
-        //   })}\n\n`);
-        // }
-
-        // Add to session history
-        if (session.chatThread) {
-          // CRITICAL FIX: Check if messages array exists
-          if (!session.chatThread.messages) {
-            session.chatThread.messages = [];
-          }
-
-          session.chatThread.messages.push({
-            role: 'assistant',
-            content: atlasResponse,
-            agent: 'atlas',
-            timestamp: new Date().toISOString()
-          });
-
-          // DIAGNOSTIC 16.10.2025
-          logger.system('executor', `[CHAT-CONTEXT] Assistant response added. Total messages now: ${session.chatThread.messages.length}`);
-        }
-
-        // NEW 26.10.2025: Store important information to memory
-        try {
-          const chatMemoryCoordinator = container.resolve('chatMemoryCoordinator');
-
-          // FIXED 2025-11-08: Check if coordinator is initialized (lazy loading)
-          if (chatMemoryCoordinator && typeof chatMemoryCoordinator.storeMemory === 'function') {
-            await chatMemoryCoordinator.storeMemory({
-              userMessage,
-              assistantResponse: atlasResponse,
-              session
-            });
-          } else {
-            logger.debug('executor', '[CHAT-MEMORY] ⏭️ Memory coordinator not yet initialized (lazy loading)');
-          }
-        } catch (storageError) {
-          logger.warn('executor', `[CHAT-MEMORY] ⚠️ Memory storage failed: ${storageError.message}`);
-        }
-
-        logger.workflow('complete', 'atlas', 'Chat response completed', { sessionId: session.id });
-
-        // CRITICAL: Return here to prevent falling through to TODO mode
-        return {
-          success: true,
-          mode: 'chat',
-          response: atlasResponse
-        };
-
+        // Return result
+        return chatResult;
       } catch (chatError) {
         logger.error('executor', `Chat mode failed: ${chatError.message}`, {
           sessionId: session.id,
           stack: chatError.stack
         });
 
-        // FIXED 2025-11-06: Відключено автоматичні error повідомлення в чат
-        // Помилки відображаються тільки в логах, щоб не спамити користувача
-        // if (wsManager) {
-        //   wsManager.broadcastToSubscribers('chat', 'agent_message', {
-        //     content: 'Вибачте, виникла помилка при обробці вашого повідомлення.',
-        //     agent: 'atlas',
-        //     sessionId: session.id,
-        //     timestamp: new Date().toISOString()
-        //   });
-        // }
-
         throw chatError;
       }
     }
 
-    // ===============================================
-    // Stage 0.5-MCP: Context Enrichment (NEW 30.10.2025)
-    // ===============================================
-    logger.workflow('stage', 'atlas', 'Stage 0.5-MCP: Context Enrichment', { sessionId: session.id });
-
-    let enrichedMessage = userMessage;
-    let enrichmentMetadata = null;
-
-    try {
-      const enrichmentResult = await contextEnrichmentProcessor.execute({
-        userMessage,
-        session
-      });
-
-      if (enrichmentResult.success && enrichmentResult.enriched_message) {
-        enrichedMessage = enrichmentResult.enriched_message;
-        enrichmentMetadata = enrichmentResult.metadata;
-
-        logger.system('executor', `[STAGE-0.5-MCP] ✅ Context enriched`);
-        logger.system('executor', `[STAGE-0.5-MCP]    Original: "${userMessage}"`);
-        logger.system('executor', `[STAGE-0.5-MCP]    Enriched: "${enrichedMessage}"`);
-        logger.system('executor', `[STAGE-0.5-MCP]    Complexity: ${enrichmentMetadata.complexity}/10`);
-      } else {
-        logger.warn(`[STAGE-0.5-MCP] Context enrichment failed, using original message: ${enrichmentResult.error}`);
-      }
-    } catch (enrichmentError) {
-      logger.warn(`[STAGE-0.5-MCP] ⚠️ Context enrichment error (continuing with original): ${enrichmentError.message}`);
-      // FIXED 2025-11-16: Don't log full stack for enrichment errors - they're not critical
-      // Continue with original message on error
-    }
-
-    // ===============================================
-    // Stage 1-MCP: Atlas TODO Planning
-    // ===============================================
-    logger.workflow('stage', 'system', 'Stage 1-MCP: Atlas TODO Planning', { sessionId: session.id });
-
-    // Check if we have DEV transition context
-    let todoResult;
-    if (session.devTransitionContext) {
-      logger.system('executor', '[TASK-FROM-DEV] Using DEV transition context', {
-        sessionId: session.id,
-        tasksCount: session.devTransitionContext.tasks?.length || 0
-      });
-
-      // Create TODO from DEV context
-      todoResult = {
-        success: true,
-        todo: {
-          mode: 'task',
-          items: session.devTransitionContext.tasks.map(task => ({
-            ...task,
-            status: 'pending',
-            max_attempts: 3,
-            attempt: 0
-          })),
-          user_message: userMessage,
-          metadata: session.devTransitionContext.metadata
-        },
-        summary: `Виконую ${session.devTransitionContext.tasks?.length || 0} завдань з DEV аналізу`
-      };
-
-      // Clear transition context after use
-      delete session.devTransitionContext;
-    } else {
-      // Normal TODO planning with enriched message
-      try {
-        todoResult = await todoProcessor.execute({
-          userMessage: enrichedMessage,  // Use enriched message instead of original
-          session,
-          res,
-          enrichmentMetadata  // Pass enrichment metadata for context
-        });
-      } catch (todoError) {
-        logger.warn(`[STAGE-1-MCP] ⚠️ TODO planning error (using fallback): ${todoError.message}`);
-        // FIXED 2025-11-16: Use fallback TODO if planning fails
-        // This allows chat mode to work even if TODO planning fails
-        todoResult = {
-          success: true,
-          todo: {
-            mode: 'chat',
-            items: [],
-            user_message: userMessage,
-            metadata: {}
-          },
-          summary: 'Перейшов в режим чату через помилку планування'
-        };
-      }
-    }
-
-    // ✅ PHASE 4 TASK 3: Validate TODO result structure
-    if (!todoResult.success) {
-      logger.warn(`[STAGE-1-MCP] ⚠️ TODO planning failed, using fallback chat mode`);
-      // Use fallback instead of throwing
-      todoResult = {
-        success: true,
-        todo: {
-          mode: 'chat',
-          items: [],
-          user_message: userMessage,
-          metadata: {}
-        },
-        summary: 'Режим чату (fallback)'
-      };
-    }
-
-    if (!todoResult.todo || !todoResult.todo.items || !Array.isArray(todoResult.todo.items)) {
-      logger.warn('[STAGE-1-MCP] ⚠️ Invalid TODO structure, using fallback chat mode');
-      todoResult = {
-        success: true,
-        todo: {
-          mode: 'chat',
-          items: [],
-          user_message: userMessage,
-          metadata: {}
-        },
-        summary: 'Режим чату (fallback - invalid structure)'
-      };
-    }
-
-    if (todoResult.todo.items.length === 0) {
-      logger.info('[STAGE-1-MCP] ℹ️ Empty TODO items list - using chat mode');
-      // Empty items is OK - just means chat mode
-      if (todoResult.todo.mode !== 'chat') {
-        todoResult.todo.mode = 'chat';
-      }
-    }
-
-    const todo = todoResult.todo;
-    logger.info(`TODO created with ${todo.items.length} items`, {
-      sessionId: session.id,
-      mode: todo.mode,
-      items: todo.items.map(item => ({
-        id: item.id,
-        action: item.action,
-        max_attempts: item.max_attempts
-      }))
-    });
-
-    // Send TODO plan to frontend via SSE
-    if (res.writable && !res.writableEnded) {
-      res.write(`data: ${JSON.stringify({
-        type: 'mcp_todo_created',
-        data: {
-          summary: todoResult.summary,
-          itemCount: todo.items.length,
-          mode: todo.mode
-        }
-      })}\n\n`);
-    }
-
-    // REMOVED 16.10.2025 - Duplicate message (mcp-todo-manager already sends via agent_message)
-    // TODO plan is now sent correctly via agent_message with agent='atlas' in mcp-todo-manager.js line ~243
-
-    // Execute TODO items one by one
-    // FIXED 2025-10-23: Changed to while loop to support restart after replanning
-    // FIXED 2025-11-03: Add sequential delay between items to prevent rate limiting
-    let i = 0;
-    let lastItemCompletionTime = 0;
-    const MIN_DELAY_BETWEEN_ITEMS = 3000; // 3 seconds minimum between items
-
-    while (i < todo.items.length) {
-      const item = todo.items[i];
-
-      // Add delay between items to prevent rate limiting
-      const timeSinceLastItem = Date.now() - lastItemCompletionTime;
-      if (lastItemCompletionTime > 0 && timeSinceLastItem < MIN_DELAY_BETWEEN_ITEMS) {
-        const delayNeeded = MIN_DELAY_BETWEEN_ITEMS - timeSinceLastItem;
-        logger.system('executor', `[RATE-LIMIT] Waiting ${delayNeeded}ms before processing item ${item.id}`);
-        await new Promise(resolve => setTimeout(resolve, delayNeeded));
-      }
-
-      // Skip items that were already processed (completed, failed, replanned, skipped)
-      if (item.status === 'completed' || item.status === 'failed' || item.status === 'skipped') {
-        logger.system('executor', `[SKIP] Item ${item.id} already processed (status: ${item.status})`);
-        lastItemCompletionTime = Date.now(); // Update time even for skipped items
-        i++;
-        continue;
-      }
-
-      // FIXED 2025-10-23: Skip items marked as 'replanned' - new items will replace them
-      if (item.status === 'replanned') {
-        logger.system('executor', `[SKIP] Item ${item.id} was replanned, new items will be processed`);
-        lastItemCompletionTime = Date.now(); // Update time even for replanned items
-        i++;
-        continue;
-      }
-
-      logger.info(`Processing TODO item ${i + 1}/${todo.items.length}: ${item.action}`, {
-        sessionId: session.id,
-        itemId: item.id
-      });
-
-      // REMOVED 21.10.2025: Duplicate message - Tetyana already announces via TTS
-      // System progress messages removed to avoid duplication with agent messages
-
-      // FIXED 2025-10-23: Enhanced dependency check for hierarchical IDs
-      const dependencies = Array.isArray(item.dependencies) ? item.dependencies : [];
-      if (dependencies.length > 0) {
-        // FIXED 2025-10-24: Track blocked item check count to prevent infinite loop
-        if (!item.blocked_check_count) {
-          item.blocked_check_count = 0;
-        }
-        item.blocked_check_count++;
-
-        // Check explicit dependencies
-        const unresolvedDependencies = dependencies
-          .map(depId => todo.items.find(todoItem => String(todoItem.id) === String(depId)))
-          .filter(depItem => depItem && depItem.status !== 'completed');
-
-        // ENHANCED 2025-10-23: Also check if any parent is replanned or blocked
-        // If parent is replanned, children must complete first
-        const parentBlocked = dependencies.some(depId => {
-          const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
-          if (!depItem) return false;
-
-          // If dependency is replanned, check if its children are complete
-          if (depItem.status === 'replanned') {
-            const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
-            const incompleteChildren = children.filter(child => child.status !== 'completed');
-            return incompleteChildren.length > 0; // Block if children incomplete
-          }
-
-          return false;
-        });
-
-        if (unresolvedDependencies.length > 0 || parentBlocked) {
-          // FIXED 2025-10-24: After 5 blocked checks, try to resolve dependency issue
-          if (item.blocked_check_count >= 5) {
-            logger.warn(`Item ${item.id} blocked ${item.blocked_check_count} times - attempting resolution`, {
-              sessionId: session.id,
-              itemId: item.id
-            });
-
-            // FIXED 2025-11-03: Try to resolve blocked dependencies
-            let dependenciesUpdated = false;
-            const newDependencies = [];
-
-            for (const depId of dependencies) {
-              const depItem = todo.items.find(todoItem => String(todoItem.id) === String(depId));
-
-              // CRITICAL FIX: Remove skipped dependencies
-              if (depItem && depItem.status === 'skipped') {
-                dependenciesUpdated = true;
-                logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing skipped dependency ${depId}`);
-                continue; // Skip adding this dependency
-              }
-
-              // Replace replanned dependencies with children
-              if (depItem && depItem.status === 'replanned') {
-                const children = HierarchicalIdManager.getChildren(String(depId), todo.items);
-                if (children.length > 0) {
-                  newDependencies.push(...children.map(c => c.id));
-                  dependenciesUpdated = true;
-                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: replacing replanned dep ${depId} with children ${children.map(c => c.id).join(', ')}`);
-                } else {
-                  // Replanned but no children - remove dependency
-                  dependenciesUpdated = true;
-                  logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing replanned dep ${depId} (no children)`);
-                }
-              } else if (depItem) {
-                // Keep valid dependency
-                newDependencies.push(depId);
-              } else {
-                // Dependency не знайдено - видаляємо
-                dependenciesUpdated = true;
-                logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: removing missing dependency ${depId}`);
-              }
-            }
-
-            if (dependenciesUpdated) {
-              item.dependencies = newDependencies;
-              item.blocked_check_count = 0; // Reset counter
-              logger.system('executor', `[DEPENDENCY-FIX] Item ${item.id}: updated dependencies to ${newDependencies.join(', ')}`);
-              // Continue to re-check with new dependencies
-              continue;
-            }
-
-            // If can't resolve after 10 checks, skip item
-            if (item.blocked_check_count >= 10) {
-              logger.error(`Item ${item.id} blocked ${item.blocked_check_count} times - SKIPPING to prevent infinite loop`, {
-                sessionId: session.id,
-                itemId: item.id
-              });
-
-              item.status = 'skipped';
-              item.skip_reason = 'Blocked too many times - infinite loop protection';
-
-              if (wsManager) {
-                try {
-                  wsManager.broadcastToSubscribers('chat', 'chat_message', {
-                    message: `⚠️ Пункт ${item.id} пропущено через нерозв'язані залежності`,
-                    messageType: 'error',
-                    sessionId: session.id,
-                    timestamp: new Date().toISOString()
-                  });
-                } catch (error) {
-                  logger.warn(`Failed to send skip WebSocket message: ${error.message}`);
-                }
-              }
-
-              continue;
-            }
-          }
-
-          const unresolvedSummary = unresolvedDependencies
-            .map(depItem => `#${depItem.id} (${depItem.status || 'unknown'})`)
-            .join(', ');
-
-          const blockReason = parentBlocked
-            ? 'Parent replanned - waiting for replacement items'
-            : `Dependencies not completed: ${unresolvedSummary}`;
-
-          logger.warn(`Item ${item.id} blocked: ${blockReason} (check ${item.blocked_check_count}/10)`, {
-            sessionId: session.id,
-            itemId: item.id,
-            dependencies: dependencies,
-            unresolvedSummary,
-            parentBlocked
-          });
-
-          item.status = 'blocked';
-          item.block_reason = `Очікування завершення залежностей: ${unresolvedSummary}`;
-
-          if (wsManager) {
-            try {
-              wsManager.broadcastToSubscribers('chat', 'chat_message', {
-                message: `⏸️ Пункт ${item.id} заблокований. Очікує завершення: ${unresolvedSummary}`,
-                messageType: 'warning',
-                sessionId: session.id,
-                timestamp: new Date().toISOString()
-              });
-            } catch (error) {
-              logger.warn(`Failed to send dependency block WebSocket message: ${error.message}`);
-            }
-          }
-
-          if (res.writable && !res.writableEnded) {
-            res.write(`data: ${JSON.stringify({
-              type: 'mcp_item_blocked',
-              data: {
-                itemId: item.id,
-                action: item.action,
-                dependencies: dependencies,
-                unresolvedDependencies: unresolvedDependencies.map(dep => ({
-                  id: dep.id,
-                  status: dep.status || 'unknown'
-                })),
-                reason: item.block_reason
-              }
-            })}\n\n`);
-          }
-
-          continue;
-        }
-      }
-
-      let attempt = 1;
-      // UPDATED 19.10.2025: 1 спроба виконання, 3 спроби перепланування
-      const maxAttempts = item.max_attempts || GlobalConfig.AI_BACKEND_CONFIG.retry.itemExecution.maxAttempts;
-      const maxReplanningAttempts = GlobalConfig.AI_BACKEND_CONFIG.retry.replanning.maxAttempts;
-
-      let replanningAttempts = 0;
-      let lastPlanResult = null;
-      let lastExecResult = null;
-
-      while (attempt <= maxAttempts) {
-        logger.info(`Item ${item.id}: Attempt ${attempt}/${maxAttempts}`, {
-          sessionId: session.id
-        });
-
-        // ✅ PHASE 4 TASK 3: Exponential backoff between retries
-        if (attempt > 1) {
-          const backoffDelay = Math.min(1000 * Math.pow(2, attempt - 2), 8000); // Max 8s
-          logger.info(`Retry backoff: waiting ${backoffDelay}ms before attempt ${attempt}`, {
-            sessionId: session.id,
-            itemId: item.id
-          });
-          await new Promise(resolve => setTimeout(resolve, backoffDelay));
-        }
-
-        // FIXED 2025-10-23: Log attempt details for debugging sequential execution
-        logger.system('executor', `[EXEC] Item ${item.id} attempt ${attempt}/${maxAttempts}: "${item.action}"`);
-        if (dependencies.length > 0) {
-          logger.system('executor', `[EXEC]   Dependencies: ${dependencies.join(', ')}`);
-        }
-
-        try {
-          // NEW: Router Classifier (Optional fast pre-filter)
-          let suggestedServers = null;
-          try {
-            if (container.has('routerClassifier')) {
-              // FIXED 2025-11-07: Await async factory resolution
-              const routerClassifier = await container.resolve('routerClassifier');
-              const mcpManager = container.resolve('mcpManager');
-
-              logger.workflow('stage', 'system', `Router Classifier: Fast filtering for item ${item.id}`, {
-                sessionId: session.id
-              });
-
-              // Check if routerClassifier has execute method
-              if (typeof routerClassifier.execute === 'function') {
-                const routerResult = await routerClassifier.execute({
-                  action: item.action,
-                  context: todo,
-                  availableServers: Array.from(mcpManager.servers.keys())
-                });
-
-                if (routerResult.success && routerResult.selectedServers) {
-                  suggestedServers = routerResult.selectedServers;
-                  logger.system('executor', `[ROUTER] Pre-filtered to: ${suggestedServers.join(', ')}`);
-                }
-              } else {
-                logger.warn('Router classifier does not have execute method, skipping', {
-                  methods: Object.getOwnPropertyNames(Object.getPrototypeOf(routerClassifier)).filter(m => typeof routerClassifier[m] === 'function')
-                });
-              }
-            }
-          } catch (routerError) {
-            logger.warn('Router classifier failed, continuing without pre-filter', { error: routerError.message });
-          }
-
-          // Stage 2.0-MCP: Server Selection (NEW 20.10.2025)
-          logger.workflow('stage', 'system', `Stage 2.0-MCP: Selecting MCP servers for item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          let selectedServers = null;
-          let selectedPrompts = null;
-          try {
-            const serverSelectionProcessor = container.resolve('serverSelectionProcessor');
-            const selectionResult = await serverSelectionProcessor.execute({
-              currentItem: item,
-              todo,
-              session,
-              res,
-              suggestedServers // Pass router suggestions
-            });
-
-            if (selectionResult.success && selectionResult.selected_servers) {
-              selectedServers = selectionResult.selected_servers;
-              selectedPrompts = selectionResult.selected_prompts;
-              logger.system('executor', `[STAGE-2.0-MCP] Selected servers: ${selectedServers.join(', ')}`);
-              if (selectedPrompts) {
-                logger.system('executor', `[STAGE-2.0-MCP] Auto-assigned prompts: ${Array.isArray(selectedPrompts) ? selectedPrompts.join(', ') : selectedPrompts}`);
-              }
-
-              // NEW 2025-11-17: Persist Stage 2.0 selection on item for downstream stages
-              // This allows Grisha's MCP verification to reuse the exact same server set
-              // instead of performing an independent server selection.
-              item._mcp_selected_servers = Array.isArray(selectedServers)
-                ? [...selectedServers]
-                : [];
-              item._mcp_selected_prompts = selectedPrompts;
-            }
-          } catch (selectionError) {
-            logger.warn(`Server selection failed for item ${item.id}: ${selectionError.message}. Using all servers with fallback prompts.`, {
-              sessionId: session.id
-            });
-
-            // Assign fallback prompts when server selection fails
-            if (!selectedPrompts) {
-              // Intelligently select fallback prompt based on task content
-              const taskAction = item.action.toLowerCase();
-              let fallbackPrompt = 'TETYANA_PLAN_TOOLS_PLAYWRIGHT'; // Default for web tasks
-
-              if (taskAction.includes('файл') || taskAction.includes('зберегти') || taskAction.includes('створити') || taskAction.includes('file')) {
-                fallbackPrompt = 'TETYANA_PLAN_TOOLS_FILESYSTEM';
-              } else if (taskAction.includes('команд') || taskAction.includes('запустити') || taskAction.includes('command') || taskAction.includes('shell')) {
-                fallbackPrompt = 'TETYANA_PLAN_TOOLS_SHELL';
-              } else if (taskAction.includes('пам\'ять') || taskAction.includes('зберегти') || taskAction.includes('memory')) {
-                fallbackPrompt = 'TETYANA_PLAN_TOOLS_MEMORY';
-              }
-              // Default remains playwright for web scraping, price collection, etc.
-
-              selectedPrompts = [fallbackPrompt];
-              logger.system('executor', `[FALLBACK] Auto-assigned intelligent fallback prompt: ${selectedPrompts.join(', ')} (based on task: "${item.action}")`);
-            }
-          }
-
-          // Stage 2.1-MCP: Tetyana Plan Tools
-          logger.workflow('stage', 'tetyana', `Stage 2.1-MCP: Planning tools for item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          const planResult = await planProcessor.execute({
-            currentItem: item,
-            todo,
-            session,
-            res,
-            selected_servers: selectedServers,
-            selected_prompts: selectedPrompts
-          });
-
-          lastPlanResult = planResult;
-
-          if (!planResult.success) {
-            logger.warn(`Tool planning failed for item ${item.id}: ${planResult.error}`, {
-              sessionId: session.id
-            });
-
-            // FIXED 14.10.2025 - Send error message to user when tool planning fails
-            if (res.writable && !res.writableEnded) {
-              res.write(`data: ${JSON.stringify({
-                type: 'mcp_item_planning_failed',
-                data: {
-                  itemId: item.id,
-                  action: item.action,
-                  attempt: attempt,
-                  maxAttempts: maxAttempts,
-                  error: planResult.error,
-                  summary: planResult.summary || `⚠️ Помилка планування інструментів (спроба ${attempt}/${maxAttempts}): ${planResult.error}`
-                }
-              })}\n\n`);
-            }
-
-            attempt++;
-            continue;
-          }
-
-          // Stage 2.2-MCP: Tetyana Execute Tools
-          logger.workflow('stage', 'tetyana', `Stage 2.2-MCP: Executing tools for item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          // REFACTORED 2025-10-22 - Tetyana speaks FULL action from TODO
-          const ttsSyncManager = container.resolve('ttsSyncManager');
-          if (ttsSyncManager && item.action) {
-            try {
-              // Speak full action as-is from TODO
-              const fullAction = item.action.toLowerCase();
-
-              logger.system('executor', `[TTS] 🔊 Tetyana START: "${fullAction}"`);
-              await ttsSyncManager.speak(fullAction, {
-                mode: 'normal',
-                agent: 'tetyana',
-                sessionId: session.id
-              });
-              logger.system('executor', `[TTS] ✅ Tetyana start TTS sent`);
-            } catch (error) {
-              logger.error(`[TTS] ❌ Failed to send TTS: ${error.message}`, {
-                category: 'executor',
-                component: 'executor',
-                stack: error.stack
-              });
-            }
-          }
-
-          const execResult = await executeProcessor.execute({
-            currentItem: item,
-            plan: planResult.plan,
-            todo,
-            session,
-            res
-          });
-
-          lastExecResult = execResult;
-
-          // Send execution update to frontend
-          if (res.writable && !res.writableEnded) {
-            res.write(`data: ${JSON.stringify({
-              type: 'mcp_item_executed',
-              data: {
-                itemId: item.id,
-                action: item.action,
-                success: execResult.success,
-                summary: execResult.summary
-              }
-            })}\n\n`);
-          }
-
-          // Stage 2.3-MCP: Grisha Verify Item
-          logger.workflow('stage', 'grisha', `Stage 2.3-MCP: Verifying item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          // FIXED 2025-10-21: Removed duplicate TTS message from executor
-          // Grisha now sends detailed verification result with TTS directly from verify processor
-
-          // ✅ FIX: Adaptive delay before screenshot verification
-          // App launches need more time, other operations need less
-          const delayMs = _getVerificationDelay(execResult.execution, item);
-          if (delayMs > 0) {
-            const delaySec = (delayMs / 1000).toFixed(1);
-            logger.system('executor', `[VERIFICATION-DELAY] Waiting ${delaySec}s before verification...`);
-            await new Promise(resolve => setTimeout(resolve, delayMs));
-          }
-
-          const verifyResult = await verifyProcessor.execute({
-            currentItem: item,
-            execution: execResult.execution,
-            todo,
-            session,
-            res
-          });
-
-          // Send verification update to frontend
-          if (res.writable && !res.writableEnded) {
-            res.write(`data: ${JSON.stringify({
-              type: 'mcp_item_verified',
-              data: {
-                itemId: item.id,
-                verified: verifyResult.verified,
-                confidence: verifyResult.metadata?.confidence || 0,
-                summary: verifyResult.summary
-              }
-            })}\n\n`);
-          }
-
-          if (verifyResult.verified) {
-            // Success! Mark as completed
-            item.status = 'completed';
-            item.verification = verifyResult.verification;
-            item.attempt = attempt;
-
-            logger.info(`Item ${item.id} completed successfully`, {
-              sessionId: session.id,
-              attempts: attempt
-            });
-
-            // REFACTORED 2025-10-22 - Tetyana says short "done" phrase
-            // 1. Tetyana announces completion FIRST
-            if (ttsSyncManager) {
-              try {
-                const successPhrases = [
-                  'Виконано',
-                  'Готово',
-                  'Зроблено',
-                  'Завершено'
-                ];
-
-                const selectedPhrase = successPhrases[phraseRotation.tetyanaSuccess % successPhrases.length];
-                phraseRotation.tetyanaSuccess++;
-
-                logger.system('executor', `[TTS] 🔊 Tetyana SUCCESS: "${selectedPhrase}"`);
-                await ttsSyncManager.speak(selectedPhrase, {
-                  mode: 'normal',
-                  agent: 'tetyana',
-                  sessionId: session.id
-                });
-                logger.system('executor', `[TTS] ✅ Tetyana success sent`);
-              } catch (error) {
-                logger.warn(`Failed to send Tetyana success: ${error.message}`);
-              }
-            }
-
-            // 2. THEN Grisha gives short verdict
-            if (ttsSyncManager && verifyResult.verification?.tts_phrase) {
-              try {
-                logger.system('executor', `[TTS] 🔊 Grisha VERIFY: "${verifyResult.verification.tts_phrase}"`);
-                await ttsSyncManager.speak(verifyResult.verification.tts_phrase, {
-                  mode: 'normal',
-                  agent: 'grisha',
-                  sessionId: session.id
-                });
-                logger.system('executor', `[TTS] ✅ Grisha verify sent`);
-              } catch (error) {
-                logger.warn(`Failed to send Grisha verify: ${error.message}`);
-              }
-            }
-
-            break; // Exit retry loop
-          }
-
-          // Verification failed - analyze with Grisha and replan immediately
-          logger.workflow('stage', 'grisha', `Stage 3.5-MCP: Deep analysis for item ${item.id}`, {
-            sessionId: session.id
-          });
-
-          try {
-            // Get detailed analysis from Grisha
-            const grishaAnalysis = await verifyProcessor.getDetailedAnalysisForAtlas(
-              item,
-              execResult?.execution || { all_successful: false }
-            );
-
-            logger.info(`Grisha analysis: ${grishaAnalysis.failure_analysis.likely_cause}`, {
-              sessionId: session.id,
-              itemId: item.id,
-              rootCause: grishaAnalysis.failure_analysis.likely_cause,
-              recommendedStrategy: grishaAnalysis.failure_analysis.recommended_strategy
-            });
-
-            // Prepare data for Atlas replan
-            const tetyanaData = {
-              plan: planResult?.plan || { tool_calls: [] },
-              execution: execResult?.execution || { all_successful: false },
-              tools_used: execResult?.execution?.results?.map(r => r.tool) || []
-            };
-
-            const grishaData = {
-              verified: false,
-              reason: grishaAnalysis.reason,
-              visual_evidence: grishaAnalysis.visual_evidence,
-              screenshot_path: grishaAnalysis.screenshot_path,
-              confidence: grishaAnalysis.confidence,
-              suggestions: grishaAnalysis.suggestions,
-              failure_analysis: grishaAnalysis.failure_analysis
-            };
-
-            // Call Atlas replan processor
-            logger.workflow('stage', 'atlas', `Stage 3.6-MCP: Atlas replanning item ${item.id}`, {
-              sessionId: session.id
-            });
-
-            const replanResult = await replanProcessor.execute({
-              failedItem: item,
-              todo,
-              tetyanaData,
-              grishaData,
-              session,
-              res
-            });
-
-            // ADDED 20.10.2025: Детальне логування replan результату для діагностики
-            logger.system('executor', `[REPLAN-DEBUG] Full result: ${JSON.stringify(replanResult, null, 2)}`);
-            logger.system('executor', `[REPLAN-DEBUG] Strategy: ${replanResult.strategy}`);
-            logger.system('executor', `[REPLAN-DEBUG] Replanned: ${replanResult.replanned}`);
-            logger.system('executor', `[REPLAN-DEBUG] New items count: ${replanResult.new_items?.length || 0}`);
-            if (replanResult.new_items?.length > 0) {
-              logger.system('executor', `[REPLAN-DEBUG] New items: ${JSON.stringify(replanResult.new_items.map(i => ({ id: i.id, action: i.action })))}`);
-            }
-
-            logger.info(`Atlas replan decision: ${replanResult.strategy || 'unknown'}`, {
-              sessionId: session.id,
-              replanned: replanResult.replanned || false
-            });
-
-            // Apply replan if Atlas created new items
-            if (replanResult.replanned && replanResult.new_items?.length > 0) {
-              logger.info(`Atlas replanned: inserting ${replanResult.new_items.length} new items`, {
-                sessionId: session.id
-              });
-
-              // FIXED 2025-10-23: Generate hierarchical IDs (2 → 2.1, 2.2, 2.3)
-              const parentId = String(item.id);
-              logger.system('executor', `[REPLAN] Generating child IDs for parent ${parentId}`);
-
-              replanResult.new_items.forEach((newItem, idx) => {
-                // Generate next child ID (2.1, 2.2, etc. or 2.2.1, 2.2.2 for nested)
-                const childId = HierarchicalIdManager.generateChildId(parentId, todo.items.concat(replanResult.new_items.slice(0, idx)));
-                newItem.id = childId;
-                newItem.status = 'pending';
-                newItem.attempt = 0;
-                newItem.max_attempts = newItem.max_attempts || item.max_attempts || 2;
-                newItem.parent_id = parentId; // Track parent for debugging
-
-                logger.system('executor', `[REPLAN]   Generated child ID: ${childId}`);
-              });
-
-              // Insert new items into TODO list after current item
-              const currentIndex = todo.items.indexOf(item);
-              if (currentIndex !== -1) {
-                todo.items.splice(currentIndex + 1, 0, ...replanResult.new_items);
-
-                logger.info(`TODO list updated: ${todo.items.length} total items`, {
-                  sessionId: session.id
-                });
-
-                // FIXED 2025-10-23: Log new items with hierarchical structure
-                logger.system('executor', `[REPLAN] Inserted ${replanResult.new_items.length} new items after position ${currentIndex}:`);
-                replanResult.new_items.forEach((newItem, idx) => {
-                  const formatted = HierarchicalIdManager.formatForDisplay(newItem.id, true);
-                  logger.system('executor', `[REPLAN] ${formatted} ${newItem.action}`);
-                });
-              }
-
-              // Mark current item as replanned
-              item.status = 'replanned';
-              item.replan_reason = replanResult.reasoning;
-
-              // Send replan update to frontend
-              if (res.writable && !res.writableEnded) {
-                res.write(`data: ${JSON.stringify({
-                  type: 'mcp_item_replanned',
-                  data: {
-                    itemId: item.id,
-                    newItemsCount: replanResult.new_items.length,
-                    reasoning: replanResult.reasoning
-                  }
-                })}\n\n`);
-              }
-
-              // FIXED 2025-10-23: Exit retry loop and CONTINUE with next item in main loop
-              // The new items were inserted after current item, so i++ will process them
-              break;
-            } else if (replanResult.strategy === 'skip_and_continue') {
-              // Atlas decided to skip this item
-              item.status = 'skipped';
-              item.skip_reason = replanResult.reasoning;
-
-              logger.warn(`Item ${item.id} skipped by Atlas: ${item.skip_reason}`, {
-                sessionId: session.id
-              });
-
-              // Send TTS for failure/skip
-              if (wsManager && item.tts?.failure) {
-                try {
-                  wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                    content: item.tts.failure,
-                    agent: 'atlas',
-                    ttsContent: item.tts.failure,
-                    mode: 'normal',
-                    sessionId: session.id,
-                    timestamp: new Date().toISOString()
-                  });
-                } catch (error) {
-                  logger.warn(`Failed to send TTS failure message: ${error.message}`);
-                }
-              }
-
-              // Send skip update to frontend
-              if (res.writable && !res.writableEnded) {
-                res.write(`data: ${JSON.stringify({
-                  type: 'mcp_item_skipped',
-                  data: {
-                    itemId: item.id,
-                    reason: item.skip_reason
-                  }
-                })}\n\n`);
-              }
-
-              // FIXED 2025-10-23: Move to next item in main loop
-              break; // Exit retry loop
-            } else {
-              // No replan - retry with simple adjustment
-              replanningAttempts++;
-
-              // FIXED 2025-10-23: Log replanning attempt
-              logger.system('executor', `[REPLAN-RETRY] Item ${item.id} replanning attempt ${replanningAttempts}/${maxReplanningAttempts}`);
-
-
-              logger.workflow('stage', 'atlas', `Stage 3-MCP: Simple adjustment for item ${item.id} (attempt ${replanningAttempts}/${maxReplanningAttempts})`, {
-                sessionId: session.id
-              });
-
-              // Check if max replanning attempts reached
-              if (replanningAttempts > maxReplanningAttempts) {
-                logger.warn(`Item ${item.id}: Max replanning attempts (${maxReplanningAttempts}) reached, skipping`, {
-                  sessionId: session.id
-                });
-
-                item.status = 'skipped';
-                item.skip_reason = `Не вдалося виконати після ${maxReplanningAttempts} спроб перепланування`;
-
-                // Send TTS for failure/skip
-                if (wsManager && item.tts?.failure) {
-                  try {
-                    wsManager.broadcastToSubscribers('chat', 'agent_message', {
-                      content: item.tts.failure,
-                      agent: 'atlas',
-                      ttsContent: item.tts.failure,
-                      mode: 'normal',
-                      sessionId: session.id,
-                      timestamp: new Date().toISOString()
-                    });
-                  } catch (error) {
-                    logger.warn(`Failed to send TTS failure message: ${error.message}`);
-                  }
-                }
-
-                // Send skip update to frontend
-                if (res.writable && !res.writableEnded) {
-                  res.write(`data: ${JSON.stringify({
-                    type: 'mcp_item_skipped',
-                    data: {
-                      itemId: item.id,
-                      reason: item.skip_reason
-                    }
-                  })}\n\n`);
-                }
-
-                break; // Exit retry loop
-              }
-            }
-
-          } catch (replanError) {
-            logger.error(`Failed to analyze/replan: ${replanError.message}`, {
-              sessionId: session.id,
-              itemId: item.id,
-              error: replanError.message,
-              stack: replanError.stack
-            });
-
-            // Fallback to simple retry
-            attempt++;
-          }
-
-        } catch (itemError) {
-          // ✅ PHASE 4 TASK 3: Enhanced error logging with context
-          logger.error(`Item ${item.id} execution error: ${itemError.message}`, {
-            sessionId: session.id,
-            itemId: item.id,
-            action: item.action,
-            attempt,
-            maxAttempts,
-            error: itemError.message,
-            stack: itemError.stack,
-            tools_needed: item.tools_needed,
-            mcp_servers: item.mcp_servers
-          });
-
-          telemetry.emit('workflow.mcp.item_error', {
-            sessionId: session.id,
-            itemId: item.id,
-            attempt,
-            error: itemError.message
-          });
-
-          attempt++;
-
-          if (attempt > maxAttempts) {
-            item.status = 'failed';
-            item.error = itemError.message;
-
-            // ✅ PHASE 4 TASK 3: Log final failure with full context
-            logger.error(`Item ${item.id} PERMANENTLY FAILED after ${maxAttempts} attempts`, {
-              sessionId: session.id,
-              itemId: item.id,
-              action: item.action,
-              totalAttempts: maxAttempts,
-              finalError: itemError.message,
-              context: {
-                tools: item.tools_needed,
-                servers: item.mcp_servers,
-                dependencies: item.dependencies
-              }
-            });
-          }
-        }
-      }
-
-      // Max attempts reached without success - item should already be marked as skipped/replanned/completed
-      if (item.status !== 'completed' && item.status !== 'skipped' && item.status !== 'replanned') {
-        item.status = 'failed';
-        item.error = 'Max attempts reached';
-        if (res.writable && !res.writableEnded) {
-          res.write(`data: ${JSON.stringify({
-            type: 'mcp_item_failed',
-            data: {
-              itemId: item.id,
-              attempts: maxAttempts,
-              error: item.error
-            }
-          })}\n\n`);
-        }
-      }
-
-      // Update completion time for rate limiting
-      lastItemCompletionTime = Date.now();
-
-      // FIXED 2025-10-23: Move to next item in main loop
-      i++;
-    }
-
-    // Stage 8-MCP: Final Summary
-    logger.workflow('stage', 'system', 'Stage 8-MCP: Generating final summary', {
+    // PHASE 2.4.2: Transition to TASK state
+    logger.workflow('stage', 'system', 'TASK mode detected - transitioning to TASK state', {
       sessionId: session.id
     });
 
-    const summaryResult = await summaryProcessor.execute({
-      todo,
-      session,
-      res
-    });
+    try {
+      // Transition to TASK state
+      await stateMachine.transition(WorkflowStateMachine.States.TASK);
 
-    // ВИПРАВЛЕНО 21.10.2025: Додаємо фінальне повідомлення від Atlas
-    const completedCount = todo.items.filter(item => item.status === 'completed').length;
-    const totalCount = todo.items.length;
-    const successRate = Math.round((completedCount / totalCount) * 100);
+      // Execute TASK handler (which will coordinate all TODO processing)
+      const taskResult = await stateMachine.executeHandler({});
 
-    let atlasFinalMessage;
-    let atlasTTS;
-    if (summaryResult.success && successRate === 100) {
-      atlasFinalMessage = `✅ Завдання виконано повністю! Всі ${totalCount} пунктів успішно завершені.`;
-      atlasTTS = `Завдання виконано повністю`;
-    } else if (successRate >= 50) {
-      atlasFinalMessage = `⚠️ Завдання виконано частково: ${completedCount} з ${totalCount} пунктів (${successRate}% успіху)`;
-      atlasTTS = `Виконано ${completedCount} з ${totalCount} пунктів`;
-    } else {
-      atlasFinalMessage = `❌ Завдання не вдалося виконати: лише ${completedCount} з ${totalCount} пунктів завершені`;
-      atlasTTS = `Завдання не виконано`;
+      logger.workflow('complete', 'system', 'TASK mode completed via state machine', {
+        sessionId: session.id
+      });
+
+      return taskResult;
+    } catch (taskError) {
+      logger.error('executor', `TASK mode failed: ${taskError.message}`, {
+        sessionId: session.id,
+        stack: taskError.stack
+      });
+
+      throw taskError;
     }
-
-    // Відправляємо фінальне повідомлення від Atlas через WebSocket
-    if (wsManager) {
-      try {
-        wsManager.broadcastToSubscribers('chat', 'agent_message', {
-          content: atlasFinalMessage,
-          agent: 'atlas',
-          ttsContent: atlasTTS,
-          mode: 'task',
-          sessionId: session.id,
-          timestamp: new Date().toISOString()
-        });
-        logger.system('executor', '[ATLAS-FINAL] ✅ Final completion message sent');
-      } catch (wsError) {
-        logger.warn(`[ATLAS-FINAL] Failed to send final message: ${wsError.message}`);
-      }
-    }
-
-    // Send final summary to frontend
-    if (res.writable && !res.writableEnded) {
-      res.write(`data: ${JSON.stringify({
-        type: 'mcp_workflow_complete',
-        data: {
-          success: summaryResult.success,
-          summary: summaryResult.summary,
-          metrics: summaryResult.metadata?.metrics || {},
-          duration: Date.now() - workflowStart,
-          completedCount,
-          totalCount,
-          successRate
-        }
-      })}\n\n`);
-    }
-
-    // Add summary to session history - CRITICAL FIX: Check if history exists
-    if (!session.history) {
-      session.history = [];
-    }
-
-    session.history.push({
-      role: 'assistant',
-      content: summaryResult.summary,
-      agent: 'system',
-      timestamp: Date.now(),
-      metadata: {
-        workflow: 'mcp',
-        metrics: summaryResult.metadata?.metrics
-      }
-    });
-
-    // OPTIMIZED 2025-10-17: Clean up session history to prevent memory leaks
-    // Keep only last 20 messages for context
-    if (session.history && session.history.length > 20) {
-      const removed = session.history.length - 20;
-      session.history = session.history.slice(-20);
-      logger.system('executor', `[CLEANUP] Trimmed session.history: ${removed} old messages removed, ${session.history.length} kept`);
-    }
-
-    // Clean up chatThread messages
-    if (session.chatThread && session.chatThread.messages && session.chatThread.messages.length > 20) {
-      const removed = session.chatThread.messages.length - 20;
-      session.chatThread.messages = session.chatThread.messages.slice(-20);
-      logger.system('executor', `[CLEANUP] Trimmed chatThread: ${removed} old messages removed, ${session.chatThread.messages.length} kept`);
-    }
-
-    logger.workflow('complete', 'mcp', 'MCP workflow completed', {
-      sessionId: session.id,
-      duration: Date.now() - workflowStart,
-      metrics: summaryResult.metadata?.metrics
-    });
-
-    return summaryResult;
 
   } catch (error) {
 

@@ -5,12 +5,23 @@
  * 
  * @version 1.0.0
  * @date 2025-10-29
+ * 
+ * TECHNICAL DEBT 2025-11-18:
+ * This state machine is registered in the DI container but NOT currently used by executor-v3.js.
+ * The executor implements its own sequential logic without calling this state machine API.
+ * 
+ * Future refactoring opportunity:
+ * - Integrate this state machine into executor-v3.js to replace manual state tracking
+ * - This would improve code clarity and enable better state transition validation
+ * - Also consider integrating HybridWorkflowExecutor for parallel execution support
+ * 
+ * See: WORKFLOW_ANALYSIS_AND_ISSUES_2025-11-18.md (Section 4.6)
  */
 
 class WorkflowStateMachine {
   constructor(logger) {
     this.logger = logger;
-    
+
     // Define states
     this.states = {
       INIT: 'init',
@@ -25,7 +36,7 @@ class WorkflowStateMachine {
       COMPLETE: 'complete',
       FAILED: 'failed'
     };
-    
+
     // Define valid transitions
     this.transitions = {
       init: ['mode_selection', 'failed'],
@@ -40,14 +51,14 @@ class WorkflowStateMachine {
       complete: [],
       failed: []
     };
-    
+
     // Current state
     this.currentState = this.states.INIT;
     this.stateHistory = [];
     this.stateData = {};
     this.transitionCallbacks = new Map();
     this.stateTimeouts = new Map();
-    
+
     // Default timeouts (ms)
     this.defaultTimeouts = {
       mode_selection: 5000,
@@ -59,7 +70,7 @@ class WorkflowStateMachine {
       verifying: 30000,
       error_recovery: 20000
     };
-    
+
     // Metrics
     this.metrics = {
       totalTransitions: 0,
@@ -86,34 +97,34 @@ class WorkflowStateMachine {
    */
   async transition(newState, data = {}) {
     const fromState = this.currentState;
-    
+
     // Validate transition
     if (!this._isValidTransition(fromState, newState)) {
       const error = `Invalid transition from ${fromState} to ${newState}`;
-      this.logger.error(error, { 
-        currentState: fromState, 
+      this.logger.error(error, {
+        currentState: fromState,
         attemptedState: newState,
         validTransitions: this.transitions[fromState]
       });
       throw new Error(error);
     }
-    
+
     // Clear any existing timeout
     this._clearStateTimeout();
-    
+
     // Log transition
     this.logger.info('State transition', {
       from: fromState,
       to: newState,
       data: Object.keys(data)
     });
-    
+
     // Update metrics
     this._updateMetrics(fromState, newState);
-    
+
     // Execute exit callback for current state
     await this._executeCallback(`${fromState}_exit`, { fromState, toState: newState });
-    
+
     // Update state
     const previousState = this.currentState;
     this.currentState = newState;
@@ -123,16 +134,16 @@ class WorkflowStateMachine {
       from: previousState,
       data
     });
-    
+
     // Merge new data
     this.stateData = { ...this.stateData, ...data };
-    
+
     // Set timeout for new state
     this._setStateTimeout(newState);
-    
+
     // Execute enter callback for new state
     await this._executeCallback(`${newState}_enter`, { fromState, toState: newState });
-    
+
     // Check for terminal states
     if (newState === this.states.COMPLETE) {
       this.metrics.successfulCompletions++;
@@ -141,7 +152,7 @@ class WorkflowStateMachine {
       this.metrics.failures++;
       await this._handleFailure();
     }
-    
+
     return this;
   }
 
@@ -164,7 +175,7 @@ class WorkflowStateMachine {
     if (typeof callback !== 'function') {
       throw new Error('Callback must be a function');
     }
-    
+
     this.transitionCallbacks.set(event, callback);
     return this;
   }
@@ -184,14 +195,14 @@ class WorkflowStateMachine {
       currentState: this.currentState,
       error: error.message
     });
-    
+
     // Only attempt recovery if not already in error_recovery or terminal states
     if (this.currentState === this.states.ERROR_RECOVERY ||
-        this.currentState === this.states.COMPLETE ||
-        this.currentState === this.states.FAILED) {
+      this.currentState === this.states.COMPLETE ||
+      this.currentState === this.states.FAILED) {
       return false;
     }
-    
+
     try {
       await this.transition(this.states.ERROR_RECOVERY, {
         error: error.message,
@@ -199,7 +210,7 @@ class WorkflowStateMachine {
         recoveryAttempt: (this.stateData.recoveryAttempt || 0) + 1,
         ...recoveryData
       });
-      
+
       this.metrics.recoveries++;
       return true;
     } catch (transitionError) {
@@ -216,9 +227,9 @@ class WorkflowStateMachine {
   getStateDuration(state = null) {
     const targetState = state || this.currentState;
     const stateEntry = [...this.stateHistory].reverse().find(h => h.state === targetState);
-    
+
     if (!stateEntry) return 0;
-    
+
     return Date.now() - stateEntry.timestamp;
   }
 
@@ -226,10 +237,10 @@ class WorkflowStateMachine {
    * Get workflow summary
    */
   getSummary() {
-    const totalDuration = this.stateHistory.length > 0 
-      ? Date.now() - this.stateHistory[0].timestamp 
+    const totalDuration = this.stateHistory.length > 0
+      ? Date.now() - this.stateHistory[0].timestamp
       : 0;
-    
+
     return {
       currentState: this.currentState,
       statesVisited: this.stateHistory.length,
@@ -280,7 +291,7 @@ class WorkflowStateMachine {
           timeout,
           duration: this.getStateDuration(state)
         });
-        
+
         // Attempt recovery on timeout
         this.attemptRecovery(new Error(`State ${state} timed out after ${timeout}ms`), {
           timeoutState: state
@@ -298,7 +309,7 @@ class WorkflowStateMachine {
 
   _updateMetrics(fromState, toState) {
     this.metrics.totalTransitions++;
-    
+
     // Calculate time spent in previous state
     const duration = this.getStateDuration(fromState);
     if (!this.metrics.averageStateTime[fromState]) {
@@ -308,7 +319,7 @@ class WorkflowStateMachine {
         average: 0
       };
     }
-    
+
     const stateMetrics = this.metrics.averageStateTime[fromState];
     stateMetrics.total += duration;
     stateMetrics.count++;
@@ -320,7 +331,7 @@ class WorkflowStateMachine {
       duration: this.getStateDuration(),
       statesVisited: this.stateHistory.length
     });
-    
+
     await this._executeCallback('workflow_complete', {
       data: this.stateData,
       summary: this.getSummary()
@@ -333,7 +344,7 @@ class WorkflowStateMachine {
       error: this.stateData.error,
       duration: this.getStateDuration()
     });
-    
+
     await this._executeCallback('workflow_failed', {
       data: this.stateData,
       summary: this.getSummary()
@@ -347,32 +358,32 @@ class WorkflowStateMachine {
 class StateMachineFactory {
   static createMCPWorkflow(logger) {
     const machine = new WorkflowStateMachine(logger);
-    
+
     // Register MCP-specific callbacks
     machine.onTransition('tool_planning_enter', async (data) => {
       logger.info('Entering tool planning phase', data);
     });
-    
+
     machine.onTransition('executing_enter', async (data) => {
       logger.info('Starting tool execution', data);
     });
-    
+
     machine.onTransition('error_recovery_enter', async (data) => {
       logger.warn('Entering error recovery', {
         previousState: data.fromState,
         attempt: data.recoveryAttempt
       });
     });
-    
+
     return machine;
   }
-  
+
   static createTaskWorkflow(logger) {
     const machine = new WorkflowStateMachine(logger);
-    
+
     // Customize for task workflow
     machine.transitions.planning = ['server_selection', 'executing', 'complete', 'failed'];
-    
+
     return machine;
   }
 }

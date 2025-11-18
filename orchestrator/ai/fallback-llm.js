@@ -43,7 +43,7 @@ function getAvailableModels() {
 
   // Fallback to basic models if config failed
   if (models.length === 0) {
-    models.push('atlas-ministral-3b', 'atlas-gpt-4o-mini');
+    models.push('copilot-grok-code-fast-1', 'atlas-gpt-4o-mini');  // UPDATED 2025-11-18: Замінено atlas-ministral-3b на copilot-grok-code-fast-1
   }
 
   MODELS_CACHE = models;

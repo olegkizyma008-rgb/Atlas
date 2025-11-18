@@ -21,24 +21,24 @@ export class APIRequestOptimizer extends EventEmitter {
     constructor() {
         super();
         this.logger = logger;
-        
+
         // Core configuration
         this.apiEndpoint = 'http://localhost:4000/v1';
         this.maxConcurrentRequests = 3;
         this.requestTimeout = 30000;
-        
+
         // Batching system
         this.batchQueue = new Map();
         this.batchTimeout = 100; // ms to wait before processing batch
         this.maxBatchSize = 5;
-        
+
         // Caching system
         this.cache = new Map();
         this.cacheTimeout = 60000; // 1 minute cache
-        
+
         // Request deduplication
         this.pendingRequests = new Map();
-        
+
         // Statistics and monitoring
         this.stats = {
             totalRequests: 0,
@@ -49,17 +49,17 @@ export class APIRequestOptimizer extends EventEmitter {
             averageResponseTime: 0,
             requestsSaved: 0
         };
-        
+
         // Active request tracking
         this.activeRequests = new Set();
-        
+
         // Model availability cache
         this.modelCache = {
             models: null,
             lastUpdated: null,
             ttl: 300000 // 5 minutes
         };
-        
+
         this.logger.info('[API-OPTIMIZER] 🚀 Intelligent API Request Optimizer initialized');
     }
 
@@ -70,9 +70,9 @@ export class APIRequestOptimizer extends EventEmitter {
     async optimizedRequest(requestType, payload, options = {}) {
         const startTime = Date.now();
         this.stats.totalRequests++;
-        
+
         const cacheKey = this._generateCacheKey(requestType, payload);
-        
+
         try {
             // Step 1: Check cache first
             const cachedResult = this._getCachedResult(cacheKey);
@@ -81,35 +81,35 @@ export class APIRequestOptimizer extends EventEmitter {
                 this.logger.debug('[API-OPTIMIZER] 💾 Cache hit for', requestType);
                 return cachedResult;
             }
-            
+
             // Step 2: Check for duplicate pending requests
             if (this.pendingRequests.has(cacheKey)) {
                 this.stats.duplicatesAvoided++;
                 this.logger.debug('[API-OPTIMIZER] 🔄 Waiting for duplicate request', requestType);
                 return await this.pendingRequests.get(cacheKey);
             }
-            
+
             // Step 3: Determine if request can be batched
             if (this._canBatch(requestType)) {
                 return await this._handleBatchedRequest(requestType, payload, options, cacheKey);
             }
-            
+
             // Step 4: Execute single optimized request
             const requestPromise = this._executeSingleRequest(requestType, payload, options);
             this.pendingRequests.set(cacheKey, requestPromise);
-            
+
             const result = await requestPromise;
-            
+
             // Step 5: Cache successful results
             this._cacheResult(cacheKey, result);
             this.pendingRequests.delete(cacheKey);
-            
+
             // Update statistics
             const responseTime = Date.now() - startTime;
             this._updateStats(responseTime);
-            
+
             return result;
-            
+
         } catch (error) {
             this.stats.failedRequests++;
             this.pendingRequests.delete(cacheKey);
@@ -124,9 +124,9 @@ export class APIRequestOptimizer extends EventEmitter {
      */
     async batchSystemSelection(userMessage, context = {}) {
         this.logger.info('[API-OPTIMIZER] 🎯 Starting batch system selection');
-        
+
         const batchPrompt = this._buildBatchSelectionPrompt(userMessage, context);
-        
+
         try {
             const response = await this.optimizedRequest('batch_system_selection', {
                 messages: [{ role: 'user', content: batchPrompt }],
@@ -134,19 +134,19 @@ export class APIRequestOptimizer extends EventEmitter {
                 temperature: 0.1,
                 response_format: { type: 'json_object' }
             });
-            
+
             const result = this._parseBatchSelectionResponse(response);
             this.stats.batchedRequests++;
             this.stats.requestsSaved += 2; // Saved mode + server selection requests
-            
+
             this.logger.info('[API-OPTIMIZER] ✅ Batch selection completed', {
                 mode: result.mode,
                 servers: result.selectedServers?.length || 0,
                 toolsPlanned: result.toolPlanning?.tool_calls?.length || 0
             });
-            
+
             return result;
-            
+
         } catch (error) {
             this.logger.error('[API-OPTIMIZER] ❌ Batch selection failed, falling back to sequential');
             return await this._fallbackSequentialSelection(userMessage, context);
@@ -159,43 +159,43 @@ export class APIRequestOptimizer extends EventEmitter {
      */
     async getAvailableModels(forceRefresh = false) {
         const now = Date.now();
-        
+
         // Return cached models if still valid
-        if (!forceRefresh && 
-            this.modelCache.models && 
-            this.modelCache.lastUpdated && 
+        if (!forceRefresh &&
+            this.modelCache.models &&
+            this.modelCache.lastUpdated &&
             (now - this.modelCache.lastUpdated) < this.modelCache.ttl) {
-            
+
             this.stats.cacheHits++;
             return this.modelCache.models;
         }
-        
+
         try {
             const response = await axios.get(`${this.apiEndpoint}/models`, {
                 timeout: 5000
             });
-            
+
             const models = response.data?.data || [];
-            
+
             // Update cache
             this.modelCache = {
                 models: models,
                 lastUpdated: now,
                 ttl: this.modelCache.ttl
             };
-            
+
             this.logger.info('[API-OPTIMIZER] 📋 Updated model cache', { count: models.length });
             return models;
-            
+
         } catch (error) {
             this.logger.error('[API-OPTIMIZER] ❌ Failed to fetch models:', error.message);
-            
+
             // Return cached models if available, even if expired
             if (this.modelCache.models) {
                 this.logger.warn('[API-OPTIMIZER] 🔄 Using expired model cache as fallback');
                 return this.modelCache.models;
             }
-            
+
             throw error;
         }
     }
@@ -209,10 +209,10 @@ export class APIRequestOptimizer extends EventEmitter {
         while (this.activeRequests.size >= this.maxConcurrentRequests) {
             await new Promise(resolve => setTimeout(resolve, 50));
         }
-        
+
         const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         this.activeRequests.add(requestId);
-        
+
         try {
             const result = await requestFn();
             return result;
@@ -283,29 +283,29 @@ Analyze and respond with complete JSON:`;
         try {
             const content = response.choices?.[0]?.message?.content;
             if (!content) throw new Error('No response content');
-            
+
             const parsed = JSON.parse(content);
-            
+
             return {
                 mode: parsed.mode_selection?.mode || 'chat',
                 modeConfidence: parsed.mode_selection?.confidence || 0.5,
                 modeReasoning: parsed.mode_selection?.reasoning || 'Default selection',
-                
+
                 selectedServers: parsed.server_selection?.selected_servers || [],
                 serverReasoning: parsed.server_selection?.reasoning || 'No servers needed',
                 serverConfidence: parsed.server_selection?.confidence || 0.5,
-                
+
                 toolPlanning: {
                     tool_calls: parsed.tool_planning?.tool_calls || [],
                     reasoning: parsed.tool_planning?.reasoning || 'No tools needed'
                 },
-                
+
                 optimization: parsed.optimization_metadata || {
                     requests_saved: 2,
                     batch_efficiency: 0.8
                 }
             };
-            
+
         } catch (error) {
             this.logger.error('[API-OPTIMIZER] ❌ Failed to parse batch response:', error.message);
             throw new Error(`Batch selection parsing failed: ${error.message}`);
@@ -318,13 +318,13 @@ Analyze and respond with complete JSON:`;
      */
     async _fallbackSequentialSelection(userMessage, context) {
         this.logger.info('[API-OPTIMIZER] 🔄 Using fallback sequential selection');
-        
+
         // Use existing processors but with optimization
         const modeResult = await this.optimizedRequest('mode_selection', {
             messages: [{ role: 'user', content: userMessage }],
             model: this._selectOptimalModel('mode_selection')
         });
-        
+
         return {
             mode: modeResult.mode || 'chat',
             modeConfidence: modeResult.confidence || 0.5,
@@ -344,7 +344,7 @@ Analyze and respond with complete JSON:`;
             messages: payload.messages?.map(m => m.content).join('|') || '',
             params: JSON.stringify(payload.parameters || {})
         };
-        
+
         return `${requestType}_${this._hashString(JSON.stringify(keyData))}`;
     }
 
@@ -353,11 +353,11 @@ Analyze and respond with complete JSON:`;
         if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
             return cached.result;
         }
-        
+
         if (cached) {
             this.cache.delete(cacheKey); // Remove expired cache
         }
-        
+
         return null;
     }
 
@@ -366,7 +366,7 @@ Analyze and respond with complete JSON:`;
             result: result,
             timestamp: Date.now()
         });
-        
+
         // Cleanup old cache entries
         if (this.cache.size > 100) {
             const oldestKey = this.cache.keys().next().value;
@@ -379,7 +379,7 @@ Analyze and respond with complete JSON:`;
      */
     async _executeSingleRequest(requestType, payload, options) {
         const model = payload.model || this._selectOptimalModel(requestType);
-        
+
         return await this.throttledRequest(async () => {
             try {
                 const response = await axios.post(`${this.apiEndpoint}/chat/completions`, {
@@ -394,18 +394,18 @@ Analyze and respond with complete JSON:`;
                     headers: { 'Content-Type': 'application/json' },
                     validateStatus: (status) => status < 500 // Don't throw on 4xx errors
                 });
-                
+
                 if (response.status >= 400) {
                     throw new Error(`API returned ${response.status}: ${response.data?.error?.message || 'Unknown error'}`);
                 }
-                
+
                 return response.data;
-                
+
             } catch (error) {
                 // Enhanced error handling with fallback
                 if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
                     this.logger.warn('[API-OPTIMIZER] ⚠️ Primary API unavailable, attempting fallback');
-                    
+
                     // Try alternative models or endpoints
                     const fallbackModels = await this._getFallbackModels();
                     for (const fallbackModel of fallbackModels) {
@@ -421,7 +421,7 @@ Analyze and respond with complete JSON:`;
                                 headers: { 'Content-Type': 'application/json' },
                                 validateStatus: (status) => status < 500
                             });
-                            
+
                             if (fallbackResponse.status < 400) {
                                 this.logger.info('[API-OPTIMIZER] ✅ Fallback successful with model:', fallbackModel);
                                 return fallbackResponse.data;
@@ -431,7 +431,7 @@ Analyze and respond with complete JSON:`;
                         }
                     }
                 }
-                
+
                 throw error;
             }
         });
@@ -443,11 +443,11 @@ Analyze and respond with complete JSON:`;
     _canBatch(requestType) {
         const batchableTypes = [
             'mode_selection',
-            'server_selection', 
+            'server_selection',
             'tool_planning',
             'system_selection'
         ];
-        
+
         return batchableTypes.includes(requestType);
     }
 
@@ -456,10 +456,10 @@ Analyze and respond with complete JSON:`;
         if (!this.batchQueue.has(requestType)) {
             this.batchQueue.set(requestType, []);
         }
-        
+
         const batch = this.batchQueue.get(requestType);
         batch.push({ payload, options, cacheKey });
-        
+
         // Process batch if full or after timeout
         if (batch.length >= this.maxBatchSize) {
             return await this._processBatch(requestType);
@@ -470,7 +470,7 @@ Analyze and respond with complete JSON:`;
                     this._processBatch(requestType);
                 }
             }, this.batchTimeout);
-            
+
             // Return promise that resolves when batch is processed
             return new Promise((resolve, reject) => {
                 const item = batch[batch.length - 1];
@@ -483,23 +483,23 @@ Analyze and respond with complete JSON:`;
     async _processBatch(requestType) {
         const batch = this.batchQueue.get(requestType) || [];
         if (batch.length === 0) return;
-        
+
         this.batchQueue.delete(requestType);
         this.logger.info('[API-OPTIMIZER] 📦 Processing batch', { type: requestType, size: batch.length });
-        
+
         try {
             // Execute batch request
             const results = await this._executeBatchRequest(requestType, batch);
-            
+
             // Resolve individual promises
             batch.forEach((item, index) => {
                 if (item.resolve) {
                     item.resolve(results[index]);
                 }
             });
-            
+
             this.stats.batchedRequests += batch.length;
-            
+
         } catch (error) {
             // Reject all promises in batch
             batch.forEach(item => {
@@ -513,11 +513,11 @@ Analyze and respond with complete JSON:`;
     async _executeBatchRequest(requestType, batch) {
         // For now, execute requests in parallel with throttling
         // Future: implement true batch API calls
-        
-        const promises = batch.map(item => 
+
+        const promises = batch.map(item =>
             this._executeSingleRequest(requestType, item.payload, item.options)
         );
-        
+
         return await Promise.all(promises);
     }
 
@@ -532,7 +532,7 @@ Analyze and respond with complete JSON:`;
             'batch_system_selection': 'atlas-gpt-4o',
             'default': 'atlas-gpt-4o-mini'
         };
-        
+
         return modelMap[taskType] || modelMap.default;
     }
 
@@ -549,8 +549,8 @@ Analyze and respond with complete JSON:`;
     _updateStats(responseTime) {
         const currentAvg = this.stats.averageResponseTime;
         const totalRequests = this.stats.totalRequests;
-        
-        this.stats.averageResponseTime = 
+
+        this.stats.averageResponseTime =
             (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
     }
 
@@ -562,27 +562,27 @@ Analyze and respond with complete JSON:`;
         try {
             const models = await this.getAvailableModels();
             const modelNames = models.map(m => m.id || m.name).filter(Boolean);
-            
+
             // Prioritize smaller, more reliable models for fallback
             const fallbackPriority = [
                 'atlas-gpt-4o-mini',
                 'atlas-mistral-small-2503',
-                'atlas-ministral-3b',
+                'copilot-grok-code-fast-1',  // UPDATED 2025-11-18: Замінено atlas-ministral-3b на copilot-grok-code-fast-1
                 'atlas-gpt-3.5-turbo'
             ];
-            
-            const availableFallbacks = fallbackPriority.filter(model => 
+
+            const availableFallbacks = fallbackPriority.filter(model =>
                 modelNames.includes(model)
             );
-            
+
             // Add any other available models as last resort
-            const otherModels = modelNames.filter(model => 
-                !fallbackPriority.includes(model) && 
+            const otherModels = modelNames.filter(model =>
+                !fallbackPriority.includes(model) &&
                 model.startsWith('atlas-')
             );
-            
+
             return [...availableFallbacks, ...otherModels.slice(0, 3)];
-            
+
         } catch (error) {
             this.logger.warn('[API-OPTIMIZER] ⚠️ Could not get fallback models:', error.message);
             return ['atlas-gpt-4o-mini', 'atlas-mistral-small-2503']; // Hardcoded fallback
@@ -592,7 +592,7 @@ Analyze and respond with complete JSON:`;
     /**
      * PUBLIC API METHODS
      */
-    
+
     /**
      * Get optimization statistics
      */
@@ -602,8 +602,8 @@ Analyze and respond with complete JSON:`;
             cacheSize: this.cache.size,
             activeRequests: this.activeRequests.size,
             pendingRequests: this.pendingRequests.size,
-            efficiencyRatio: this.stats.totalRequests > 0 
-                ? (this.stats.cacheHits + this.stats.requestsSaved) / this.stats.totalRequests 
+            efficiencyRatio: this.stats.totalRequests > 0
+                ? (this.stats.cacheHits + this.stats.requestsSaved) / this.stats.totalRequests
                 : 0
         };
     }

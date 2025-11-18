@@ -11,11 +11,11 @@ export default class RouterClassifierProcessor {
   constructor(logger, llmClient) {
     this.logger = logger;
     this.llmClient = llmClient;
-    
+
     // Use fast model for routing
     this.routerModel = process.env.MCP_MODEL_ROUTER || 'atlas-gemini-flash';
     this.routerTemperature = 0.1;
-    
+
     // Server categories and keywords
     this.serverCategories = {
       filesystem: {
@@ -57,7 +57,7 @@ export default class RouterClassifierProcessor {
   async execute(params) {
     const { action, context, availableServers } = params;
     const startTime = Date.now();
-    
+
     this.logger.info('Router classifier starting', {
       action: action.substring(0, 100),
       availableServers: availableServers.length
@@ -66,31 +66,31 @@ export default class RouterClassifierProcessor {
     try {
       // Step 1: Keyword-based initial classification
       const keywordClassification = this._classifyByKeywords(action);
-      
+
       // Step 2: LLM-based classification for ambiguous cases
       let llmClassification = null;
       if (keywordClassification.needsLLM) {
         llmClassification = await this._classifyByLLM(action, availableServers);
       }
-      
+
       // Step 3: Combine classifications
       const selectedServers = this._combineClassifications(
         keywordClassification,
         llmClassification,
         availableServers
       );
-      
+
       // Step 4: Validate and limit selection
       const finalServers = this._validateAndLimit(selectedServers, availableServers);
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.logger.info('Router classification complete', {
         selectedServers: finalServers,
         duration,
         method: llmClassification ? 'hybrid' : 'keyword-only'
       });
-      
+
       return {
         success: true,
         selectedServers: finalServers,
@@ -103,14 +103,14 @@ export default class RouterClassifierProcessor {
           method: llmClassification ? 'hybrid' : 'keyword-only'
         }
       };
-      
+
     } catch (error) {
       this.logger.error('Router classification failed', { error: error.message });
-      
+
       // Fallback: return top 3 most common servers
       return {
         success: false,
-        selectedServers: ['filesystem', 'shell', 'playwright'].filter(s => 
+        selectedServers: ['filesystem', 'shell', 'playwright'].filter(s =>
           availableServers.includes(s)
         ),
         error: error.message,
@@ -129,7 +129,7 @@ export default class RouterClassifierProcessor {
     const actionLower = action.toLowerCase();
     const results = { ...this.serverCategories };
     let totalMatches = 0;
-    
+
     // Count keyword matches for each category
     for (const [category, config] of Object.entries(results)) {
       let matches = 0;
@@ -141,26 +141,26 @@ export default class RouterClassifierProcessor {
       config.confidence = matches;
       totalMatches += matches;
     }
-    
+
     // Normalize confidence scores
     if (totalMatches > 0) {
       for (const config of Object.values(results)) {
         config.confidence = config.confidence / totalMatches;
       }
     }
-    
+
     // Get top categories
     const topCategories = Object.entries(results)
       .filter(([_, config]) => config.confidence > 0)
       .sort((a, b) => b[1].confidence - a[1].confidence)
       .slice(0, 2);
-    
+
     // Extract servers from top categories
     const servers = [];
     for (const [category, config] of topCategories) {
       servers.push(...config.servers);
     }
-    
+
     return {
       servers: [...new Set(servers)], // Remove duplicates
       confidence: topCategories[0]?.[1]?.confidence || 0,
@@ -172,8 +172,14 @@ export default class RouterClassifierProcessor {
    * Classify using LLM
    */
   async _classifyByLLM(action, availableServers) {
+    // FIXED 2025-11-18: Check if llmClient is available
+    if (!this.llmClient || typeof this.llmClient.generateResponse !== 'function') {
+      this.logger.warn('LLM classification skipped', { reason: 'llmClient not available' });
+      return null;
+    }
+
     const prompt = this._buildClassificationPrompt(action, availableServers);
-    
+
     try {
       const response = await this.llmClient.generateResponse({
         model: this.routerModel,
@@ -184,17 +190,17 @@ export default class RouterClassifierProcessor {
         temperature: this.routerTemperature,
         max_tokens: 100
       });
-      
+
       // Parse response
       const content = response.content.trim();
       const servers = this._parseServerList(content, availableServers);
-      
+
       return {
         servers,
         confidence: 0.8,
         raw: content
       };
-      
+
     } catch (error) {
       this.logger.warn('LLM classification failed', { error: error.message });
       return null;
@@ -236,10 +242,10 @@ Which servers are needed? (comma-separated list, max 2)`;
   _parseServerList(content, availableServers) {
     const servers = [];
     const contentLower = content.toLowerCase();
-    
+
     // Try to extract comma-separated list
     const parts = contentLower.split(',').map(s => s.trim());
-    
+
     for (const part of parts) {
       // Check if part matches any available server
       for (const server of availableServers) {
@@ -249,7 +255,7 @@ Which servers are needed? (comma-separated list, max 2)`;
         }
       }
     }
-    
+
     // If no matches, try to find server names in the content
     if (servers.length === 0) {
       for (const server of availableServers) {
@@ -258,7 +264,7 @@ Which servers are needed? (comma-separated list, max 2)`;
         }
       }
     }
-    
+
     return [...new Set(servers)].slice(0, 2); // Unique, max 2
   }
 
@@ -267,27 +273,27 @@ Which servers are needed? (comma-separated list, max 2)`;
    */
   _combineClassifications(keywordResult, llmResult, availableServers) {
     const servers = new Set();
-    
+
     // Add keyword-based servers
     if (keywordResult && keywordResult.servers) {
       for (const server of keywordResult.servers) {
         servers.add(server);
       }
     }
-    
+
     // Add LLM-based servers
     if (llmResult && llmResult.servers) {
       for (const server of llmResult.servers) {
         servers.add(server);
       }
     }
-    
+
     // If still empty, use defaults
     if (servers.size === 0) {
       servers.add('filesystem');
       servers.add('shell');
     }
-    
+
     return Array.from(servers);
   }
 
@@ -297,15 +303,15 @@ Which servers are needed? (comma-separated list, max 2)`;
   _validateAndLimit(selectedServers, availableServers) {
     // Filter to only available servers
     const valid = selectedServers.filter(s => availableServers.includes(s));
-    
+
     // Limit to max 2 servers
     const limited = valid.slice(0, 2);
-    
+
     // If no valid servers, fallback to filesystem
     if (limited.length === 0 && availableServers.includes('filesystem')) {
       limited.push('filesystem');
     }
-    
+
     return limited;
   }
 }

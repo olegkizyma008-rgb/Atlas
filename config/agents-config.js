@@ -51,7 +51,7 @@ export const AGENTS = {
       methods: ['visual', 'mcp'],
       defaultMethod: 'visual',
       routing: {
-        model: 'atlas-ministral-3b',
+        model: 'copilot-grok-code-fast-1',  // UPDATED 2025-11-18: Замінено на copilot-grok-code-fast-1
         temperature: 0.1,
         description: 'LLM-based вибір методу верифікації (visual vs MCP)'
       },

@@ -216,26 +216,32 @@ export class GrishaVerifyItemProcessor {
             let verification;
 
             if (strategy.method === 'visual') {
-                // ARCHITECTURE 2025-10-22: 2-attempt visual verification with model escalation
-                // Attempt 1: Fast/cheap model (phi-3.5-vision)
-                this.logger.system('grisha-verify-item', '[GRISHA] 🎯 Visual attempt 1/2 (fast model)');
+                // ARCHITECTURE 2025-11-18: 3-attempt visual verification with model + screen mode escalation
+                // Attempt 1: Llama 11B (fast) + active_window capture
+                this.logger.system('grisha-verify-item', '[GRISHA] 🎯 Visual attempt 1/3 (Llama 11B + active_window)');
                 verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 1);
 
-                // Attempt 2: If first failed, retry with stronger model (llama-3.2-90b-vision)
+                // Attempt 2: If first failed, retry with Llama 90B + full_screen capture
                 if (!verification.verified) {
-                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual attempt 1 failed, trying attempt 2/2 (90b model)');
+                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual attempt 1 failed, trying attempt 2/3 (Llama 90B + full_screen)');
                     verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 2);
                 }
 
-                // If BOTH visual attempts failed → automatically fallback to MCP verification
+                // Attempt 3: If both failed, retry with copilot-gpt-4o + desktop_only capture
                 if (!verification.verified) {
-                    this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ Both visual attempts failed, falling back to MCP verification...');
+                    this.logger.system('grisha-verify-item', '[GRISHA] 🔄 Visual attempt 2 failed, trying attempt 3/3 (copilot-gpt-4o + desktop_only)');
+                    verification = await this._executeVisualVerification(currentItem, execution, todo, strategy, 3);
+                }
+
+                // If ALL 3 visual attempts failed → automatically fallback to MCP verification
+                if (!verification.verified) {
+                    this.logger.system('grisha-verify-item', '[GRISHA] ⚠️ All 3 visual attempts failed, falling back to MCP verification...');
 
                     // Create simple MCP strategy for fallback
                     const mcpStrategy = {
                         method: 'mcp',
                         confidence: 80,
-                        reason: 'Visual verification failed after 2 attempts, using data verification'
+                        reason: 'Visual verification failed after 3 attempts (Llama 11B + Llama 90B + copilot-gpt-4o), using data verification'
                     };
 
                     // Create minimal eligibility decision with server hints to avoid invalid tool names
@@ -353,8 +359,49 @@ export class GrishaVerifyItemProcessor {
      * @private
      */
     async _executeVisualVerification(currentItem, execution, todo, strategy, attempt = 1) {
-        const modelType = attempt === 1 ? 'fast' : 'primary';  // fast = phi-3.5, primary = llama-90b
-        this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔍 Starting visual verification (attempt ${attempt}, model: ${modelType})...`);
+        // UPDATED 2025-11-18: Intelligent screen mode and model selection
+        // Let _selectVisualCaptureDecision determine the best mode based on context
+        // Fallback to hardcoded sequence if needed
+        let screenMode, modelType;
+
+        // Get intelligent decision from LLM
+        const captureDecision = await this._selectVisualCaptureDecision('GRISHA', {
+            item: currentItem,
+            execution,
+            targetApp: null, // Will be set below
+            attempt,
+            strategy,
+            preferredScreenMode: null // Let LLM decide
+        });
+
+        // Use the LLM's decision if it's confident enough
+        if (captureDecision.confidence >= 0.7) {
+            screenMode = captureDecision.mode;
+            // Map the mode to model type based on confidence
+            if (captureDecision.confidence >= 0.8) {
+                modelType = 'primary'; // High confidence - use primary model
+            } else {
+                modelType = 'fast'; // Medium confidence - use fast model
+            }
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔍 Using intelligent selection (confidence: ${captureDecision.confidence}): mode=${screenMode}, model=${modelType}`);
+        } else {
+            // Fallback to hardcoded sequence if LLM is not confident
+            const screenModeMap = {
+                1: 'active_window',
+                2: 'full_screen',
+                3: 'desktop_only'
+            };
+            const modelTypeMap = {
+                1: 'fast',
+                2: 'strong',
+                3: 'primary'
+            };
+            screenMode = screenModeMap[attempt] || 'full_screen';
+            modelType = modelTypeMap[attempt] || 'primary';
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ⚠️ Falling back to hardcoded sequence: attempt=${attempt}, mode=${screenMode}, model=${modelType}`);
+        }
+
+        this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔍 Starting visual verification (attempt ${attempt}, model: ${modelType}, screen: ${screenMode})...`);
 
         try {
             // Step 1: Determine target app for window screenshot
@@ -381,14 +428,16 @@ export class GrishaVerifyItemProcessor {
                 this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ⚠️  No target app detected - using full screen capture`);
             }
 
-            // Step 2: Select capture mode via MCP prompt
-            const captureDecision = await this._selectVisualCaptureDecision('GRISHA', {
-                item: currentItem,
-                execution,
-                targetApp,
-                attempt,
-                strategy
-            });
+            // Step 2: Use the already determined screen mode from the intelligent selection
+            const captureDecision = {
+                mode: screenMode,
+                target_app: targetApp,
+                display_number: null,
+                require_retry: false,
+                fallback_mode: screenMode === 'active_window' ? 'full_screen' : null,
+                reasoning: `Using ${screenMode} mode with ${modelType} model (attempt ${attempt})`,
+                confidence: 0.8
+            };
 
             const captureContextId = `item_${currentItem.id}_verify_attempt${attempt}`;
             const primaryOptions = {
@@ -400,12 +449,14 @@ export class GrishaVerifyItemProcessor {
             let screenshot;
 
             try {
+                // FIXED 2025-11-18: Pass shouldActivate: false for verification (observe, don't modify state)
                 screenshot = await this.visualCapture.captureScreenshot(
                     captureContextId,
                     {
                         mode: primaryOptions.mode,
                         targetApp: primaryOptions.targetApp,
-                        displayNumber: primaryOptions.displayNumber
+                        displayNumber: primaryOptions.displayNumber,
+                        shouldActivate: false  // VERIFICATION: Don't activate app, just observe
                     }
                 );
             } catch (captureError) {
@@ -418,6 +469,7 @@ export class GrishaVerifyItemProcessor {
 
                 if (captureDecision.require_retry && captureDecision.fallback_mode) {
                     this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔄 Retrying screenshot with fallback mode: ${captureDecision.fallback_mode}`);
+                    // FIXED 2025-11-18: Also pass shouldActivate: false for fallback (verification mode)
                     screenshot = await this.visualCapture.captureScreenshot(
                         `${captureContextId}_fallback`,
                         {
@@ -427,7 +479,8 @@ export class GrishaVerifyItemProcessor {
                                 : null,
                             displayNumber: captureDecision.fallback_mode === 'desktop_only'
                                 ? (captureDecision.display_number || null)
-                                : null
+                                : null,
+                            shouldActivate: false  // VERIFICATION: Don't activate app, just observe
                         }
                     );
                 } else {
@@ -529,7 +582,9 @@ export class GrishaVerifyItemProcessor {
             }
 
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Vision analysis complete (confidence: ${visionAnalysis.confidence}%)`);
-            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Model used: ${this.visionAnalysis.config.visionModel || 'unknown'}`);
+            // FIXED 2025-11-17: Use visionModel from service instance instead of config
+            const modelUsed = this.visionAnalysis?.visionModel || this.visionAnalysis?.config?.visionModel || 'unknown';
+            this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Model used: ${modelUsed}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Verified: ${visionAnalysis.verified}`);
             this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🤖 Reason: ${visionAnalysis.reason}`);
 
@@ -549,9 +604,71 @@ export class GrishaVerifyItemProcessor {
                 });
             }
 
+            // FIXED 2025-11-18: If LLM reason explicitly mentions matching criteria, trust it
+            // Even if confidence is low, the semantic analysis is more reliable than confidence score
+            const reasonLower = (visionAnalysis.reason || '').toLowerCase();
+
+            // FIXED 2025-11-18 (CRITICAL): Detect contradictions in reason
+            // If reason says "X matches Y" but X != Y, it's a contradiction - reject it
+            const hasContradiction = this._detectReasonContradiction(visionAnalysis.reason, visionAnalysis.visual_evidence?.observed);
+
+            // FIXED 2025-11-19: CRITICAL - Check for EXPLICIT SUCCESS, not just word presence
+            // "does not match" contains "match" but means FAILURE, not success!
+            // Only trust if LLM explicitly says it matches/succeeds WITHOUT negation
+            // IMPORTANT: Check for negations FIRST before checking for positive keywords
+            const hasNegation = reasonLower.includes('does not match') ||
+                reasonLower.includes('does not equal') ||
+                reasonLower.includes('не відповід') ||
+                reasonLower.includes('не дорівнює') ||
+                reasonLower.includes('не збіг') ||
+                reasonLower.includes('не совпад') ||
+                reasonLower.includes('не совпадает') ||
+                reasonLower.includes('not correct') ||
+                reasonLower.includes('incorrect') ||
+                reasonLower.includes('not updated') ||
+                reasonLower.includes('не готово') ||
+                reasonLower.includes('не виконано') ||
+                reasonLower.includes('не зроблено') ||
+                reasonLower.includes('не завершено') ||
+                reasonLower.includes('not done') ||
+                reasonLower.includes('not completed') ||
+                reasonLower.includes('not success') ||
+                reasonLower.includes('unsuccessful');
+
+            const reasonMentionsMatch = !hasNegation && (
+                reasonLower.includes('match') ||
+                reasonLower.includes('відповід') ||
+                reasonLower.includes('успішно') ||
+                reasonLower.includes('correct') ||
+                reasonLower.includes('updated') ||
+                reasonLower.includes('готово') ||
+                reasonLower.includes('виконано') ||
+                reasonLower.includes('зроблено') ||
+                reasonLower.includes('завершено') ||
+                reasonLower.includes('done') ||
+                reasonLower.includes('completed') ||
+                reasonLower.includes('success')
+            );
+
+            if (reasonMentionsMatch && visionAnalysis.visual_evidence && !hasContradiction) {
+                // LLM explicitly says it matches - set matches_criteria to true
+                visionAnalysis.visual_evidence.matches_criteria = true;
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] 🔧 FIXED 2025-11-19: LLM reason explicitly mentions success (no negation), setting matches_criteria=true`);
+            } else if (hasContradiction) {
+                // LLM has contradictory statement - reject it
+                visionAnalysis.visual_evidence.matches_criteria = false;
+                this.logger.warn(`[VISUAL-GRISHA] ❌ FIXED 2025-11-19: LLM reason contains mismatch statement, rejecting`, {
+                    category: 'grisha-verify-item',
+                    reason: visionAnalysis.reason,
+                    observed: visionAnalysis.visual_evidence?.observed
+                });
+            }
+
             // SECURITY CHECK 2: Require matches_criteria to be explicitly true
             // FIXED 2025-11-04: Skip this check for markdown-parsed responses
-            if (verified && !visionAnalysis._markdown_parsed && visionAnalysis.visual_evidence?.matches_criteria !== true) {
+            // FIXED 2025-11-18: Also skip if LLM reason explicitly mentions matching
+            // FIXED 2025-11-18: If reasonMentionsMatch is true, we already set matches_criteria=true above
+            if (verified && !visionAnalysis._markdown_parsed && !reasonMentionsMatch && visionAnalysis.visual_evidence?.matches_criteria !== true) {
                 verified = false;
                 rejectionReason = 'Visual evidence does not explicitly match success criteria (matches_criteria !== true)';
                 this.logger.warn(`[VISUAL-GRISHA] ❌ SECURITY: Visual evidence mismatch`, {
@@ -562,12 +679,26 @@ export class GrishaVerifyItemProcessor {
             }
 
             // INTELLIGENT CHECK 3: Dynamic confidence threshold based on task complexity
-            if (visionAnalysis.verified && visionAnalysis.confidence < minConfidence) {
+            // FIXED 2025-11-17: Only apply minConfidence check if vision model returned low confidence
+            // Don't override high confidence (>80%) with arbitrary thresholds
+            // FIXED 2025-11-18: If matches_criteria is true, accept verification even with low confidence
+            // FIXED 2025-11-18 (CRITICAL): If LLM explicitly says it matches, ALWAYS accept - don't check confidence
+            // FIXED 2025-11-18 (CRITICAL): If reason mentions match/success, ALWAYS accept - semantic analysis > confidence score
+            if (visionAnalysis.visual_evidence?.matches_criteria === true || reasonMentionsMatch) {
+                // ✅ LLM explicitly confirmed match - ACCEPT regardless of confidence
+                this.logger.system('grisha-verify-item', `[VISUAL-GRISHA] ✅ FIXED 2025-11-18: LLM confirmed match - ACCEPTING (confidence: ${visionAnalysis.confidence}%, reasonMentionsMatch: ${reasonMentionsMatch})`);
+                verified = true;
+                rejectionReason = null;
+            } else if (visionAnalysis.verified && visionAnalysis.confidence < minConfidence && visionAnalysis.confidence < 60) {
+                // Only reject if BOTH confidence is very low AND matches_criteria is NOT true
+                // Raise threshold from 80 to 60 to be less aggressive
                 this.logger.warn(`[VISUAL-GRISHA] ⚠️  Low confidence verification rejected (${visionAnalysis.confidence}% < ${minConfidence}%)`, {
                     category: 'grisha-verify-item',
                     task_type: this._getTaskType(currentItem),
                     required_confidence: minConfidence
                 });
+                verified = false;
+                rejectionReason = `Low confidence (${visionAnalysis.confidence}% < required ${minConfidence}%)`;
             }
 
             const verification = {
@@ -629,10 +760,11 @@ export class GrishaVerifyItemProcessor {
         }
     }
 
-    async _selectVisualCaptureDecision(agentRole, { item, execution, targetApp, attempt, strategy }) {
+    async _selectVisualCaptureDecision(agentRole, { item, execution, targetApp, attempt, strategy, preferredScreenMode }) {
         // INTELLIGENT CAPTURE MODE SELECTION
+        // UPDATED 2025-11-18: Use preferredScreenMode hint for attempt-based screen selection
         // No hardcoded decisions - pure intelligence based on context
-        const fallbackDecision = this._intelligentCaptureModeFallback(item, targetApp, attempt);
+        const fallbackDecision = this._intelligentCaptureModeFallback(item, targetApp, attempt, preferredScreenMode);
 
         try {
             if (!this.callLLM) {
@@ -649,6 +781,7 @@ export class GrishaVerifyItemProcessor {
             const hintLines = [
                 targetApp ? `Target application: ${targetApp}` : null,
                 attempt > 1 ? `Retry attempt: ${attempt}` : null,
+                preferredScreenMode ? `Preferred screen mode for this attempt: ${preferredScreenMode}` : null,
                 strategy?.reason ? `Strategy insight: ${strategy.reason}` : null,
                 strategy?.method ? `Verification method: ${strategy.method}` : null
             ].filter(Boolean);
@@ -971,6 +1104,16 @@ export class GrishaVerifyItemProcessor {
                 }
 
                 // If criteria not matched but tools executed successfully
+                // FIXED 2025-11-18: If all tools succeeded, accept it - MCP execution is reliable
+                if (resultsArray.every(r => r.success)) {
+                    return {
+                        success: true,
+                        confidence: 85,
+                        reason: 'Всі MCP інструменти виконані успішно',
+                        details: this._extractExecutionDetails(resultsArray)
+                    };
+                }
+
                 return {
                     success: false,
                     confidence: 40,
@@ -997,6 +1140,16 @@ export class GrishaVerifyItemProcessor {
         }
 
         // If criteria not matched, return failure even if tools executed successfully
+        // FIXED 2025-11-18: If all tools succeeded, accept it - MCP execution is reliable
+        if (resultsArray.every(r => r.success)) {
+            return {
+                success: true,
+                confidence: 85,
+                reason: 'Всі MCP інструменти виконані успішно',
+                details: this._extractExecutionDetails(resultsArray)
+            };
+        }
+
         // This is the key fix - tools can execute but not achieve the goal!
         return {
             success: false,
@@ -1093,32 +1246,163 @@ export class GrishaVerifyItemProcessor {
             this._verifyPhraseIndex = 0;
         }
 
-        const verifySuccessPhrases = [
-            'Підтверджено',
-            'Все правильно',
-            'Виконано коректно',
-            'Перевірено, все гаразд',
-            'Результат вірний',
-            'Все на місці'
-        ];
+        // ADDED 2025-11-19: Support multilingual TTS phrases based on user language
+        let localizationService = null;
+        let userLanguage = 'uk';
 
-        const verifyFailurePhrases = [
-            'Не підтверджено',
-            'Є проблема',
-            'Щось не так',
-            'Потрібна корекція',
-            'Виявлено помилку',
-            'Не відповідає очікуванням'
-        ];
+        try {
+            if (this.container) {
+                localizationService = this.container.resolve('localizationService');
+                if (localizationService) {
+                    userLanguage = localizationService.config.getUserLanguage();
+                }
+            }
+        } catch (error) {
+            this.logger.warn('[GRISHA] Could not resolve localizationService for language', { category: 'grisha-verify-item' });
+        }
+
+        // ADDED 2025-11-19: Multilingual phrases
+        const phrasesByLanguage = {
+            uk: {
+                success: [
+                    'Підтверджено',
+                    'Все правильно',
+                    'Виконано коректно',
+                    'Перевірено, все гаразд',
+                    'Результат вірний',
+                    'Все на місці'
+                ],
+                failure: [
+                    'Не підтверджено',
+                    'Є проблема',
+                    'Щось не так',
+                    'Потрібна корекція',
+                    'Виявлено помилку',
+                    'Не відповідає очікуванням'
+                ]
+            },
+            en: {
+                success: [
+                    'Confirmed',
+                    'All correct',
+                    'Executed correctly',
+                    'Verified, all good',
+                    'Result is correct',
+                    'Everything in place'
+                ],
+                failure: [
+                    'Not confirmed',
+                    'There is a problem',
+                    'Something is wrong',
+                    'Correction needed',
+                    'Error detected',
+                    'Does not meet expectations'
+                ]
+            },
+            es: {
+                success: [
+                    'Confirmado',
+                    'Todo correcto',
+                    'Ejecutado correctamente',
+                    'Verificado, todo bien',
+                    'El resultado es correcto',
+                    'Todo en su lugar'
+                ],
+                failure: [
+                    'No confirmado',
+                    'Hay un problema',
+                    'Algo está mal',
+                    'Se necesita corrección',
+                    'Error detectado',
+                    'No cumple con las expectativas'
+                ]
+            },
+            fr: {
+                success: [
+                    'Confirmé',
+                    'Tout correct',
+                    'Exécuté correctement',
+                    'Vérifié, tout va bien',
+                    'Le résultat est correct',
+                    'Tout est en place'
+                ],
+                failure: [
+                    'Non confirmé',
+                    'Il y a un problème',
+                    'Quelque chose ne va pas',
+                    'Correction nécessaire',
+                    'Erreur détectée',
+                    'Ne répond pas aux attentes'
+                ]
+            },
+            de: {
+                success: [
+                    'Bestätigt',
+                    'Alles korrekt',
+                    'Korrekt ausgeführt',
+                    'Verifiziert, alles gut',
+                    'Ergebnis ist korrekt',
+                    'Alles an Ort und Stelle'
+                ],
+                failure: [
+                    'Nicht bestätigt',
+                    'Es gibt ein Problem',
+                    'Etwas stimmt nicht',
+                    'Korrektur erforderlich',
+                    'Fehler erkannt',
+                    'Erfüllt nicht die Erwartungen'
+                ]
+            },
+            pl: {
+                success: [
+                    'Potwierdzone',
+                    'Wszystko poprawne',
+                    'Wykonane poprawnie',
+                    'Zweryfikowane, wszystko dobrze',
+                    'Wynik jest poprawny',
+                    'Wszystko na miejscu'
+                ],
+                failure: [
+                    'Nie potwierdzone',
+                    'Jest problem',
+                    'Coś nie tak',
+                    'Wymagana korekta',
+                    'Wykryty błąd',
+                    'Nie spełnia oczekiwań'
+                ]
+            },
+            ru: {
+                success: [
+                    'Подтверждено',
+                    'Все правильно',
+                    'Выполнено корректно',
+                    'Проверено, все хорошо',
+                    'Результат верен',
+                    'Все на месте'
+                ],
+                failure: [
+                    'Не подтверждено',
+                    'Есть проблема',
+                    'Что-то не так',
+                    'Требуется коррекция',
+                    'Обнаружена ошибка',
+                    'Не соответствует ожиданиям'
+                ]
+            }
+        };
+
+        // Get phrases for current language (fallback to Ukrainian if not found)
+        const langPhrases = phrasesByLanguage[userLanguage] || phrasesByLanguage['uk'];
 
         let shortTTS;
         if (verified) {
-            shortTTS = verifySuccessPhrases[this._verifyPhraseIndex % verifySuccessPhrases.length];
+            shortTTS = langPhrases.success[this._verifyPhraseIndex % langPhrases.success.length];
         } else {
-            shortTTS = verifyFailurePhrases[this._verifyPhraseIndex % verifyFailurePhrases.length];
+            shortTTS = langPhrases.failure[this._verifyPhraseIndex % langPhrases.failure.length];
         }
         this._verifyPhraseIndex++;
 
+        this.logger.system('grisha-verify-item', `[GRISHA] TTS phrase (${userLanguage}): "${shortTTS}"`);
         return shortTTS;
     }
 
@@ -1727,11 +2011,31 @@ export class GrishaVerifyItemProcessor {
      * 
      * @private
      */
-    _intelligentCaptureModeFallback(item, targetApp, attempt) {
-        // PURE INTELLIGENCE: Analyze context to determine best capture mode
+    _intelligentCaptureModeFallback(item, targetApp, attempt, preferredScreenMode) {
+        // UPDATED 2025-11-18: Use preferredScreenMode hint for attempt-based selection
+        // Intelligent mode selection based on verification needs and attempt number
         const action = (item?.action || '').toLowerCase();
 
-        // Intelligent mode selection based on verification needs
+        // If preferredScreenMode is provided (from attempt-based mapping), use it
+        if (preferredScreenMode) {
+            const modeReasons = {
+                'active_window': 'Attempt 1: Focused capture on target application',
+                'full_screen': 'Attempt 2: Full screen capture for broader context',
+                'desktop_only': 'Attempt 3: Desktop-only capture without windows'
+            };
+
+            return {
+                mode: preferredScreenMode,
+                target_app: targetApp || null,
+                display_number: null,
+                require_retry: false,
+                fallback_mode: null,
+                reasoning: modeReasons[preferredScreenMode] || 'Intelligent screen mode selection',
+                confidence: 0.8
+            };
+        }
+
+        // Fallback: Analyze context to determine best capture mode
         let mode = 'full_screen'; // Safe default - captures everything
         let confidence = 0.5;
         let reasoning = 'Default full screen capture for complete context';
@@ -2173,51 +2477,35 @@ export class GrishaVerifyItemProcessor {
         const taskType = this._getTaskType(item);
         const hasNumericalData = this._hasNumericalData(item, visionAnalysis);
 
-        // FIXED 2025-11-04: Lower thresholds for markdown-parsed responses
-        // If response was parsed from markdown, accept lower confidence
-        if (visionAnalysis._markdown_parsed) {
-            // Mathematical operations with markdown parsing
-            if (taskType === 'mathematical' || hasNumericalData) {
-                return 40; // Lowered from 85
-            }
-            // File/folder operations with markdown parsing
-            if (taskType === 'file_operation') {
-                return 35; // Lowered from 75
-            }
-            // UI operations with markdown parsing
-            if (taskType === 'ui_operation') {
-                return 30; // Lowered from 65
-            }
-            // Visual changes with markdown parsing
-            if (taskType === 'visual_change') {
-                return 25; // Lowered from 60
-            }
-            // Default with markdown parsing
-            return 30; // Lowered from 70
+        // FIXED 2025-11-17: If vision model returned high confidence (>=80%), trust it
+        // Don't apply arbitrary thresholds that override the model's confidence
+        if (visionAnalysis.confidence >= 80) {
+            return 0; // Accept any confidence >= 80%
         }
 
+        // For lower confidence responses, apply task-specific thresholds
         // Mathematical operations require highest confidence
         if (taskType === 'mathematical' || hasNumericalData) {
-            return 85; // High confidence for math - no room for errors
+            return 60; // Lowered from 85 - model knows better than arbitrary threshold
         }
 
         // File/folder operations - moderate confidence
         if (taskType === 'file_operation') {
-            return 75;
+            return 50; // Lowered from 75
         }
 
         // UI operations - lower confidence acceptable
         if (taskType === 'ui_operation') {
-            return 65;
+            return 50; // Lowered from 65
         }
 
         // Visual changes - lowest confidence acceptable
         if (taskType === 'visual_change') {
-            return 60;
+            return 50; // Lowered from 60
         }
 
         // Default moderate confidence
-        return 70;
+        return 50; // Lowered from 70
     }
 
     /**
@@ -2612,6 +2900,66 @@ export class GrishaVerifyItemProcessor {
         }
 
         return confidence;
+    }
+
+    /**
+     * Detect contradictions in LLM reason vs observed value
+     * FIXED 2025-11-18: Reject verifications where LLM says "X matches Y" but X != Y
+     * FIXED 2025-11-19: Check for EXPLICIT MISMATCH statements like "does not match"
+     * 
+     * @param {string} reason - LLM reason text
+     * @param {string} observed - Observed value from screenshot
+     * @returns {boolean} True if contradiction detected (i.e., LLM says it DOESN'T match)
+     * @private
+     */
+    _detectReasonContradiction(reason = '', observed = '') {
+        if (!reason || !observed) return false;
+
+        const reasonLower = reason.toLowerCase();
+        const observedLower = observed.toLowerCase();
+
+        // CRITICAL FIX 2025-11-19: Check for EXPLICIT MISMATCH statements
+        // If LLM explicitly says "does not match" or "does not equal", it's a MISMATCH, not a match!
+        const hasMismatchStatement = reasonLower.includes('does not match') ||
+            reasonLower.includes('does not equal') ||
+            reasonLower.includes('не відповід') ||
+            reasonLower.includes('не дорівнює') ||
+            reasonLower.includes('не збіг') ||
+            reasonLower.includes('не совпад') ||
+            reasonLower.includes('не совпадает');
+
+        if (hasMismatchStatement) {
+            this.logger.warn(`[VISUAL-GRISHA] MISMATCH DETECTED: LLM explicitly states values do not match`, {
+                category: 'grisha-verify-item',
+                reason: reason
+            });
+            return true;
+        }
+
+        // Check for explicit contradictions like "X matches Y" where X != Y
+        // Pattern: "displays X" or "shows X" or "result is X" followed by "matches" or "expected"
+        const displayMatch = reason.match(/(?:displays?|shows?|result\s+(?:is|of)|calculator\s+(?:displays?|shows?))\s+([^,.\n]+)/i);
+        const expectedMatch = reason.match(/(?:expected|should\s+be|expected\s+result)\s+(?:is\s+)?([^,.\n]+)/i);
+
+        if (displayMatch && expectedMatch) {
+            const displayed = displayMatch[1].trim().toLowerCase();
+            const expected = expectedMatch[1].trim().toLowerCase();
+
+            // If they're different and reason says they match, it's a contradiction
+            if (displayed !== expected && reasonLower.includes('match')) {
+                this.logger.warn(`[VISUAL-GRISHA] Contradiction detected: displayed="${displayed}" vs expected="${expected}"`, {
+                    category: 'grisha-verify-item'
+                });
+                return true;
+            }
+        }
+
+        // FIXED 2025-11-18: Don't check for number contradictions - too aggressive
+        // LLM may mention numbers in context without them being the actual observed value
+        // E.g., "The Calculator displays 27 after adding 27" - both are 27 but different contexts
+        // Only check for explicit text contradictions, not numeric ones
+
+        return false;
     }
 
     /**

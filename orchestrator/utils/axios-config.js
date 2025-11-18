@@ -54,6 +54,7 @@ function parseRetryAfter(retryAfter) {
 
 /**
  * Exponential backoff з jitter
+ * FIXED 2025-11-18: Reduced jitter from 1000ms to 100ms for predictability
  * @param {number} attempt - Спроба (0-based)
  * @returns {number} Delay in milliseconds
  */
@@ -61,7 +62,8 @@ function getExponentialBackoff(attempt) {
     const baseDelay = 1000; // 1 second
     const maxDelay = 30000; // 30 seconds
     const exponentialDelay = baseDelay * Math.pow(2, attempt);
-    const jitter = Math.random() * 1000; // Random 0-1s jitter
+    // FIXED 2025-11-18: Reduce jitter from 1000ms to 100ms (10% of base delay)
+    const jitter = Math.random() * 100; // Random 0-100ms jitter
     return Math.min(exponentialDelay + jitter, maxDelay);
 }
 

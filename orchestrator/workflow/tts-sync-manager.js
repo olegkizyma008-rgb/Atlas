@@ -35,29 +35,31 @@ export class TTSSyncManager {
     /**
      * @param {Object} dependencies
      * @param {Object} [dependencies.ttsService] - WebSocket Manager for TTS delivery (FIXED 14.10.2025 NIGHT - renamed from ttsService but keeping param name for compatibility)
+     * @param {Object} [dependencies.localizationService] - Localization service for user language (ADDED 2025-11-19)
      * @param {Object} dependencies.logger - Logger instance
      */
-    constructor({ ttsService = null, logger: loggerInstance }) {
+    constructor({ ttsService = null, localizationService = null, logger: loggerInstance }) {
         // FIXED 14.10.2025 NIGHT - ttsService is actually wsManager for WebSocket TTS
         this.wsManager = ttsService;  // Rename internally for clarity
         this.ttsService = ttsService; // Keep reference for backward compatibility
+        this.localizationService = localizationService; // ADDED 2025-11-19: For user language
         this.logger = loggerInstance || logger;
-        
+
         // FIXED 14.10.2025 NIGHT - Log if WebSocket Manager not provided
         if (!this.wsManager) {
-            this.logger.warn('[TTS-SYNC] ⚠️ WebSocket Manager not provided - TTS will use fallback queue', { 
-                category: 'tts-sync', 
-                component: 'tts-sync' 
+            this.logger.warn('[TTS-SYNC] ⚠️ WebSocket Manager not provided - TTS will use fallback queue', {
+                category: 'tts-sync',
+                component: 'tts-sync'
             });
         } else {
             this.logger.system('tts-sync', '[TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery');
         }
-        
+
         this.queue = []; // TTS queue
         this.isProcessing = false; // Processing flag
         this.currentStage = null; // Current workflow stage
         this.currentPhrase = null; // Currently speaking phrase
-        
+
         // Configuration
         this.config = {
             maxQueueSize: 7,
@@ -87,6 +89,7 @@ export class TTSSyncManager {
     /**
      * Speak phrase with mode and duration
      * FIXED 14.10.2025 NIGHT - Send to WebSocket for frontend TTS instead of skipping
+     * ADDED 2025-11-19 - Support SSE response stream for fallback delivery
      * 
      * @param {string} phrase - Text to speak
      * @param {Object} options - Speech options
@@ -95,6 +98,7 @@ export class TTSSyncManager {
      * @param {number} [options.priority] - Custom priority (overrides mode default)
      * @param {boolean} [options.skipIfBusy=false] - Skip if queue is full (for quick mode)
      * @param {string} [options.agent='tetyana'] - Agent name for TTS voice
+     * @param {Object} [options.res] - SSE response stream for fallback delivery (ADDED 2025-11-19)
      * @returns {Promise<void>}
      */
     async speak(phrase, options = {}) {
@@ -104,7 +108,8 @@ export class TTSSyncManager {
             priority,
             skipIfBusy = false,
             agent = 'tetyana',
-            sessionId = null
+            sessionId = null,
+            res = null  // ADDED 2025-11-19: SSE response stream
         } = options;
 
         // FIXED 14.10.2025 NIGHT - Validate mode and fix typo
@@ -132,36 +137,52 @@ export class TTSSyncManager {
 
         // FIXED 14.10.2025 NIGHT - Send to frontend TTS via WebSocket (use internal wsManager)
         // ENHANCED 21.10.2025 - Added detailed logging for debugging TTS issues
-        this.logger.system('tts-sync', `[TTS-SYNC] 🔍 TTS Debug: wsManager=${!!this.wsManager}, phrase="${phrase.substring(0, 50)}...", agent=${agent}, mode=${validMode}`);
-        
+        // ADDED 2025-11-19: Include user language in TTS metadata
+        const userLanguage = this.localizationService ?
+            this.localizationService.config.getUserLanguage() : 'en';
+
+        this.logger.system('tts-sync', `[TTS-SYNC] 🔍 TTS Debug: wsManager=${!!this.wsManager}, phrase="${phrase.substring(0, 50)}...", agent=${agent}, mode=${validMode}, language=${userLanguage}`);
+
         if (this.wsManager) {
             try {
                 this.logger.system('tts-sync', `[TTS-SYNC] 🔊 Sending TTS to frontend via WebSocket...`);
                 this.logger.system('tts-sync', `[TTS-SYNC]    - Channel: chat, Event: agent_message`);
                 this.logger.system('tts-sync', `[TTS-SYNC]    - Agent: ${agent}, Mode: ${validMode}`);
+                this.logger.system('tts-sync', `[TTS-SYNC]    - Language: ${userLanguage}`);
                 this.logger.system('tts-sync', `[TTS-SYNC]    - Phrase: "${phrase}"`);
-                
+
                 this.wsManager.broadcastToSubscribers('chat', 'agent_message', {
                     content: phrase,
                     agent: agent,
                     ttsContent: phrase,
                     mode: validMode,
+                    language: userLanguage,  // ADDED 2025-11-19: User language
                     messageId: `tts_${Date.now()}`,
                     sessionId: sessionId,
                     timestamp: new Date().toISOString()
                 });
-                
+
                 this.logger.system('tts-sync', `[TTS-SYNC] ✅ WebSocket broadcast completed`);
-                
+
+                // REMOVED 2025-11-19: SSE fallback was causing duplicate messages in web chat
+                // WebSocket delivery is sufficient and more reliable
+                // if (res && res.writable && !res.writableEnded) {
+                //     try {
+                //         res.write(`data: ${JSON.stringify({...})}\n\n`);
+                //     } catch (sseError) {
+                //         this.logger.debug(`[TTS-SYNC] SSE fallback failed (not critical): ${sseError.message}`);
+                //     }
+                // }
+
                 // Simulate delay based on phrase length for synchronization
                 const estimatedDuration = Math.min(phrase.length * 50, finalDuration);
                 await new Promise(resolve => setTimeout(resolve, estimatedDuration));
-                
+
                 this.logger.system('tts-sync', `[TTS-SYNC] ✅ TTS sent successfully (estimated: ${estimatedDuration}ms)`);
                 return Promise.resolve();
             } catch (error) {
-                this.logger.error(`[TTS-SYNC] ❌ Failed to send TTS via WebSocket: ${error.message}`, { 
-                    category: 'tts-sync', 
+                this.logger.error(`[TTS-SYNC] ❌ Failed to send TTS via WebSocket: ${error.message}`, {
+                    category: 'tts-sync',
                     component: 'tts-sync',
                     stack: error.stack
                 });
@@ -220,7 +241,7 @@ export class TTSSyncManager {
     setCurrentStage(stage) {
         const previousStage = this.currentStage;
         this.currentStage = stage;
-        
+
         if (previousStage !== stage) {
             this.logger.system('tts-sync', `[TTS-SYNC] Stage changed: ${previousStage} → ${stage}`);
         }
@@ -307,7 +328,7 @@ export class TTSSyncManager {
     _addToQueue(item) {
         // Find insertion point based on priority
         let insertIndex = this.queue.length;
-        
+
         for (let i = 0; i < this.queue.length; i++) {
             if (item.priority < this.queue[i].priority) {
                 insertIndex = i;
@@ -361,11 +382,11 @@ export class TTSSyncManager {
                             mode: item.mode,
                             messageId: `tts_queue_${Date.now()}`
                         });
-                        
+
                         // Simulate processing time
                         const estimatedDuration = Math.min(item.phrase.length * 50, item.duration);
                         await new Promise(resolve => setTimeout(resolve, estimatedDuration));
-                        
+
                         const actualDuration = Date.now() - startTime;
                         this.logger.system('tts-sync', `[TTS-SYNC] ✅ Completed via WebSocket in ${actualDuration}ms [${item.mode}]: "${item.phrase}"`);
                     } else if (this.ttsService && typeof this.ttsService.speak === 'function') {

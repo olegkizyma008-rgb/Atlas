@@ -1,0 +1,5286 @@
+[
+  {
+    "timestamp": "2025-11-18T04:58:11.153Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6501ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6501,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:15.625Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (8094ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 8094,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:15.625Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (8094ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 8094,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:16.718Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5561ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5561,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:16.719Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5563ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5563,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:20.846Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5216ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5216,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:20.846Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5216ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5216,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:22.074Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5349ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5349,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:22.074Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5350ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5350,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:27.440Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6589ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6589,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:27.441Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6590ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6590,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:29.427Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (7349ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 7349,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:29.428Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (7349ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 7349,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:31.679Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4230ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4230,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:31.679Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4232ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4232,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:35.171Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (3482ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 3482,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:35.171Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (3482ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 3482,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:40.439Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (11008ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 11008,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:40.441Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (11010ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 11010,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:40.636Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-mistral-medium-latest → 500 (180ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "provider": "mistral",
+      "statusCode": 500,
+      "duration": 180,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:40.636Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-mistral-medium-latest → 500 (180ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "statusCode": 500,
+      "duration": 180,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:42.199Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-mistral-medium-latest → 500 (93ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "provider": "mistral",
+      "statusCode": 500,
+      "duration": 93,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:42.200Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-mistral-medium-latest → 500 (94ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "statusCode": 500,
+      "duration": 94,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:43.816Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (360ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 360,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:43.817Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (362ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 362,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:46.684Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (2864ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 2864,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T04:58:46.684Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (2865ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 2865,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:31.647Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:31.652Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (2ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 2,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.430Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.442Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.593Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (3ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 3,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.594Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.760Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (6ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 6,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:02:33.761Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (3ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 3,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:30.947Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:31.201Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-mistral-medium-latest → 500 (251ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "provider": "mistral",
+      "statusCode": 500,
+      "duration": 251,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:31.201Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-mistral-medium-latest → 500 (251ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "statusCode": 500,
+      "duration": 251,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:31.644Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:31.652Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:32.379Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-mistral-medium-latest → 500 (81ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "provider": "mistral",
+      "statusCode": 500,
+      "duration": 81,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:32.379Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-mistral-medium-latest → 500 (81ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-mistral-medium-latest",
+      "statusCode": 500,
+      "duration": 81,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.430Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.448Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (3ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 3,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.594Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (6ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 6,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.596Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.759Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (6ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 6,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:33.761Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:34.160Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (209ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 209,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:34.160Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (210ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 210,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:37.285Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (3331ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 3331,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:37.289Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (3336ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 3336,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:39.174Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5009ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5009,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:39.176Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5010ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5010,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:41.320Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4028ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4028,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:41.321Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4030ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4030,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:43.271Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4088ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4088,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:43.271Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4089ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4089,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:47.062Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5737ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5737,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:47.062Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5738ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5738,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:48.700Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5423ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5423,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:48.701Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5424ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5424,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:53.208Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4501ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4501,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:53.208Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4502ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4502,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:53.514Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6446ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6446,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:53.514Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6447ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6447,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:58.735Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5219ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5219,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:07:58.736Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5220ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5220,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:00.170Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6956ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6956,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:00.171Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6956ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6956,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:04.984Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6244ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6244,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:04.989Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6250ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6250,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:09.596Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (9421ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 9421,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:09.597Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (9422ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 9422,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:10.213Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (5221ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 5221,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:10.214Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (5222ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 5222,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:13.873Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4272ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4272,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:13.874Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4272ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4272,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:15.133Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4915ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4915,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:15.134Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4917ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4917,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:19.932Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4794ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4794,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:19.933Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4796ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4796,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:20.117Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6240ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6240,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:20.118Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6241ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6241,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:26.077Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6141ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6141,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:26.077Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6141ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6141,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:26.161Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (6039ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 6039,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:26.161Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (6040ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 6040,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:31.018Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (4936ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 4936,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:31.018Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (4937ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 4937,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:33.961Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [mistral] Model: ext-mistral-codestral-latest → 200 (7797ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "provider": "mistral",
+      "statusCode": 200,
+      "duration": 7797,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:08:33.961Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: ext-mistral-codestral-latest → 200 (7797ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "ext-mistral-codestral-latest",
+      "statusCode": 200,
+      "duration": 7797,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:31.646Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:31.652Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (2ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 2,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.430Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (3ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 3,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.455Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (10ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 10,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.600Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (9ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 9,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.603Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (7ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 7,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.766Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:12:33.767Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:12.940Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:12.941Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:12.946Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.650Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.655Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (9ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 9,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.674Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (6ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 6,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.674Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.687Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:18:15.688Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:00.923Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:00.924Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:00.926Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (1ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 1,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.273Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.274Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (5ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 5,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.292Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (3ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 3,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.293Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.306Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (4ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 4,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:03.307Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (6ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 6,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:22.990Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2923ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2923,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:22.990Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2924ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2924,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:31.082Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4.1 → 200 (8084ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4.1",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 8084,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:31.082Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4.1 → 200 (8084ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4.1",
+      "statusCode": 200,
+      "duration": 8084,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:35.902Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-mistral-medium-2505 → 200 (4812ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-mistral-medium-2505",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 4812,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:35.903Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-mistral-medium-2505 → 200 (4813ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-mistral-medium-2505",
+      "statusCode": 200,
+      "duration": 4813,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:57.545Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4.1 → 200 (21636ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4.1",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 21636,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:57.546Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4.1 → 200 (21637ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4.1",
+      "statusCode": 200,
+      "duration": 21637,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:59.444Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1883ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1883,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:20:59.445Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1885ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1885,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:02.112Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1153ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1153,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:02.112Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1155ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1155,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:08.352Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (581ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 581,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:09.911Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1555ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1555,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:09.912Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1556ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1556,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:11.431Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1511ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1511,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:11.431Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1512ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1512,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:15.832Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (1884ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1884,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:15.832Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (1885ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 1885,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:23.614Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (3768ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 3768,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:23.615Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (3768ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 3768,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:26.378Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1250ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1250,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:26.378Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1252ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1252,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:29.867Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1725ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1725,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:29.867Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1726ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1726,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:31.498Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1627ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1627,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:31.498Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1627ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1627,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:34.838Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2373ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2373,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:34.838Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2373ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2373,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:41.229Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2421ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2421,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:41.229Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2422ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2422,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:44.298Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1555ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1555,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:44.298Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1556ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1556,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:48.600Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2599ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2599,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:48.601Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2600ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2600,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:49.891Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1286ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1286,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:49.891Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1287ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1287,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:54.232Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (1869ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1869,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:21:54.233Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (1870ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 1870,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:01.093Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2597ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2597,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:01.094Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2600ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2600,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:03.858Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1253ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1253,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:03.858Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1254ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1254,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:07.242Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1655ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1655,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:07.243Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1656ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1656,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:08.188Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (937ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 937,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:08.189Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (937ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 937,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:11.835Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2666ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2666,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:11.835Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2666ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2666,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:19.007Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2702ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2702,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:19.009Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2703ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2703,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:21.879Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1355ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1355,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:21.879Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1356ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1356,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:25.567Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1767ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1767,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:25.567Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1767ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1767,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:26.590Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1015ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1015,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:26.591Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1017ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1017,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:30.151Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2599ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2599,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:30.152Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2600ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2600,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:36.802Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2433ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2433,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:36.802Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2433ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2433,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:39.491Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1176ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1176,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:39.492Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1178ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1178,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:44.177Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2345ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2345,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:44.178Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2346ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2346,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:45.740Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1556ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1556,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:45.741Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1556ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1556,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:49.018Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2307ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2307,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:49.018Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2308ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2308,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:56.132Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (3195ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 3195,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:56.132Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (3196ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 3196,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:58.914Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1268ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1268,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:22:58.915Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1269ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1269,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:04.481Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1735ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1735,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:04.481Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1737ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1737,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:05.915Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1431ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1431,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:05.916Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1432ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1432,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:09.434Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2551ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2551,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:09.434Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2552ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2552,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:20.967Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (7511ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 7511,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:20.967Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (7512ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 7512,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:23.730Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1250ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1250,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:23.731Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1250ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1250,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:29.579Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (3545ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 3545,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:29.579Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (3546ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 3546,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:31.997Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2410ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2410,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:31.997Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2410ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2410,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:35.335Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2827ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2827,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:35.336Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2827ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2827,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:48.308Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (8661ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 8661,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:48.309Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (8662ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 8662,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:55.272Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (4450ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 4450,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:55.272Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (4450ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 4450,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:56.702Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1421ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1421,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:23:56.704Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1423ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1423,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:07.048Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (5577ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 5577,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:07.049Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (5578ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 5578,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:12.988Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (3428ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 3428,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:12.989Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (3429ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 3429,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:15.443Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2448ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2448,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:15.443Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2448ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2448,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:25.936Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (5674ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 5674,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:25.936Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (5674ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 5674,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:33.058Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (4607ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 4607,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:33.058Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (4608ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 4608,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:34.861Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1796ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1796,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:34.861Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1796ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1796,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:41.361Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1779ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1779,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:41.361Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1780ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1780,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:47.599Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (3727ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 3727,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:47.599Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (3727ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 3727,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:49.339Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1733ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1733,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:49.339Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1733ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1733,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:56.098Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2188ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2188,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:56.098Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2189ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2189,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:58.339Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1124ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1124,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:24:58.340Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1126ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1126,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:01.217Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (288ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 288,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:01.527Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (597ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 597,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.439Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (161ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 161,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.518Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1714ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1714,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.518Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1714ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1714,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.831Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (545ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 545,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.852Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (555ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 555,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.881Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (569ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 569,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.906Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (592ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 592,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:03.908Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "GET /v1/models Model: unknown → 200 (595ms)",
+    "data": {
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "model": "unknown",
+      "statusCode": 200,
+      "duration": 595,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:05.101Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1577ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1577,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:05.102Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1578ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1578,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:09.918Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (3122ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 3122,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:09.918Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (3123ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 3123,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:15.933Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (2002ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 2002,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:15.933Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (2003ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 2003,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:18.941Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1494ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1494,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:18.941Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1495ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1495,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:22.661Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1438ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1438,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:22.662Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1438ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1438,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:23.657Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (991ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 991,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:23.658Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (992ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 992,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:26.777Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 200 (2764ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 2764,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:26.778Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 200 (2765ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 200,
+      "duration": 2765,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:35.933Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (5188ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 5188,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:35.933Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (5189ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 5189,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:38.485Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1138ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1138,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:38.485Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1138ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1138,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:42.690Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [githubcopilot] Model: copilot-gpt-4o → 200 (1821ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "provider": "githubcopilot",
+      "statusCode": 200,
+      "duration": 1821,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:42.691Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: copilot-gpt-4o → 200 (1823ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "copilot-gpt-4o",
+      "statusCode": 200,
+      "duration": 1823,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:44.181Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-ministral-3b → 200 (1483ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "provider": "atlas",
+      "statusCode": 200,
+      "duration": 1483,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:44.181Z",
+    "level": "INFO",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-ministral-3b → 200 (1484ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-ministral-3b",
+      "statusCode": 200,
+      "duration": 1484,
+      "source": "::1",
+      "type": "success"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:46.299Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:46.298Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 60,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T04:39:38.368Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T04:39:15.214Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:46.301Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (278ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 278,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:46.301Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (278ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 278,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:47.810Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:47.809Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 58,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T04:39:38.368Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:46.299Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:47.811Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (457ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 457,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:47.811Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (458ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 458,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:50.629Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:50.628Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 55,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:47.810Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:46.299Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:50.629Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (86ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 86,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:50.630Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (87ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 87,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:55.797Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:55.797Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 50,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:47.810Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:50.629Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:55.798Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (482ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 482,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:55.798Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (482ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 482,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:57.960Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:57.960Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 48,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:55.797Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:50.629Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:57.961Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (151ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 151,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:57.962Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (151ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 151,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:59.496Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:25:59.496Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 46,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:55.797Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:57.960Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:59.497Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (88ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 88,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:25:59.497Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (89ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 89,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:01.887Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:01.886Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 44,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:59.496Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:57.960Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:01.888Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (88ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 88,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:01.888Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (89ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 89,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:07.203Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:07.203Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 39,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:25:59.496Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:01.887Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:07.205Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (514ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 514,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:07.206Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (516ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 516,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:13.229Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:13.229Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 33,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:07.203Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:01.887Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:13.230Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (452ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 452,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:13.231Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (453ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 453,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:14.821Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:14.821Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 31,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:07.203Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:13.229Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:14.822Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (164ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 164,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:14.822Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (164ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 164,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:17.178Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:17.178Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 29,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:14.821Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:13.229Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:17.179Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (87ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 87,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:17.179Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (87ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 87,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:21.671Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:21.670Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 24,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:14.821Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:17.178Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:21.672Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (435ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 435,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:21.672Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (437ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 437,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:33.191Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:33.191Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 13,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:21.671Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:17.178Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:33.192Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (527ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 527,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:33.192Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (528ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 528,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:34.871Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:34.870Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 11,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:21.671Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:33.191Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:34.871Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (161ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 161,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:34.872Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (162ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 162,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:37.548Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:37.547Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 8,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:34.871Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:33.191Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:37.548Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (90ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 90,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:37.549Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (91ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 91,
+      "source": "::1",
+      "type": "error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:42.642Z",
+    "level": "WARN",
+    "category": "RATE-LIMIT",
+    "message": "atlas/llama-3.2-11b-vision-instruct - UserByModelByMinuteTokens",
+    "data": {
+      "timestamp": "2025-11-18T05:26:42.642Z",
+      "provider": "atlas",
+      "model": "llama-3.2-11b-vision-instruct",
+      "token": "GITHUB_TOKEN2",
+      "limitType": "UserByModelByMinuteTokens",
+      "retryAfter": 3,
+      "requestsUsed": 0,
+      "requestsLimit": 0,
+      "resetTime": "",
+      "allTokensStatus": [
+        {
+          "key": "GITHUB_TOKEN",
+          "active": false,
+          "isCurrent": false,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:34.871Z",
+          "requestCount": 0,
+          "source": "env"
+        },
+        {
+          "key": "GITHUB_TOKEN2",
+          "active": true,
+          "isCurrent": true,
+          "blocked": false,
+          "blockedUntil": 0,
+          "failures": 0,
+          "lastUsed": "2025-11-18T05:26:37.548Z",
+          "requestCount": 0,
+          "source": "env"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:42.643Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions [atlas] Model: atlas-llama-3.2-11b-vision-instruct → 500 (456ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "provider": "atlas",
+      "statusCode": 500,
+      "duration": 456,
+      "source": "::1",
+      "type": "error",
+      "errorType": "provider_error"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T05:26:42.644Z",
+    "level": "ERROR",
+    "category": "API-REQUEST",
+    "message": "POST /v1/chat/completions Model: atlas-llama-3.2-11b-vision-instruct → 500 (456ms)",
+    "data": {
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "model": "atlas-llama-3.2-11b-vision-instruct",
+      "statusCode": 500,
+      "duration": 456,
+      "source": "::1",
+      "type": "error"
+    }
+  }
+]

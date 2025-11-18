@@ -48,6 +48,11 @@ export class OptimizationIntegration {
 
     /**
      * Replace traditional executor with optimized version
+     * 
+     * FIXED 2025-11-18: This method is now called explicitly when optimization is needed.
+     * By default, the traditional executor-v3.js is used. To enable optimized execution:
+     * 1. Call optimizationIntegration.enableOptimizedExecution(container) after initialization
+     * 2. Or set an environment variable/config flag to auto-enable on startup
      */
     enableOptimizedExecution(container) {
         if (!this.initialized) {

@@ -80,7 +80,7 @@ export const WORKFLOW_STAGES = [
         name: 'verification_eligibility',
         description: 'LLM-based вибір методу верифікації та формування additional_checks',
         agent: 'grisha',
-        model: 'atlas-ministral-3b',
+        model: 'copilot-grok-code-fast-1',  // UPDATED 2025-11-18: Замінено на copilot-grok-code-fast-1
         temperature: 0.1,
         timeout: 10000
       },

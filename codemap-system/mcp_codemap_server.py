@@ -598,6 +598,53 @@ class CodemapMCPServer:
                         }
                     }
                 }
+            },
+            {
+                "name": "analyze_duplications",
+                "description": "Analyze code for functional duplications and quality metrics",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "target_path": {
+                            "type": "string",
+                            "description": "Optional: specific path to analyze (defaults to orchestrator)"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "compare_functions",
+                "description": "Compare two functions for similarity and quality metrics",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "func1_file": {
+                            "type": "string",
+                            "description": "Path to first function file"
+                        },
+                        "func1_name": {
+                            "type": "string",
+                            "description": "Name of first function"
+                        },
+                        "func2_file": {
+                            "type": "string",
+                            "description": "Path to second function file"
+                        },
+                        "func2_name": {
+                            "type": "string",
+                            "description": "Name of second function"
+                        }
+                    },
+                    "required": ["func1_file", "func1_name", "func2_file", "func2_name"]
+                }
+            },
+            {
+                "name": "get_duplication_report",
+                "description": "Get latest duplication analysis report",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
             }
         ]
     
@@ -655,6 +702,17 @@ class CodemapMCPServer:
             return json.dumps({"status": "success", "message": "Cache cleared"})
         elif name == "auto_commit":
             return json.dumps(self.auto_commit(arguments.get("message")), indent=2, default=str)
+        elif name == "analyze_duplications":
+            return json.dumps(self.analyze_duplications(arguments.get("target_path")), indent=2, default=str)
+        elif name == "compare_functions":
+            return json.dumps(self.compare_functions(
+                arguments.get("func1_file", ""),
+                arguments.get("func1_name", ""),
+                arguments.get("func2_file", ""),
+                arguments.get("func2_name", "")
+            ), indent=2, default=str)
+        elif name == "get_duplication_report":
+            return json.dumps(self.get_duplication_report(), indent=2, default=str)
         else:
             return json.dumps({"error": f"Unknown tool: {name}"})
     
@@ -1722,6 +1780,168 @@ class CodemapMCPServer:
         
         logger.info(f"✅ Should commit: {changes_count} changes, {time_since_last:.0f}s since last")
         return True
+    
+    # ========== DUPLICATION ANALYSIS ==========
+    
+    def analyze_duplications(self, target_path: Optional[str] = None) -> Dict[str, Any]:
+        """Analyze code for functional duplications and quality metrics"""
+        logger.info("🔍 Starting duplication analysis...")
+        
+        try:
+            # Import duplication analyzer
+            from duplication_analyzer import DuplicationAnalyzer
+            
+            # Use target path or project root
+            analysis_path = target_path or str(self.project_root / "orchestrator")
+            
+            analyzer = DuplicationAnalyzer(analysis_path, logger)
+            report = analyzer.analyze_project()
+            
+            # Save report
+            report_file = self.reports_dir / "duplication_analysis.json"
+            analyzer.save_report(report, str(report_file))
+            
+            logger.info(f"✅ Duplication analysis complete: {report_file}")
+            
+            return {
+                "status": "success",
+                "report_file": str(report_file),
+                "summary": report.get("summary", {}),
+                "duplications": report.get("duplications", {}),
+                "recommendations": report.get("recommendations", [])
+            }
+            
+        except ImportError:
+            logger.error("❌ duplication_analyzer module not found")
+            return {
+                "status": "error",
+                "error": "duplication_analyzer module not found"
+            }
+        except Exception as e:
+            logger.error(f"❌ Duplication analysis error: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def compare_functions(self, func1_file: str, func1_name: str, func2_file: str, func2_name: str) -> Dict[str, Any]:
+        """Compare two functions for similarity and quality"""
+        logger.info(f"📊 Comparing {func1_name} vs {func2_name}...")
+        
+        try:
+            from duplication_analyzer import DuplicationAnalyzer
+            
+            analyzer = DuplicationAnalyzer(str(self.project_root), logger)
+            
+            # Read functions
+            def read_function(filepath, funcname):
+                try:
+                    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                    
+                    # Extract function (simplified)
+                    import re
+                    pattern = rf'(?:async\s+)?(?:function|const|let|var)\s+{funcname}\s*(?:=\s*)?(?:async\s*)?\(([^)]*)\)(?:\s*:\s*(\w+))?\s*(?:=>)?\s*\{{'
+                    match = re.search(pattern, content)
+                    
+                    if match:
+                        start = match.start()
+                        brace_count = 1
+                        end = match.end() - 1
+                        
+                        while end < len(content) and brace_count > 0:
+                            if content[end] == '{':
+                                brace_count += 1
+                            elif content[end] == '}':
+                                brace_count -= 1
+                            end += 1
+                        
+                        return content[start:end]
+                    return None
+                except Exception as e:
+                    logger.error(f"Error reading function: {e}")
+                    return None
+            
+            body1 = read_function(func1_file, func1_name)
+            body2 = read_function(func2_file, func2_name)
+            
+            if not body1 or not body2:
+                return {
+                    "status": "error",
+                    "error": "Could not read one or both functions"
+                }
+            
+            # Calculate similarity
+            import difflib
+            matcher = difflib.SequenceMatcher(None, body1, body2)
+            similarity = matcher.ratio() * 100
+            
+            # Calculate metrics
+            complexity1 = analyzer._calculate_complexity(body1)
+            complexity2 = analyzer._calculate_complexity(body2)
+            
+            maintainability1 = analyzer._calculate_maintainability(body1)
+            maintainability2 = analyzer._calculate_maintainability(body2)
+            
+            return {
+                "status": "success",
+                "func1": {
+                    "name": func1_name,
+                    "file": func1_file,
+                    "complexity": complexity1,
+                    "maintainability": round(maintainability1, 2),
+                    "lines": len(body1.split('\n'))
+                },
+                "func2": {
+                    "name": func2_name,
+                    "file": func2_file,
+                    "complexity": complexity2,
+                    "maintainability": round(maintainability2, 2),
+                    "lines": len(body2.split('\n'))
+                },
+                "comparison": {
+                    "similarity": round(similarity, 2),
+                    "match_type": "exact" if similarity == 100 else ("semantic" if similarity >= 85 else "partial"),
+                    "complexity_diff": abs(complexity1 - complexity2),
+                    "maintainability_diff": abs(maintainability1 - maintainability2),
+                    "recommendation": "Extract to shared module" if similarity >= 85 else "Review for consolidation"
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Function comparison error: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def get_duplication_report(self) -> Dict[str, Any]:
+        """Get latest duplication analysis report"""
+        logger.info("📋 Retrieving duplication report...")
+        
+        try:
+            report_file = self.reports_dir / "duplication_analysis.json"
+            
+            if not report_file.exists():
+                return {
+                    "status": "not_found",
+                    "message": "No duplication analysis report available"
+                }
+            
+            with open(report_file, 'r') as f:
+                report = json.load(f)
+            
+            return {
+                "status": "success",
+                "report": report
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error reading report: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
     def auto_commit(self, message: Optional[str] = None) -> Dict[str, Any]:
         """Automatically commit changes with intelligent detection"""

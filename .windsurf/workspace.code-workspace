@@ -47,5 +47,15 @@
             "streetsidesoftware.code-spell-checker-ukrainian",
             "humao.rest-client"
         ]
+    },
+    "mcp": {
+        "servers": {
+            "codemap": {
+                "command": "python3",
+                "args": [
+                    "codemap-system/mcp_codemap_server.py"
+                ]
+            }
+        }
     }
 }

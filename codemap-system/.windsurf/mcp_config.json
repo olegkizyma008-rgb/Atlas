@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "codemap": {
+      "command": "python3",
+      "args": [
+        "mcp_codemap_server.py",
+        "--project",
+        ".",
+        "--mode",
+        "stdio"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "description": "Codemap MCP Server - Real-time code analysis and context for Cascade",
+      "enabled": true,
+      "autoStart": true
+    }
+  },
+  "resources": {
+    "codemap://analysis/summary": {
+      "description": "Latest code analysis summary",
+      "refreshInterval": 5000
+    },
+    "codemap://analysis/dead-code": {
+      "description": "Dead code detection results",
+      "refreshInterval": 10000
+    },
+    "codemap://analysis/cycles": {
+      "description": "Circular dependencies",
+      "refreshInterval": 10000
+    },
+    "codemap://analysis/full": {
+      "description": "Full analysis data",
+      "refreshInterval": 30000
+    }
+  },
+  "preTaskAnalysis": {
+    "enabled": true,
+    "resources": [
+      "codemap://analysis/summary",
+      "codemap://analysis/dead-code",
+      "codemap://analysis/cycles"
+    ],
+    "description": "Automatically load CodeMap context before each task"
+  }
+}

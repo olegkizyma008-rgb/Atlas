@@ -1,5 +1,5 @@
 # 📊 Code Analysis Report
-Generated: 2025-11-18T21:14:16.669222
+Generated: 2025-11-18T23:10:06.698805
 
 ## Project Overview
 - **Project**: Atlas4 Project
@@ -19,7 +19,7 @@ Generated: 2025-11-18T21:14:16.669222
 
 ## 🔴 Dead Code Detected
 
-### Unused Functions (19095)
+### Unused Functions (67)
 - `overallEfficiency` in `orchestrator/core/optimization-integration.js` (line 142)
 - `setupOptimizationIntegration` in `orchestrator/core/optimization-integration.js` (line 167)
 - `replacer` in `orchestrator/utils/logger.js` (line 31)
@@ -40,7 +40,7 @@ Generated: 2025-11-18T21:14:16.669222
 - `isCreateModuleTool` in `orchestrator/workflow/mcp-todo-manager.js` (line 3595)
 - `successCriteria` in `orchestrator/workflow/mcp-todo-manager.js` (line 3608)
 - `delaySec` in `orchestrator/workflow/executor-v3.js` (line 566)
-- ... and 19075 more
+- ... and 47 more
 
 ### Unused Private Methods (0)
 

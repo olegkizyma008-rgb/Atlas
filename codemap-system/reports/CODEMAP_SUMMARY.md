@@ -1,25 +1,25 @@
 # 📊 Code Analysis Report
-Generated: 2025-11-19T00:47:55.424674
+Generated: 2025-11-19T00:59:20.701125
 
 ## Project Overview
 - **Project**: My Project
-- **Files Analyzed**: 693
-- **Total Functions**: 1369
-- **Total Imports**: 1720
+- **Files Analyzed**: 705
+- **Total Functions**: 1371
+- **Total Imports**: 1729
 
 ## Dependency Graph
-- **Nodes**: 887
-- **Edges**: 1720
+- **Nodes**: 901
+- **Edges**: 1729
 - **Circular Dependencies**: 0
 
 ## Complexity Metrics
-- **Avg Imports/File**: 3.68
+- **Avg Imports/File**: 3.66
 - **Avg Functions/File**: 4.44
 - **Max Dependency Depth**: 0
 
 ## 🔴 Dead Code Detected
 
-### Unused Functions (26145)
+### Unused Functions (40350)
 - `serve_config` in `web/atlas_server.py` (line 43)
 - `health` in `web/atlas_server.py` (line 58)
 - `get_tts_config` in `web/atlas_server.py` (line 68)
@@ -40,9 +40,9 @@ Generated: 2025-11-19T00:47:55.424674
 - `checkLook` in `web/static/js/components/model3d/atlas-living-behavior-enhanced.js` (line 60)
 - `checkIdle` in `web/static/js/components/model3d/atlas-living-behavior-enhanced.js` (line 204)
 - `centerX` in `web/static/js/components/model3d/atlas-glb-living-system.js` (line 297)
-- ... and 26125 more
+- ... and 40330 more
 
-### Unused Private Methods (4410)
+### Unused Private Methods (6804)
 - `_shift_plus_markers` in `ukrainian_accentor/__init__.py` (line 28)
 - `__init__` in `ukrainian-tts/tts_server.py` (line 41)
 - `_repl` in `ukrainian-tts/vocoder/synthesize_with_intonation.py` (line 51)
@@ -63,7 +63,7 @@ Generated: 2025-11-19T00:47:55.424674
 - `__embind_register_std_wstring` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
 - `__embind_register_void` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
 - `__emscripten_get_now_is_monotonic` in `third_party/whisper.cpp.upstream/bindings/javascript/whisper.js` (line 8)
-- ... and 4390 more
+- ... and 6784 more
 
 ## 🔄 Circular Dependencies (0)
 

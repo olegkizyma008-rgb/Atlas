@@ -106,8 +106,8 @@ class DuplicationAnalyzer:
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             
-            # Extract function declarations
-            pattern = r'(?:async\s+)?(?:function|const|let|var)\s+(\w+)\s*(?:=\s*)?(?:async\s*)?\(([^)]*)\)(?:\s*:\s*(\w+))?\s*(?:=>)?\s*\{'
+            # Extract function declarations - simplified pattern
+            pattern = r'(?:async\s+)?(?:function|const|let|var)\s+(\w+)\s*(?:=\s*)?(?:async\s*)?\(([^)]*)\)(?:\s*:\s*(\w+))?\s*(?:=>)?\s*\{' 
             
             for match in re.finditer(pattern, content):
                 func_name = match.group(1)
@@ -205,9 +205,14 @@ class DuplicationAnalyzer:
         complexity = 1
         
         # Count decision points
-        keywords = ['if', 'else', 'case', 'catch', 'for', 'while', 'do', '&&', '||', '?']
+        keywords = ['if', 'else', 'case', 'catch', 'for', 'while', 'do']
         for keyword in keywords:
             complexity += len(re.findall(rf'\b{keyword}\b', code))
+        
+        # Count logical operators
+        complexity += code.count('&&')
+        complexity += code.count('||')
+        complexity += code.count('?')
         
         return min(complexity, 50)  # Cap at 50
     

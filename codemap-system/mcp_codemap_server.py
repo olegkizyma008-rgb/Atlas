@@ -14,12 +14,48 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 import logging
+from logging.handlers import RotatingFileHandler
 
-# Setup logging with detailed format
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Setup logging with rotation
+def setup_logging(log_dir: Path):
+    """Setup logging with file rotation"""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "mcp_server.log"
+    
+    # Create logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    
+    # Remove existing handlers
+    logger.handlers = []
+    
+    # Rotating file handler: 10MB per file, keep 5 files
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=5,  # Keep 5 backup files
+        encoding='utf-8'
+    )
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Console handler for errors
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setLevel(logging.ERROR)
+    
+    # Formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+# Initialize logging (will be called in __init__)
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +65,11 @@ class CodemapMCPServer:
     def __init__(self, project_root: str = "./"):
         self.project_root = Path(project_root)
         self.reports_dir = self.project_root / "reports"
+        
+        # Setup logging with rotation
+        global logger
+        log_dir = self.project_root / "codemap-system" / "logs"
+        logger = setup_logging(log_dir)
         
         # Cache configuration (Recommendation #3)
         self.cache = {}
@@ -50,6 +91,7 @@ class CodemapMCPServer:
         logger.info(f"Initialized CodemapMCPServer for {self.project_root}")
         logger.info(f"Cache TTL: {self.cache_ttl}s, Memory dir: {self.memory_dir}")
         logger.info(f"Auto-commit: threshold={self.commit_threshold}s, min_changes={self.min_changes_for_commit}")
+        logger.info(f"Logging configured with rotation: max 10MB per file, keeping 5 backups")
     
     def _ensure_memory_dir(self):
         """Ensure memory directory exists"""
@@ -2060,6 +2102,25 @@ class CodemapMCPServer:
         return json.dumps(status, indent=2, default=str)
 
 
+def sync_reports_to_docs(project_root: Path):
+    """Sync reports from codemap-system/reports to docs/codemap"""
+    try:
+        import shutil
+        src_dir = project_root / "codemap-system" / "reports"
+        dst_dir = project_root / "docs" / "codemap"
+        
+        if src_dir.exists():
+            dst_dir.mkdir(parents=True, exist_ok=True)
+            for file in ["CODEMAP_SUMMARY.md", "codemap_analysis.json", "codemap_analysis.html"]:
+                src = src_dir / file
+                dst = dst_dir / file
+                if src.exists():
+                    shutil.copy(src, dst)
+            logger.info(f"Synced reports to {dst_dir}")
+    except Exception as e:
+        logger.error(f"Error syncing reports: {e}")
+
+
 def main():
     """Main entry point for MCP server"""
     import argparse
@@ -2072,7 +2133,11 @@ def main():
     
     args = parser.parse_args()
     
+    project_root = Path(args.project).resolve()
     server = CodemapMCPServer(args.project)
+    
+    # Sync reports to docs on startup
+    sync_reports_to_docs(project_root)
     
     if args.mode == "stdio":
         # Windsurf uses stdio mode
@@ -2141,22 +2206,98 @@ def handle_request(server: CodemapMCPServer, request: Dict[str, Any]) -> Dict[st
     """Handle MCP request"""
     method = request.get("method")
     params = request.get("params", {})
+    request_id = request.get("id")
     
-    if method == "resources/list":
-        return {"resources": server.get_resources()}
+    # Handle initialize (required by MCP protocol)
+    if method == "initialize":
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "resources": {"subscribe": True},
+                    "tools": {}
+                },
+                "serverInfo": {
+                    "name": "Codemap MCP Server",
+                    "version": "1.0.0"
+                }
+            }
+        }
+        return response
+    
+    # Handle resources/list
+    elif method == "resources/list":
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "resources": server.get_resources()
+            }
+        }
+        return response
+    
+    # Handle resources/read
     elif method == "resources/read":
         uri = params.get("uri", "")
         content = server.read_resource(uri)
-        return {"content": content}
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "contents": [
+                    {
+                        "uri": uri,
+                        "mimeType": "text/plain",
+                        "text": content
+                    }
+                ]
+            }
+        }
+        return response
+    
+    # Handle tools/list
     elif method == "tools/list":
-        return {"tools": server.get_tools()}
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "tools": server.get_tools()
+            }
+        }
+        return response
+    
+    # Handle tools/call
     elif method == "tools/call":
         name = params.get("name", "")
         arguments = params.get("arguments", {})
         result = server.call_tool(name, arguments)
-        return {"result": result}
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": str(result)
+                    }
+                ]
+            }
+        }
+        return response
+    
+    # Unknown method
     else:
-        return {"error": f"Unknown method: {method}"}
+        response = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "error": {
+                "code": -32601,
+                "message": f"Unknown method: {method}"
+            }
+        }
+        return response
 
 
 if __name__ == "__main__":

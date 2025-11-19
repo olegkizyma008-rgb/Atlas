@@ -1,5 +1,6 @@
 ---
 description: Workflow to update codemap analysis and generate reports
+auto_execution_mode: 3
 ---
 
 # Update Codemap Analysis

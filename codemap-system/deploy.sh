@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Handle interruption gracefully
+trap 'echo ""; print_info "Отримано сигнал завершення..."; exit 0' INT TERM
+
+set -euo pipefail
+
 ################################################################################
 #                                                                              #
 #                    🚀 CODEMAP ANALYZER - DEPLOY SCRIPT 🚀                  #
@@ -30,6 +35,7 @@ PROJECT_NAME="Codemap Analyzer"
 PYTHON_MIN_VERSION="3.8"
 VENV_DIR="${SCRIPT_DIR}/.venv"
 REPORTS_DIR="${SCRIPT_DIR}/reports"
+CONFIG_FILE="${SCRIPT_DIR}/config.yaml"
 
 ################################################################################
 # Helper Functions
@@ -98,20 +104,119 @@ check_pip() {
 check_files() {
     print_step "Перевіряю файли проєкту..."
     
-    local required_files=(
-        "codemap_analyzer.py"
-        "config.yaml"
-        "requirements.txt"
-    )
+    # Check config file
+    if [ ! -f "$CONFIG_FILE" ]; then
+        print_error "Файл конфігурації не знайдено: $CONFIG_FILE"
+        exit 1
+    fi
     
+    # Validate YAML syntax
+    if command -v python3 &> /dev/null; then
+        python3 << EOF
+import yaml
+import sys
+try:
+    with open("$CONFIG_FILE", 'r') as f:
+        config = yaml.safe_load(f)
+    print("✅ Конфігурація валідна")
+    
+    # Check key sections
+    required_sections = ['project', 'analysis', 'output', 'dead_code_rules', 'dependency_rules']
+    for section in required_sections:
+        if section not in config:
+            print(f"⚠️ Відсутня секція: {section}")
+        else:
+            print(f"✅ Секція {section}: знайдено")
+    
+    # Extract key settings
+    analysis = config.get('analysis', {})
+    output = config.get('output', {})
+    
+    print(f"📊 Шлях до звітів: {output.get('reports_dir', 'reports')}")
+    print(f"🔄 Auto-update: {output.get('auto_update', false)}")
+    print(f"⏱️ Watch interval: {output.get('watch_interval', 5)} сек")
+    
+    print(f"📁 Include paths: {len(analysis.get('include_paths', []))}")
+    print(f"📁 Exclude paths: {len(analysis.get('exclude_paths', []))}")
+    print(f"📄 File extensions: {len(analysis.get('file_extensions', []))}")
+    
+except Exception as e:
+    print(f"❌ Помилка конфігурації: {e}")
+    sys.exit(1)
+EOF
+    fi
+    
+    # Check required Python files
+    local required_files=("codemap_analyzer.py" "mcp_codemap_server.py")
     for file in "${required_files[@]}"; do
-        if [ ! -f "${SCRIPT_DIR}/${file}" ]; then
-            print_error "Файл не знайдено: ${file}"
+        if [ ! -f "${SCRIPT_DIR}/$file" ]; then
+            print_error "Відсутній файл: $file"
             exit 1
         fi
     done
     
-    print_success "Всі необхідні файли присутні"
+    print_success "Файли проєкту перевірено"
+}
+
+load_config() {
+    print_step "Завантажую конфігурацію..."
+    
+    # Extract key values from config for use in script
+    if command -v python3 &> /dev/null; then
+        # Create temp file for variables
+        local temp_file=$(mktemp)
+        
+        python3 << EOF > "$temp_file"
+import yaml
+import json
+
+try:
+    with open("$CONFIG_FILE", 'r') as f:
+        config = yaml.safe_load(f)
+
+    analysis = config.get('analysis', {})
+    output = config.get('output', {})
+
+    # Extract values with defaults
+    watch_interval = output.get('watch_interval', 5)
+    auto_update = output.get('auto_update', True)
+    reports_dir_config = output.get('reports_dir', 'reports')
+    min_function_size = analysis.get('min_function_size', 3)
+    
+    include_paths = analysis.get('include_paths', [])
+    exclude_paths = analysis.get('exclude_paths', [])
+    file_extensions = analysis.get('file_extensions', [])
+
+    # Output bash export commands
+    print(f"export WATCH_INTERVAL={watch_interval}")
+    print(f"export AUTO_UPDATE={'true' if auto_update else 'false'}")
+    print(f"export REPORTS_DIR_CONFIG={reports_dir_config}")
+    print(f"export MIN_FUNCTION_SIZE={min_function_size}")
+    print(f"export INCLUDE_PATHS_COUNT={len(include_paths)}")
+    print(f"export EXCLUDE_PATHS_COUNT={len(exclude_paths)}")
+    print(f"export FILE_EXTENSIONS_COUNT={len(file_extensions)}")
+except Exception as e:
+    print(f"Error loading config: {e}")
+    exit(1)
+EOF
+        
+        if [ $? -eq 0 ]; then
+            source "$temp_file"
+            rm "$temp_file"
+            
+            print_success "Конфігурація завантажена"
+            print_info "Watch interval: ${WATCH_INTERVAL} сек"
+            print_info "Auto-update: ${AUTO_UPDATE}"
+            print_info "Reports dir: ${REPORTS_DIR_CONFIG}"
+        else
+            print_error "Помилка завантаження конфігурації"
+            rm -f "$temp_file"
+            exit 1
+        fi
+    else
+        print_error "Python3 не доступний для завантаження конфігурації"
+        exit 1
+    fi
 }
 
 check_workflows() {
@@ -180,11 +285,20 @@ run_first_analysis() {
     echo ""
     
     cd "$SCRIPT_DIR"
-    python3 codemap_analyzer.py --once
+    
+    # Use configuration from config.yaml
+    if [ -f "$CONFIG_FILE" ]; then
+        python3 codemap_analyzer.py --config "$CONFIG_FILE" --once
+    else
+        python3 codemap_analyzer.py --once
+    fi
     
     if [ $? -eq 0 ]; then
         echo ""
         print_success "Перший аналіз завершено"
+        print_info "Проаналізовано файлів: ${INCLUDE_PATHS_COUNT} шляхів"
+        print_info "Виключено: ${EXCLUDE_PATHS_COUNT} шляхів"
+        print_info "Розширення: ${FILE_EXTENSIONS_COUNT} типів"
     else
         print_error "Помилка при аналізі"
         exit 1
@@ -235,6 +349,7 @@ create_mcp_config() {
     
     local mcp_config_dir="${HOME}/.codeium/windsurf"
     local mcp_config_file="${mcp_config_dir}/mcp_config.json"
+    local local_mcp_config="${SCRIPT_DIR}/.windsurf/mcp_config.json"
     
     # Create directory if it doesn't exist
     mkdir -p "$mcp_config_dir"
@@ -244,36 +359,61 @@ create_mcp_config() {
     local project_root=$(cd "$SCRIPT_DIR/.." && pwd)
     
     # Create mcp_config.json with proper paths using Python for reliable JSON generation
-    python3 << PYTHON_EOF
+    CODEMAP_PATH="$codemap_path" PROJECT_ROOT="$project_root" MCP_CONFIG_FILE="$mcp_config_file" LOCAL_MCP_CONFIG="$local_mcp_config" CONFIG_FILE="$CONFIG_FILE" python3 << 'PYTHON_EOF'
 import json
+import os
 from pathlib import Path
+
+codemap_path = os.environ.get('CODEMAP_PATH')
+project_root = os.environ.get('PROJECT_ROOT')
+mcp_config_file = os.environ.get('MCP_CONFIG_FILE')
+local_mcp_config = os.environ.get('LOCAL_MCP_CONFIG')
+config_file = os.environ.get('CONFIG_FILE')
+
+# Build MCP server arguments
+mcp_args = [
+    f"{codemap_path}/mcp_codemap_server.py",
+    "--project",
+    project_root,
+    "--mode",
+    "stdio"
+]
+
+# Note: MCP server doesn't support --config parameter yet
+# The config is loaded by the server automatically from config.yaml
 
 mcp_config = {
     "mcpServers": {
         "codemap": {
             "command": "python3",
-            "args": [
-                "$codemap_path/mcp_codemap_server.py",
-                "--project",
-                "$project_root",
-                "--mode",
-                "stdio"
-            ],
+            "args": mcp_args,
             "env": {
-                "PYTHONPATH": "$codemap_path",
+                "PYTHONPATH": codemap_path,
                 "PYTHONUNBUFFERED": "1"
             }
         }
     }
 }
 
-with open("$mcp_config_file", 'w') as f:
+# Write to global Windsurf config
+with open(mcp_config_file, 'w') as f:
     json.dump(mcp_config, f, indent=2)
 
-print("✅ MCP конфігурація створена: $mcp_config_file")
+# Also copy to local project .windsurf folder for version control
+with open(local_mcp_config, 'w') as f:
+    json.dump(mcp_config, f, indent=2)
+
+print("✅ MCP конфігурація створена:")
+print(f"   - Глобально: {mcp_config_file}")
+print(f"   - Локально: {local_mcp_config}")
 PYTHON_EOF
     
-    print_success "MCP конфігурація готова"
+    if [ $? -eq 0 ]; then
+        print_success "MCP конфігурація готова"
+    else
+        print_error "Помилка при створенні MCP конфігурації"
+        exit 1
+    fi
 }
 
 update_workflows() {
@@ -350,6 +490,9 @@ start_mcp_server() {
     sync_analysis_to_memory
     
     cd "$SCRIPT_DIR"
+    
+    # Start MCP server with config if available
+    # Note: MCP server loads config automatically from config.yaml
     python3 mcp_codemap_server.py --project "$SCRIPT_DIR" --mode stdio > /dev/null 2>&1 &
     MCP_PID=$!
     
@@ -360,11 +503,13 @@ start_mcp_server() {
 }
 
 sync_analysis_to_memory() {
-    print_step "Синхронізую аналіз з Windsurf memory..."
+    print_step "Синхронізую аналіз з Windsurf memory та docs..."
     
     local memory_dir="${HOME}/.codeium/windsurf/memories"
     local reports_dir="${REPORTS_DIR}"
+    local docs_codemap_dir="${SCRIPT_DIR}/../docs/codemap"
     mkdir -p "$memory_dir"
+    mkdir -p "$docs_codemap_dir"
     
     if [ -f "${reports_dir}/codemap_analysis.json" ]; then
         # Copy analysis to memory with metadata
@@ -372,10 +517,13 @@ sync_analysis_to_memory() {
 import json
 from pathlib import Path
 from datetime import datetime
+import shutil
 
 reports_dir = Path("$reports_dir")
 memory_dir = Path("$memory_dir")
+docs_codemap_dir = Path("$docs_codemap_dir")
 memory_dir.mkdir(parents=True, exist_ok=True)
+docs_codemap_dir.mkdir(parents=True, exist_ok=True)
 
 try:
     with open(reports_dir / "codemap_analysis.json", 'r') as f:
@@ -396,10 +544,16 @@ try:
         }
     }
     
+    # Sync to Windsurf memory
     with open(memory_dir / "codemap_analysis.json", 'w') as f:
         json.dump(memory_data, f, indent=2, default=str)
     
-    print("✅ Аналіз синхронізовано з memory")
+    # Sync to docs/codemap
+    shutil.copy(reports_dir / "CODEMAP_SUMMARY.md", docs_codemap_dir / "CODEMAP_SUMMARY.md")
+    shutil.copy(reports_dir / "codemap_analysis.json", docs_codemap_dir / "codemap_analysis.json")
+    shutil.copy(reports_dir / "codemap_analysis.html", docs_codemap_dir / "codemap_analysis.html")
+    
+    print("✅ Аналіз синхронізовано з memory та docs/codemap")
 except Exception as e:
     print(f"⚠️ Помилка синхронізації: {e}")
 PYTHON_SYNC
@@ -424,6 +578,13 @@ start_watch_mode() {
     echo "  - /detect-cycles (циклічні залежності)"
     echo "  - /refactor-with-context (рефакторинг)"
     echo ""
+    echo "⚙️ Конфігурація:"
+    echo "  - Auto-update: ${AUTO_UPDATE}"
+    echo "  - Watch interval: ${WATCH_INTERVAL} сек"
+    echo "  - Min function size: ${MIN_FUNCTION_SIZE} рядків"
+    echo "  - Include paths: ${INCLUDE_PATHS_COUNT}"
+    echo "  - File extensions: ${FILE_EXTENSIONS_COUNT}"
+    echo ""
     echo "🤖 MCP Сервер активний:"
     echo "  - Автоматична синхронізація з Cascade"
     echo "  - Реальний час доступ до аналізу"
@@ -434,13 +595,18 @@ start_watch_mode() {
     echo ""
     echo "🔄 Запускаю постійне спостереження..."
     echo "   (Звіти будуть оновлюватися при кожній зміні коду)"
+    echo "   Інтервал: ${WATCH_INTERVAL} секунд"
     echo ""
     echo "Щоб зупинити: Ctrl+C"
     echo ""
     
-    # Start watch mode
+    # Start watch mode with configuration
     cd "$SCRIPT_DIR"
-    python3 codemap_analyzer.py --watch
+    if [ -f "$CONFIG_FILE" ]; then
+        python3 codemap_analyzer.py --config "$CONFIG_FILE" --watch
+    else
+        python3 codemap_analyzer.py --watch
+    fi
 }
 
 ################################################################################
@@ -449,6 +615,9 @@ start_watch_mode() {
 
 check_status() {
     print_header "📊 ПЕРЕВІРКА СТАТУСУ"
+    
+    # Load configuration first
+    load_config
     
     # Check if already deployed
     if [ -f "${REPORTS_DIR}/CODEMAP_SUMMARY.md" ] && \
@@ -464,6 +633,9 @@ check_status() {
         echo ""
         print_info "Запускаю MCP сервер та постійне спостереження..."
         echo ""
+        
+        # Ensure MCP config is up to date
+        create_mcp_config
         
         # Start MCP server
         start_mcp_server
@@ -493,6 +665,7 @@ main() {
     check_pip
     check_files
     check_workflows
+    load_config
     
     print_header "📦 КРОК 2: ВСТАНОВЛЕННЯ"
     install_dependencies
@@ -517,6 +690,27 @@ main() {
     # Start watch mode
     start_watch_mode
 }
+
+# Handle interruption
+cleanup() {
+    echo ""
+    print_info "Завершую роботу..."
+    
+    # Stop MCP server if running
+    if [ -f "${SCRIPT_DIR}/.mcp_server.pid" ]; then
+        local mcp_pid=$(cat "${SCRIPT_DIR}/.mcp_server.pid")
+        if kill -0 "$mcp_pid" 2>/dev/null; then
+            kill "$mcp_pid" 2>/dev/null || true
+            print_info "MCP сервер зупинено"
+        fi
+        rm -f "${SCRIPT_DIR}/.mcp_server.pid"
+    fi
+    
+    print_info "Роботу завершено"
+    exit 0
+}
+
+trap cleanup INT TERM
 
 # Run main
 main "$@"

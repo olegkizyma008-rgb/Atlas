@@ -1,0 +1,98 @@
+2025-11-19 02:37:20 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 02:37:20 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 02:37:20 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 02:37:20 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 02:37:20 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 02:37:20 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 02:39:49 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 02:39:49 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 02:39:49 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 02:39:49 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 02:39:49 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 02:39:49 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 02:39:49 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:01:52 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:01:52 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:01:52 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:01:52 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:01:52 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:01:52 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:01:52 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:12:03 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:12:03 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:12:03 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:12:03 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:12:03 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:12:03 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:12:03 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:13:10 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:13:10 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:13:10 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:13:10 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:13:10 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:13:10 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:13:10 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:13:14 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:13:14 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:13:14 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:13:14 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:13:14 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:13:14 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:13:14 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:15:16 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:15:16 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:15:16 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:15:16 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:15:16 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:15:16 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:15:16 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:16:29 - __main__ - INFO - Calling tool: get_analysis_status with arguments: {}
+2025-11-19 03:16:29 - __main__ - INFO - Calling tool: health_check with arguments: {}
+2025-11-19 03:16:29 - __main__ - INFO - 🏥 Performing health check...
+2025-11-19 03:16:29 - __main__ - INFO - 🔍 Verifying memory sync integrity...
+2025-11-19 03:16:29 - __main__ - INFO - Loaded from memory: codemap_analysis
+2025-11-19 03:16:29 - __main__ - WARNING - ⚠️ Memory or analysis data not available
+2025-11-19 03:16:29 - __main__ - WARNING - ⚠️ Health check degraded: {'analysis_available': False, 'memory_available': True, 'memory_synced': False, 'analysis_fresh': False, 'memory_fresh': True}
+2025-11-19 03:16:30 - __main__ - INFO - Calling tool: analyze_duplications with arguments: {'target_path': 'orchestrator'}
+2025-11-19 03:16:30 - __main__ - INFO - 🔍 Starting duplication analysis...
+2025-11-19 03:16:30 - __main__ - INFO - Starting duplication analysis...
+2025-11-19 03:16:30 - __main__ - INFO - Scanning project files...
+2025-11-19 03:16:30 - __main__ - INFO - Detecting duplications...
+2025-11-19 03:16:30 - __main__ - INFO - Calculating quality metrics...
+2025-11-19 03:16:30 - __main__ - ERROR - ❌ Duplication analysis error: [Errno 2] No such file or directory: '/Users/dev/Documents/GitHub/atlas4/reports/duplication_analysis.json'
+2025-11-19 03:16:30 - __main__ - INFO - Calling tool: find_cycles with arguments: {}
+2025-11-19 03:16:32 - __main__ - INFO - Calling tool: verify_memory_sync with arguments: {}
+2025-11-19 03:16:32 - __main__ - INFO - 🔍 Verifying memory sync integrity...
+2025-11-19 03:16:32 - __main__ - INFO - Loaded from memory: codemap_analysis
+2025-11-19 03:16:32 - __main__ - WARNING - ⚠️ Memory or analysis data not available
+2025-11-19 03:16:32 - __main__ - INFO - Calling tool: clear_cache with arguments: {}
+2025-11-19 03:16:32 - __main__ - INFO - 🗑️ Cache cleared (0 items removed)
+2025-11-19 03:16:36 - __main__ - INFO - Calling tool: analyze_file with arguments: {'file_path': 'orchestrator/app.js'}
+2025-11-19 03:16:36 - __main__ - INFO - Calling tool: get_file_dependencies with arguments: {'file_path': 'orchestrator/app.js'}
+2025-11-19 03:16:38 - __main__ - INFO - Calling tool: analyze_code_quality with arguments: {'file_path': 'orchestrator/app.js'}
+2025-11-19 03:16:38 - __main__ - INFO - Calling tool: analyze_code_quality with arguments: {'file_path': 'orchestrator/eternity/eternity-module.js'}
+2025-11-19 03:26:48 - __main__ - INFO - Memory directory ready: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:26:48 - __main__ - INFO - Initialized CodemapMCPServer for /Users/dev/Documents/GitHub/atlas4
+2025-11-19 03:26:48 - __main__ - INFO - Cache TTL: 300s, Memory dir: /Users/dev/.codeium/windsurf/memories
+2025-11-19 03:26:48 - __main__ - INFO - Auto-commit: threshold=300s, min_changes=5
+2025-11-19 03:26:48 - __main__ - INFO - Logging configured with rotation: max 10MB per file, keeping 5 backups
+2025-11-19 03:26:48 - __main__ - INFO - Synced reports to /Users/dev/Documents/GitHub/atlas4/docs/codemap
+2025-11-19 03:26:48 - __main__ - INFO - Starting MCP server in stdio mode
+2025-11-19 03:35:03 - __main__ - INFO - Calling tool: get_module_health with arguments: {'file_path': 'orchestrator'}
+2025-11-19 03:35:04 - __main__ - INFO - Calling tool: get_complexity_report with arguments: {'file_path': 'orchestrator'}
+2025-11-19 03:35:04 - __main__ - INFO - Calling tool: analyze_duplications with arguments: {'target_path': 'orchestrator'}
+2025-11-19 03:35:04 - __main__ - INFO - 🔍 Starting duplication analysis...
+2025-11-19 03:35:04 - __main__ - INFO - Starting duplication analysis...
+2025-11-19 03:35:04 - __main__ - INFO - Scanning project files...
+2025-11-19 03:35:04 - __main__ - INFO - Detecting duplications...
+2025-11-19 03:35:04 - __main__ - INFO - Calculating quality metrics...
+2025-11-19 03:35:04 - __main__ - ERROR - ❌ Duplication analysis error: [Errno 2] No such file or directory: '/Users/dev/Documents/GitHub/atlas4/reports/duplication_analysis.json'
+2025-11-19 03:35:05 - __main__ - INFO - Calling tool: get_refactoring_suggestions with arguments: {'file_path': 'orchestrator'}
+2025-11-19 03:36:40 - __main__ - INFO - Calling tool: get_analysis_status with arguments: {}
+2025-11-19 03:36:40 - __main__ - INFO - Calling tool: health_check with arguments: {}
+2025-11-19 03:36:40 - __main__ - INFO - 🏥 Performing health check...
+2025-11-19 03:36:40 - __main__ - INFO - 🔍 Verifying memory sync integrity...
+2025-11-19 03:36:40 - __main__ - INFO - Loaded from memory: codemap_analysis
+2025-11-19 03:36:40 - __main__ - WARNING - ⚠️ Memory or analysis data not available
+2025-11-19 03:36:40 - __main__ - WARNING - ⚠️ Health check degraded: {'analysis_available': False, 'memory_available': True, 'memory_synced': False, 'analysis_fresh': False, 'memory_fresh': False}
+2025-11-19 03:43:38 - __main__ - INFO - Calling tool: get_analysis_status with arguments: {}

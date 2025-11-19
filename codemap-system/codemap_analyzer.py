@@ -10,12 +10,49 @@ import os
 import sys
 import time
 import yaml
+import logging
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Any
 from collections import defaultdict
 import networkx as nx
 from datetime import datetime
 import hashlib
+
+# Setup logging with rotation
+def setup_logging(log_dir: Path):
+    """Setup logging with file rotation"""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "analyzer.log"
+    
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.handlers = []
+    
+    # Rotating file handler: 10MB per file, keep 5 files
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=5,
+        encoding='utf-8'
+    )
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Console handler for errors
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setLevel(logging.ERROR)
+    
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
 
 
 class CodeAnalyzer:
@@ -26,6 +63,12 @@ class CodeAnalyzer:
         self.project_root = Path(self.config.get("project", {}).get("root", "./"))
         self.reports_dir = Path(self.config.get("output", {}).get("reports_dir", "reports"))
         self.reports_dir.mkdir(exist_ok=True)
+        
+        # Setup logging with rotation
+        log_dir = self.project_root / "codemap-system" / "logs"
+        self.logger = setup_logging(log_dir)
+        self.logger.info(f"Initialized CodeAnalyzer for {self.project_root}")
+        self.logger.info(f"Logging configured with rotation: max 10MB per file, keeping 5 backups")
         
         # Graphs and data structures
         self.dependency_graph = nx.DiGraph()
@@ -104,8 +147,8 @@ class CodeAnalyzer:
             "total_functions": sum(len(v) for v in self.function_definitions.values()),
             "total_imports": sum(len(v) for v in self.file_imports.values()),
             "dependency_graph": {
-                "nodes": len(self.dependency_graph.nodes()),
-                "edges": len(self.dependency_graph.edges()),
+                "nodes": len(list(self.dependency_graph.nodes())),
+                "edges": len(list(self.dependency_graph.edges())),
                 "cycles": len(cycles)
             },
             "dead_code": self.unused_items,
@@ -445,6 +488,24 @@ Generated: {summary['timestamp']}
         with open(report_path, 'w') as f:
             f.write(html_content)
     
+    def sync_to_docs(self):
+        """Sync reports to docs/codemap for Windsurf"""
+        try:
+            import shutil
+            docs_dir = self.project_root / "docs" / "codemap"
+            docs_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Copy all reports
+            for file in ["CODEMAP_SUMMARY.md", "codemap_analysis.json", "codemap_analysis.html"]:
+                src = self.reports_dir / file
+                dst = docs_dir / file
+                if src.exists():
+                    shutil.copy(src, dst)
+            
+            self.logger.info(f"Synced reports to {docs_dir}")
+        except Exception as e:
+            self.logger.error(f"Error syncing to docs: {e}")
+    
     def watch_and_update(self):
         """Continuously watch for changes and update reports"""
         print("👁️  Watching for changes...")
@@ -454,6 +515,7 @@ Generated: {summary['timestamp']}
             try:
                 summary = self.analyze_project()
                 self.generate_reports(summary)
+                self.sync_to_docs()  # Sync to docs/codemap
                 print(f"✅ Analysis complete at {datetime.now().strftime('%H:%M:%S')}")
                 time.sleep(watch_interval)
             except KeyboardInterrupt:

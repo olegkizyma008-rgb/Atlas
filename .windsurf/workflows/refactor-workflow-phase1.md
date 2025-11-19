@@ -1,5 +1,6 @@
 ---
 description: Refactor workflow Phase 1 - Create core workflow modules
+auto_execution_mode: 3
 ---
 
 # Workflow Refactoring - Phase 1: Core Modules

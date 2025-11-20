@@ -23,6 +23,9 @@
  * 
  * @class WorkflowStateMachine
  */
+
+import ErrorHandler from '../utils/error-handler.js';
+
 class WorkflowStateMachine {
     /**
      * State enum

@@ -23,10 +23,9 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Paths
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPORTS_DIR="${PROJECT_ROOT}/reports"
-LOGS_DIR="${SCRIPT_DIR}/logs"
+CODEMAP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+REPORTS_DIR="${CODEMAP_DIR}/../reports"
+LOGS_DIR="${CODEMAP_DIR}/logs"
 
 # Helper functions
 print_header() {
@@ -53,20 +52,12 @@ print_info() {
     echo -e "${BLUE}ℹ${NC} $1"
 }
 
-print_power() {
-    echo -e "${CYAN}⚡${NC} $1"
-}
-
 # Cleanup function
 cleanup() {
     echo ""
     print_info "Завершую роботу..."
-    
-    # Kill all processes
-    pkill -f "mcp_enhanced_analyzer" 2>/dev/null || true
-    pkill -f "mcp_server_daemon" 2>/dev/null || true
-    pkill -f "mcp_enhanced_server" 2>/dev/null || true
-    
+    pkill -f "mcp_enhanced_analyzer.py" 2>/dev/null || true
+    pkill -f "mcp_enhanced_server.py" 2>/dev/null || true
     print_success "Система зупинена"
     exit 0
 }
@@ -87,8 +78,8 @@ print_success "Директорії готові"
 
 # Kill any existing processes
 print_step "Очищаю старі процеси..."
-pkill -f "mcp_enhanced_analyzer" 2>/dev/null || true
-pkill -f "mcp_enhanced_server" 2>/dev/null || true
+pkill -f "mcp_enhanced_analyzer.py" 2>/dev/null || true
+pkill -f "mcp_enhanced_server.py" 2>/dev/null || true
 sleep 1
 print_success "Очищено"
 
@@ -98,20 +89,12 @@ print_success "Очищено"
 
 print_header "🔄 ЗАПУСК ENHANCED ANALYZER (5 ШАРІВ)"
 
-print_power "Шар 1: Виявлення мертвих файлів"
-print_power "Шар 2: Виявлення мертвих функцій"
-print_power "Шар 3: Побудова графу залежностей"
-print_power "Шар 4: Виявлення циклів і ізоляції"
-print_power "Шар 5: Аналіз якості і дублікатів"
-echo ""
-
 print_step "Запускаю Enhanced Analyzer (безперервний режим)..."
-cd "$SCRIPT_DIR"
+cd "$CODEMAP_DIR" # Change to the correct directory
 
-nohup python3 mcp_enhanced_analyzer.py > "$LOGS_DIR/analyzer.log" 2>&1 &
+nohup /usr/bin/env python3 mcp_enhanced_analyzer.py > "$LOGS_DIR/analyzer.log" 2>&1 &
 ANALYZER_PID=$!
 
-# Wait for analyzer to start
 sleep 2
 
 if kill -0 "$ANALYZER_PID" 2>/dev/null; then
@@ -119,6 +102,8 @@ if kill -0 "$ANALYZER_PID" 2>/dev/null; then
     print_info "Логи: $LOGS_DIR/analyzer.log"
 else
     print_error "Помилка при запуску Enhanced Analyzer"
+    echo "Останні 10 рядків логу ($LOGS_DIR/analyzer.log):"
+    tail -10 "$LOGS_DIR/analyzer.log"
     exit 1
 fi
 
@@ -128,28 +113,21 @@ fi
 
 print_header "🌐 ЗАПУСК MCP СЕРВЕРА (16 ІНСТРУМЕНТІВ)"
 
-print_power "6 базових інструментів"
-print_power "7 advanced інструментів"
-print_power "3 power tools (гіпер-інструменти)"
-echo ""
-
 print_step "Запускаю MCP Server Daemon..."
+cd "$CODEMAP_DIR" # Ensure correct directory
 
-# MCP Server Daemon запускається як постійний сервіс
-nohup python3 mcp_server_daemon.py > "$LOGS_DIR/mcp_daemon.log" 2>&1 &
+nohup /usr/bin/env python3 mcp_enhanced_server.py > "$LOGS_DIR/mcp_server.log" 2>&1 &
 SERVER_PID=$!
 
-# Wait for daemon to start
 sleep 2
 
-# Check if process started
 if kill -0 "$SERVER_PID" 2>/dev/null; then
     print_success "MCP Server Daemon запущено (PID: $SERVER_PID)"
-    print_info "Логи: $LOGS_DIR/mcp_daemon.log"
-    print_info "✅ MCP готовий для Windsurf"
+    print_info "Логи: $LOGS_DIR/mcp_server.log"
 else
     print_error "Помилка при запуску MCP Server Daemon"
-    tail -10 "$LOGS_DIR/mcp_daemon.log"
+    echo "Останні 10 рядків логу ($LOGS_DIR/mcp_server.log):"
+    tail -10 "$LOGS_DIR/mcp_server.log"
     exit 1
 fi
 
@@ -163,37 +141,13 @@ print_info "Аналізатор виконує перший цикл (30-60 с�
 print_info "Всі 5 шарів проходяться послідовно..."
 echo ""
 
-# Wait for first report
 max_wait=120
 elapsed=0
-
 while [ $elapsed -lt $max_wait ]; do
     if [ -f "$REPORTS_DIR/enhanced_analysis_state.json" ]; then
         print_success "Перший цикл завершено!"
-        
-        # Show summary
-        python3 << 'EOF'
-import json
-from pathlib import Path
-
-try:
-    state_file = Path("$REPORTS_DIR/enhanced_analysis_state.json")
-    if state_file.exists():
-        with open(state_file, 'r') as f:
-            state = json.load(f)
-        
-        print(f"📊 Цикл: {state.get('cycle', 0)}")
-        print(f"📁 Мертвих файлів: {len(state.get('dead_files', []))}")
-        print(f"🔴 Мертвих функцій: {sum(len(v) for v in state.get('dead_functions', {}).values())}")
-        print(f"🔗 Вузлів графу: {len(state.get('dependency_graph', {}))}")
-        print(f"⚠️ Циклів: {len(state.get('cycles', []))}")
-except:
-    pass
-EOF
-        
         break
     fi
-    
     sleep 5
     elapsed=$((elapsed + 5))
     printf "."
@@ -202,73 +156,21 @@ done
 echo ""
 
 # ============================================================================
-# SHOW WINDSURF INSTRUCTIONS
+# SHOW STATUS & INSTRUCTIONS
 # ============================================================================
 
-print_header "🎯 ВИКОРИСТАННЯ В WINDSURF CASCADE"
-
-echo "Використовуйте ці команди для аналізу:"
-echo ""
-
-echo -e "${CYAN}Миттєва оцінка:${NC}"
-echo "  @cascade get_quick_assessment(directory: \"orchestrator\")"
-echo ""
-
-echo -e "${CYAN}Дискваліфікація проблем:${NC}"
-echo "  @cascade get_disqualification_report(directory: \"orchestrator\")"
-echo ""
-
-echo -e "${CYAN}Статус файлу:${NC}"
-echo "  @cascade get_editor_quick_view(file_path: \"orchestrator/app.js\")"
-echo ""
-
-echo -e "${CYAN}Глибокий аналіз:${NC}"
-echo "  @cascade analyze_file_deeply(file_path: \"orchestrator/app.js\")"
-echo ""
-
-echo -e "${CYAN}План рефакторингу:${NC}"
-echo "  @cascade generate_refactoring_plan(priority: \"high\")"
-echo ""
-
-# ============================================================================
-# SHOW STATUS
-# ============================================================================
-
-print_header "📊 СТАТУС СИСТЕМИ"
+print_header "📊 СТАТУС ТА ІНСТРУКЦІЇ"
 
 echo -e "${GREEN}✅ Hyper-Power System активна${NC}"
 echo ""
-
 echo "🔄 Компоненти:"
 echo -e "  ${GREEN}✅${NC} Enhanced Analyzer (PID: $ANALYZER_PID)"
 echo -e "  ${GREEN}✅${NC} MCP Server (PID: $SERVER_PID)"
-echo -e "  ${GREEN}✅${NC} Power Tools (3 гіпер-інструменти)"
 echo ""
-
 echo "📂 Звіти: $REPORTS_DIR/"
 echo "📝 Логи: $LOGS_DIR/"
 echo ""
-
-echo "📊 Останній аналіз:"
-if [ -f "$REPORTS_DIR/enhanced_analysis_state.json" ]; then
-    python3 << 'EOF'
-import json
-from pathlib import Path
-
-try:
-    state_file = Path("$REPORTS_DIR/enhanced_analysis_state.json")
-    if state_file.exists():
-        with open(state_file, 'r') as f:
-            state = json.load(f)
-        
-        print(f"  Цикл: {state.get('cycle', 0)}")
-        print(f"  Час: {state.get('timestamp', 'N/A')}")
-        print(f"  Мертвих файлів: {len(state.get('dead_files', []))}")
-except:
-    print("  (дані ще обробляються)")
-EOF
-fi
-
+echo "🎯 Тепер ви можете використовувати інструменти @cascade в Windsurf."
 echo ""
 
 # ============================================================================
@@ -276,33 +178,24 @@ echo ""
 # ============================================================================
 
 print_header "🎉 СИСТЕМА ГОТОВА!"
-
-echo "Hyper-Power System запущена на ПОВНУ потужність"
-echo ""
-
-echo "🔄 Аналізатор працює безперервно (кожну хвилину)"
-echo "📊 Всі 5 шарів проходяться послідовно"
-echo "🌐 MCP Server доступний для Windsurf Cascade"
-echo "⚡ 16 інструментів готові до використання"
-echo "📝 Всі звіти оновлюються автоматично"
-echo ""
-
 echo "Щоб зупинити: Ctrl+C"
 echo ""
 
 # Keep process alive and monitor
 while true; do
-    sleep 60
-    
-    # Check if Analyzer is still running
     if ! kill -0 "$ANALYZER_PID" 2>/dev/null; then
         print_error "Enhanced Analyzer зупинився, перезапускаю..."
-        nohup python3 mcp_enhanced_analyzer.py > "$LOGS_DIR/analyzer.log" 2>&1 &
+        cd "$CODEMAP_DIR"
+        nohup /usr/bin/env python3 mcp_enhanced_analyzer.py > "$LOGS_DIR/analyzer.log" 2>&1 &
         ANALYZER_PID=$!
         print_success "Enhanced Analyzer перезапущено (PID: $ANALYZER_PID)"
     fi
-    
-    # MCP Server може завершитися після ініціалізації - це нормально
-    # Не намагаємося його перезапускати постійно
-    # Він буде запущено Windsurf при необхідності
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+        print_error "MCP Server зупинився, перезапускаю..."
+        cd "$CODEMAP_DIR"
+        nohup /usr/bin/env python3 mcp_enhanced_server.py > "$LOGS_DIR/mcp_server.log" 2>&1 &
+        SERVER_PID=$!
+        print_success "MCP Server перезапущено (PID: $SERVER_PID)"
+    fi
+    sleep 60
 done

@@ -26,14 +26,15 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Get script directory and parent (codemap-system) directory
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$SCRIPTS_DIR/.." && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
 
 # Configuration
 PROJECT_NAME="Advanced Codemap System v2.0"
 REPORTS_DIR="${PROJECT_ROOT}/reports"
-LOGS_DIR="${SCRIPT_DIR}/logs"
+LOGS_DIR="${SCRIPTS_DIR}/logs"
 
 ################################################################################
 # Helper Functions
@@ -96,7 +97,6 @@ check_files() {
     local required_files=(
         "mcp_enhanced_analyzer.py"
         "mcp_enhanced_server.py"
-        "mcp_advanced_tools.py"
     )
     
     for file in "${required_files[@]}"; do

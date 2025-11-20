@@ -27,8 +27,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Get script directory and parent (codemap-system) directory
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$( cd "$SCRIPTS_DIR/.." && pwd )"
 
 # Configuration
 PROJECT_NAME="Codemap Analyzer"
@@ -655,15 +656,14 @@ main() {
     
     # Check if Advanced system files exist
     if [ -f "${SCRIPT_DIR}/mcp_enhanced_analyzer.py" ] && \
-       [ -f "${SCRIPT_DIR}/mcp_enhanced_server.py" ] && \
-       [ -f "${SCRIPT_DIR}/mcp_advanced_tools.py" ]; then
+       [ -f "${SCRIPT_DIR}/mcp_enhanced_server.py" ]; then
         
         print_info "Виявлено Advanced Codemap System v2.0"
         print_info "Запускаю розширену систему з 5-шаровим аналізатором..."
         echo ""
         
         # Run advanced deploy script
-        bash "${SCRIPT_DIR}/deploy_advanced.sh"
+        bash "${SCRIPTS_DIR}/deploy_advanced.sh"
         return 0
     fi
     

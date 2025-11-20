@@ -151,3 +151,28 @@ public/
 
 # NPM
 package-lock.json
+
+# macOS
+.DS_Store
+
+# Large data files
+*.pth
+*.ark
+*.npz
+*.bz2
+*.glb
+*.wav
+
+# Directories with large/generated content
+data/
+models/
+goose/src/agents/subagent_execution_tool/lib/
+goose/examples/test_assets/
+third_party/whisper.cpp.upstream/
+ukrainian-tts/venv3.11/
+ukrainian-tts/vocoder/
+ukrainian-tts/samples/
+orchestrator/~/
+
+# Python virtual environments
+venv3.11/

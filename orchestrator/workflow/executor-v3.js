@@ -911,29 +911,6 @@ export async function executeWorkflow(userMessage, { logger, wsManager, ttsSyncM
   }
 
   try {
-    // ===============================================
-    // NEXUS CONTEXT-AWARE ACTIVATION (DISABLED 02.11.2025)
-    // Аналізуємо чи потрібен Nexus ПЕРЕД mode selection
-    // ===============================================
-    // DISABLED: Nexus interceptor conflicts with DEV self-analysis workflow
-    // DEV mode needs devSelfAnalysisProcessor for real code analysis and intervention
-    // Nexus stubs don't provide the functionality needed for self-improvement
-
-    // TODO: Re-enable when:
-    // 1. Real multi-model orchestration implemented (not stubs)
-    // 2. Integration with devSelfAnalysisProcessor added
-    // 3. Proper mode coordination established
-
-    /*
-    const nexusActivator = await container.resolve('nexusContextActivator');
-    await nexusActivator.initialize();
-    const nexusAnalysis = await nexusActivator.analyzeIfNexusNeeded(userMessage, session);
-    if (nexusAnalysis.shouldUseNexus) {
-      // Nexus execution code...
-    }
-    */
-
-    // Якщо Nexus не потрібен - продовжуємо стандартний workflow
     // Resolve processors from DI Container
     const modeProcessor = container.resolve('modeSelectionProcessor');
     const devProcessor = container.resolve('devSelfAnalysisProcessor');

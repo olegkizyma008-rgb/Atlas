@@ -18,6 +18,9 @@ import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
 import { ValidationPipeline } from '../ai/validation/validation-pipeline.js';
 import { postToLLM } from '../utils/llm-api-client.js';
 import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
+import { logExecution, logWithContext } from './utils/logging-middleware.js';
+import { IdGenerator } from './utils/id-generator.js';
+import { ErrorHandler } from './utils/error-handler.js';
 import axios from 'axios';
 
 /**

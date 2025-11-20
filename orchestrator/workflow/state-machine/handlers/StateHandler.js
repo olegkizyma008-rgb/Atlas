@@ -7,6 +7,10 @@
  * @abstract
  * @class StateHandler
  */
+
+import { logWithContext, logErrorWithContext } from '../../utils/logging-middleware.js';
+import ErrorHandler from '../../utils/error-handler.js';
+
 class StateHandler {
     /**
      * Constructor
@@ -55,44 +59,42 @@ class StateHandler {
     }
 
     /**
-     * Log handler execution
+     * Log handler execution (using logging-middleware)
      * 
      * @protected
      * @param {string} message - Log message
      * @param {Object} data - Log data
      */
     _log(message, data = {}) {
-        this.logger.info(`[${this.name}] ${message}`, data);
+        logWithContext(this.logger, this.name, message, data);
     }
 
     /**
-     * Log handler warning
+     * Log handler warning (using logging-middleware)
      * 
      * @protected
      * @param {string} message - Warning message
      * @param {Object} data - Log data
      */
     _logWarn(message, data = {}) {
-        this.logger.warn(`[${this.name}] ${message}`, data);
+        logWithContext(this.logger, this.name, `[WARN] ${message}`, data);
     }
 
     /**
-     * Log handler error
+     * Log handler error (using logging-middleware)
      * 
      * @protected
      * @param {string} message - Error message
      * @param {Error} error - Error object
      */
     _logError(message, error) {
-        this.logger.error(`[${this.name}] ${message}`, {
-            error: error.message,
-            code: error.code,
-            stack: error.stack
+        logErrorWithContext(this.logger, this.name, message, error, {
+            code: error.code
         });
     }
 
     /**
-     * Log debug information
+     * Log debug information (using logging-middleware)
      * 
      * @protected
      * @param {string} message - Debug message
@@ -100,12 +102,12 @@ class StateHandler {
      */
     _logDebug(message, data = {}) {
         if (this.logger.debug) {
-            this.logger.debug(`[${this.name}] ${message}`, data);
+            logWithContext(this.logger, this.name, `[DEBUG] ${message}`, data);
         }
     }
 
     /**
-     * Get processor with error handling
+     * Get processor with error handling (using error-handler)
      * 
      * @protected
      * @param {string} processorName - Processor name

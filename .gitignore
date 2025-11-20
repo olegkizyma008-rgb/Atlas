@@ -79,6 +79,7 @@ package-lock.json
 
 # Third party
 third_party/whisper.cpp.upstream/
+goose/examples/test_assets/
 
 # Audio/Model files
 *.wav

@@ -129,6 +129,7 @@ class StateHandler {
 
     /**
      * Validate context has required fields
+     * Uses standardized validation from ExecutorBase pattern
      * 
      * @protected
      * @param {Object} context - Context to validate
@@ -137,13 +138,21 @@ class StateHandler {
      * @throws {Error} If required fields missing
      */
     _validateContext(context, requiredFields = []) {
+        // Standardized validation logic
+        if (!context || typeof context !== 'object') {
+            const error = new Error('Context must be an object');
+            error.code = 'INVALID_CONTEXT';
+            this._logError('Invalid context', error);
+            throw error;
+        }
+
         const missing = requiredFields.filter(field => !context[field]);
         if (missing.length > 0) {
             const error = new Error(`Missing required context fields: ${missing.join(', ')}`);
             error.code = 'INVALID_CONTEXT';
             error.missing = missing;
             error.required = requiredFields;
-            this._logError(`Invalid context`, error);
+            this._logError('Invalid context', error);
             throw error;
         }
         return true;

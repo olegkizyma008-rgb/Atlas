@@ -1,2 +1,8 @@
 codemap-system/logs/
 node_modules
+.venv
+venv
+venv3.11
+*.egg-info/
+__pycache__/
+*.pyc

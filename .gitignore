@@ -73,7 +73,18 @@ temp/
 .cache/
 .parcel-cache/
 
-# Audio/Model files (optional - uncomment if needed)
-# *.wav
-# *.pth
-# *.bin
+# Audio/Model files
+*.wav
+*.pth
+*.bin
+*.ark
+*.npz
+*.xml.bz2
+*.glb
+
+# Large data directories
+models/
+data/
+reports/
+logs/
+*.log

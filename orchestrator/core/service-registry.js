@@ -7,18 +7,12 @@
  */
 
 import logger from '../utils/logger.js';
-import errorHandler from '../errors/unified-error-handler.js';
-import telemetry from '../utils/telemetry.js';
-import wsManager from '../api/websocket-manager.js';
-import webIntegration from '../api/web-integration.js';
-import GlobalConfig from '../../config/atlas-config.js';
 import { MCPManager } from '../ai/mcp-manager.js';
 import { MCPTodoManager } from '../workflow/mcp-todo-manager.js';
 import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
 import { VisionAnalysisService } from '../services/vision-analysis-service.js';
 import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
 import AccessibilityChecker from '../utils/accessibility-checker.js';
-import LocalizationService from '../services/localization-service.js';
 import {
     ModeSelectionProcessor,
     AtlasContextEnrichmentProcessor,
@@ -38,170 +32,15 @@ import { ChatMemoryEligibilityProcessor } from '../workflow/stages/chat-memory-e
 import { ChatMemoryCoordinator } from '../workflow/chat-memory-coordinator.js';
 import registerWorkflowModules from './workflow-modules-registry.js';
 
-/**
- * Реєструє всі core сервіси в DI контейнері
- *
- * @param {DIContainer} container - DI контейнер
- * @returns {DIContainer}
- */
-export function registerCoreServices(container) {
-    // 1. Configuration - завжди першим
-    container.singleton('config', () => GlobalConfig, {
-        metadata: { category: 'core', priority: 100 }
-    });
+// Import basic services from modular files
+import {
+    registerCoreServices,
+    registerApiServices,
+    registerStateServices
+} from './services/index.js';
 
-    // 2. Logger - базова інфраструктура
-    container.singleton('logger', () => logger, {
-        metadata: { category: 'infrastructure', priority: 90 },
-        lifecycle: {
-            onInit: async function () {
-                this.system('startup', '[DI] Logger service initialized');
-            }
-        }
-    });
-
-    // 3. Unified Error Handler - обробка помилок з інтелектуальним розпізнаванням
-    container.singleton('errorHandler', () => errorHandler, {
-        dependencies: ['logger'],
-        metadata: { category: 'infrastructure', priority: 85 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] Unified Error Handler initialized - intelligent pattern matching enabled');
-            }
-        }
-    });
-
-    // 4. Telemetry - метрики та моніторинг
-    container.singleton('telemetry', () => telemetry, {
-        dependencies: ['logger'],
-        metadata: { category: 'monitoring', priority: 80 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] Telemetry initialized');
-            }
-        }
-    });
-
-    // 5. Localization Service - NEW
-    container.singleton('localizationService', (c) => new LocalizationService({
-        logger: c.resolve('logger')
-    }), {
-        dependencies: ['logger'],
-        metadata: { category: 'core', priority: 75 },
-        lifecycle: {
-            onInit: async function () {
-                await this.initialize();
-                logger.system('startup', '[DI] Localization service initialized');
-                logger.system('startup', `[DI] User language: ${this.getUserLanguage()}`);
-            }
-        }
-    });
-
-    // 6. LLM Client - ADDED 2025-10-29 for ValidationPipeline and MCPTodoManager
-    container.singleton('llmClient', async (c) => {
-        const config = c.resolve('config');
-        const llmConfig = config.AI_BACKEND_CONFIG?.providers?.mcp?.llm;
-
-        if (!llmConfig) {
-            logger.warn('startup', '[DI] ⚠️ No LLM config found, creating minimal client');
-            // Return minimal client that won't crash
-            return {
-                call: async () => ({ content: '' }),
-                generate: async () => '',
-                generateResponse: async () => ({ content: '' }),
-                // FIXED 2025-11-03: Add chat method for AtlasContextEnrichmentProcessor
-                chat: async () => ({
-                    choices: [{
-                        message: {
-                            content: '{}'
-                        }
-                    }]
-                })
-            };
-        }
-
-        const { LLMClient } = await import('../ai/llm-client.js');
-        const client = new LLMClient(llmConfig);
-        await client.initialize();
-        return client;
-    }, {
-        dependencies: ['config', 'logger'],
-        metadata: { category: 'core', priority: 70 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] LLM Client initialized for ValidationPipeline');
-            }
-        }
-    });
-
-    return container;
-}
-
-/**
- * Реєструє API сервіси
- *
- * @param {DIContainer} container - DI контейнер
- * @returns {DIContainer}
- */
-export function registerApiServices(container) {
-    // WebSocket Manager
-    container.singleton('wsManager', () => {
-        return wsManager;  // Return the singleton instance
-    }, {
-        dependencies: ['logger', 'config'],
-        metadata: { category: 'api', priority: 60 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] WebSocket manager initialized');
-            },
-            onStart: async function () {
-                // WebSocket запускається окремо в Application.startWebSocket()
-                logger.system('startup', '[DI] WebSocket manager ready');
-            },
-            onStop: async function () {
-                // Закриття WebSocket connections
-                logger.system('shutdown', '[DI] WebSocket manager stopped');
-            }
-        }
-    });
-
-    // Web Integration
-    container.singleton('webIntegration', () => webIntegration, {
-        dependencies: ['logger'],
-        metadata: { category: 'api', priority: 50 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] Web integration initialized');
-            }
-        }
-    });
-
-    return container;
-}
-
-/**
- * Реєструє state management сервіси
- *
- * @param {DIContainer} container - DI контейнер
- * @returns {DIContainer}
- */
-export function registerStateServices(container) {
-    // Session Store - буде створений динамічно в Application
-    container.singleton('sessions', () => new Map(), {
-        metadata: { category: 'state', priority: 70 },
-        lifecycle: {
-            onInit: async function () {
-                logger.system('startup', '[DI] Session store initialized');
-            },
-            onStop: async function () {
-                this.clear();
-                logger.system('shutdown', '[DI] Session store cleared');
-            }
-        }
-    });
-
-    return container;
-}
+// Core, API, and State services are now imported from ./services/index.js
+// These functions are re-exported below for backward compatibility
 
 /**
  * Реєструє utility сервіси

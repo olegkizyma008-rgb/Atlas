@@ -96,3 +96,20 @@
 2025-11-19 03:36:40 - __main__ - WARNING - ⚠️ Memory or analysis data not available
 2025-11-19 03:36:40 - __main__ - WARNING - ⚠️ Health check degraded: {'analysis_available': False, 'memory_available': True, 'memory_synced': False, 'analysis_fresh': False, 'memory_fresh': False}
 2025-11-19 03:43:38 - __main__ - INFO - Calling tool: get_analysis_status with arguments: {}
+2025-11-19 03:49:34 - __main__ - INFO - Calling tool: clear_cache with arguments: {}
+2025-11-19 03:49:34 - __main__ - INFO - 🗑️ Cache cleared (0 items removed)
+2025-11-19 03:49:34 - __main__ - INFO - Calling tool: verify_memory_sync with arguments: {}
+2025-11-19 03:49:34 - __main__ - INFO - 🔍 Verifying memory sync integrity...
+2025-11-19 03:49:34 - __main__ - INFO - Loaded from memory: codemap_analysis
+2025-11-19 03:49:34 - __main__ - WARNING - ⚠️ Memory sync issues detected: {'files_analyzed': True, 'total_functions': True, 'dead_code_count': False, 'timestamp_exists': False}
+2025-11-19 03:49:34 - __main__ - INFO - Calling tool: get_analysis_status with arguments: {}
+2025-11-19 03:49:34 - __main__ - INFO - Calling tool: get_complexity_report with arguments: {'file_path': 'orchestrator'}
+2025-11-19 03:49:34 - __main__ - INFO - Calling tool: get_module_health with arguments: {'file_path': 'orchestrator'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/core/optimization-integration.js'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/utils/logger.js'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/utils/helpers.js'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/ai/tool-dispatcher.js'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/workflow/mcp-todo-manager.js'}
+2025-11-19 03:55:29 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/workflow/executor-v3.js'}
+2025-11-19 03:55:30 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/eternity/dynamic-prompt-injector.js'}
+2025-11-19 03:55:30 - __main__ - INFO - Calling tool: quick_show_dead_code with arguments: {'file_path': 'orchestrator/eternity/eternity-self-analysis.js'}

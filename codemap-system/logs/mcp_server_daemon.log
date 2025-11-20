@@ -1,0 +1,17 @@
+2025-11-19 21:37:38 - INFO - ================================================================================
+2025-11-19 21:37:38 - INFO - 🚀 MCP Windsurf Server initializing (FAST)...
+2025-11-19 21:37:38 - INFO - 📌 Python: 3.11.13 (main, Sep 18 2025, 18:38:44) [Clang 17.0.0 (clang-1700.3.10.950)]
+2025-11-19 21:37:38 - INFO - 📌 PID: 13271
+2025-11-19 21:37:38 - INFO - 📌 PYTHONPATH: /Users/dev/Documents/GitHub/atlas4/codemap-system
+2025-11-19 21:37:38 - INFO - 📌 PROJECT_ROOT: /Users/dev/Documents/GitHub/atlas4
+2025-11-19 21:37:38 - INFO - ================================================================================
+2025-11-19 21:37:38 - INFO - 📁 Project root (from env): /Users/dev/Documents/GitHub/atlas4
+2025-11-19 21:37:38 - INFO - ✅ MCP Windsurf Server ready (lazy initialization)
+2025-11-19 21:37:38 - INFO - ================================================================================
+2025-11-19 21:37:38 - INFO - 🌐 MCP Windsurf Server started (FAST)
+2025-11-19 21:37:38 - INFO - 📡 Waiting for requests from Windsurf...
+2025-11-19 21:37:38 - INFO - 📌 stdin: <_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>
+2025-11-19 21:37:38 - INFO - 📌 stdout: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+2025-11-19 21:37:38 - INFO - ================================================================================
+2025-11-19 21:37:38 - INFO - 📭 EOF on stdin - Windsurf closed connection
+2025-11-19 21:37:38 - INFO - 🛑 Server stopped

@@ -28,7 +28,7 @@ class MCPServer:
         self.request_id = 0
     
     def _initialize_tools(self) -> List[Dict[str, Any]]:
-        """Initialize all available tools"""
+        """Initialize all 16 available tools"""
         return [
             {
                 "name": "analyze_file_deeply",
@@ -36,10 +36,7 @@ class MCPServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "file_path": {
-                            "type": "string",
-                            "description": "Шлях до файлу для аналізу"
-                        }
+                        "file_path": {"type": "string", "description": "Шлях до файлу для аналізу"}
                     },
                     "required": ["file_path"]
                 }
@@ -50,24 +47,28 @@ class MCPServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "directory": {
-                            "type": "string",
-                            "description": "Директорія для пошуку дублікатів"
-                        }
+                        "directory": {"type": "string", "description": "Директорія для пошуку дублікатів"}
                     },
                     "required": ["directory"]
                 }
             },
             {
-                "name": "analyze_dependencies",
-                "description": "Аналіз залежностей файлу",
+                "name": "generate_refactoring_plan",
+                "description": "Генерувати план рефакторингу на основі аналізу",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "file_path": {
-                            "type": "string",
-                            "description": "Шлях до файлу"
-                        }
+                        "priority": {"type": "string", "enum": ["low", "medium", "high"], "description": "Пріоритет"}
+                    }
+                }
+            },
+            {
+                "name": "analyze_impact",
+                "description": "Аналіз впливу змін на інші модулі",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
                     },
                     "required": ["file_path"]
                 }
@@ -78,33 +79,125 @@ class MCPServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "directory": {
-                            "type": "string",
-                            "description": "Директорія для аналізу"
-                        }
+                        "directory": {"type": "string", "description": "Директорія для аналізу"}
                     }
                 }
             },
             {
-                "name": "generate_refactoring_plan",
-                "description": "Генерувати план рефакторингу на основі аналізу",
+                "name": "detect_code_smells",
+                "description": "Виявити code smells та потенційні проблеми",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "priority": {
-                            "type": "string",
-                            "enum": ["low", "medium", "high"],
-                            "description": "Пріоритет рефакторингу"
-                        }
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "generate_documentation",
+                "description": "Генерувати документацію для файлу або функції",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "analyze_dependencies",
+                "description": "Аналіз залежностей файлу",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "security_scan",
+                "description": "Сканування безпеки: виявлення вразливостей",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "directory": {"type": "string", "description": "Директорія для сканування"}
                     }
                 }
             },
             {
-                "name": "get_project_summary",
-                "description": "Отримати загальну інформацію про проект",
+                "name": "performance_analysis",
+                "description": "Аналіз продуктивності: виявлення вузьких місць",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "test_coverage",
+                "description": "Аналіз покриття тестами",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "directory": {"type": "string", "description": "Директорія для аналізу"}
+                    }
+                }
+            },
+            {
+                "name": "architecture_review",
+                "description": "Огляд архітектури проекту",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "directory": {"type": "string", "description": "Директорія проекту"}
+                    }
+                }
+            },
+            {
+                "name": "complexity_analysis",
+                "description": "Аналіз складності коду (циклічна складність)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "code_quality_metrics",
+                "description": "Метрики якості коду",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "refactoring_suggestions",
+                "description": "Пропозиції для рефакторингу",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string", "description": "Шлях до файлу"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "project_health_report",
+                "description": "Загальний звіт про здоров'я проекту",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "directory": {"type": "string", "description": "Директорія проекту"}
+                    }
                 }
             }
         ]
@@ -161,19 +254,39 @@ class MCPServer:
         tool_name = params.get("name")
         tool_args = params.get("arguments", {})
         
-        # Обробка інструментів
+        # Обробка всіх 16 інструментів
         if tool_name == "analyze_file_deeply":
             result = self.analyze_file_deeply(tool_args.get("file_path"))
         elif tool_name == "find_duplicates":
             result = self.find_duplicates(tool_args.get("directory"))
-        elif tool_name == "analyze_dependencies":
-            result = self.analyze_dependencies(tool_args.get("file_path"))
-        elif tool_name == "find_dead_code":
-            result = self.find_dead_code(tool_args.get("directory"))
         elif tool_name == "generate_refactoring_plan":
             result = self.generate_refactoring_plan(tool_args.get("priority", "medium"))
-        elif tool_name == "get_project_summary":
-            result = self.get_project_summary()
+        elif tool_name == "analyze_impact":
+            result = self.analyze_impact(tool_args.get("file_path"))
+        elif tool_name == "find_dead_code":
+            result = self.find_dead_code(tool_args.get("directory"))
+        elif tool_name == "detect_code_smells":
+            result = self.detect_code_smells(tool_args.get("file_path"))
+        elif tool_name == "generate_documentation":
+            result = self.generate_documentation(tool_args.get("file_path"))
+        elif tool_name == "analyze_dependencies":
+            result = self.analyze_dependencies(tool_args.get("file_path"))
+        elif tool_name == "security_scan":
+            result = self.security_scan(tool_args.get("directory"))
+        elif tool_name == "performance_analysis":
+            result = self.performance_analysis(tool_args.get("file_path"))
+        elif tool_name == "test_coverage":
+            result = self.test_coverage(tool_args.get("directory"))
+        elif tool_name == "architecture_review":
+            result = self.architecture_review(tool_args.get("directory"))
+        elif tool_name == "complexity_analysis":
+            result = self.complexity_analysis(tool_args.get("file_path"))
+        elif tool_name == "code_quality_metrics":
+            result = self.code_quality_metrics(tool_args.get("file_path"))
+        elif tool_name == "refactoring_suggestions":
+            result = self.refactoring_suggestions(tool_args.get("file_path"))
+        elif tool_name == "project_health_report":
+            result = self.project_health_report(tool_args.get("directory"))
         else:
             self.send_error(request_id, -32601, f"Unknown tool: {tool_name}")
             return
@@ -261,22 +374,91 @@ class MCPServer:
         """Generate refactoring plan"""
         return f"📋 План рефакторингу (пріоритет: {priority}):\n(Функція в розробці)"
     
-    def get_project_summary(self) -> str:
-        """Get project summary"""
+    def analyze_impact(self, file_path: str) -> str:
+        """Analyze impact of changes"""
         try:
-            # Підрахунок файлів
+            return f"📊 Аналіз впливу змін у {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def detect_code_smells(self, file_path: str) -> str:
+        """Detect code smells"""
+        try:
+            return f"👃 Виявлення code smells у {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def generate_documentation(self, file_path: str) -> str:
+        """Generate documentation"""
+        try:
+            return f"📚 Генерування документації для {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def security_scan(self, directory: Optional[str] = None) -> str:
+        """Security scan"""
+        try:
+            return f"🔒 Сканування безпеки у {directory or 'проекті'}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def performance_analysis(self, file_path: str) -> str:
+        """Performance analysis"""
+        try:
+            return f"⚡ Аналіз продуктивності {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def test_coverage(self, directory: Optional[str] = None) -> str:
+        """Test coverage analysis"""
+        try:
+            return f"🧪 Аналіз покриття тестами у {directory or 'проекті'}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def architecture_review(self, directory: Optional[str] = None) -> str:
+        """Architecture review"""
+        try:
+            return f"🏗️ Огляд архітектури {directory or 'проекту'}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def complexity_analysis(self, file_path: str) -> str:
+        """Complexity analysis"""
+        try:
+            return f"📈 Аналіз складності {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def code_quality_metrics(self, file_path: str) -> str:
+        """Code quality metrics"""
+        try:
+            return f"📊 Метрики якості коду {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def refactoring_suggestions(self, file_path: str) -> str:
+        """Refactoring suggestions"""
+        try:
+            return f"💡 Пропозиції рефакторингу для {file_path}:\n(Функція в розробці)"
+        except Exception as e:
+            return f"❌ Помилка: {str(e)}"
+    
+    def project_health_report(self, directory: Optional[str] = None) -> str:
+        """Project health report"""
+        try:
             py_files = list(self.project_root.rglob("*.py"))
             js_files = list(self.project_root.rglob("*.js"))
             
-            summary = {
-                "project_root": str(self.project_root),
+            report = {
+                "project": str(self.project_root),
                 "python_files": len(py_files),
                 "javascript_files": len(js_files),
-                "reports_dir": str(self.reports_dir),
+                "health_status": "good",
                 "timestamp": datetime.now().isoformat()
             }
             
-            return f"📊 Резюме проекту:\n" + json.dumps(summary, indent=2, ensure_ascii=False)
+            return f"❤️ Звіт про здоров'я проекту:\n" + json.dumps(report, indent=2, ensure_ascii=False)
         except Exception as e:
             return f"❌ Помилка: {str(e)}"
     

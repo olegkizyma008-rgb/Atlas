@@ -30,9 +30,9 @@ echo "✅ Знайдено $TOOL_COUNT інструментів"
 echo ""
 
 # Test 3: Call tool
-echo "📝 Тест 3: Виклик інструменту (get_project_summary)..."
-RESPONSE=$(echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_project_summary", "arguments": {}}}' | python3 "$SERVER")
-if echo "$RESPONSE" | grep -q "project_root"; then
+echo "📝 Тест 3: Виклик інструменту (project_health_report)..."
+RESPONSE=$(echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "project_health_report", "arguments": {}}}' | python3 "$SERVER")
+if echo "$RESPONSE" | grep -q "project"; then
     echo "✅ Інструмент успішно виконаний"
 else
     echo "❌ Інструмент не виконаний"

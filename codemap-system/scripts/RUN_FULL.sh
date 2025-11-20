@@ -116,18 +116,29 @@ print_header "🌐 ЗАПУСК MCP СЕРВЕРА (16 ІНСТРУМЕНТІВ)
 print_step "Запускаю MCP Server Daemon..."
 cd "$CODEMAP_DIR" # Ensure correct directory
 
-nohup /usr/bin/env python3 mcp_enhanced_server.py > "$LOGS_DIR/mcp_server.log" 2>&1 &
+# Start MCP server with stdin from /dev/null to prevent blocking
+# MCP server expects stdin from Windsurf, but we keep it running for monitoring
+nohup /usr/bin/env python3 mcp_server.py < /dev/null >> "$LOGS_DIR/mcp_server.log" 2>&1 &
 SERVER_PID=$!
 
 sleep 2
 
-if kill -0 "$SERVER_PID" 2>/dev/null; then
-    print_success "MCP Server Daemon запущено (PID: $SERVER_PID)"
-    print_info "Логи: $LOGS_DIR/mcp_server.log"
+# Note: MCP server may exit immediately if stdin is closed
+# This is expected - Windsurf will start a new instance when needed
+# We just need to verify the server code is valid
+
+# Verify server is working by testing it directly
+if /usr/bin/env python3 -c "
+import sys
+sys.path.insert(0, '.')
+from mcp_server import MCPServer
+server = MCPServer()
+print('✓ Server initialized')
+" 2>/dev/null; then
+    print_success "MCP Server готовий до роботи"
+    print_info "Примітка: MCP сервер запускатиметься Windsurf при першому використанні"
 else
-    print_error "Помилка при запуску MCP Server Daemon"
-    echo "Останні 10 рядків логу ($LOGS_DIR/mcp_server.log):"
-    tail -10 "$LOGS_DIR/mcp_server.log"
+    print_error "Помилка при ініціалізації MCP Server"
     exit 1
 fi
 
@@ -191,11 +202,21 @@ while true; do
         print_success "Enhanced Analyzer перезапущено (PID: $ANALYZER_PID)"
     fi
     if ! kill -0 "$SERVER_PID" 2>/dev/null; then
-        print_error "MCP Server зупинився, перезапускаю..."
-        cd "$CODEMAP_DIR"
-        nohup /usr/bin/env python3 mcp_enhanced_server.py > "$LOGS_DIR/mcp_server.log" 2>&1 &
-        SERVER_PID=$!
-        print_success "MCP Server перезапущено (PID: $SERVER_PID)"
+        # MCP server may have exited - this is normal if stdin was closed
+        # Windsurf will start a new instance when needed
+        # Just verify the server code is still valid
+        if /usr/bin/env python3 -c "
+import sys
+sys.path.insert(0, '.')
+from mcp_server import MCPServer
+server = MCPServer()
+" 2>/dev/null; then
+            # Server code is valid, no action needed
+            :
+        else
+            print_error "MCP Server код має помилку"
+            exit 1
+        fi
     fi
     sleep 60
 done

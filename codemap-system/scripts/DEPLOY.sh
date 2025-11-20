@@ -359,8 +359,11 @@ create_mcp_config() {
     local codemap_path=$(cd "$SCRIPT_DIR" && pwd)
     local project_root=$(cd "$SCRIPT_DIR/.." && pwd)
     
+    # Get absolute Python path
+    local python_path=$(which python3)
+    
     # Create mcp_config.json with proper paths using Python for reliable JSON generation
-    CODEMAP_PATH="$codemap_path" PROJECT_ROOT="$project_root" MCP_CONFIG_FILE="$mcp_config_file" LOCAL_MCP_CONFIG="$local_mcp_config" CONFIG_FILE="$CONFIG_FILE" python3 << 'PYTHON_EOF'
+    CODEMAP_PATH="$codemap_path" PROJECT_ROOT="$project_root" MCP_CONFIG_FILE="$mcp_config_file" LOCAL_MCP_CONFIG="$local_mcp_config" PYTHON_PATH="$python_path" python3 << 'PYTHON_EOF'
 import json
 import os
 from pathlib import Path
@@ -369,27 +372,21 @@ codemap_path = os.environ.get('CODEMAP_PATH')
 project_root = os.environ.get('PROJECT_ROOT')
 mcp_config_file = os.environ.get('MCP_CONFIG_FILE')
 local_mcp_config = os.environ.get('LOCAL_MCP_CONFIG')
-config_file = os.environ.get('CONFIG_FILE')
+python_path = os.environ.get('PYTHON_PATH')
 
-# Build MCP server arguments
+# Build MCP server arguments - use new mcp_server.py with 16 tools
 mcp_args = [
-    f"{codemap_path}/mcp_codemap_server.py",
-    "--project",
-    project_root,
-    "--mode",
-    "stdio"
+    f"{codemap_path}/mcp_server.py"
 ]
-
-# Note: MCP server doesn't support --config parameter yet
-# The config is loaded by the server automatically from config.yaml
 
 mcp_config = {
     "mcpServers": {
         "codemap": {
-            "command": "python3",
+            "command": python_path,
             "args": mcp_args,
             "env": {
                 "PYTHONPATH": codemap_path,
+                "PROJECT_ROOT": project_root,
                 "PYTHONUNBUFFERED": "1"
             }
         }
@@ -407,6 +404,8 @@ with open(local_mcp_config, 'w') as f:
 print("✅ MCP конфігурація створена:")
 print(f"   - Глобально: {mcp_config_file}")
 print(f"   - Локально: {local_mcp_config}")
+print(f"   - Python: {python_path}")
+print(f"   - Сервер: {codemap_path}/mcp_server.py")
 PYTHON_EOF
     
     if [ $? -eq 0 ]; then
@@ -492,9 +491,9 @@ start_mcp_server() {
     
     cd "$SCRIPT_DIR"
     
-    # Start MCP server with config if available
-    # Note: MCP server loads config automatically from config.yaml
-    python3 mcp_codemap_server.py --project "$SCRIPT_DIR" --mode stdio > /dev/null 2>&1 &
+    # Start MCP server - uses mcp_server.py with 16 tools
+    # MCP server communicates via JSON-RPC over stdio
+    python3 mcp_server.py > /dev/null 2>&1 &
     MCP_PID=$!
     
     # Save PID for later

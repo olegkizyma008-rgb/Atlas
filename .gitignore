@@ -73,6 +73,13 @@ temp/
 .cache/
 .parcel-cache/
 
+# Package lock files
+package-lock.json
+**/package-lock.json
+
+# Third party
+third_party/whisper.cpp.upstream/
+
 # Audio/Model files
 *.wav
 *.pth

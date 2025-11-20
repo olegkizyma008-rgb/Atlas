@@ -153,52 +153,55 @@ class WorkflowStateMachine {
      * @throws {Error} If transition is invalid or fails
      */
     async transition(nextState, data = {}) {
-        // Validate state exists
-        if (!WorkflowStateMachine.States[nextState]) {
-            const error = new Error(`Invalid state: ${nextState} does not exist`);
-            error.code = 'INVALID_STATE';
-            error.currentState = this.currentState;
-            error.attemptedState = nextState;
-            error.validStates = Object.keys(WorkflowStateMachine.States);
-            this.logger.error(`[StateMachine] Invalid state attempted`, {
-                error: error.message,
-                code: error.code,
-                currentState: this.currentState,
-                attemptedState: nextState
-            });
-            throw error;
-        }
-
-        // Validate transition is allowed
-        if (!this.canTransition(nextState)) {
-            const allowedStates = WorkflowStateMachine.TransitionRules[this.currentState] || [];
-            const error = new Error(
-                `Invalid transition: ${this.currentState} -> ${nextState}. ` +
-                `Allowed transitions: ${allowedStates.join(', ') || 'none'}`
-            );
-            error.code = 'INVALID_TRANSITION';
-            error.currentState = this.currentState;
-            error.attemptedState = nextState;
-            error.allowedStates = allowedStates;
-            this.logger.error(`[StateMachine] Invalid transition attempted`, {
-                error: error.message,
-                code: error.code,
-                from: this.currentState,
-                to: nextState,
-                allowed: allowedStates
-            });
-            throw error;
-        }
-
-        // Call onExit handler for current state
-        const exitHandler = this._getHandler(`${this.currentState}_exit`);
-        if (exitHandler) {
-            try {
-                await exitHandler(this.context, data);
-            } catch (error) {
-                this.logger.error(`[StateMachine] Exit handler error for ${this.currentState}:`, error);
+        // Validate state exists (using ErrorHandler for consolidation)
+        await ErrorHandler.handle(async () => {
+            if (!WorkflowStateMachine.States[nextState]) {
+                const error = new Error(`Invalid state: ${nextState} does not exist`);
+                error.code = 'INVALID_STATE';
+                error.currentState = this.currentState;
+                error.attemptedState = nextState;
+                error.validStates = Object.keys(WorkflowStateMachine.States);
                 throw error;
             }
+        }, {
+            logger: this.logger,
+            componentName: 'WorkflowStateMachine',
+            operationName: 'transition_validate_state',
+            throwError: true
+        });
+
+        // Validate transition is allowed (using ErrorHandler for consolidation)
+        await ErrorHandler.handle(async () => {
+            if (!this.canTransition(nextState)) {
+                const allowedStates = WorkflowStateMachine.TransitionRules[this.currentState] || [];
+                const error = new Error(
+                    `Invalid transition: ${this.currentState} -> ${nextState}. ` +
+                    `Allowed transitions: ${allowedStates.join(', ') || 'none'}`
+                );
+                error.code = 'INVALID_TRANSITION';
+                error.currentState = this.currentState;
+                error.attemptedState = nextState;
+                error.allowedStates = allowedStates;
+                throw error;
+            }
+        }, {
+            logger: this.logger,
+            componentName: 'WorkflowStateMachine',
+            operationName: 'transition_validate_allowed',
+            throwError: true
+        });
+
+        // Call onExit handler for current state (using ErrorHandler for consolidation)
+        const exitHandler = this._getHandler(`${this.currentState}_exit`);
+        if (exitHandler) {
+            await ErrorHandler.handle(async () => {
+                await exitHandler(this.context, data);
+            }, {
+                logger: this.logger,
+                componentName: 'WorkflowStateMachine',
+                operationName: `exit_handler_${this.currentState}`,
+                throwError: true
+            });
         }
 
         // Update state
@@ -240,43 +243,49 @@ class WorkflowStateMachine {
      * @throws {Error} If handler execution fails
      */
     async executeHandler(data = {}) {
-        const handler = this._getHandler(`${this.currentState}_execute`);
-        if (!handler) {
-            const error = new Error(`No handler found for state: ${this.currentState}`);
-            error.code = 'HANDLER_NOT_FOUND';
-            error.state = this.currentState;
-            this.logger.error(`[StateMachine] Handler not found`, {
-                error: error.message,
-                code: error.code,
-                state: this.currentState
-            });
-            throw error;
-        }
+        // Validate handler exists (using ErrorHandler for consolidation)
+        await ErrorHandler.handle(async () => {
+            const handler = this._getHandler(`${this.currentState}_execute`);
+            if (!handler) {
+                const error = new Error(`No handler found for state: ${this.currentState}`);
+                error.code = 'HANDLER_NOT_FOUND';
+                error.state = this.currentState;
+                throw error;
+            }
+        }, {
+            logger: this.logger,
+            componentName: 'WorkflowStateMachine',
+            operationName: `handler_validation_${this.currentState}`,
+            throwError: true
+        });
 
-        try {
+        // Execute handler (using ErrorHandler for consolidation)
+        const result = await ErrorHandler.handle(async () => {
+            const handler = this._getHandler(`${this.currentState}_execute`);
             this.logger.info(`[StateMachine] Executing handler for state: ${this.currentState}`);
-            const result = await handler(this.context, data);
+            const handlerResult = await handler(this.context, data);
 
-            if (!result || !result.success) {
+            if (!handlerResult || !handlerResult.success) {
                 this.logger.warn(`[StateMachine] Handler returned failure for state: ${this.currentState}`, {
-                    result
+                    result: handlerResult
                 });
             } else {
                 this.logger.info(`[StateMachine] Handler succeeded for state: ${this.currentState}`);
             }
 
-            this._emit('handler_executed', { state: this.currentState, result });
-            return result;
-        } catch (error) {
-            this.logger.error(`[StateMachine] Handler execution failed for state: ${this.currentState}`, {
-                error: error.message,
-                code: error.code,
-                stack: error.stack,
-                state: this.currentState
-            });
-            this._emit('handler_error', { state: this.currentState, error });
-            throw error;
-        }
+            this._emit('handler_executed', { state: this.currentState, result: handlerResult });
+            return handlerResult;
+        }, {
+            logger: this.logger,
+            componentName: 'WorkflowStateMachine',
+            operationName: `handler_execution_${this.currentState}`,
+            throwError: true,
+            onError: (error) => {
+                this._emit('handler_error', { state: this.currentState, error });
+            }
+        });
+
+        return result;
     }
 
     /**

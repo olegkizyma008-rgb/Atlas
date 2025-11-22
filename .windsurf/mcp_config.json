@@ -3,7 +3,7 @@
     "codemap": {
       "command": "python3",
       "args": [
-        "/Users/dev/Documents/GitHub/atlas4/codemap-system/core/mcp_windsurf_server_fast.py"
+        "/Users/dev/Documents/GitHub/atlas4/codemap-system/windsurf/mcp_architecture_server.py"
       ],
       "env": {
         "PYTHONPATH": "/Users/dev/Documents/GitHub/atlas4/codemap-system",

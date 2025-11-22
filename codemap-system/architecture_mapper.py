@@ -12,6 +12,7 @@ from datetime import datetime
 from collections import defaultdict
 import ast
 import re
+from dotenv import load_dotenv
 
 
 class FileStatus:
@@ -27,9 +28,23 @@ class FileStatus:
 class ArchitectureMapper:
     """Глибока архітектурна карта системи з рекурсивним аналізом"""
     
-    def __init__(self, project_root: Path):
-        self.project_root = Path(project_root)
-        self.workflow_root = self.project_root / 'orchestrator' / 'workflow'
+    def __init__(self, project_root: Optional[Path] = None):
+        # Якщо project_root не передано, читаємо з .env.architecture
+        if project_root is None:
+            env_path = Path(__file__).parent / '.env.architecture'
+            if env_path.exists():
+                load_dotenv(env_path)
+            
+            project_root_str = os.environ.get('PROJECT_ROOT', '..')
+            if not os.path.isabs(project_root_str):
+                project_root = Path(__file__).parent / project_root_str
+            else:
+                project_root = Path(project_root_str)
+        
+        self.project_root = Path(project_root).resolve()
+        
+        # Аналізуємо весь проект, а не тільки workflow
+        self.analysis_root = self.project_root
         
         # Кеш для файлів та їх властивостей
         self.files_cache: Dict[str, Dict[str, Any]] = {}
@@ -60,12 +75,34 @@ class ArchitectureMapper:
         return architecture
     
     def _find_workflow_files(self) -> List[Path]:
-        """Знайти всі файли workflow"""
+        """Знайти всі файли проекту для аналізу"""
         files = []
-        if self.workflow_root.exists():
-            for file_path in self.workflow_root.rglob('*.js'):
-                if not any(part.startswith('.') for part in file_path.parts):
-                    files.append(file_path)
+        
+        # Розширення для аналізу
+        extensions = {'.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.cpp', '.go'}
+        
+        # Папки для виключення
+        exclude_dirs = {'node_modules', '__pycache__', '.git', '.venv', 'dist', 'build', 
+                       'archive', '.archive', 'backups', '.cache', '.idx', '.vscode', '.DS_Store'}
+        
+        # Рекурсивно проходимо по всім файлам
+        for file_path in self.analysis_root.rglob('*'):
+            # Пропускаємо директорії
+            if file_path.is_dir():
+                continue
+            
+            # Пропускаємо приховані файли/папки
+            if any(part.startswith('.') for part in file_path.parts):
+                continue
+            
+            # Пропускаємо виключені директорії
+            if any(part in exclude_dirs for part in file_path.parts):
+                continue
+            
+            # Перевіряємо розширення
+            if file_path.suffix in extensions:
+                files.append(file_path)
+        
         return sorted(files)
     
     def _analyze_file(self, file_path: Path, depth: int = 0, max_depth: int = 5) -> Dict[str, Any]:
@@ -239,7 +276,7 @@ class ArchitectureMapper:
         return {
             'timestamp': datetime.now().isoformat(),
             'project_root': str(self.project_root),
-            'workflow_root': str(self.workflow_root),
+            'analysis_root': str(self.analysis_root),
             'max_depth': max_depth,
             'files': self._serialize_files(),
             'dependencies': self._serialize_dependencies(),

@@ -1,1 +1,35 @@
-radon
+# Core Analysis Tools
+radon==6.1.1
+networkx==3.5
+python-dotenv==1.0.0
+
+# Code Quality & Metrics
+pylint==3.0.3
+flake8==6.1.0
+black==23.7.0
+isort==5.13.2
+
+# AST & Code Parsing
+ast-monitor==0.1.1
+
+# File & Directory Operations
+watchdog==3.0.0
+pathspec==0.12.1
+
+# Data Processing
+numpy==1.26.4
+pandas==2.1.4
+
+# Utilities
+pydantic==2.12.0
+pyyaml==6.0.1
+click==8.3.0
+colorama==0.4.6
+tqdm==4.67.1
+
+# Testing & Debugging
+pytest==7.4.2
+pytest-cov==4.1.0
+
+# MCP & Protocol
+jsonschema==4.19.0

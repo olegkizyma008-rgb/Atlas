@@ -1,0 +1,235 @@
+#!/bin/bash
+
+# 🚀 Architecture System v2.0 - Quick Install
+# Швидка установка системи
+
+set -e
+
+# Переходимо в папку скрипту
+cd "$(dirname "$0")"
+
+echo "🚀 Architecture System v2.0 - Installation"
+echo "==========================================="
+echo ""
+
+# Кольори
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+print_step() {
+    echo -e "${BLUE}▶ $1${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+# Крок 1: Перевірка Python
+print_step "Перевірка Python"
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Python3 не встановлений"
+    exit 1
+fi
+PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+print_success "Python $PYTHON_VERSION знайдений"
+echo ""
+
+# Крок 2: Створення віртуального середовища
+print_step "Створення віртуального середовища"
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    print_success "Віртуальне середовище створене"
+else
+    print_success "Віртуальне середовище вже існує"
+fi
+echo ""
+
+# Крок 3: Активація
+print_step "Активація віртуального середовища"
+source venv/bin/activate || . venv/Scripts/activate
+print_success "Активовано"
+echo ""
+
+# Крок 4: Встановлення залежностей
+print_step "Встановлення залежностей"
+pip install -q --upgrade pip
+pip install -q -r requirements-minimal.txt
+print_success "Залежності встановлені"
+echo ""
+
+# Крок 5: Конфігурація
+print_step "Налаштування конфігурації"
+if [ ! -f ".env.architecture" ]; then
+    cp .env.architecture.example .env.architecture
+    print_success "Конфігурація створена"
+else
+    print_success "Конфігурація вже існує"
+fi
+echo ""
+
+# Крок 6: Створення папок
+print_step "Створення необхідних папок"
+mkdir -p logs reports .cache
+print_success "Папки створені"
+echo ""
+
+# Налаштування інтеграції з Windsurf (.windsurf у корені проекту)
+print_step "Налаштування інтеграції з Windsurf"
+
+# Визначаємо корінь проекту (на один рівень вище codemap-system, якщо PROJECT_ROOT не встановлений)
+PROJECT_ROOT_DIR="${PROJECT_ROOT:-$(cd .. && pwd)}"
+WINDSURF_DIR="$PROJECT_ROOT_DIR/.windsurf"
+CODEMAP_SYSTEM_DIR="$(pwd)"
+
+mkdir -p "$WINDSURF_DIR"
+
+# MCP конфіг для codemap (локальний)
+MCP_CONFIG="$WINDSURF_DIR/mcp_config.json"
+if [ ! -f "$MCP_CONFIG" ]; then
+    cat > "$MCP_CONFIG" <<EOF
+{
+  "mcpServers": {
+    "codemap": {
+      "command": "python3",
+      "args": [
+        "$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
+        "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+EOF
+    print_success "Створено MCP конфігурацію для codemap: $MCP_CONFIG"
+else
+    echo -e "${YELLOW}⚠️ MCP конфігурація вже існує в $MCP_CONFIG (не змінюємо). Переконайтесь, що там є сервер 'codemap'.${NC}"
+fi
+
+# MCP конфіг для глобального Windsurf (~/.codeium/windsurf/mcp_config.json)
+print_step "Налаштування глобального MCP конфіга"
+GLOBAL_WINDSURF_DIR="$HOME/.codeium/windsurf"
+GLOBAL_MCP_CONFIG="$GLOBAL_WINDSURF_DIR/mcp_config.json"
+
+mkdir -p "$GLOBAL_WINDSURF_DIR"
+
+if [ -f "$GLOBAL_MCP_CONFIG" ] && [ -s "$GLOBAL_MCP_CONFIG" ]; then
+    # Конфіг існує і не порожній - перевіримо, чи там є codemap
+    if grep -q '"codemap"' "$GLOBAL_MCP_CONFIG"; then
+        echo -e "${YELLOW}⚠️ Глобальний MCP конфіг вже містить сервер 'codemap'${NC}"
+    else
+        # Додаємо codemap до існуючого конфіга
+        python3 << PYTHON_EOF
+import json
+import sys
+
+try:
+    with open('$GLOBAL_MCP_CONFIG', 'r') as f:
+        config = json.load(f)
+    
+    if 'mcpServers' not in config:
+        config['mcpServers'] = {}
+    
+    config['mcpServers']['codemap'] = {
+        'command': 'python3',
+        'args': ['$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py'],
+        'env': {
+            'PYTHONPATH': '$CODEMAP_SYSTEM_DIR',
+            'PROJECT_ROOT': '$PROJECT_ROOT_DIR',
+            'PYTHONUNBUFFERED': '1'
+        }
+    }
+    
+    with open('$GLOBAL_MCP_CONFIG', 'w') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+    
+    print('✅ Додано codemap до глобального MCP конфіга')
+except Exception as e:
+    print(f'❌ Помилка при додаванні до глобального конфіга: {e}', file=sys.stderr)
+    sys.exit(1)
+PYTHON_EOF
+    fi
+else
+    # Конфіг не існує або порожній - створюємо новий
+    cat > "$GLOBAL_MCP_CONFIG" <<EOF
+{
+  "mcpServers": {
+    "codemap": {
+      "command": "python3",
+      "args": [
+        "$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
+        "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+EOF
+    print_success "Створено глобальний MCP конфіг: $GLOBAL_MCP_CONFIG"
+fi
+
+# Налаштування Windsurf settings
+SETTINGS_JSON="$WINDSURF_DIR/settings.json"
+if [ ! -f "$SETTINGS_JSON" ]; then
+    cat > "$SETTINGS_JSON" <<EOF
+{
+  "windsurf.cascade.context.includes": [
+    "dependency-graph",
+    "dead-code-analysis",
+    "project-structure"
+  ],
+  "windsurf.cascade.maxContextTokens": 128000,
+  "windsurf.cascade.autoRefresh": true,
+  "windsurf.cascade.refreshInterval": 30000,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.git": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/dist": true,
+    "**/build": true
+  }
+}
+EOF
+    print_success "Створено Windsurf settings: $SETTINGS_JSON"
+else
+    print_success "Windsurf settings вже існує: $SETTINGS_JSON (не змінюємо)"
+fi
+
+# Крок 7: Права на виконання
+print_step "Встановлення прав на виконання"
+chmod +x START_FULL_SYSTEM.sh
+chmod +x STOP_FULL_SYSTEM.sh
+print_success "Права встановлені"
+echo ""
+
+# Крок 8: Тестування
+print_step "Тестування системи"
+if python3 quick_test.py > /dev/null 2>&1; then
+    print_success "Тести пройшли успішно"
+else
+    echo -e "${YELLOW}⚠️  Деякі тести не пройшли, але система готова${NC}"
+fi
+echo ""
+
+print_success "✨ Установка завершена!"
+echo ""
+echo "🚀 Для запуску системи виконайте:"
+echo "   ./START_FULL_SYSTEM.sh"
+echo ""
+echo "📖 Для детальної інформації див.:"
+echo "   • QUICK_START.md"
+echo "   • DEPLOYMENT_GUIDE.md"
+echo ""

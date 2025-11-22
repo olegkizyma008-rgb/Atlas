@@ -118,12 +118,8 @@ GLOBAL_MCP_CONFIG="$GLOBAL_WINDSURF_DIR/mcp_config.json"
 mkdir -p "$GLOBAL_WINDSURF_DIR"
 
 if [ -f "$GLOBAL_MCP_CONFIG" ] && [ -s "$GLOBAL_MCP_CONFIG" ]; then
-    # Конфіг існує і не порожній - перевіримо, чи там є codemap
-    if grep -q '"codemap"' "$GLOBAL_MCP_CONFIG"; then
-        echo -e "${YELLOW}⚠️ Глобальний MCP конфіг вже містить сервер 'codemap'${NC}"
-    else
-        # Додаємо codemap до існуючого конфіга
-        python3 << PYTHON_EOF
+    # Конфіг існує і не порожній - додаємо/оновлюємо codemap
+    python3 << PYTHON_EOF
 import json
 import sys
 
@@ -133,6 +129,10 @@ try:
     
     if 'mcpServers' not in config:
         config['mcpServers'] = {}
+    
+    # Перевіримо, чи вже є codemap
+    if 'codemap' in config['mcpServers']:
+        print('⚠️ Сервер codemap вже зареєстрований, оновлюємо...')
     
     config['mcpServers']['codemap'] = {
         'command': 'python3',
@@ -147,12 +147,11 @@ try:
     with open('$GLOBAL_MCP_CONFIG', 'w') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
     
-    print('✅ Додано codemap до глобального MCP конфіга')
+    print('✅ Додано/оновлено codemap у глобальному MCP конфіга')
 except Exception as e:
     print(f'❌ Помилка при додаванні до глобального конфіга: {e}', file=sys.stderr)
     sys.exit(1)
 PYTHON_EOF
-    fi
 else
     # Конфіг не існує або порожній - створюємо новий
     cat > "$GLOBAL_MCP_CONFIG" <<EOF
@@ -226,10 +225,16 @@ echo ""
 
 print_success "✨ Установка завершена!"
 echo ""
-echo "🚀 Для запуску системи виконайте:"
-echo "   ./START_FULL_SYSTEM.sh"
+echo "🚀 Наступні кроки:"
+echo "   1. Перезавантажте Windsurf (Cmd+Shift+P → Reload Window)"
+echo "   2. Перевірте, що MCP 'codemap' з'явився у списку доступних серверів"
+echo "   3. Запустіть систему: ./START_FULL_SYSTEM.sh"
 echo ""
 echo "📖 Для детальної інформації див.:"
 echo "   • QUICK_START.md"
 echo "   • DEPLOYMENT_GUIDE.md"
+echo ""
+echo "🔗 MCP конфіги:"
+echo "   • Локальний: $WINDSURF_DIR/mcp_config.json"
+echo "   • Глобальний: $GLOBAL_MCP_CONFIG"
 echo ""

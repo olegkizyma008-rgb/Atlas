@@ -519,21 +519,7 @@ def main():
     """Основна функція MCP сервера"""
     server = ArchitectureAnalysisServer()
     
-    # Якщо stdin закритий або не TTY (запущено в фоні), просто чекаємо
-    try:
-        is_tty = sys.stdin.isatty()
-    except (AttributeError, ValueError):
-        is_tty = False
-    
-    if not is_tty:
-        logger.info("📡 MCP сервер готовий до отримання команд (фоновий режим)")
-        # Чекаємо на сигнали, але не читаємо stdin
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            logger.info("🛑 MCP сервер зупинений")
-            return
+    logger.info("📡 MCP сервер готовий до отримання команд")
     
     # Читаємо JSON-RPC запити зі stdin
     for line in sys.stdin:

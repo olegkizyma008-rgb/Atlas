@@ -7,30 +7,8 @@
  */
 
 import logger from '../utils/logger.js';
-import { MCPManager } from '../ai/mcp-manager.js';
-import { MCPTodoManager } from '../workflow/mcp-todo-manager.js';
-import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
-import { VisionAnalysisService } from '../services/vision-analysis-service.js';
-import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
-import AccessibilityChecker from '../utils/accessibility-checker.js';
 import GlobalConfig from '../../config/atlas-config.js';
-import {
-    ModeSelectionProcessor,
-    AtlasContextEnrichmentProcessor,
-    AtlasTodoPlanningProcessor,
-    ServerSelectionProcessor,
-    TetyanaPlanToolsProcessor,
-    TetyanaExecuteToolsProcessor,
-    GrishaVerifyItemProcessor,
-    AtlasReplanTodoProcessor,
-    McpFinalSummaryProcessor
-} from '../workflow/stages/index.js';
-import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor/index.js';
-import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
-import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
-import { NexusMemoryManager } from '../eternity/nexus-memory-manager.js';
-import { ChatMemoryEligibilityProcessor } from '../workflow/stages/chat-memory-eligibility-processor.js';
-import { ChatMemoryCoordinator } from '../workflow/chat-memory-coordinator.js';
+import { ServiceLifecycleManager } from './service-lifecycle-manager.js';
 import registerWorkflowModules from './workflow-modules-registry.js';
 
 // Import basic services from modular files

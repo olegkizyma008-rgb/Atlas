@@ -13,6 +13,7 @@ import { TTSSyncManager } from '../workflow/tts-sync-manager.js';
 import { VisionAnalysisService } from '../services/vision-analysis-service.js';
 import { TetyanaToolSystem } from '../ai/tetyana-tool-system.js';
 import AccessibilityChecker from '../utils/accessibility-checker.js';
+import GlobalConfig from '../../config/atlas-config.js';
 import {
     ModeSelectionProcessor,
     AtlasContextEnrichmentProcessor,
@@ -24,7 +25,7 @@ import {
     AtlasReplanTodoProcessor,
     McpFinalSummaryProcessor
 } from '../workflow/stages/index.js';
-import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor.js';
+import { DevSelfAnalysisProcessor } from '../workflow/stages/dev-self-analysis-processor/index.js';
 import { SelfImprovementEngine } from '../eternity/self-improvement-engine.js';
 import WindsurfCodeEditor from '../eternity/windsurf-code-editor.js';
 import { NexusMemoryManager } from '../eternity/nexus-memory-manager.js';
@@ -514,10 +515,8 @@ export function registerMCPProcessors(container) {
 
     // Workflow State Machine - NEW 29.10.2025
     container.singleton('workflowStateMachine', async (c) => {
-        const { StateMachineFactory } = await import('../workflow/state-machine.js');
-        return StateMachineFactory.createMCPWorkflow(
-            c.resolve('logger')
-        );
+        const { WorkflowStateMachine } = await import('../workflow/state-machine/index.js');
+        return new WorkflowStateMachine(c.resolve('logger'));
     }, {
         dependencies: ['logger'],
         metadata: { category: 'workflow', priority: 41 }

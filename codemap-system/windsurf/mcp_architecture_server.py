@@ -18,16 +18,20 @@ from dotenv import load_dotenv
 # Додаємо codemap-system до PYTHONPATH
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.architecture_mapper import ArchitectureMapper, FileStatus
+# Використовуємо V2 (стабільна версія)
+from core.architecture_mapper import ArchitectureMapper
+
+from core.architecture_mapper import FileStatus
 from core.code_duplication_detector import CodeDuplicationDetector
 from core.code_quality_analyzer import CodeQualityAnalyzer
+from windsurf.mcp_dependency_graph_tools import DependencyGraphTools
 
 # Налаштування логування
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/mcp_architecture_server.log'),
+        logging.FileHandler('/Users/dev/Documents/GitHub/logs/mcp_architecture_server.log'),
         logging.StreamHandler(sys.stderr)
     ]
 )
@@ -59,6 +63,10 @@ class ArchitectureAnalysisServer:
         self.mapper = ArchitectureMapper(self.project_root)
         self.duplication_detector = CodeDuplicationDetector(self.project_root)
         self.quality_analyzer = CodeQualityAnalyzer(self.project_root)
+        
+        # Ініціалізуємо аналізатор залежностей
+        self.dep_tools = DependencyGraphTools(self.project_root)
+        self.dep_tools.initialize()
         
         # Кеш архітектури
         self.architecture_cache = None
@@ -182,6 +190,93 @@ class ArchitectureAnalysisServer:
                         "format": {"type": "string", "enum": ["json", "html", "markdown"]}
                     }
                 }
+            },
+            # Нові інструменти для аналізу залежностей
+            {
+                "name": "get_block_dependencies",
+                "description": "Отримати залежності блоку коду (функція, клас, метод)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "block_key": {"type": "string", "description": "Ключ блоку (file_path:block_name)"}
+                    },
+                    "required": ["block_key"]
+                }
+            },
+            {
+                "name": "get_function_call_chain",
+                "description": "Отримати ланцюг викликів функції",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "function_name": {"type": "string"},
+                        "file_path": {"type": "string"}
+                    },
+                    "required": ["function_name"]
+                }
+            },
+            {
+                "name": "analyze_code_impact",
+                "description": "Аналізувати вплив змін в блоку коду",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "block_key": {"type": "string"}
+                    },
+                    "required": ["block_key"]
+                }
+            },
+            {
+                "name": "find_related_blocks",
+                "description": "Знайти пов'язані блоки коду",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "block_key": {"type": "string"},
+                        "depth": {"type": "integer", "default": 2}
+                    },
+                    "required": ["block_key"]
+                }
+            },
+            {
+                "name": "get_file_structure",
+                "description": "Отримати структуру файлу (функції, класи, методи)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {"type": "string"}
+                    },
+                    "required": ["file_path"]
+                }
+            },
+            {
+                "name": "search_blocks_by_name",
+                "description": "Пошук блоків за назвою (підтримує regex)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": {"type": "string"}
+                    },
+                    "required": ["pattern"]
+                }
+            },
+            {
+                "name": "get_complexity_report",
+                "description": "Отримати звіт про складність коду",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "export_dependency_graph",
+                "description": "Експортувати граф залежностей",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "format": {"type": "string", "enum": ["json", "mermaid"], "default": "json"}
+                    }
+                }
             }
         ]
     
@@ -189,7 +284,7 @@ class ArchitectureAnalysisServer:
         """Переконатися, що архітектура проаналізована"""
         if self.architecture_cache is None:
             logger.info("🔍 Аналіз архітектури...")
-            self.architecture_cache = self.mapper.analyze_architecture(max_depth=2)
+            self.architecture_cache = self.mapper.analyze_architecture(max_depth=5)
             self.last_analysis_time = datetime.now()
             logger.info("✅ Архітектура проаналізована")
     
@@ -222,6 +317,40 @@ class ArchitectureAnalysisServer:
             elif tool_name == "export_architecture_report":
                 format_type = arguments.get("format", "json")
                 return self._export_architecture_report(format_type)
+            # Нові інструменти для аналізу залежностей
+            elif tool_name == "get_block_dependencies":
+                block_key = arguments.get("block_key", "")
+                result = self.dep_tools.get_block_dependencies(block_key)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "get_function_call_chain":
+                function_name = arguments.get("function_name", "")
+                file_path = arguments.get("file_path")
+                result = self.dep_tools.get_function_call_chain(function_name, file_path)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "analyze_code_impact":
+                block_key = arguments.get("block_key", "")
+                result = self.dep_tools.analyze_code_impact(block_key)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "find_related_blocks":
+                block_key = arguments.get("block_key", "")
+                depth = arguments.get("depth", 2)
+                result = self.dep_tools.find_related_blocks(block_key, depth)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "get_file_structure":
+                file_path = arguments.get("file_path", "")
+                result = self.dep_tools.get_file_structure(file_path)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "search_blocks_by_name":
+                pattern = arguments.get("pattern", "")
+                result = self.dep_tools.search_blocks_by_name(pattern)
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "get_complexity_report":
+                result = self.dep_tools.get_complexity_report()
+                return json.dumps(result, ensure_ascii=False, default=str)
+            elif tool_name == "export_dependency_graph":
+                format_type = arguments.get("format", "json")
+                result = self.dep_tools.export_dependency_graph(format_type)
+                return json.dumps(result, ensure_ascii=False, default=str)
             else:
                 return json.dumps({"error": f"Unknown tool: {tool_name}"})
         except Exception as e:
@@ -517,9 +646,11 @@ class ArchitectureAnalysisServer:
 
 def main():
     """Основна функція MCP сервера"""
-    server = ArchitectureAnalysisServer()
+    logger = logging.getLogger(__name__)
     
-    logger.info("📡 MCP сервер готовий до отримання команд")
+    # Force fallback mode for compatibility
+    logger.warning("Using fallback JSON-RPC mode for compatibility")
+    server = ArchitectureAnalysisServer()
     
     # Читаємо JSON-RPC запити зі stdin
     for line in sys.stdin:
@@ -532,7 +663,9 @@ def main():
                     "id": request.get("id"),
                     "result": {
                         "protocolVersion": "2024-11-05",
-                        "capabilities": {},
+                        "capabilities": {
+                            "tools": {}
+                        },
                         "serverInfo": {
                             "name": "architecture-analysis-server",
                             "version": "2.0.0"
@@ -576,29 +709,14 @@ def main():
                     }
                 }
             
-            print(json.dumps(response, ensure_ascii=False))
+            print(json.dumps(response))
             sys.stdout.flush()
-        
-        except json.JSONDecodeError as e:
-            error_response = {
-                "jsonrpc": "2.0",
-                "error": {
-                    "code": -32700,
-                    "message": f"Parse error: {e}"
-                }
-            }
-            print(json.dumps(error_response))
-            sys.stdout.flush()
+            
+        except json.JSONDecodeError:
+            continue
         except Exception as e:
-            error_response = {
-                "jsonrpc": "2.0",
-                "error": {
-                    "code": -32603,
-                    "message": f"Internal error: {e}"
-                }
-            }
-            print(json.dumps(error_response))
-            sys.stdout.flush()
+            logger.error(f"Error processing request: {e}")
+            continue
 
 
 if __name__ == "__main__":

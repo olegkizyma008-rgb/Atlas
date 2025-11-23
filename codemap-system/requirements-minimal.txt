@@ -26,3 +26,6 @@ pytest-cov>=4.0.0
 
 # JSON Schema
 jsonschema>=4.0.0
+
+# MCP Protocol
+mcp>=1.0.0

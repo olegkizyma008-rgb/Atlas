@@ -5,8 +5,16 @@
 
 set -e
 
+# Встановлюємо змінні
+CODEMAP_SYSTEM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$CODEMAP_SYSTEM_DIR")"
+LOGS_DIR="$PROJECT_ROOT/logs"
+MCP_CONFIG="$PROJECT_ROOT/.windsurf/mcp_config.json"
+GLOBAL_MCP_CONFIG_DIR="$HOME/.codeium/windsurf"
+GLOBAL_MCP_CONFIG="$GLOBAL_MCP_CONFIG_DIR/mcp_config.json"
+
 # Переходимо в папку скрипту
-cd "$(dirname "$0")"
+cd "$CODEMAP_SYSTEM_DIR"
 
 echo "🚀 Architecture System v2.0 - Installation"
 echo "==========================================="
@@ -36,7 +44,15 @@ PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
 print_success "Python $PYTHON_VERSION знайдений"
 echo ""
 
-# Крок 2: Створення віртуального середовища
+# Крок 2: Створення необхідних директорій
+print_step "Створення необхідних директорій"
+mkdir -p "$LOGS_DIR"
+mkdir -p "$PROJECT_ROOT/.windsurf"
+mkdir -p "$GLOBAL_MCP_CONFIG_DIR"
+print_success "Директорії створені"
+echo ""
+
+# Крок 3: Створення віртуального середовища
 print_step "Створення віртуального середовища"
 if [ ! -d "venv" ]; then
     python3 -m venv venv
@@ -55,7 +71,19 @@ echo ""
 # Крок 4: Встановлення залежностей
 print_step "Встановлення залежностей"
 pip install -q --upgrade pip
+
+# Встановлюємо мінімальні залежності
 pip install -q -r requirements-minimal.txt
+
+# Встановлюємо advanced залежності (Рівень 4)
+if [ -f "requirements-advanced.txt" ]; then
+    print_step "Встановлення advanced залежностей (Рівень 4)"
+    pip install -q -r requirements-advanced.txt
+    print_success "Advanced залежності встановлені"
+else
+    print_step "requirements-advanced.txt не знайдений, пропускаємо"
+fi
+
 print_success "Залежності встановлені"
 echo ""
 
@@ -87,90 +115,98 @@ mkdir -p "$WINDSURF_DIR"
 
 # MCP конфіг для codemap (локальний)
 MCP_CONFIG="$WINDSURF_DIR/mcp_config.json"
-if [ ! -f "$MCP_CONFIG" ]; then
-    cat > "$MCP_CONFIG" <<EOF
-{
-  "mcpServers": {
-    "codemap": {
-      "command": "python3",
-      "args": [
-        "$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"
-      ],
-      "env": {
-        "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
-        "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
-        "PYTHONUNBUFFERED": "1"
-      }
+if [ ! -f "$MCP_CONFIG" ] || [ ! -s "$MCP_CONFIG" ]; then
+    # Конфіг не існує або порожній - створюємо новий
+    python3 << PYTHON_EOF
+import json
+
+config = {
+    "mcpServers": {
+        "codemap": {
+            "command": "$CODEMAP_SYSTEM_DIR/venv/bin/python3",
+            "args": ["$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"],
+            "disabled": False,
+            "type": "stdio",
+            "env": {
+                "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
+                "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
+                "PYTHONUNBUFFERED": "1"
+            }
+        }
     }
-  }
 }
-EOF
-    print_success "Створено MCP конфігурацію для codemap: $MCP_CONFIG"
+
+with open("$MCP_CONFIG", "w") as f:
+    json.dump(config, f, indent=2)
+
+print("✅ MCP configuration created: $MCP_CONFIG")
+PYTHON_EOF
 else
-    echo -e "${YELLOW}⚠️ MCP конфігурація вже існує в $MCP_CONFIG (не змінюємо). Переконайтесь, що там є сервер 'codemap'.${NC}"
-fi
-
-# MCP конфіг для глобального Windsurf (~/.codeium/windsurf/mcp_config.json)
-print_step "Налаштування глобального MCP конфіга"
-GLOBAL_WINDSURF_DIR="$HOME/.codeium/windsurf"
-GLOBAL_MCP_CONFIG="$GLOBAL_WINDSURF_DIR/mcp_config.json"
-
-mkdir -p "$GLOBAL_WINDSURF_DIR"
-
-if [ -f "$GLOBAL_MCP_CONFIG" ] && [ -s "$GLOBAL_MCP_CONFIG" ]; then
     # Конфіг існує і не порожній - додаємо/оновлюємо codemap
     python3 << PYTHON_EOF
 import json
-import sys
 
 try:
-    with open('$GLOBAL_MCP_CONFIG', 'r') as f:
+    with open("$MCP_CONFIG", "r") as f:
         config = json.load(f)
     
-    if 'mcpServers' not in config:
-        config['mcpServers'] = {}
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
     
-    # Перевіримо, чи вже є codemap
-    if 'codemap' in config['mcpServers']:
-        print('⚠️ Сервер codemap вже зареєстрований, оновлюємо...')
-    
-    config['mcpServers']['codemap'] = {
-        'command': 'python3',
-        'args': ['$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py'],
-        'env': {
-            'PYTHONPATH': '$CODEMAP_SYSTEM_DIR',
-            'PROJECT_ROOT': '$PROJECT_ROOT_DIR',
-            'PYTHONUNBUFFERED': '1'
+    # Додаємо/оновлюємо codemap сервер
+    config["mcpServers"]["codemap"] = {
+        "command": "$CODEMAP_SYSTEM_DIR/venv/bin/python3",
+        "args": ["$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"],
+        "disabled": False,
+        "type": "stdio",
+        "env": {
+            "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
+            "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
+            "PYTHONUNBUFFERED": "1"
         }
     }
     
-    with open('$GLOBAL_MCP_CONFIG', 'w') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
+    with open("$MCP_CONFIG", "w") as f:
+        json.dump(config, f, indent=2)
     
-    print('✅ Додано/оновлено codemap у глобальному MCP конфіга')
+    print("✅ MCP configuration updated: $MCP_CONFIG")
+    
 except Exception as e:
-    print(f'❌ Помилка при додаванні до глобального конфіга: {e}', file=sys.stderr)
-    sys.exit(1)
+    print(f"❌ Error updating MCP configuration: {e}")
+    exit(1)
 PYTHON_EOF
-else
-    # Конфіг не існує або порожній - створюємо новий
-    cat > "$GLOBAL_MCP_CONFIG" <<EOF
-{
-  "mcpServers": {
-    "codemap": {
-      "command": "python3",
-      "args": [
-        "$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"
-      ],
-      "env": {
-        "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
-        "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
-        "PYTHONUNBUFFERED": "1"
-      }
+fi
+
+print_success "MCP configuration updated"
+echo ""
+
+# Глобальний конфіг
+GLOBAL_MCP_CONFIG="$GLOBAL_MCP_CONFIG_DIR/mcp_config.json"
+if [ ! -f "$GLOBAL_MCP_CONFIG" ] || [ ! -s "$GLOBAL_MCP_CONFIG" ]; then
+    python3 << PYTHON_EOF
+import json
+
+config = {
+    "mcpServers": {
+        "codemap": {
+            "command": "$CODEMAP_SYSTEM_DIR/venv/bin/python3",
+            "args": ["$CODEMAP_SYSTEM_DIR/windsurf/mcp_architecture_server.py"],
+            "disabled": False,
+            "type": "stdio",
+            "env": {
+                "PYTHONPATH": "$CODEMAP_SYSTEM_DIR",
+                "PROJECT_ROOT": "$PROJECT_ROOT_DIR",
+                "PYTHONUNBUFFERED": "1"
+            }
+        }
     }
-  }
 }
-EOF
+
+with open("$GLOBAL_MCP_CONFIG", "w") as f:
+    json.dump(config, f, indent=2)
+
+print("✅ Global MCP configuration created: $GLOBAL_MCP_CONFIG")
+PYTHON_EOF
     print_success "Створено глобальний MCP конфіг: $GLOBAL_MCP_CONFIG"
 fi
 

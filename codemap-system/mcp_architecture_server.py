@@ -564,6 +564,10 @@ class ArchitectureAnalysisServer:
 
 def main():
     """Основна функція MCP сервера"""
+    logger = logging.getLogger(__name__)
+    
+    # Force fallback mode for now since MCP SDK is complex
+    logger.warning("Using fallback JSON-RPC mode for compatibility")
     server = ArchitectureAnalysisServer()
     
     # Читаємо JSON-RPC запити зі stdin
@@ -621,29 +625,14 @@ def main():
                     }
                 }
             
-            print(json.dumps(response, ensure_ascii=False))
+            print(json.dumps(response))
             sys.stdout.flush()
-        
-        except json.JSONDecodeError as e:
-            error_response = {
-                "jsonrpc": "2.0",
-                "error": {
-                    "code": -32700,
-                    "message": f"Parse error: {e}"
-                }
-            }
-            print(json.dumps(error_response))
-            sys.stdout.flush()
+            
+        except json.JSONDecodeError:
+            continue
         except Exception as e:
-            error_response = {
-                "jsonrpc": "2.0",
-                "error": {
-                    "code": -32603,
-                    "message": f"Internal error: {e}"
-                }
-            }
-            print(json.dumps(error_response))
-            sys.stdout.flush()
+            logger.error(f"Error processing request: {e}")
+            continue
 
 
 if __name__ == "__main__":

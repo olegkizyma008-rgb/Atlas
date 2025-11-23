@@ -75,10 +75,18 @@ class CodeDuplicationDetector:
         if file_path.suffix not in extensions:
             return False
         
+        # Виключаємо ТІЛЬКИ системні, кешовані та архівні директорії
         exclude_dirs = {
+            # Системні та кешовані
             'node_modules', '__pycache__', '.git', '.venv', 'dist', 'build',
-            'archive', '.archive', 'backups', '.cache', '.idx', '.vscode',
-            'docs', 'logs', 'reports', 'codemap-system'
+            '.cache', '.idx', '.vscode', '.DS_Store', '.pytest_cache',
+            'venv', 'env', '.nyc_output', '.next', '.nuxt',
+            
+            # Архівні та старі версії (ТІЛЬКИ архіви!)
+            'archive', '.archive', 'backups', 'legacy-archive', 'old',
+            
+            # Сама папка де працює програма
+            'codemap-system'
         }
         if any(part in exclude_dirs for part in file_path.parts):
             return False

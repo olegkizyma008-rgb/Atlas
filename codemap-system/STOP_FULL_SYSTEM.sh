@@ -31,22 +31,13 @@ print_error() {
 
 # Читаємо PID з файлу
 if [ -f ".pids" ]; then
-    read MCP_PID WS_PID FM_PID DAEMON_PID < .pids
+    read WS_PID FM_PID DAEMON_PID < .pids
     
     print_step "Зупинення компонентів"
     echo ""
     
-    # Зупиняємо MCP
-    if [ ! -z "$MCP_PID" ] && ps -p $MCP_PID > /dev/null 2>&1; then
-        kill $MCP_PID 2>/dev/null
-        sleep 1
-        if ! ps -p $MCP_PID > /dev/null 2>&1; then
-            print_success "MCP сервер зупинений (PID: $MCP_PID)"
-        else
-            kill -9 $MCP_PID 2>/dev/null
-            print_success "MCP сервер примусово зупинений (PID: $MCP_PID)"
-        fi
-    fi
+    # MCP сервер працює в stdio режимі і не потребує зупинки
+    print_success "MCP сервер працює в stdio режимі (не потребує зупинки)"
     
     # Зупиняємо WebSocket
     if [ ! -z "$WS_PID" ] && ps -p $WS_PID > /dev/null 2>&1; then
@@ -105,22 +96,28 @@ echo ""
 print_step "Перевірка статусу"
 echo ""
 
+    # MCP сервер не потребує зупинки (stdio режим)
+    print_success "MCP сервер працює в stdio режимі"
+
+    # Перевіряємо WebSocket
+    if pgrep -f 'websocket_server' > /dev/null 2>&1; then
+        print_error "WebSocket сервер ще запущений"
+    else
+        print_success "WebSocket сервер зупинений"
+    fi
+
+    # Перевіряємо File Monitor
+    if pgrep -f 'file_monitor' > /dev/null 2>&1; then
+        print_error "File Monitor ще запущений"
+    else
+        print_success "File Monitor зупинений"
+    fi
+
+# Перевіряємо Architecture Daemon
 if pgrep -f 'architecture_daemon' > /dev/null 2>&1; then
     print_error "Architecture Daemon ще запущений"
 else
     print_success "Architecture Daemon зупинений"
-fi
-
-if pgrep -f 'mcp_architecture_server' > /dev/null 2>&1; then
-    print_error "MCP сервер ще запущений"
-else
-    print_success "MCP сервер зупинений"
-fi
-
-if pgrep -f 'websocket_server' > /dev/null 2>&1; then
-    print_error "WebSocket сервер ще запущений"
-else
-    print_success "WebSocket сервер зупинений"
 fi
 
 echo ""

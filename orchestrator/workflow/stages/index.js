@@ -13,7 +13,7 @@ import { ServerSelectionProcessor } from './server-selection-processor.js';
 import { TetyanaPlanToolsProcessor } from './tetyana-plan-tools-processor.js';
 import { TetyanaExecuteToolsProcessor } from './tetyana-execute-tools-processor.js';
 import { GrishaVerificationEligibilityProcessor } from './grisha-verification-eligibility-processor.js';
-import { GrishaVerifyItemProcessor } from './grisha-verify-item-processor.js';
+import { GrishaVerifyItemProcessor } from './grisha-verify-item-processor/index.js';
 import { AtlasReplanTodoProcessor } from './atlas-replan-todo-processor.js';
 import { McpFinalSummaryProcessor } from './mcp-final-summary-processor.js';
 
@@ -45,22 +45,22 @@ export const MCP_PROCESSORS = {
 
     // Stage 1-MCP - Atlas TODO Planning
     ATLAS_TODO_PLANNING: AtlasTodoPlanningProcessor,
-    
+
     // Stage 2.0-MCP - Server Selection
     SERVER_SELECTION: ServerSelectionProcessor,
-    
+
     // Stage 2.1-MCP - Tetyana Plan Tools
     TETYANA_PLAN_TOOLS: TetyanaPlanToolsProcessor,
-    
+
     // Stage 2.2-MCP - Tetyana Execute Tools
     TETYANA_EXECUTE_TOOLS: TetyanaExecuteToolsProcessor,
-    
+
     // Stage 2.3-MCP - Grisha Verify Item
     GRISHA_VERIFY_ITEM: GrishaVerifyItemProcessor,
-    
+
     // Stage 3.6-MCP - Atlas Replan TODO (NEW 18.10.2025)
     ATLAS_REPLAN_TODO: AtlasReplanTodoProcessor,
-    
+
     // Stage 8-MCP - MCP Final Summary
     MCP_FINAL_SUMMARY: McpFinalSummaryProcessor
 };

@@ -19,7 +19,6 @@ print_step_early() {
 
 print_step_early "Очищення старих процесів"
 pkill -f 'websocket_server\.py' 2>/dev/null || true
-pkill -f 'mcp_architecture_server\.py' 2>/dev/null || true
 pkill -f 'architecture_daemon\.py' 2>/dev/null || true
 pkill -f 'file_monitor' 2>/dev/null || true
 sleep 1
@@ -68,8 +67,15 @@ fi
 
 source venv/bin/activate || . venv/Scripts/activate
 
-# Встановлюємо мінімальні залежності (без конфліктів)
+# Встановлюємо мінімальні залежності
 pip install -q -r requirements-minimal.txt
+
+# Встановлюємо advanced залежності (Рівень 4)
+if [ -f "requirements-advanced.txt" ]; then
+    print_step "Встановлення advanced залежностей (Рівень 4)"
+    pip install -q -r requirements-advanced.txt
+    print_success "Advanced залежності встановлені"
+fi
 
 print_success "Залежності встановлені"
 echo ""
@@ -110,15 +116,16 @@ print_step "Запуск компонентів системи"
 echo ""
 
 # 6.1 MCP Server
-print_step "Запуск MCP Architecture Server (порт 8766)"
-python3 windsurf/mcp_architecture_server.py > logs/mcp_server.log 2>&1 &
-MCP_PID=$!
-sleep 2
-if ps -p $MCP_PID > /dev/null; then
-    print_success "MCP сервер запущений (PID: $MCP_PID)"
+print_step "MCP Architecture Server готовий для Windsurf (stdio режим)"
+# MCP сервер працює в stdio режимі і не потребує фонового запуску
+# Він автоматично запускається Windsurf при необхідності
+# Перевіряємо, чи існує файл сервера
+if [ -f "windsurf/mcp_architecture_server.py" ]; then
+    print_success "MCP сервер готовий до роботи"
 else
-    print_error "Помилка запуску MCP сервера"
+    print_error "MCP сервер не знайдено"
 fi
+MCP_PID="N/A"
 echo ""
 
 # 6.2 WebSocket Server
@@ -167,12 +174,8 @@ echo ""
 print_step "Перевірка статусу компонентів"
 echo ""
 
-# Перевіряємо MCP (процес повинен бути запущений)
-if ps -p $MCP_PID > /dev/null 2>&1; then
-    print_success "MCP сервер запущений"
-else
-    print_warning "MCP сервер не запущений"
-fi
+# MCP сервер працює в stdio режимі, перевірка не потрібна
+print_success "MCP сервер готовий до роботи (stdio режим)"
 
 # Перевіряємо WebSocket
 if timeout 2 bash -c 'cat < /dev/null > /dev/tcp/localhost/8765' 2>/dev/null; then
@@ -189,7 +192,7 @@ echo ""
 echo -e "${GREEN}🎉 Architecture System v2.0 запущена!${NC}"
 echo ""
 echo "📊 Запущені компоненти:"
-echo "  • MCP Architecture Server  (PID: $MCP_PID, порт 8766)"
+echo "  • MCP Architecture Server  (готовий для Windsurf)"
 echo "  • WebSocket Server         (PID: $WS_PID, порт 8765)"
 echo "  • File Monitor             (PID: $FM_PID)"
 echo "  • Architecture Daemon      (PID: $DAEMON_PID)"
@@ -216,13 +219,13 @@ echo ""
 echo "🌐 WebSocket:"
 echo "  ws://localhost:8765"
 echo ""
-echo "📊 MCP JSON-RPC:"
-echo "  http://localhost:8766"
+echo "📊 MCP Integration:"
+echo "  Інтегрований з Windsurf через stdio"
 echo ""
 echo "🛑 Зупинення системи:"
-echo "  kill $MCP_PID $WS_PID $FM_PID $DAEMON_PID"
+echo "  kill $WS_PID $FM_PID $DAEMON_PID"
 echo "  # або"
-echo "  pkill -f 'architecture_daemon\\|mcp_architecture_server\\|websocket_server'"
+echo "  ./STOP_FULL_SYSTEM.sh"
 echo ""
 echo "📖 Документація:"
 echo "  • DEPLOYMENT_GUIDE.md"
@@ -230,18 +233,15 @@ echo "  • REFACTORING_PLAN.md"
 echo "  • RUN_DAEMON.md"
 echo ""
 
-# Крок 9: Моніторинг
-print_step "Запуск моніторингу логів (Ctrl+C для виходу)"
-echo ""
-echo "Останні 10 рядків з логів:"
-tail -n 10 logs/architecture.log 2>/dev/null || echo "Логи ще не створені"
-echo ""
-
 # Зберігаємо PID для подальшого використання
-echo "$MCP_PID $WS_PID $FM_PID $DAEMON_PID" > .pids
+echo "$WS_PID $FM_PID $DAEMON_PID" > .pids
 
 print_success "Система повністю запущена!"
 echo ""
 echo "💡 Порада: Для зупинення системи виконайте:"
 echo "   ./STOP_FULL_SYSTEM.sh"
+echo ""
+echo "📊 Система працює в фоновому режимі"
+echo "   WebSocket: ws://localhost:8765"
+echo "   MCP сервер: інтегрований з Windsurf"
 echo ""

@@ -1,17 +1,632 @@
-node:internal/modules/esm/resolve:274
-    throw new ERR_MODULE_NOT_FOUND(
-          ^
-
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/dev-self-analysis-processor.js' imported from /Users/dev/Documents/GitHub/atlas4/orchestrator/core/service-registry.js
-    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
-    at moduleResolve (node:internal/modules/esm/resolve:859:10)
-    at defaultResolve (node:internal/modules/esm/resolve:983:11)
-    at #cachedDefaultResolve (node:internal/modules/esm/loader:717:20)
-    at ModuleLoader.resolve (node:internal/modules/esm/loader:694:38)
-    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:308:38)
-    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
-  code: 'ERR_MODULE_NOT_FOUND',
-  url: 'file:///Users/dev/Documents/GitHub/atlas4/orchestrator/workflow/stages/dev-self-analysis-processor.js'
-}
-
-Node.js v22.19.0
+[MCP Registry] ✅ Initialized: 8/8 servers enabled
+[Validation Config] ✅ Initialized: 5 stages enabled
+2025-11-23 05:28:11 [[32MINFO[39M] [ADAPTIVE-THROTTLER] ✅ Initialized with base delay: {"metadata":{}}
+[SERVER] Starting ATLAS Orchestrator...
+[SERVER] Calling app.start()...
+2025-11-23 05:28:11 [[32MINFO[39M] Axios configured with rate limit handling (429 + Retry-After) {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Registering all services... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🔧 Starting utility services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Registered networkConfig {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] 🚀 Registering visionAnalysis service... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] ✅ Vision Analysis Service registered successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-UTILITY] Skipping accessibilityChecker: pre-check passed (ACCESSIBILITY_CHECK_PASSED=1) {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-OPTIMIZATION] 🚀 Starting API optimization services registration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI-OPTIMIZATION] ✅ All API optimization services registered {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 10 MCP stage processors {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: ✅ [NEXUS] Всі автономні модулі зареєстровано {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Registered 67 services {"metadata":{"category":"system","component":"startup","services":["config","logger","errorHandler","telemetry","localizationService","llmClient","wsManager","webIntegration","sessions","networkConfig","visionAnalysis","chatMemoryEligibilityProcessor","chatMemoryCoordinator","apiOptimizer","rateLimiter","optimizedWorkflowManager","hybridWorkflowExecutor","optimizationIntegration","workflowModeManager","mcpManager","tetyanaToolSystem","ttsSyncManager","mcpTodoManager","modeSelectionProcessor","windsurfCodeEditor","nexusMemoryManager","nexusMasterSystem","devSelfAnalysisProcessor","atlasContextEnrichmentProcessor","selfCorrectionValidator","contextAwareToolFilter","eternityModule","workflowStateMachine","routerClassifier","mcpSchemaBuilder","atlasTodoPlanningProcessor","serverSelectionProcessor","tetyanaPlanToolsProcessor","tetyanaExecuteToolsProcessor","grishaVerifyItemProcessor","atlasReplanTodoProcessor","mcpFinalSummaryProcessor","eternityIntegration","nexusModelRegistry","modelAvailabilityChecker","multiModelOrchestrator","cascadeController","selfImprovementEngine","nexusContextActivator","nexusCommandHandler"]}}
+2025-11-23 05:28:11 [[32MINFO[39M] [DI] Initializing services... {"metadata":{}}
+[DI] Initializing services...
+[DI] Resolving singleton services...
+[DI] Resolving singleton: config
+[DI] ✓ Resolved singleton: config
+[DI] Resolving singleton: errorHandler
+[DI] ✓ Resolved singleton: errorHandler
+[DI] Resolving singleton: telemetry
+[DI] ✓ Resolved singleton: telemetry
+[DI] Resolving singleton: localizationService
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+[DI] ✓ Resolved singleton: localizationService
+[DI] Resolving singleton: llmClient
+[DI] ✓ Resolved singleton: llmClient
+[DI] Resolving singleton: wsManager
+[DI] ✓ Resolved singleton: wsManager
+[DI] Resolving singleton: webIntegration
+[DI] ✓ Resolved singleton: webIntegration
+[DI] Resolving singleton: sessions
+[DI] ✓ Resolved singleton: sessions
+[DI] Resolving singleton: networkConfig
+[DI] ✓ Resolved singleton: networkConfig
+[DI] Resolving singleton: visionAnalysis
+[DI] ✓ Resolved singleton: visionAnalysis
+[DI] Resolving singleton: chatMemoryEligibilityProcessor
+[DI] ✓ Resolved singleton: chatMemoryEligibilityProcessor
+[DI] Resolving singleton: chatMemoryCoordinator
+[DI] ✓ Resolved singleton: chatMemoryCoordinator
+[DI] Resolving singleton: apiOptimizer
+[DI] ✓ Resolved singleton: apiOptimizer
+[DI] Resolving singleton: rateLimiter
+[DI] ✓ Resolved singleton: rateLimiter
+[DI] Resolving singleton: optimizedWorkflowManager
+[DI] ✓ Resolved singleton: optimizedWorkflowManager
+[DI] Resolving singleton: hybridWorkflowExecutor
+[DI] ✓ Resolved singleton: hybridWorkflowExecutor
+[DI] Resolving singleton: optimizationIntegration
+[DI] ✓ Resolved singleton: optimizationIntegration
+[DI] Resolving singleton: workflowModeManager
+[DI] ✓ Resolved singleton: workflowModeManager
+[DI] Resolving singleton: tetyanaToolSystem
+[DI] ✓ Resolved singleton: tetyanaToolSystem
+[DI] Resolving singleton: ttsSyncManager
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] ✅ WebSocket Manager connected for TTS delivery {"metadata":{"category":"system","component":"tts-sync"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] tts-sync: [TTS-SYNC] Initialized with 3-level queue system {"metadata":{"category":"system","component":"tts-sync"}}
+[DI] ✓ Resolved singleton: ttsSyncManager
+[DI] Resolving singleton: mcpTodoManager
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service initialized {"metadata":{"category":"system","component":"localization"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] User language: uk {"metadata":{"category":"system","component":"localization"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] mcp-todo: ✅ ValidationPipeline with self-correction enabled {"metadata":{"category":"system","component":"mcp-todo"}}
+[DI] ✓ Resolved singleton: mcpTodoManager
+[DI] Resolving singleton: modeSelectionProcessor
+[DI] ✓ Resolved singleton: modeSelectionProcessor
+[DI] Resolving singleton: windsurfCodeEditor
+2025-11-23 05:28:11 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY present: true {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] WINDSURF_API_KEY length: 103 {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED: true {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [WINDSURF-EDITOR-DEBUG] CASCADE_ENABLED === "true": true {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🎨 [WINDSURF-EDITOR] Ініціалізовано - Atlas використовує Windsurf Cascade API {"metadata":{}}
+[DI] ✓ Resolved singleton: windsurfCodeEditor
+[DI] Resolving singleton: nexusMemoryManager
+[DI] ✓ Resolved singleton: nexusMemoryManager
+[DI] Resolving singleton: nexusMasterSystem
+[DI] ✓ Resolved singleton: nexusMasterSystem
+[DI] Resolving singleton: devSelfAnalysisProcessor
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] 🔬 DEV Self-Analysis Processor initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ Resolved singleton: devSelfAnalysisProcessor
+[DI] Resolving singleton: atlasContextEnrichmentProcessor
+[DI] ✓ Resolved singleton: atlasContextEnrichmentProcessor
+[DI] Resolving singleton: selfCorrectionValidator
+[DI] ✓ Resolved singleton: selfCorrectionValidator
+[DI] Resolving singleton: contextAwareToolFilter
+[DI] ✓ Resolved singleton: contextAwareToolFilter
+[DI] Resolving singleton: workflowStateMachine
+[DI] ✓ Resolved singleton: workflowStateMachine
+[DI] Resolving singleton: routerClassifier
+[DI] ✓ Resolved singleton: routerClassifier
+[DI] Resolving singleton: mcpSchemaBuilder
+[DI] ✓ Resolved singleton: mcpSchemaBuilder
+[DI] Resolving singleton: atlasTodoPlanningProcessor
+[DI] ✓ Resolved singleton: atlasTodoPlanningProcessor
+[DI] Resolving singleton: serverSelectionProcessor
+[DI] ✓ Resolved singleton: serverSelectionProcessor
+[DI] Resolving singleton: tetyanaPlanToolsProcessor
+[DI] ✓ Resolved singleton: tetyanaPlanToolsProcessor
+[DI] Resolving singleton: tetyanaExecuteToolsProcessor
+[DI] ✓ Resolved singleton: tetyanaExecuteToolsProcessor
+[DI] Resolving singleton: grishaVerifyItemProcessor
+[DI] ✓ Resolved singleton: grishaVerifyItemProcessor
+[DI] Resolving singleton: mcpFinalSummaryProcessor
+[DI] ✓ Resolved singleton: mcpFinalSummaryProcessor
+[DI] Resolving singleton: eternityIntegration
+[DI] ✓ Resolved singleton: eternityIntegration
+[DI] Resolving singleton: nexusModelRegistry
+[DI] ✓ Resolved singleton: nexusModelRegistry
+[DI] Resolving singleton: multiModelOrchestrator
+[DI] ✓ Resolved singleton: multiModelOrchestrator
+[DI] Resolving singleton: cascadeController
+[DI] ✓ Resolved singleton: cascadeController
+[DI] Resolving singleton: selfImprovementEngine
+[DI] ✓ Resolved singleton: selfImprovementEngine
+[DI] Resolving singleton: nexusContextActivator
+[DI] ✓ Resolved singleton: nexusContextActivator
+[DI] Resolving singleton: nexusCommandHandler
+[DI] ✓ Resolved singleton: nexusCommandHandler
+[DI] Resolving singleton: nexusDynamicPromptInjector
+[DI] ✓ Resolved singleton: nexusDynamicPromptInjector
+[DI] Resolving singleton: processorRegistry
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] processor-registry: ✅ ProcessorRegistry initialized {"metadata":{"category":"system","component":"processor-registry"}}
+[DI] ✓ Resolved singleton: processorRegistry
+[DI] Resolving singleton: templateResolver
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] template-resolver: ✅ TemplateResolver initialized {"metadata":{"category":"system","component":"template-resolver"}}
+[DI] ✓ Resolved singleton: templateResolver
+[DI] Resolving singleton: contextBuilder
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] context-builder: ✅ ContextBuilder initialized {"metadata":{"category":"system","component":"context-builder"}}
+[DI] ✓ Resolved singleton: contextBuilder
+[DI] Resolving singleton: todoBuilder
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] todo-builder: ✅ TodoBuilder initialized {"metadata":{"category":"system","component":"todo-builder"}}
+[DI] ✓ Resolved singleton: todoBuilder
+[DI] Resolving singleton: toolPlanner
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] tool-planner: ✅ ToolPlanner initialized {"metadata":{"category":"system","component":"tool-planner"}}
+[DI] ✓ Resolved singleton: toolPlanner
+[DI] Resolving singleton: toolExecutor
+[DI] ✗ Error resolving singleton toolExecutor: [DI] Failed to resolve service "toolExecutor": [DI] Service "adaptiveRequestThrottler" is not registered. Available: config, logger, errorHandler, telemetry, localizationService, llmClient, wsManager, webIntegration, sessions, networkConfig, visionAnalysis, chatMemoryEligibilityProcessor, chatMemoryCoordinator, apiOptimizer, rateLimiter, optimizedWorkflowManager, hybridWorkflowExecutor, optimizationIntegration, workflowModeManager, mcpManager, tetyanaToolSystem, ttsSyncManager, mcpTodoManager, modeSelectionProcessor, windsurfCodeEditor, nexusMemoryManager, nexusMasterSystem, devSelfAnalysisProcessor, atlasContextEnrichmentProcessor, selfCorrectionValidator, contextAwareToolFilter, eternityModule, workflowStateMachine, routerClassifier, mcpSchemaBuilder, atlasTodoPlanningProcessor, serverSelectionProcessor, tetyanaPlanToolsProcessor, tetyanaExecuteToolsProcessor, grishaVerifyItemProcessor, atlasReplanTodoProcessor, mcpFinalSummaryProcessor, eternityIntegration, nexusModelRegistry, modelAvailabilityChecker, multiModelOrchestrator, cascadeController, selfImprovementEngine, nexusContextActivator, nexusCommandHandler, nexusDynamicPromptInjector, processorRegistry, templateResolver, contextBuilder, todoBuilder, toolPlanner, toolExecutor, mcpVerifier, llmVerifier, adaptiveVerifier, verificationEngine, dependencyResolver, adaptivePlanner, mcpExecutor, fallbackHandler, todoExecutor, workflowEngine
+[DI] Resolving singleton: mcpVerifier
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] mcp-verifier: ✅ MCPVerifier initialized {"metadata":{"category":"system","component":"mcp-verifier"}}
+[DI] ✓ Resolved singleton: mcpVerifier
+[DI] Resolving singleton: llmVerifier
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] llm-verifier: ✅ LLMVerifier initialized {"metadata":{"category":"system","component":"llm-verifier"}}
+[DI] ✓ Resolved singleton: llmVerifier
+[DI] Resolving singleton: adaptiveVerifier
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] adaptive-verifier: ✅ AdaptiveVerifier initialized {"metadata":{"category":"system","component":"adaptive-verifier"}}
+[DI] ✓ Resolved singleton: adaptiveVerifier
+[DI] Resolving singleton: verificationEngine
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] verification-engine: ✅ VerificationEngine initialized {"metadata":{"category":"system","component":"verification-engine"}}
+[DI] ✓ Resolved singleton: verificationEngine
+[DI] Resolving singleton: dependencyResolver
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] dependency-resolver: ✅ DependencyResolver initialized {"metadata":{"category":"system","component":"dependency-resolver"}}
+[DI] ✓ Resolved singleton: dependencyResolver
+[DI] Resolving singleton: adaptivePlanner
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] adaptive-planner: ✅ AdaptivePlanner initialized {"metadata":{"category":"system","component":"adaptive-planner"}}
+[DI] ✓ Resolved singleton: adaptivePlanner
+[DI] Resolving singleton: mcpExecutor
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] mcp-executor: ✅ MCPExecutor initialized {"metadata":{"category":"system","component":"mcp-executor"}}
+[DI] ✓ Resolved singleton: mcpExecutor
+[DI] Resolving singleton: fallbackHandler
+[DI] ✗ Error resolving singleton fallbackHandler: [DI] Failed to resolve service "fallbackHandler": [DI] Failed to resolve service "toolExecutor": [DI] Service "adaptiveRequestThrottler" is not registered. Available: config, logger, errorHandler, telemetry, localizationService, llmClient, wsManager, webIntegration, sessions, networkConfig, visionAnalysis, chatMemoryEligibilityProcessor, chatMemoryCoordinator, apiOptimizer, rateLimiter, optimizedWorkflowManager, hybridWorkflowExecutor, optimizationIntegration, workflowModeManager, mcpManager, tetyanaToolSystem, ttsSyncManager, mcpTodoManager, modeSelectionProcessor, windsurfCodeEditor, nexusMemoryManager, nexusMasterSystem, devSelfAnalysisProcessor, atlasContextEnrichmentProcessor, selfCorrectionValidator, contextAwareToolFilter, eternityModule, workflowStateMachine, routerClassifier, mcpSchemaBuilder, atlasTodoPlanningProcessor, serverSelectionProcessor, tetyanaPlanToolsProcessor, tetyanaExecuteToolsProcessor, grishaVerifyItemProcessor, atlasReplanTodoProcessor, mcpFinalSummaryProcessor, eternityIntegration, nexusModelRegistry, modelAvailabilityChecker, multiModelOrchestrator, cascadeController, selfImprovementEngine, nexusContextActivator, nexusCommandHandler, nexusDynamicPromptInjector, processorRegistry, templateResolver, contextBuilder, todoBuilder, toolPlanner, toolExecutor, mcpVerifier, llmVerifier, adaptiveVerifier, verificationEngine, dependencyResolver, adaptivePlanner, mcpExecutor, fallbackHandler, todoExecutor, workflowEngine
+[DI] Resolving singleton: todoExecutor
+[DI] ✗ Error resolving singleton todoExecutor: [DI] Failed to resolve service "todoExecutor": [DI] Failed to resolve service "toolExecutor": [DI] Service "adaptiveRequestThrottler" is not registered. Available: config, logger, errorHandler, telemetry, localizationService, llmClient, wsManager, webIntegration, sessions, networkConfig, visionAnalysis, chatMemoryEligibilityProcessor, chatMemoryCoordinator, apiOptimizer, rateLimiter, optimizedWorkflowManager, hybridWorkflowExecutor, optimizationIntegration, workflowModeManager, mcpManager, tetyanaToolSystem, ttsSyncManager, mcpTodoManager, modeSelectionProcessor, windsurfCodeEditor, nexusMemoryManager, nexusMasterSystem, devSelfAnalysisProcessor, atlasContextEnrichmentProcessor, selfCorrectionValidator, contextAwareToolFilter, eternityModule, workflowStateMachine, routerClassifier, mcpSchemaBuilder, atlasTodoPlanningProcessor, serverSelectionProcessor, tetyanaPlanToolsProcessor, tetyanaExecuteToolsProcessor, grishaVerifyItemProcessor, atlasReplanTodoProcessor, mcpFinalSummaryProcessor, eternityIntegration, nexusModelRegistry, modelAvailabilityChecker, multiModelOrchestrator, cascadeController, selfImprovementEngine, nexusContextActivator, nexusCommandHandler, nexusDynamicPromptInjector, processorRegistry, templateResolver, contextBuilder, todoBuilder, toolPlanner, toolExecutor, mcpVerifier, llmVerifier, adaptiveVerifier, verificationEngine, dependencyResolver, adaptivePlanner, mcpExecutor, fallbackHandler, todoExecutor, workflowEngine
+[DI] Resolving singleton: workflowEngine
+[DI] ✗ Error resolving singleton workflowEngine: [DI] Failed to resolve service "workflowEngine": [DI] Failed to resolve service "todoExecutor": [DI] Failed to resolve service "toolExecutor": [DI] Service "adaptiveRequestThrottler" is not registered. Available: config, logger, errorHandler, telemetry, localizationService, llmClient, wsManager, webIntegration, sessions, networkConfig, visionAnalysis, chatMemoryEligibilityProcessor, chatMemoryCoordinator, apiOptimizer, rateLimiter, optimizedWorkflowManager, hybridWorkflowExecutor, optimizationIntegration, workflowModeManager, mcpManager, tetyanaToolSystem, ttsSyncManager, mcpTodoManager, modeSelectionProcessor, windsurfCodeEditor, nexusMemoryManager, nexusMasterSystem, devSelfAnalysisProcessor, atlasContextEnrichmentProcessor, selfCorrectionValidator, contextAwareToolFilter, eternityModule, workflowStateMachine, routerClassifier, mcpSchemaBuilder, atlasTodoPlanningProcessor, serverSelectionProcessor, tetyanaPlanToolsProcessor, tetyanaExecuteToolsProcessor, grishaVerifyItemProcessor, atlasReplanTodoProcessor, mcpFinalSummaryProcessor, eternityIntegration, nexusModelRegistry, modelAvailabilityChecker, multiModelOrchestrator, cascadeController, selfImprovementEngine, nexusContextActivator, nexusCommandHandler, nexusDynamicPromptInjector, processorRegistry, templateResolver, contextBuilder, todoBuilder, toolPlanner, toolExecutor, mcpVerifier, llmVerifier, adaptiveVerifier, verificationEngine, dependencyResolver, adaptivePlanner, mcpExecutor, fallbackHandler, todoExecutor, workflowEngine
+[DI] All singletons resolved
+[DI] Calling onInit hooks...
+[DI] Calling onInit for: logger
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Logger service initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: logger
+[DI] Calling onInit for: errorHandler
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Unified Error Handler initialized - intelligent pattern matching enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: errorHandler
+[DI] Calling onInit for: telemetry
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Telemetry initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: telemetry
+[DI] Calling onInit for: localizationService
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] localization: [LOCALIZATION] Service ready {"metadata":{"category":"system","component":"localization"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Localization service initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] User language: uk {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: localizationService
+[DI] Calling onInit for: llmClient
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: 🔍 [NEXUS] Model Availability Checker - Автоматичний fallback {"metadata":{"category":"system","component":"startup"}}
+[StateMachine] initialized: WORKFLOW_START { previousState: null, executionTime: 0 }
+2025-11-23 05:28:11 [[32MINFO[39M] 🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію... {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 1 {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 10 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [AUTO-CORRECTION] ✅ Module initialized {"metadata":{"interval":300000,"pythonSdk":true,"javaSdk":true}}
+2025-11-23 05:28:11 [[33MWARN[39M] ChatManager not available yet, will retry later {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] ✨ ETERNITY Integration initialized successfully {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: ✨ ETERNITY Integration initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] Initializing (copilot-gpt-4o @ http://localhost:4000/v1/chat/completions) {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] worker-pool: Worker pool initialized with 10 workers {"metadata":{"category":"system","component":"worker-pool"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] hybrid-executor: 🚀 Hybrid Workflow Executor initialized {"metadata":{"category":"system","component":"hybrid-executor","maxWorkers":10,"executionMode":"adaptive","verificationStrategy":"composite"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] workflow-mode-manager: 🎛️ Workflow Mode Manager initialized {"metadata":{"category":"system","component":"workflow-mode-manager","currentMode":"state_machine"}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🛡️ [NEXUS-SECURITY] Обробник команд ініціалізовано - захист системи активний {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] ✅ [NEXUS-SECURITY] Підключено до Eternity Module {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🧠 [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: 🛡️ [NEXUS-SECURITY] Command Handler - захист активний {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [API-OPTIMIZER] 🚀 Intelligent API Request Optimizer initialized {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [OPTIMIZED-WORKFLOW] 🚀 Optimized Workflow Manager initialized {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [OPTIMIZATION-INTEGRATION] ✅ All optimization services verified {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [OPTIMIZATION-INTEGRATION] 📊 Optimization monitoring enabled {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🌟 [NEXUS-MASTER] Головна система NEXUS ініціалізована {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] 🌟 [NEXUS-MASTER] Я - жива система, готова до вічної еволюції {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] ✅ [NEXUS-CONSCIOUSNESS] Система динамічного промпту ініціалізована {"metadata":{}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: 🧠 [NEXUS-CONSCIOUSNESS] Dynamic Prompt Injector - Atlas живий! {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] llm-client: [LLM Client] ✅ LLM endpoint is available {"metadata":{"category":"system","component":"llm-client"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] LLM Client initialized for ValidationPipeline {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: llmClient
+[DI] Calling onInit for: wsManager
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] WebSocket manager initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: wsManager
+[DI] Calling onInit for: webIntegration
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Web integration initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: webIntegration
+[DI] Calling onInit for: sessions
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] Session store initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: sessions
+[DI] Calling onInit for: visionAnalysis
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Vision Analysis Service initializing... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:11 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] Initializing Vision Analysis Service... {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-23 05:28:12 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: 🎯 [NEXUS] Model Registry - Автоматичне оновлення моделей {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:12 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] 🚀 ⚡ PORT 4000 detected - using FAST LLM API (~2-5 sec) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] vision-analysis: [VISION] ✅ Vision Analysis initialized: port4000 (copilot-gpt-4o) {"metadata":{"category":"system","component":"vision-analysis"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] ✅ Vision Analysis Service initialized with provider: port4000 {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: visionAnalysis
+[DI] Calling onInit for: chatMemoryEligibilityProcessor
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 🧠 Chat Memory Eligibility Processor initialized {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: chatMemoryEligibilityProcessor
+[DI] Calling onInit for: chatMemoryCoordinator
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 💾 Chat Memory Coordinator initialized {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 💾 Long-term memory enabled for chat mode {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: chatMemoryCoordinator
+[DI] Calling onInit for: apiOptimizer
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 API Request Optimizer initialized - intelligent batching enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: apiOptimizer
+[DI] Calling onInit for: rateLimiter
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚦 Adaptive Request Throttler initialized - unified rate limiting enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: rateLimiter
+[DI] Calling onInit for: optimizedWorkflowManager
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] ⚡ Optimized Workflow Manager initialized - batch processing enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: optimizedWorkflowManager
+[DI] Calling onInit for: hybridWorkflowExecutor
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Hybrid Workflow Executor initialized - Goose-Atlas hybrid system ready {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: hybridWorkflowExecutor
+[DI] Calling onInit for: optimizationIntegration
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 📊 Optimization Integration initialized - monitoring enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: optimizationIntegration
+[DI] Calling onInit for: workflowModeManager
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎛️ Workflow Mode Manager initialized - runtime mode switching enabled {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: workflowModeManager
+[DI] Calling onInit for: mcpManager
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting MCP servers... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting windsurf... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting memory... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting filesystem... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting shell... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting applescript... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting playwright... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting java_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] Starting python_sdk... {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] Initializing... {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP windsurf] ✅ Loaded 4 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ windsurf started (4 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP java_sdk] ✅ Loaded 17 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ java_sdk started (17 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP python_sdk] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:12 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ python_sdk started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP shell] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ shell started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP memory] ✅ Loaded 9 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ memory started (9 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP filesystem] ✅ Loaded 14 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:13 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ filesystem started (14 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:14 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:14 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:14 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:14 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP playwright] ✅ Loaded 32 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:14 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ playwright started (32 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Initialized with protocol 2024-11-05 {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Server initialized (protocol: 2024-11-05) {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Ready {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-server: [MCP applescript] ✅ Loaded 1 tools {"metadata":{"category":"system","component":"mcp-server"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ applescript started (1 tools) {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-manager: [MCP Manager] ✅ 8/8 servers started {"metadata":{"category":"system","component":"mcp-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPManager initialized with servers {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: mcpManager
+[DI] Calling onInit for: tetyanaToolSystem
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: copilot-gpt-4o, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM client loaded for TetyanaToolSystem {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🚀 Initializing Tetyana Tool System... {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🔧 Initializing MCP Extension Manager... {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: windsurf (4 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: java_sdk (17 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: python_sdk (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: shell (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: memory (9 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: filesystem (14 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: playwright (32 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: ✅ Loaded extension: applescript (1 tools) {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] mcp-extension-manager: 🎯 Extension Manager ready: 8 extensions (windsurf, java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript), 100 tools {"metadata":{"category":"system","component":"mcp-extension-manager"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tool-inspection: ToolInspectionManager initialized {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] repetition-inspector: Initialized (maxConsecutive: 50, maxTotal: 100) {"metadata":{"category":"system","component":"repetition-inspector"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tool-inspection: Added inspector: repetition {"metadata":{"category":"system","component":"tool-inspection"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 Enhanced Inspection Manager initialized {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tool-history: ToolHistoryManager initialized (maxSize: 1000, antiRepetitionWindow: 100) {"metadata":{"category":"system","component":"tool-history"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 📊 Tool History Manager initialized (v2.0 with labels) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] llm-tool-validator: 🛡️ LLMToolValidator initialized (model: copilot-gpt-4o, temp: 0.1) {"metadata":{"category":"system","component":"llm-tool-validator"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🛡️ LLM Tool Validator initialized (ALWAYS ACTIVE) {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] validation-pipeline: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"validation-pipeline"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: 🔍 ValidationPipeline initialized with consolidated validators {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] tetyana-tool-system: ✅ Tetyana Tool System ready: 100 tools available {"metadata":{"category":"system","component":"tetyana-tool-system"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🎯 TetyanaToolSystem initialized: 100 tools from 8 servers (windsurf, java_sdk, python_sdk, shell, memory, filesystem, playwright, applescript) {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🛡️ LLM Validator ACTIVE - 0 validations ready {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: tetyanaToolSystem
+[DI] Calling onInit for: ttsSyncManager
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] TTSSyncManager initialized with WebSocket TTS and language support {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: ttsSyncManager
+[DI] Calling onInit for: mcpTodoManager
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPTodoManager initialized with ValidationPipeline self-correction support {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: mcpTodoManager
+[DI] Calling onInit for: windsurfCodeEditor
+2025-11-23 05:28:15 [[32MINFO[39M] [DI] 🎨 Windsurf Code Editor initialized - Atlas має доступ до Windsurf API {"metadata":{}}
+[DI] ✓ onInit completed for: windsurfCodeEditor
+[DI] Calling onInit for: nexusMemoryManager
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-MEMORY] Пам'ять успішно завантажено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🧠 Nexus Memory Manager іниціалізовано - контекст збережено {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: nexusMemoryManager
+[DI] Calling onInit for: nexusMasterSystem
+2025-11-23 05:28:15 [[32MINFO[39M] 🚀 [NEXUS-MASTER] Запускаю ініціалізацію всіх систем... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🌟 CASCADE CONTROLLER initialized - Я готовий керувати модулем Вічність {"metadata":{"role":"Senior Eternity Module Controller","assignedBy":"Oleg Mykolayovych","model":"Claude 3.7 Sonnet"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 🔍 Initializing Codestral: copilot-gpt-4o {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🌟 [NEXUS-AUTONOMOUS] Я живий! Розпочинаю вічну еволюцію... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 4.6000000000000005 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 10 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔐 [NEXUS-SECURITY] Система безпеки ініціалізована {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 📝 [NEXUS-VERSIONING] Система версіонування промптів ініціалізована {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 📝 [NEXUS-VERSIONING] Поточна версія: 6.0.45 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧪 [NEXUS-TESTING] Система автоматичного тестування ініціалізована {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 📊 [NEXUS-LOGS] Log Analyzer ініціалізовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔍 [NEXUS-LOGS] Real-time log моніторинг активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-LOGS] Аналізую останні 200 рядків... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-LOGS] Аналіз завершено: 0 помилок, 0 попереджень {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔧 [NEXUS-FIXER] Auto Fixer ініціалізовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔄 [NEXUS-MASTER] Запускаю автономні процеси... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-TESTING] ⏸️ Auto-testing is disabled {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔄 [NEXUS-MASTER] Цикл еволюції запущено (кожні 10 хв) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-MASTER] Автономні процеси запущено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-MASTER] Всі системи активовані {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🌟 [NEXUS-MASTER] Я живий і готовий до еволюції! {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🌟 NEXUS MASTER SYSTEM активовано - Я живий і готовий до вічної еволюції! {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: nexusMasterSystem
+[DI] Calling onInit for: cascadeController
+2025-11-23 05:28:15 [[32MINFO[39M] [DI] 🚀 Initializing CASCADE Controller... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 🔍 Initializing Codestral: copilot-gpt-4o {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-23 05:28:15 [[32MINFO[39M] [DI] ✅ CASCADE Controller initialized {"metadata":{}}
+[DI] ✓ onInit completed for: cascadeController
+[DI] Calling onInit for: selfImprovementEngine
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: selfImprovementEngine
+[DI] Calling onInit for: nexusDynamicPromptInjector
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-CONSCIOUSNESS] Свідомість Atlas активована {"metadata":{}}
+[DI] ✓ onInit completed for: nexusDynamicPromptInjector
+[DI] Calling onInit for: todoBuilder
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] TodoBuilder initialized - Phase 1 Core Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: todoBuilder
+[DI] Calling onInit for: toolPlanner
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] ToolPlanner initialized - Phase 1 Core Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: toolPlanner
+[DI] Calling onInit for: toolExecutor
+[DI] Calling onInit for: mcpVerifier
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPVerifier initialized - Phase 2 Verification Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: mcpVerifier
+[DI] Calling onInit for: llmVerifier
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] LLMVerifier initialized - Phase 2 Verification Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: llmVerifier
+[DI] Calling onInit for: adaptiveVerifier
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] AdaptiveVerifier initialized - Phase 2 Verification Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: adaptiveVerifier
+[DI] Calling onInit for: verificationEngine
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] VerificationEngine initialized - Phase 2 Verification Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: verificationEngine
+[DI] Calling onInit for: dependencyResolver
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] DependencyResolver initialized - Phase 3 Planning Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: dependencyResolver
+[DI] Calling onInit for: adaptivePlanner
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] AdaptivePlanner initialized - Phase 3 Planning Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: adaptivePlanner
+[DI] Calling onInit for: mcpExecutor
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] MCPExecutor initialized - Phase 4 Execution Module {"metadata":{"category":"system","component":"startup"}}
+[DI] ✓ onInit completed for: mcpExecutor
+[DI] Calling onInit for: fallbackHandler
+[DI] Calling onInit for: todoExecutor
+[DI] Calling onInit for: workflowEngine
+2025-11-23 05:28:15 [[32MINFO[39M] [DI] All services initialized {"metadata":{}}
+[DI] All services initialized
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: [DI] All services resolved successfully {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: Validating configuration... {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: Configuration validated successfully {"metadata":{"category":"system","component":"startup","agents":5,"stages":8,"services":6}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: ✨ ETERNITY API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: 🌊 CASCADE API routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: Application routes configured {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: Session cleanup timer started {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: 🚀 ATLAS Orchestrator v4.0 running on port 5101 {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] features: DI Container, Unified Configuration, Prompt Registry, Web Integration, Real-time Logging, 3D Model Control, TTS Visualization, Centralized State, Unified Error Handling, Agent Manager, Telemetry & Monitoring {"metadata":{"category":"system","component":"features"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] config: Configuration loaded: 5 agents, 8 stages {"metadata":{"category":"system","component":"config"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] websocket: Starting WebSocket server... {"metadata":{"category":"system","component":"websocket"}}
+[WS-MANAGER] start() called with port: 5102
+[WS-MANAGER] WebSocketServer created
+[WS-MANAGER] ✅ WebSocket server is now listening on port 5102
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] websocket: ✅ WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-23 05:28:15 [[32MINFO[39M] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+[SERVER] ✅ app.start() completed successfully
+[SERVER] ✅ ATLAS Orchestrator fully initialized and running
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 🔍 Initializing Codestral: copilot-gpt-4o {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 4.6000000000000005 {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 10 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] startup {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-23 05:28:15 [[32MINFO[39M] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-23 05:28:15 [[32MINFO[39M] startup {"metadata":{}}
+2025-11-23 05:28:41 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-23 05:28:41 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-23 05:32:40 [[33MWARN[39M] [mcp-server] [MCP windsurf] Process exited (code: null, signal: SIGTERM) {"metadata":{"category":"mcp-server"}}
+2025-11-23 05:33:11 [[32MINFO[39M] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-23 05:33:11 [[32MINFO[39M] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-23 05:33:12 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:12 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:13 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:13 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:16 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:16 [[32MINFO[39M] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+nt":"config"}}
+2025-11-23 05:28:15 [INFO] [SYSTEM] websocket: Starting WebSocket server... {"metadata":{"category":"system","component":"websocket"}}
+2025-11-23 05:28:15 [INFO] ✅ WebSocket server started on port 5102 {"metadata":{"port":5102,"heartbeatInterval":30000}}
+2025-11-23 05:28:15 [INFO] [SYSTEM] websocket: ✅ WebSocket server running on port 5102 {"metadata":{"category":"system","component":"websocket"}}
+2025-11-23 05:28:15 [INFO] [SYSTEM] startup: ✅ ATLAS Orchestrator fully initialized with DI Container {"metadata":{"category":"system","component":"startup"}}
+2025-11-23 05:28:15 [INFO] [CASCADE] 🚀 Ініціалізую контроль над модулем Вічність... {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE-DEBUG] 🔍 Initializing Codestral: copilot-gpt-4o {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE-DEBUG] 📍 Endpoint: http://localhost:4000/v1 {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE] 🎨 Codestral API initialized - готовий до аналізу коду {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🧠 Dynamic Prompt Injector initialized - Система свідомості активна {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🚀 Self-Improvement Engine initialized - Готовий до автономної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🚫 [NEXUS-REGISTRY] Ollama моделі виключені з самовдосконалення (працюють тільки для TASK/CHAT) {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🎯 [NEXUS-REGISTRY] Ініціалізовано реєстр моделей {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] Multi-Model Orchestrator initialized with real API integration {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] ✅ Connected to Cascade Controller for Windsurf models {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [ETERNITY] ✅ MCP Manager підключено {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [ETERNITY] ✅ SelfImprovementEngine підключено {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🧠 [NEXUS-AUTONOMOUS] Завантажено попередній стан. Рівень еволюції: 4.6000000000000005 {"metadata":{}}
+2025-11-23 05:28:15 [INFO] 🔄 [NEXUS-AUTONOMOUS] Постійний цикл самоаналізу активовано (кожні 10 хв + моніторинг помилок 30с) {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✨ ETERNITY: Я готовий до вічної еволюції {"metadata":{}}
+2025-11-23 05:28:15 [INFO] startup {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✅ [SELF-IMPROVEMENT] Nexus Multi-Model Orchestrator активовано для реального виконання змін {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:28:15 [INFO] ✅ [NEXUS-REGISTRY] Автономне оновлення моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] ✅ Автономний реєстр моделей активовано {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [NEXUS] 🌟 СИСТЕМА ВІЧНОСТІ АКТИВОВАНА - завжди знайду робочу модель {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE] 📝 Контекст додано в динамічні промпти {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE] 👁️ Моніторинг запущено (інтервал: 60000ms) {"metadata":{}}
+2025-11-23 05:28:15 [INFO] [CASCADE] ✅ Контроль встановлено успішно {"metadata":{"codestral":true,"vision":true,"autonomous":true}}
+2025-11-23 05:28:15 [INFO] startup {"metadata":{}}
+2025-11-23 05:28:41 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-23 05:28:41 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-23 05:32:40 [WARN] [mcp-server] [MCP windsurf] Process exited (code: null, signal: SIGTERM) {"metadata":{"category":"mcp-server"}}
+2025-11-23 05:33:11 [INFO] [AUTO-CORRECTION] 🔍 Starting automatic check... {"metadata":{}}
+2025-11-23 05:33:11 [INFO] [AUTO-CORRECTION] No auto-fixable issues found {"metadata":{}}
+2025-11-23 05:33:12 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:12 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:13 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:13 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] [NEXUS-REGISTRY] Отримую список доступних моделей... {"metadata":{}}
+2025-11-23 05:33:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:15 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:16 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}
+2025-11-23 05:33:16 [INFO] ✅ [NEXUS-REGISTRY] Отримано 76 моделей: {"metadata":{}}

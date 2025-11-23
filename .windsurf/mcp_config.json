@@ -1,10 +1,22 @@
 {
   "mcpServers": {
+    "GitKraken": {
+      "args": [
+        "mcp",
+        "--host=windsurf",
+        "--source=gitlens",
+        "--scheme=windsurf"
+      ],
+      "command": "/Users/dev/Library/Application Support/Windsurf/User/globalStorage/eamodio.gitlens/gk",
+      "type": "stdio"
+    },
     "codemap": {
-      "command": "python3",
+      "command": "/Users/dev/Documents/GitHub/atlas4/codemap-system/venv/bin/python3",
       "args": [
         "/Users/dev/Documents/GitHub/atlas4/codemap-system/windsurf/mcp_architecture_server.py"
       ],
+      "disabled": false,
+      "type": "stdio",
       "env": {
         "PYTHONPATH": "/Users/dev/Documents/GitHub/atlas4/codemap-system",
         "PROJECT_ROOT": "/Users/dev/Documents/GitHub/atlas4",

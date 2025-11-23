@@ -1,0 +1,56 @@
+{
+    "exclude_dirs": {
+        "system": [
+            "node_modules",
+            "__pycache__",
+            ".git",
+            ".venv",
+            "dist",
+            "build",
+            ".cache",
+            ".idx",
+            ".vscode",
+            ".DS_Store",
+            ".pytest_cache",
+            "venv",
+            "env",
+            ".nyc_output",
+            ".next",
+            ".nuxt"
+        ],
+        "archive": [
+            "archive",
+            ".archive",
+            "backups",
+            "legacy-archive",
+            "old"
+        ],
+        "self": [
+            "codemap-system"
+        ]
+    },
+    "file_extensions": [
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".py",
+        ".java",
+        ".cpp",
+        ".go"
+    ],
+    "analysis_settings": {
+        "max_depth": 5,
+        "min_file_size": 100,
+        "max_file_size": 1000000,
+        "deprecated_threshold_days": 90,
+        "parallel_workers": 8
+    },
+    "comments": {
+        "exclude_dirs": "Папки, які виключаються з аналізу (ТІЛЬКИ системні, кешовані та архівні!)",
+        "system": "Системні та кешовані директорії (npm, python, git, build, тощо)",
+        "archive": "Архівні та старі версії файлів (legacy, backup, old, тощо)",
+        "self": "Сама папка де працює програма (не аналізуємо себе)",
+        "note": "Все інше аналізується: services, scripts, config, tests, web, data, prompts, models, orchestrator, ukrainian-tts, тощо"
+    }
+}

@@ -33,3 +33,4 @@ pytest-cov==4.1.0
 
 # MCP & Protocol
 jsonschema==4.19.0
+mcp==1.0.0

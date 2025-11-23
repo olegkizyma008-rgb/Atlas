@@ -254,6 +254,9 @@ export class Application {
      */
     async start() {
         try {
+            // Initialize logger first
+            this.logger = logger;
+
             this.logger.debug('startup', 'Application.start() called');
 
             // 1. Initialize services
@@ -326,10 +329,15 @@ export class Application {
 
             this.logger.system('startup', '✅ ATLAS Orchestrator fully initialized with DI Container');
         } catch (error) {
-            this.logger.error('Application startup failed', {
-                error: error.message,
-                stack: error.stack
-            });
+            if (this.logger && this.logger.error) {
+                this.logger.error('Application startup failed', {
+                    error: error.message,
+                    stack: error.stack
+                });
+            } else {
+                console.error('Application startup failed:', error.message);
+                console.error('Stack:', error.stack);
+            }
             throw error;
         }
     }

@@ -14,6 +14,11 @@ from datetime import datetime
 from collections import defaultdict
 from dotenv import load_dotenv
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
+import asyncio
+from tqdm import tqdm
+import sys
 
 # Налаштування логування
 logging.basicConfig(
@@ -67,7 +72,7 @@ class ArchitectureMapper:
         self.deprecated_threshold_days = int(os.environ.get('DEPRECATED_THRESHOLD_DAYS', 90))
     
     def analyze_architecture(self, max_depth: Optional[int] = None) -> Dict[str, Any]:
-        """Аналізувати архітектуру системи"""
+        """Аналізувати архітектуру системи асинхронно з прогресом"""
         if max_depth is None:
             max_depth = self.max_depth
         
@@ -75,36 +80,66 @@ class ArchitectureMapper:
         
         # Знаходимо всі файли
         workflow_files = self._find_workflow_files()
-        logger.info(f"   📁 Знайдено {len(workflow_files)} файлів")
+        logger.info(f"📊 Всього файлів: {len(workflow_files)}")
         
-        # Аналізуємо файли
-        for file_path in workflow_files:
-            self._analyze_file(file_path, depth=0, max_depth=max_depth)
+        # Аналізуємо файли паралельно з прогрес-баром
+        num_workers = min(8, multiprocessing.cpu_count())
+        logger.info(f"⚙️  Використовуємо {num_workers} worker потоків")
+        
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = {
+                executor.submit(self._analyze_file, file_path, 0, max_depth): file_path 
+                for file_path in workflow_files
+            }
+            
+            # Прогрес-бар для моніторингу
+            with tqdm(total=len(futures), desc="📈 Аналіз файлів", unit="файл", 
+                     bar_format='{desc}: {percentage:3.0f}% |{bar}| {n_fmt}/{total_fmt}') as pbar:
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                        pbar.update(1)
+                    except Exception as e:
+                        logger.warning(f"❌ Помилка при аналізі: {e}")
+                        pbar.update(1)
+        
+        logger.info(f"✅ Проаналізовано {len(self.files_cache)} файлів")
         
         # Визначаємо статуси
+        logger.info("🔍 Визначення статусів файлів...")
         self._determine_file_status()
         
         # Знаходимо циклічні залежності
+        logger.info("🔄 Пошук циклічних залежностей...")
         cycles = self._detect_circular_dependencies()
         logger.info(f"   🔄 Знайдено {len(cycles)} циклічних залежностей")
         
         # Будуємо архітектурну карту
+        logger.info("🏗️  Побудова архітектурної карти...")
         architecture = self._build_architecture_map(max_depth, cycles)
         
-        logger.info("✅ Аналіз завершено")
+        logger.info("✅ Аналіз завершено!")
         return architecture
     
     def _find_workflow_files(self) -> List[Path]:
-        """Знайти всі файли проекту для аналізу"""
+        """Знайти всі файли проекту для аналізу (весь atlas4 крім codemap-system)"""
         files = []
         extensions = {'.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.cpp', '.go'}
+        # Виключаємо ТІЛЬКИ системні, кешовані та архівні директорії
         exclude_dirs = {
+            # Системні та кешовані
             'node_modules', '__pycache__', '.git', '.venv', 'dist', 'build',
-            'archive', '.archive', 'backups', '.cache', '.idx', '.vscode',
-            '.DS_Store', '.pytest_cache', 'venv', 'env', 'docs', 'logs', 'reports',
+            '.cache', '.idx', '.vscode', '.DS_Store', '.pytest_cache',
+            'venv', 'env', '.nyc_output', '.next', '.nuxt',
+            
+            # Архівні та старі версії (ТІЛЬКИ архіви!)
+            'archive', '.archive', 'backups', 'legacy-archive', 'old',
+            
+            # Сама папка де працює програма
             'codemap-system'
         }
         
+        logger.info("🔎 Пошук файлів для аналізу...")
         for file_path in self.analysis_root.rglob('*'):
             if file_path.is_dir():
                 continue
@@ -127,10 +162,13 @@ class ArchitectureMapper:
                 except:
                     pass
         
-        return sorted(files)
+        # Повертаємо ВСІ файли (без обмеження)
+        sorted_files = sorted(files)
+        logger.info(f"📁 Знайдено {len(sorted_files)} файлів для аналізу")
+        return sorted_files
     
     def _analyze_file(self, file_path: Path, depth: int = 0, max_depth: int = 5):
-        """Аналізувати файл рекурсивно"""
+        """Аналізувати файл рекурсивно (асинхронна версія)"""
         if depth > max_depth:
             return
         
@@ -143,45 +181,49 @@ class ArchitectureMapper:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
         except Exception as e:
-            logger.warning(f"Error reading {file_path}: {e}")
+            logger.debug(f"❌ Помилка читання {file_path}: {e}")
             return
         
-        # Витягуємо інформацію про файл
-        file_info = {
-            'path': file_key,
-            'size': len(content),
-            'lines': len(content.split('\n')),
-            'depth': depth,
-            'imports': self._extract_imports(content, file_path),
-            'exports': self._extract_exports(content),
-            'functions': self._extract_functions(content),
-            'classes': self._extract_classes(content),
-            'dependencies': set(),
-            'dependents': set(),
-            'last_modified': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(),
-            'status': FileStatus.ACTIVE,
-        }
+        # Витягуємо інформацію про файл асинхронно
+        try:
+            file_info = {
+                'path': file_key,
+                'size': len(content),
+                'lines': len(content.split('\n')),
+                'depth': depth,
+                'imports': self._extract_imports(content, file_path),
+                'exports': self._extract_exports(content),
+                'functions': self._extract_functions(content),
+                'classes': self._extract_classes(content),
+                'dependencies': set(),
+                'dependents': set(),
+                'last_modified': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(),
+                'status': FileStatus.ACTIVE,
+            }
+            
+            # Знаходимо залежності
+            for import_path in file_info['imports']:
+                dep_path = self._resolve_import(file_path, import_path)
+                if dep_path:
+                    try:
+                        dep_key = str(dep_path.relative_to(self.project_root))
+                        file_info['dependencies'].add(dep_key)
+                        self.dependencies[file_key].add(dep_key)
+                        self.reverse_dependencies[dep_key].add(file_key)
+                    except ValueError:
+                        pass
+            
+            self.files_cache[file_key] = file_info
+            
+            # Рекурсивно аналізуємо залежності на наступній глибині
+            if depth < max_depth:
+                for dep_key in file_info['dependencies']:
+                    dep_path = self.project_root / dep_key
+                    if dep_path.exists() and dep_path.is_file():
+                        self._analyze_file(dep_path, depth + 1, max_depth)
         
-        # Знаходимо залежності
-        for import_path in file_info['imports']:
-            dep_path = self._resolve_import(file_path, import_path)
-            if dep_path:
-                try:
-                    dep_key = str(dep_path.relative_to(self.project_root))
-                    file_info['dependencies'].add(dep_key)
-                    self.dependencies[file_key].add(dep_key)
-                    self.reverse_dependencies[dep_key].add(file_key)
-                except ValueError:
-                    pass
-        
-        self.files_cache[file_key] = file_info
-        
-        # Рекурсивно аналізуємо залежності
-        if depth < max_depth:
-            for dep_key in file_info['dependencies']:
-                dep_path = self.project_root / dep_key
-                if dep_path.exists():
-                    self._analyze_file(dep_path, depth + 1, max_depth)
+        except Exception as e:
+            logger.debug(f"⚠️  Помилка при аналізі {file_key}: {e}")
     
     def _extract_imports(self, content: str, file_path: Path) -> List[str]:
         """Витягти імпорти з файлу"""
@@ -282,11 +324,7 @@ class ArchitectureMapper:
                 test_path = Path(str(resolved) + ext) if not resolved.suffix else resolved
                 if test_path.exists():
                     return test_path
-        else:
-            for possible_path in self.project_root.rglob(f"{import_path}*"):
-                if possible_path.is_file() and possible_path.suffix in ['.js', '.ts', '.py']:
-                    return possible_path
-        
+        # Пропускаємо пошук для зовнішніх модулів (занадто повільно)
         return None
     
     def _determine_file_status(self):

@@ -1,0 +1,4 @@
+# Legacy Configuration
+
+Застарілі конфігурації
+

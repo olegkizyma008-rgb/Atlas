@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-11-23T02:42:58.778003",
+  "categories": {
+    "core": {
+      "description": "Основні конфігурації системи",
+      "count": 3,
+      "files": [
+        "global-config.js",
+        "agents-config.js",
+        "atlas-config.js"
+      ]
+    },
+    "environments": {
+      "description": "Конфігурації середовищ",
+      "count": 0,
+      "files": []
+    },
+    "features": {
+      "description": "Конфігурації функцій",
+      "count": 0,
+      "files": []
+    },
+    "legacy": {
+      "description": "Застарілі конфігурації",
+      "count": 13,
+      "files": [
+        "web-config.js",
+        "index.js",
+        "security-config.js",
+        "mcp-registry.js",
+        "localization-config.js",
+        "models-config.js",
+        "dynamic-config.js",
+        "system-config.js",
+        "windsurf-integration.js",
+        "config-cache.js",
+        "app-mappings.js",
+        "validation-config.js",
+        "workflow-config.js"
+      ]
+    },
+    "services": {
+      "description": "Конфігурації сервісів",
+      "count": 2,
+      "files": [
+        "cascade-api-config.js",
+        "api-config.js"
+      ]
+    }
+  },
+  "total_configs": 18
+}

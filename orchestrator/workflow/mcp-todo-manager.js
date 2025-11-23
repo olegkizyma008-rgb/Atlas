@@ -11,17 +11,10 @@
 import HierarchicalIdManager from './utils/hierarchical-id-manager.js';
 import { MCP_PROMPTS } from '../../prompts/mcp/index.js';
 import GlobalConfig from '../../config/atlas-config.js';
-import { MCP_MODEL_CONFIG } from '../../config/models-config.js';
-import LocalizationService from '../services/localization-service.js';
-import { VisualCaptureService } from '../services/visual-capture-service.js';
-import { getMacOSAppName, getFilePath } from '../../config/app-mappings.js';
-import { ValidationPipeline } from '../ai/validation/validation-pipeline.js';
-import { postToLLM } from '../utils/llm-api-client.js';
-import adaptiveThrottler from '../utils/adaptive-request-throttler.js';
 import { logExecution, logWithContext } from './utils/logging-middleware.js';
-import { IdGenerator } from './utils/id-generator.js';
-import { ErrorHandler } from './utils/error-handler.js';
-import axios from 'axios';
+import { MCPExecutor } from './mcp-executor.js';
+import { MCPVerifier } from './mcp-verifier.js';
+import { MCPErrorHandler } from './mcp-error-handler.js';
 
 /**
  * @typedef {Object} TodoItem
@@ -83,42 +76,33 @@ export class MCPTodoManager {
   constructor(options = {}) {
     this.logger = options.logger || console;
     this.mcpManager = options.mcpManager;
-    this.diContainer = options.diContainer;
     this.llmClient = options.llmClient;
-    this.localizationService = options.localizationService || new LocalizationService({ logger: this.logger });
     this.wsManager = options.wsManager;
     this.ttsSyncManager = options.ttsSyncManager;
     this.idManager = HierarchicalIdManager;
-
-    // Use adaptive throttler for API calls (consolidated rate limiter)
-    this.rateLimiter = adaptiveThrottler;
-
-    // Store MCP_MODEL_CONFIG reference (imported at top of file)
-    this.mcpModelConfig = MCP_MODEL_CONFIG;
     this.hierarchicalIdManager = new HierarchicalIdManager();
-    this.lastApiCall = 0;
-    this.minApiDelay = 100; // Minimum delay between API calls in ms
 
     // Active TODO lists storage
     this.activeTodos = new Map();
 
-    // Visual capture service (shared for all items)
-    this.visualCapture = null;
+    // Initialize sub-modules
+    this.executor = new MCPExecutor({
+      mcpManager: this.mcpManager,
+      logger: this.logger
+    });
 
-    // ADDED 2025-10-29: ValidationPipeline with self-correction
-    // Implements advanced validation from refactor.md
-    this.validationPipeline = null;
-    if (this.mcpManager && this.llmClient) {
-      try {
-        this.validationPipeline = new ValidationPipeline({
-          mcpManager: this.mcpManager,
-          llmClient: this.llmClient
-        });
-        this.logger.system('mcp-todo', '✅ ValidationPipeline with self-correction enabled');
-      } catch (error) {
-        this.logger.warn('mcp-todo', `Failed to initialize ValidationPipeline: ${error.message}`);
-      }
-    }
+    this.verifier = new MCPVerifier({
+      mcpManager: this.mcpManager,
+      llmClient: this.llmClient,
+      ttsSyncManager: this.ttsSyncManager,
+      logger: this.logger
+    });
+
+    this.errorHandler = new MCPErrorHandler({
+      logger: this.logger
+    });
+
+    this.logger.info('mcp-todo', '✅ MCPTodoManager initialized with sub-modules');
   }
 
   /**

@@ -30,17 +30,8 @@ import { logger } from './core/logger.js';
 import { AGENTS } from './core/config.js';
 import { orchestratorClient } from './core/api-client.js';
 import atlasWebSocket from './core/websocket-client.js';
-import { ChatManager } from './modules/chat-manager.js';
-import { initializeAtlasVoice } from './voice-control/atlas-voice-integration.js';
-import { ConversationModeManager } from './voice-control/conversation-mode-manager.js';
 import { eventManager, Events as VoiceEvents } from './voice-control/events/event-manager.js';
-import { AtlasAdvancedUI } from './components/ui/atlas-advanced-ui.js';
-import { AnimatedLoggingSystem } from './components/logging/animated-logging.js';
-import { AtlasTTSVisualization } from './components/tts/atlas-tts-visualization.js';
-import { AtlasGLBLivingSystem } from './components/model3d/atlas-glb-living-system.js';
-import { AtlasLivingBehaviorEnhanced } from './components/model3d/atlas-living-behavior-enhanced.js';
-import { AtlasInteractivePersonality } from './components/model3d/atlas-interactive-personality.js';
-import { DevPasswordHandler } from './modules/dev-password-handler.js';
+import AppComponentLoader from './app-component-loader.js';
 
 // ✅ КРИТИЧНО: Експортуємо eventManager в window для доступу з TTS та інших модулів
 // Це потрібно зробити ОДРАЗУ після імпорту, до будь-якої ініціалізації
@@ -54,21 +45,22 @@ class AtlasApp {
     this.isInitialized = false;
     this.pageLoadId = `load_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
+    // Initialize component loader
+    this.componentLoader = new AppComponentLoader({
+      logger: this.logger,
+      config: {
+        chat: {},
+        voice: {},
+        conversation: {},
+        ui: {},
+        tts: {},
+        model3d: {},
+        logging: {}
+      }
+    });
+
     this.managers = {
-      chat: null,
-      status: null,
-      logger: null,
-      voiceControl: null,
-      conversationMode: null,
-      advancedUI: null,
-      loggingSystem: null,
-      model3D: null,
-      livingBehavior: null,
-      glbLivingSystem: null,
-      ttsVisualization: null,
-      interactivePersonality: null,
-      webSocket: atlasWebSocket,
-      devPasswordHandler: null
+      webSocket: atlasWebSocket
     };
 
     this.voiceControlSubscriptions = [];
@@ -80,13 +72,14 @@ class AtlasApp {
     this.logger.info(`🚀 ATLAS APP INIT: ${this.pageLoadId}`);
 
     try {
-      // Ініціалізуємо менеджери в правильному порядку
-      await this.initializeManagers();
+      // Load all components using the component loader
+      const components = await this.componentLoader.loadAll();
+      this.managers = { ...this.managers, ...components };
 
-      // Налаштовуємо UI
+      // Setup UI
       this.setupUI();
 
-      // Налаштовуємо глобальні обробники
+      // Setup global handlers
       this.setupGlobalHandlers();
 
       this.isInitialized = true;
@@ -205,7 +198,7 @@ class AtlasApp {
     this.logger.info('💬 Initializing Chat Manager...');
     this.managers.chat = new ChatManager();
     await this.managers.chat.init();
-    
+
     // 7.1 Ініціалізуємо Interactive Personality для живої поведінки
     if (this.managers.glbLivingSystem) {
       this.logger.info('🧠 Initializing Interactive Personality...');
@@ -396,7 +389,7 @@ class AtlasApp {
         }
       }
     });
-    
+
     // Підключаємось
     this.managers.webSocket.connect();
   }
